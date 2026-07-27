@@ -19,6 +19,7 @@ export function ProductCard({ style, tier }: { style: Style; tier: PricingTierId
         <StylePlate
           swatch={style.colorways[0].swatch}
           styleNumber={style.styleNumber}
+          imageUrl={style.primaryImageUrl}
           className="aspect-[4/3] w-full transition-transform duration-500 ease-out group-hover:scale-[1.04]"
           dense
         />

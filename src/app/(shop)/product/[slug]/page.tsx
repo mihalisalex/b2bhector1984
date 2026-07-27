@@ -1,18 +1,15 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { CATEGORY_LABEL, GENDER_LABEL, STYLES, getStyleBySlug } from "@/lib/data/styles";
+import { CATEGORY_LABEL, GENDER_LABEL, getStyleBySlug } from "@/lib/data/styles";
+import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { getCurrentAccount } from "@/lib/session";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
 import { MatrixOrderGrid } from "@/components/matrix/MatrixOrderGrid";
 
-export function generateStaticParams() {
-  return STYLES.map((s) => ({ slug: s.slug }));
-}
-
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const style = getStyleBySlug(slug);
+  const style = await getStyleBySlug(slug);
   return {
     title: style ? style.name : "Style",
     description: style?.tagline,
@@ -22,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const style = getStyleBySlug(slug);
+  const style = await getStyleBySlug(slug);
   if (!style) notFound();
 
   const account = await getCurrentAccount();
@@ -45,6 +42,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <StylePlate
             swatch={style.colorways[0].swatch}
             styleNumber={style.styleNumber}
+            imageUrl={style.primaryImageUrl}
             className="aspect-[4/3] w-full"
           />
           <div className="mt-4 grid grid-cols-4 gap-2">
@@ -76,7 +74,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <Spec label="Materials" value={style.materials.join(", ")} wide />
             <Spec label="Weight" value={`${style.weightOz} oz`} />
             <Spec label="MSRP" value={`$${style.msrp.toFixed(2)}`} />
-            <Spec label="Sold as" value="8 / 10 / 12-pair boxes" />
+            <Spec label="Sold as" value={`${getAvailableBoxTypes(style).map((b) => b.totalPairs).join(" / ")}-pair boxes`} />
           </dl>
 
           {style.lastNote && (

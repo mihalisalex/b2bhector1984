@@ -1,4 +1,4 @@
-import type { BoxType, BoxTypeId } from "@/lib/types";
+import type { BoxType, BoxTypeId, Style } from "@/lib/types";
 
 /**
  * Every style ships in the same three pre-pack box configurations — wholesale
@@ -35,6 +35,11 @@ export function getBoxType(id: BoxTypeId): BoxType {
   const box = BOX_TYPES.find((b) => b.id === id);
   if (!box) throw new Error(`Unknown box type: ${id}`);
   return box;
+}
+
+/** Not every style ships in all three box sizes — filter down to what this style actually offers. */
+export function getAvailableBoxTypes(style: Style): BoxType[] {
+  return BOX_TYPES.filter((b) => style.availableBoxTypes.includes(b.id));
 }
 
 /** Combined per-size pair count across a set of {boxTypeId: qty}. */

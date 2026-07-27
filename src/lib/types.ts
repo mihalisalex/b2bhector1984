@@ -10,6 +10,8 @@ export type AccountStatus = "pending" | "approved" | "active" | "declined";
 
 export type CreditTerms = "prepay" | "net30" | "net60";
 
+export type AccountRole = "buyer" | "admin";
+
 export interface PriceBreak {
   minUnits: number;
   /** Multiplier applied to the style's base (standard-tier) unit price. */
@@ -59,6 +61,10 @@ export interface Style {
   tierEligibility: PricingTierId[];
   weightOz: number;
   lastNote: string;
+  /** Public URL of the admin-uploaded primary product photo, if any. */
+  primaryImageUrl?: string;
+  /** Which of the 3 fixed box sizes this style is sold in — not every style offers all three. */
+  availableBoxTypes: BoxTypeId[];
 }
 
 export interface PricingTier {
@@ -108,6 +114,7 @@ export interface Account {
   approvedAt?: string;
   shipTo: ShipToAddress[];
   rep: SalesRep;
+  role: AccountRole;
 }
 
 export interface OrderLine {
@@ -142,6 +149,7 @@ export interface Order {
 export type ApplicationStatus = "pending" | "approved" | "active" | "declined";
 
 export interface Application {
+  id: string;
   businessName: string;
   contactName: string;
   email: string;

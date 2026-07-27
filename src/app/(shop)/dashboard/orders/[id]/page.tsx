@@ -31,6 +31,10 @@ export default async function OrderDetailPage({
   const shipTo = account.shipTo.find((s) => s.id === order.shipToId);
   const { total, totalBoxes, totalPairs } = summarizeOrder(order);
 
+  const uniqueStyleIds = Array.from(new Set(order.lines.map((l) => l.styleId)));
+  const styleEntries = await Promise.all(uniqueStyleIds.map(async (sid) => [sid, await getStyleById(sid)] as const));
+  const styleById = new Map(styleEntries);
+
   return (
     <div className="mx-auto max-w-[1000px] px-6 py-8 lg:px-10">
       {justPlaced === "1" && <ClearCartOnMount />}
@@ -41,7 +45,8 @@ export default async function OrderDetailPage({
 
       {justPlaced === "1" && (
         <div className="mb-6 border border-positive/40 bg-positive-100 px-4 py-3 text-sm text-positive print:hidden">
-          Order submitted. {account.rep.name} will confirm inventory and reach out if anything needs adjusting.
+          Proforma invoice generated — this isn&rsquo;t a charge. {account.rep.name} will confirm stock and
+          production before it proceeds.
         </div>
       )}
 
@@ -85,7 +90,7 @@ export default async function OrderDetailPage({
           </thead>
           <tbody>
             {order.lines.map((line, i) => {
-              const style = getStyleById(line.styleId);
+              const style = styleById.get(line.styleId);
               const colorway = style?.colorways.find((c) => c.id === line.colorwayId);
               const box = getBoxType(line.boxTypeId);
               const lineTotal = line.qty * box.totalPairs * line.unitPrice;

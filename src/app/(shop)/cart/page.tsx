@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { useCart } from "@/lib/cart-context";
-import { getStyleById } from "@/lib/data/styles";
+import { useCatalog } from "@/lib/catalog-context";
 import { getBoxType } from "@/lib/data/boxTypes";
 import { formatUSD, validateMatrix } from "@/lib/pricing";
 import type { BoxTypeId } from "@/lib/types";
@@ -12,6 +12,7 @@ import { StylePlate } from "@/components/product/StylePlate";
 
 export default function CartPage() {
   const { lines, tier, setLineQty, removeStyle, cartTotal } = useCart();
+  const { getStyleById } = useCatalog();
 
   const styleIds = useMemo(() => Array.from(new Set(lines.map((l) => l.styleId))), [lines]);
 
@@ -49,7 +50,11 @@ export default function CartPage() {
           return (
             <div key={styleId} className="border border-stone-300 bg-white">
               <div className="flex items-center gap-4 border-b border-stone-200 p-4">
-                <StylePlate swatch={style.colorways[0].swatch} className="h-16 w-20 shrink-0" />
+                <StylePlate
+                  swatch={style.colorways[0].swatch}
+                  imageUrl={style.primaryImageUrl}
+                  className="h-16 w-20 shrink-0"
+                />
                 <div className="min-w-0 flex-1">
                   <Link href={`/product/${style.slug}`} className="font-display text-base font-bold uppercase text-ink hover:underline">
                     {style.name}

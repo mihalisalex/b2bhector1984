@@ -7,7 +7,7 @@ export function PrintButton() {
       onClick={() => window.print()}
       className="bg-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85"
     >
-      Print / Save Invoice
+      Print / Save Proforma Invoice
     </button>
   );
 }

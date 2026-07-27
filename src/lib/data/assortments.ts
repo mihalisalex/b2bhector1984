@@ -1,31 +1,35 @@
+import "server-only";
+import { supabaseAdmin } from "@/lib/supabase/server";
 import type { SavedAssortment } from "@/lib/types";
 
-export const ASSORTMENTS: Record<string, SavedAssortment[]> = {
-  "acct-001": [
-    {
-      id: "asrt-1",
-      name: "Fall Reorder Wall",
-      createdAt: "2026-06-15",
-      styleIds: ["st-01", "st-07", "st-02"],
-    },
-    {
-      id: "asrt-2",
-      name: "New Door Opener Kit",
-      createdAt: "2026-07-01",
-      styleIds: ["st-06", "st-10", "st-09"],
-    },
-  ],
-  "acct-002": [
-    {
-      id: "asrt-1",
-      name: "Flagship Store Reset",
-      createdAt: "2026-05-20",
-      styleIds: ["st-11", "st-07", "st-12", "st-01"],
-    },
-  ],
-  "acct-003": [],
-};
+export async function getAssortmentsForAccount(accountId: string): Promise<SavedAssortment[]> {
+  const { data: assortmentRows, error } = await supabaseAdmin
+    .from("saved_assortments")
+    .select("*")
+    .eq("account_id", accountId)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(`saved_assortments: ${error.message}`);
+  if (!assortmentRows || assortmentRows.length === 0) return [];
 
-export function getAssortmentsForAccount(accountId: string): SavedAssortment[] {
-  return ASSORTMENTS[accountId] ?? [];
+  const { data: styleRows, error: styleError } = await supabaseAdmin
+    .from("saved_assortment_styles")
+    .select("assortment_id, style_id")
+    .in(
+      "assortment_id",
+      assortmentRows.map((a) => a.id),
+    );
+  if (styleError) throw new Error(`saved_assortment_styles: ${styleError.message}`);
+
+  const stylesByAssortment = new Map<string, string[]>();
+  for (const row of styleRows ?? []) {
+    if (!stylesByAssortment.has(row.assortment_id)) stylesByAssortment.set(row.assortment_id, []);
+    stylesByAssortment.get(row.assortment_id)!.push(row.style_id);
+  }
+
+  return assortmentRows.map((a) => ({
+    id: a.id,
+    name: a.name,
+    createdAt: a.created_at,
+    styleIds: stylesByAssortment.get(a.id) ?? [],
+  }));
 }

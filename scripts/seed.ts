@@ -8,12 +8,9 @@ import { config } from "dotenv";
 config({ path: ".env.local" });
 
 import { createClient } from "@supabase/supabase-js";
-import { STYLES } from "../src/lib/data/styles";
-import { ACCOUNTS } from "../src/lib/data/accounts";
-import { ORDERS } from "../src/lib/data/orders";
+import { STYLES, ACCOUNTS, ORDERS, ASSORTMENTS } from "./seedData";
 import { PRICING_TIERS } from "../src/lib/data/pricingTiers";
 import { BOX_TYPES } from "../src/lib/data/boxTypes";
-import { ASSORTMENTS } from "../src/lib/data/assortments";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;

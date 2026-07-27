@@ -1,42 +1,60 @@
 import Link from "next/link";
-import { STYLES, CATEGORY_LABEL } from "@/lib/data/styles";
+import { getAllStyles, CATEGORY_LABEL } from "@/lib/data/styles";
 import { LinkButton } from "@/components/ui/Button";
 import { StylePlate } from "@/components/product/StylePlate";
 import { ScoreboardStrip } from "@/components/marketing/ScoreboardStrip";
 
-export default function HomePage() {
+export default async function HomePage() {
   const categories: Array<"running" | "court" | "trail"> = ["running", "court", "trail"];
+  const styles = await getAllStyles();
 
   return (
     <div>
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-stone-300 bg-ink">
-        <div className="mx-auto grid max-w-[1440px] grid-cols-1 items-center gap-10 px-6 py-20 lg:grid-cols-2 lg:px-10 lg:py-28">
+        <div className="mx-auto grid max-w-[1440px] grid-cols-1 items-center gap-8 px-6 py-10 lg:grid-cols-2 lg:px-10 lg:py-14">
           <div>
             <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-stone-300/70">
               Wholesale — Est. 1984
             </span>
-            <h1 className="font-display mt-4 text-5xl font-bold uppercase leading-[0.95] tracking-tight text-white sm:text-6xl">
+            <h1 className="font-display mt-3 text-4xl font-bold uppercase leading-[0.95] tracking-tight text-white sm:text-5xl">
               Track-engineered
               <br />
               footwear for the
               <br />
               floor, not the feed.
             </h1>
-            <p className="mt-6 max-w-md text-base leading-relaxed text-stone-300/80">
+            <div className="mt-6 flex flex-wrap gap-3">
+              <LinkButton href="/apply" size="lg">Apply for Wholesale Access</LinkButton>
+              <LinkButton href="/login" variant="secondary" size="lg" className="!border-white !text-white hover:!bg-white hover:!text-ink">
+                Buyer Login
+              </LinkButton>
+            </div>
+            <p className="mt-6 max-w-md text-sm leading-relaxed text-stone-300/80">
               Hector 1984 has sold into independent run shops, court specialty, and outdoor
               retailers since the year we were founded. Same construction standards. Same
               retailers who reorder every season.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <LinkButton href="/apply" size="lg">Apply for Wholesale Access</LinkButton>
-              <LinkButton href="/collections" variant="secondary" size="lg" className="!border-white !text-white hover:!bg-white hover:!text-ink">
-                View the Collection
-              </LinkButton>
-            </div>
+            <Link href="/collections" className="mt-3 inline-block text-sm font-medium text-stone-300 underline underline-offset-2 hover:text-white">
+              View the collection first →
+            </Link>
           </div>
           <div className="relative hidden aspect-[4/3] lg:block">
             <StylePlate swatch={["#6b6560", "#e4e1d9"]} styleNumber="HR-1001" className="h-full w-full" />
+          </div>
+        </div>
+      </section>
+
+      {/* Easy steps to order, right up top for first-time buyers */}
+      <section className="border-b border-stone-300 bg-stone-100 py-10">
+        <div className="mx-auto max-w-[1440px] px-6 lg:px-10">
+          <p className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">
+            New here? Ordering takes three steps.
+          </p>
+          <div className="mt-5 grid grid-cols-1 gap-6 sm:grid-cols-3">
+            <QuickStep n="1" title="Apply" body="Tell us about your store — takes 2 minutes." href="/apply" cta="Apply now" />
+            <QuickStep n="2" title="Log in" body="Once approved, sign in to unlock pricing and MOQs." href="/login" cta="Buyer login" />
+            <QuickStep n="3" title="Order" body="Browse Quick Order or the Catalogue and check out." href="/quick-order" cta="Quick Order" />
           </div>
         </div>
       </section>
@@ -62,11 +80,11 @@ export default function HomePage() {
 
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
           {categories.map((cat) => {
-            const rep = STYLES.find((s) => s.category === cat)!;
-            const count = STYLES.filter((s) => s.category === cat).length;
+            const rep = styles.find((s) => s.category === cat)!;
+            const count = styles.filter((s) => s.category === cat).length;
             return (
               <Link key={cat} href={`/collections?category=${cat}`} className="group block border border-stone-300 bg-white">
-                <StylePlate swatch={rep.colorways[0].swatch} className="aspect-[4/3] w-full" />
+                <StylePlate swatch={rep.colorways[0].swatch} imageUrl={rep.primaryImageUrl} className="aspect-[4/3] w-full" />
                 <div className="p-5">
                   <h3 className="font-display text-lg font-bold uppercase tracking-tight text-ink group-hover:underline">
                     {CATEGORY_LABEL[cat]}
@@ -133,6 +151,35 @@ export default function HomePage() {
           </LinkButton>
         </div>
       </section>
+    </div>
+  );
+}
+
+function QuickStep({
+  n,
+  title,
+  body,
+  href,
+  cta,
+}: {
+  n: string;
+  title: string;
+  body: string;
+  href: string;
+  cta: string;
+}) {
+  return (
+    <div className="border border-stone-300 bg-white p-5">
+      <div className="flex items-center gap-3">
+        <span className="font-mono-tab flex h-8 w-8 shrink-0 items-center justify-center bg-ink text-sm font-semibold text-white">
+          {n}
+        </span>
+        <h3 className="font-display text-sm font-bold uppercase tracking-tight text-ink">{title}</h3>
+      </div>
+      <p className="mt-3 text-sm leading-relaxed text-ink-soft">{body}</p>
+      <Link href={href} className="mt-3 inline-block text-xs font-semibold uppercase tracking-wide text-signal hover:underline">
+        {cta} →
+      </Link>
     </div>
   );
 }

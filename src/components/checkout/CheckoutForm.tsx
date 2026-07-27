@@ -3,7 +3,7 @@
 import { useActionState, useMemo } from "react";
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
-import { getStyleById } from "@/lib/data/styles";
+import { useCatalog } from "@/lib/catalog-context";
 import { formatUSD, validateMatrix } from "@/lib/pricing";
 import { placeOrder, type CheckoutState } from "@/lib/actions";
 import type { Account, BoxTypeId } from "@/lib/types";
@@ -19,6 +19,7 @@ const initialState: CheckoutState = {};
 
 export function CheckoutForm({ account }: { account: Account }) {
   const { lines, tier, cartTotal } = useCart();
+  const { getStyleById } = useCatalog();
 
   const [state, formAction, pending] = useActionState(async (prev: CheckoutState, formData: FormData) => {
     formData.set("lines", JSON.stringify(lines));
@@ -152,10 +153,12 @@ export function CheckoutForm({ account }: { account: Account }) {
         )}
 
         <Button type="submit" size="lg" className="mt-5 w-full" disabled={pending}>
-          {pending ? "Submitting…" : "Submit Order"}
+          {pending ? "Requesting…" : "Request Proforma Invoice"}
         </Button>
         <p className="mt-3 text-center text-[11px] text-ink-soft">
-          Submitting sends this PO to {account.rep.name} for confirmation. You&rsquo;ll see it in{" "}
+          This isn&rsquo;t a charge — it sends this PO to {account.rep.name}{" "}
+          as a proforma invoice so we can check stock and production before confirming. You&rsquo;ll see it
+          in{" "}
           <Link href="/dashboard" className="underline">order history</Link> immediately.
         </p>
       </div>

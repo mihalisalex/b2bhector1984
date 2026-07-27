@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { getStyleById } from "@/lib/data/styles";
+import { useCatalog } from "@/lib/catalog-context";
 import { getBoxType } from "@/lib/data/boxTypes";
 import { getUnitPrice } from "@/lib/pricing";
 import type { BoxTypeId, PricingTierId } from "@/lib/types";
@@ -46,6 +46,7 @@ export function CartProvider({
   tier: PricingTierId;
   children: ReactNode;
 }) {
+  const { getStyleById } = useCatalog();
   const [lines, setLines] = useState<CartLine[]>([]);
   const [hydrated, setHydrated] = useState(false);
 

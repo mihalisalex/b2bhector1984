@@ -1,386 +1,149 @@
-import type { Style } from "@/lib/types";
+import "server-only";
+import { supabaseAdmin } from "@/lib/supabase/server";
+import { fromDbId, toNumber } from "@/lib/data/dbIds";
+import type { BoxTypeId, Colorway, PriceBreak, PricingTierId, Style } from "@/lib/types";
 
-const STANDARD_BREAKS = [
-  { minUnits: 1, multiplier: 1 },
-  { minUnits: 12, multiplier: 0.95 },
-  { minUnits: 36, multiplier: 0.9 },
-];
-
-const DEEP_BREAKS = [
-  { minUnits: 1, multiplier: 1 },
-  { minUnits: 12, multiplier: 0.94 },
-  { minUnits: 24, multiplier: 0.9 },
-  { minUnits: 48, multiplier: 0.85 },
-];
-
-export const STYLES: Style[] = [
-  {
-    id: "st-01",
-    slug: "meridian-84",
-    styleNumber: "HR-1001",
-    name: "Meridian '84",
-    category: "running",
-    gender: "unisex",
-    availability: "available",
-    tagline: "The flagship. Unchanged silhouette since the '84 trials.",
-    description:
-      "The style that put Hector on the starting line. A full-grain suede and ripstop nylon upper over the original wedge-cupsole geometry, resoled in a modern high-rebound EVA. Retailers reorder this one on a schedule.",
-    materials: ["Full-grain suede", "Ripstop nylon", "High-rebound EVA midsole", "Carbon rubber outsole"],
-    colorways: [
-      { id: "c1", name: "Cinder / Chalk", swatch: ["#6b6560", "#e4e1d9"], skuSuffix: "CIN" },
-      { id: "c2", name: "Signal Navy", swatch: ["#1e2a4a", "#e4e1d9"], skuSuffix: "NVY" },
-      { id: "c3", name: "Track Red", swatch: ["#a13322", "#1a1d22"], skuSuffix: "RED" },
-      { id: "c4", name: "Bone", swatch: ["#e9e4d8", "#a9a39a"], skuSuffix: "BON" },
-    ],
-    basePrice: 42,
-    msrp: 110,
-    priceBreaks: STANDARD_BREAKS,
-    moqBoxes: 3,
-    tierEligibility: ["standard", "preferred", "vip"],
-    weightOz: 10.4,
-    lastNote: "Reorders fastest in Cinder/Chalk. Keep 12+ deep on standing orders.",
-  },
-  {
-    id: "st-02",
-    slug: "trackman-low",
-    styleNumber: "HR-1014",
-    name: "Trackman Low",
-    category: "running",
-    gender: "mens",
-    availability: "available",
-    tagline: "The training shoe built for the guys who log the miles.",
-    description:
-      "A daily trainer with a firmer dual-density midsole and a mesh upper reinforced at the lateral break-point. Built for stores that serve run clubs, not just runway.",
-    materials: ["Engineered mesh", "TPU cage", "Dual-density EVA", "Blown rubber outsole"],
-    colorways: [
-      { id: "c1", name: "Graphite", swatch: ["#3a3d43", "#6b6560"], skuSuffix: "GRA" },
-      { id: "c2", name: "Signal / White", swatch: ["#1e48b8", "#ffffff"], skuSuffix: "SIG" },
-      { id: "c3", name: "Olive Field", swatch: ["#5c5c3f", "#e4e1d9"], skuSuffix: "OLV" },
-    ],
-    basePrice: 38,
-    msrp: 95,
-    priceBreaks: STANDARD_BREAKS,
-    moqBoxes: 2,
-    tierEligibility: ["standard", "preferred", "vip"],
-    weightOz: 9.8,
-    lastNote: "Strong sell-through with run-specialty accounts near college towns.",
-  },
-  {
-    id: "st-03",
-    slug: "vantage-runner",
-    styleNumber: "HR-1022",
-    name: "Vantage Runner",
-    category: "running",
-    gender: "womens",
-    availability: "available",
-    tagline: "Women's last, tuned narrower through the midfoot.",
-    description:
-      "Built on a dedicated women's last rather than a downsized men's mold. Same wedge-cupsole DNA as the Meridian, refined for a narrower midfoot and lower volume forefoot.",
-    materials: ["Suede overlays", "Perforated nylon", "High-rebound EVA midsole", "Carbon rubber outsole"],
-    colorways: [
-      { id: "c1", name: "Chalk / Cinder", swatch: ["#e4e1d9", "#6b6560"], skuSuffix: "CHK" },
-      { id: "c2", name: "Court Yellow", swatch: ["#e8b400", "#1a1d22"], skuSuffix: "CYL" },
-      { id: "c3", name: "Merlot", swatch: ["#5c2030", "#e4e1d9"], skuSuffix: "MER" },
-    ],
-    basePrice: 42,
-    msrp: 110,
-    priceBreaks: STANDARD_BREAKS,
-    moqBoxes: 3,
-    tierEligibility: ["standard", "preferred", "vip"],
-    weightOz: 8.9,
-    lastNote: "Court Yellow is a top-3 seller across every account this season.",
-  },
-  {
-    id: "st-04",
-    slug: "interval-sc",
-    styleNumber: "HR-1030",
-    name: "Interval SC",
-    category: "running",
-    gender: "unisex",
-    availability: "prebook",
-    shipWindow: "Ships March 2027",
-    tagline: "Suede classic. Built for the lifestyle wall, not the track.",
-    description:
-      "A lower-profile lifestyle read on the archive Interval trainer — full suede upper, gum outsole, minimal branding. This is the shoe for accounts building a heritage running wall.",
-    materials: ["Full suede upper", "Foam-backed collar", "EVA wedge midsole", "Gum rubber outsole"],
-    colorways: [
-      { id: "c1", name: "Cinder", swatch: ["#6b6560", "#c9a06a"], skuSuffix: "CIN" },
-      { id: "c2", name: "Ink", swatch: ["#1a1d22", "#c9a06a"], skuSuffix: "INK" },
-    ],
-    basePrice: 39,
-    msrp: 100,
-    priceBreaks: STANDARD_BREAKS,
-    moqBoxes: 2,
-    tierEligibility: ["standard", "preferred", "vip"],
-    weightOz: 10.1,
-    lastNote: "Pre-book only — limited suede allocation confirmed with mill for spring.",
-  },
-  {
-    id: "st-05",
-    slug: "relay-mid",
-    styleNumber: "HR-1041",
-    name: "Relay Mid",
-    category: "running",
-    gender: "unisex",
-    availability: "available",
-    tagline: "A mid-cut trainer for cold-weather run specialty.",
-    description:
-      "Same platform as the Trackman with an added ankle collar and water-resistant nylon upper for accounts in cold-weather markets.",
-    materials: ["Water-resistant ripstop", "Neoprene collar", "Dual-density EVA", "Lugged rubber outsole"],
-    colorways: [
-      { id: "c1", name: "Ink / Cinder", swatch: ["#1a1d22", "#6b6560"], skuSuffix: "INK" },
-      { id: "c2", name: "Ember", swatch: ["#c1451e", "#1a1d22"], skuSuffix: "EMB" },
-    ],
-    basePrice: 44,
-    msrp: 115,
-    priceBreaks: STANDARD_BREAKS,
-    moqBoxes: 2,
-    tierEligibility: ["preferred", "vip"],
-    weightOz: 11.6,
-    lastNote: "Preferred tier and above only this season — allocation is tight.",
-  },
-  {
-    id: "st-06",
-    slug: "pace-setter",
-    styleNumber: "HR-1055",
-    name: "Pace Setter",
-    category: "running",
-    gender: "unisex",
-    availability: "available",
-    tagline: "The value-tier opener for growing accounts.",
-    description:
-      "A simplified construction of the Trackman platform at an accessible price point — the shoe new accounts use to test sell-through before committing to deeper buys.",
-    materials: ["Mesh upper", "Single-density EVA", "Rubber outsole"],
-    colorways: [
-      { id: "c1", name: "Chalk", swatch: ["#e4e1d9", "#a9a39a"], skuSuffix: "CHK" },
-      { id: "c2", name: "Ink", swatch: ["#1a1d22", "#6b6560"], skuSuffix: "INK" },
-      { id: "c3", name: "Signal", swatch: ["#1e48b8", "#e4e1d9"], skuSuffix: "SIG" },
-    ],
-    basePrice: 29,
-    msrp: 75,
-    priceBreaks: STANDARD_BREAKS,
-    moqBoxes: 1,
-    tierEligibility: ["standard", "preferred", "vip"],
-    weightOz: 9.4,
-    lastNote: "Lowest MOQ in the line — good opener for a new account's first PO.",
-  },
-  {
-    id: "st-07",
-    slug: "baseline-pro",
-    styleNumber: "HC-2001",
-    name: "Baseline Pro",
-    category: "court",
-    gender: "unisex",
-    availability: "available",
-    tagline: "The original '84 court silhouette, rebuilt for concrete.",
-    description:
-      "Leather court shoe with a herringbone outsole pattern lifted from the original 1984 mold. Reads as a lifestyle shoe, performs as a court shoe.",
-    materials: ["Full-grain leather", "Herringbone rubber outsole", "EVA sockliner"],
-    colorways: [
-      { id: "c1", name: "Bone / Ink", swatch: ["#e9e4d8", "#1a1d22"], skuSuffix: "BON" },
-      { id: "c2", name: "Signal Navy", swatch: ["#1e2a4a", "#e9e4d8"], skuSuffix: "NVY" },
-      { id: "c3", name: "Court Yellow", swatch: ["#e8b400", "#1a1d22"], skuSuffix: "CYL" },
-      { id: "c4", name: "Ember", swatch: ["#c1451e", "#e9e4d8"], skuSuffix: "EMB" },
-    ],
-    basePrice: 41,
-    msrp: 105,
-    priceBreaks: STANDARD_BREAKS,
-    moqBoxes: 3,
-    tierEligibility: ["standard", "preferred", "vip"],
-    weightOz: 12.2,
-    lastNote: "Best sell-through of any court style. Reorder cadence is roughly 8 weeks.",
-  },
-  {
-    id: "st-08",
-    slug: "match-point",
-    styleNumber: "HC-2012",
-    name: "Match Point",
-    category: "court",
-    gender: "unisex",
-    availability: "available",
-    tagline: "Tennis-specific, built to outlast a season on hard court.",
-    description:
-      "A performance tennis build with a reinforced toe cap and a modified herringbone pattern for lateral grip. Sold into tennis specialty and resort pro shops.",
-    materials: ["Synthetic leather", "Reinforced toe cap", "PU midsole", "Durable rubber outsole"],
-    colorways: [
-      { id: "c1", name: "Chalk / Signal", swatch: ["#e4e1d9", "#1e48b8"], skuSuffix: "CHK" },
-      { id: "c2", name: "Ink", swatch: ["#1a1d22", "#a9a39a"], skuSuffix: "INK" },
-    ],
-    basePrice: 37,
-    msrp: 95,
-    priceBreaks: STANDARD_BREAKS,
-    moqBoxes: 2,
-    tierEligibility: ["standard", "preferred", "vip"],
-    weightOz: 11.8,
-    lastNote: "Toe-cap durability is the sell-in story — lead with that on the floor.",
-  },
-  {
-    id: "st-09",
-    slug: "volley-84",
-    styleNumber: "HC-2020",
-    name: "Volley '84",
-    category: "court",
-    gender: "womens",
-    availability: "available",
-    tagline: "The archive volleyball shoe, reissued.",
-    description:
-      "A low-top volleyball build from the archive, reissued on the women's last with a canvas-and-leather mix and gum outsole.",
-    materials: ["Canvas", "Leather overlays", "EVA midsole", "Gum rubber outsole"],
-    colorways: [
-      { id: "c1", name: "Bone", swatch: ["#e9e4d8", "#c9a06a"], skuSuffix: "BON" },
-      { id: "c2", name: "Merlot", swatch: ["#5c2030", "#e9e4d8"], skuSuffix: "MER" },
-      { id: "c3", name: "Ink", swatch: ["#1a1d22", "#c9a06a"], skuSuffix: "INK" },
-    ],
-    basePrice: 34,
-    msrp: 88,
-    priceBreaks: STANDARD_BREAKS,
-    moqBoxes: 2,
-    tierEligibility: ["standard", "preferred", "vip"],
-    weightOz: 9.1,
-    lastNote: "Skews lifestyle — carried well outside of team-sport accounts last season.",
-  },
-  {
-    id: "st-10",
-    slug: "deuce-court",
-    styleNumber: "HC-2033",
-    name: "Deuce Court",
-    category: "court",
-    gender: "unisex",
-    availability: "prebook",
-    shipWindow: "Ships January 2027",
-    tagline: "A cleaner, minimal read on Baseline Pro.",
-    description:
-      "Strips the Baseline Pro down to a single-material canvas upper with a vulcanized construction for a lower price point and a cleaner silhouette.",
-    materials: ["Canvas upper", "Vulcanized rubber construction"],
-    colorways: [
-      { id: "c1", name: "Chalk", swatch: ["#e4e1d9", "#a9a39a"], skuSuffix: "CHK" },
-      { id: "c2", name: "Ink", swatch: ["#1a1d22", "#6b6560"], skuSuffix: "INK" },
-    ],
-    basePrice: 27,
-    msrp: 70,
-    priceBreaks: STANDARD_BREAKS,
-    moqBoxes: 1,
-    tierEligibility: ["standard", "preferred", "vip"],
-    weightOz: 10.8,
-    lastNote: "Pre-book cutoff is tight — confirm quantities before the mill locks in November.",
-  },
-  {
-    id: "st-11",
-    slug: "sideline-high",
-    styleNumber: "HC-2041",
-    name: "Sideline High",
-    category: "court",
-    gender: "mens",
-    availability: "available",
-    tagline: "High-top basketball archive build.",
-    description:
-      "A high-top basketball silhouette from the archive with a padded collar and leather-and-nylon upper. Carried mostly by heritage basketball and streetwear accounts.",
-    materials: ["Leather", "Ballistic nylon", "Padded collar", "EVA midsole"],
-    colorways: [
-      { id: "c1", name: "Ink / Court Yellow", swatch: ["#1a1d22", "#e8b400"], skuSuffix: "INK" },
-      { id: "c2", name: "Bone", swatch: ["#e9e4d8", "#1a1d22"], skuSuffix: "BON" },
-      { id: "c3", name: "Signal Navy", swatch: ["#1e2a4a", "#e8b400"], skuSuffix: "NVY" },
-    ],
-    basePrice: 45,
-    msrp: 118,
-    priceBreaks: STANDARD_BREAKS,
-    moqBoxes: 2,
-    tierEligibility: ["standard", "preferred", "vip"],
-    weightOz: 13.5,
-    lastNote: "Ink / Court Yellow is the account favorite for window display.",
-  },
-  {
-    id: "st-12",
-    slug: "ridgeline-gtx",
-    styleNumber: "HT-3001",
-    name: "Ridgeline GTX",
-    category: "trail",
-    gender: "unisex",
-    availability: "available",
-    tagline: "Waterproof trail runner for four-season accounts.",
-    description:
-      "A GORE-TEX-lined trail build with a lugged, multi-directional outsole and a rock plate underfoot. The technical anchor of the trail range.",
-    materials: ["GORE-TEX membrane", "Ripstop nylon", "TPU rock plate", "Multi-directional lugged outsole"],
-    colorways: [
-      { id: "c1", name: "Olive / Cinder", swatch: ["#5c5c3f", "#6b6560"], skuSuffix: "OLV" },
-      { id: "c2", name: "Ink / Ember", swatch: ["#1a1d22", "#c1451e"], skuSuffix: "INK" },
-    ],
-    basePrice: 54,
-    msrp: 140,
-    priceBreaks: DEEP_BREAKS,
-    moqBoxes: 3,
-    tierEligibility: ["standard", "preferred", "vip"],
-    weightOz: 12.9,
-    lastNote: "Deep price breaks reward accounts that buy the full run at once.",
-  },
-  {
-    id: "st-13",
-    slug: "summit-trainer",
-    styleNumber: "HT-3010",
-    name: "Summit Trainer",
-    category: "trail",
-    gender: "unisex",
-    availability: "prebook",
-    shipWindow: "Ships April 2027",
-    tagline: "Lightweight trail trainer for fastpacking accounts.",
-    description:
-      "A lighter, more flexible trail build for accounts serving fastpacking and trail-running customers rather than full backcountry.",
-    materials: ["Air-mesh upper", "EVA midsole", "Sticky rubber outsole"],
-    colorways: [
-      { id: "c1", name: "Cinder", swatch: ["#6b6560", "#e4e1d9"], skuSuffix: "CIN" },
-      { id: "c2", name: "Ember / Ink", swatch: ["#c1451e", "#1a1d22"], skuSuffix: "EMB" },
-    ],
-    basePrice: 46,
-    msrp: 120,
-    priceBreaks: STANDARD_BREAKS,
-    moqBoxes: 2,
-    tierEligibility: ["standard", "preferred", "vip"],
-    weightOz: 10.6,
-    lastNote: "New for the trail range — sell as a companion to Ridgeline GTX.",
-  },
-  {
-    id: "st-14",
-    slug: "traverse-low",
-    styleNumber: "HT-3022",
-    name: "Traverse Low",
-    category: "trail",
-    gender: "unisex",
-    availability: "available",
-    tagline: "Everyday hiking shoe with trail-runner comfort.",
-    description:
-      "A low-cut hiker that borrows its midsole from the Ridgeline GTX but drops the waterproof membrane for accounts in warmer, drier markets.",
-    materials: ["Suede and mesh upper", "EVA midsole", "Lugged rubber outsole"],
-    colorways: [
-      { id: "c1", name: "Bone / Cinder", swatch: ["#e9e4d8", "#6b6560"], skuSuffix: "BON" },
-      { id: "c2", name: "Olive", swatch: ["#5c5c3f", "#1a1d22"], skuSuffix: "OLV" },
-      { id: "c3", name: "Signal Navy", swatch: ["#1e2a4a", "#e9e4d8"], skuSuffix: "NVY" },
-    ],
-    basePrice: 43,
-    msrp: 112,
-    priceBreaks: STANDARD_BREAKS,
-    moqBoxes: 2,
-    tierEligibility: ["standard", "preferred", "vip"],
-    weightOz: 11.2,
-    lastNote: "Carries well as a year-round hiker in warm-climate markets.",
-  },
-];
-
-export function getStyleBySlug(slug: string): Style | undefined {
-  return STYLES.find((s) => s.slug === slug);
+interface StyleRow {
+  id: string;
+  slug: string;
+  style_number: string;
+  name: string;
+  category: Style["category"];
+  gender: Style["gender"];
+  availability: Style["availability"];
+  ship_window: string | null;
+  tagline: string;
+  description: string;
+  materials: string[];
+  base_price: number | string;
+  msrp: number | string;
+  price_breaks: PriceBreak[];
+  moq_boxes: number;
+  tier_eligibility: PricingTierId[];
+  weight_oz: number | string | null;
+  last_note: string | null;
+  available_box_types: BoxTypeId[];
 }
 
-export function getStyleById(id: string): Style | undefined {
-  return STYLES.find((s) => s.id === id);
+interface ColorwayRow {
+  id: string;
+  style_id: string;
+  name: string;
+  sku_suffix: string;
+  swatch_1: string;
+  swatch_2: string | null;
+  sort_order: number;
 }
 
-export const CATEGORY_LABEL: Record<Style["category"], string> = {
-  running: "Running",
-  court: "Court",
-  trail: "Trail",
-};
+interface StyleImageRow {
+  style_id: string;
+  storage_path: string;
+}
 
-export const GENDER_LABEL: Record<Style["gender"], string> = {
-  mens: "Men's",
-  womens: "Women's",
-  unisex: "Unisex",
-};
+function mapColorway(row: ColorwayRow): Colorway {
+  return {
+    id: fromDbId(row.style_id, row.id),
+    name: row.name,
+    swatch: [row.swatch_1, row.swatch_2 ?? undefined],
+    skuSuffix: row.sku_suffix,
+  };
+}
+
+function assembleStyles(
+  styleRows: StyleRow[],
+  colorwayRows: ColorwayRow[],
+  imageRows: StyleImageRow[],
+): Style[] {
+  const colorwaysByStyle = new Map<string, ColorwayRow[]>();
+  for (const row of colorwayRows) {
+    if (!colorwaysByStyle.has(row.style_id)) colorwaysByStyle.set(row.style_id, []);
+    colorwaysByStyle.get(row.style_id)!.push(row);
+  }
+  const imageByStyle = new Map<string, string>();
+  for (const row of imageRows) imageByStyle.set(row.style_id, row.storage_path);
+
+  return styleRows.map((s) => {
+    const colorways = (colorwaysByStyle.get(s.id) ?? [])
+      .slice()
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map(mapColorway);
+    const storagePath = imageByStyle.get(s.id);
+    const primaryImageUrl = storagePath
+      ? supabaseAdmin.storage.from("style-images").getPublicUrl(storagePath).data.publicUrl
+      : undefined;
+
+    return {
+      id: s.id,
+      slug: s.slug,
+      styleNumber: s.style_number,
+      name: s.name,
+      category: s.category,
+      gender: s.gender,
+      availability: s.availability,
+      shipWindow: s.ship_window ?? undefined,
+      tagline: s.tagline,
+      description: s.description,
+      materials: s.materials,
+      colorways,
+      basePrice: toNumber(s.base_price),
+      msrp: toNumber(s.msrp),
+      priceBreaks: s.price_breaks,
+      moqBoxes: s.moq_boxes,
+      tierEligibility: s.tier_eligibility,
+      weightOz: toNumber(s.weight_oz ?? 0),
+      lastNote: s.last_note ?? "",
+      primaryImageUrl,
+      // Falls back to all 3 boxes until migration 0003 (available_box_types) has been run.
+      availableBoxTypes: s.available_box_types ?? ["box8", "box10", "box12"],
+    };
+  });
+}
+
+async function fetchStyles(styleRows: StyleRow[]): Promise<Style[]> {
+  if (styleRows.length === 0) return [];
+  const styleIds = styleRows.map((s) => s.id);
+
+  const [{ data: colorwayRows, error: colorwayError }, { data: imageRows, error: imageError }] =
+    await Promise.all([
+      supabaseAdmin.from("colorways").select("*").in("style_id", styleIds),
+      supabaseAdmin
+        .from("style_images")
+        .select("style_id, storage_path")
+        .in("style_id", styleIds)
+        .eq("is_primary", true),
+    ]);
+  if (colorwayError) throw new Error(`colorways: ${colorwayError.message}`);
+  if (imageError) throw new Error(`style_images: ${imageError.message}`);
+
+  return assembleStyles(styleRows, colorwayRows ?? [], imageRows ?? []);
+}
+
+export async function getAllStyles(): Promise<Style[]> {
+  const { data, error } = await supabaseAdmin.from("styles").select("*").order("id");
+  if (error) throw new Error(`styles: ${error.message}`);
+  return fetchStyles(data ?? []);
+}
+
+export async function getStyleBySlug(slug: string): Promise<Style | undefined> {
+  const { data, error } = await supabaseAdmin.from("styles").select("*").eq("slug", slug).limit(1);
+  if (error) throw new Error(`styles: ${error.message}`);
+  const [style] = await fetchStyles(data ?? []);
+  return style;
+}
+
+export async function getStyleById(id: string): Promise<Style | undefined> {
+  const { data, error } = await supabaseAdmin.from("styles").select("*").eq("id", id).limit(1);
+  if (error) throw new Error(`styles: ${error.message}`);
+  const [style] = await fetchStyles(data ?? []);
+  return style;
+}
+
+export async function updateAvailableBoxTypes(styleId: string, boxTypeIds: BoxTypeId[]): Promise<void> {
+  const { error } = await supabaseAdmin
+    .from("styles")
+    .update({ available_box_types: boxTypeIds })
+    .eq("id", styleId);
+  if (error) throw new Error(`styles: ${error.message}`);
+}
+
+export { CATEGORY_LABEL, GENDER_LABEL } from "@/lib/data/styleLabels";

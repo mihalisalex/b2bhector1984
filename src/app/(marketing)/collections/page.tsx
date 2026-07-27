@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { STYLES, CATEGORY_LABEL, GENDER_LABEL } from "@/lib/data/styles";
+import { getAllStyles, CATEGORY_LABEL, GENDER_LABEL } from "@/lib/data/styles";
 import type { Category } from "@/lib/types";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
@@ -20,7 +20,8 @@ export default async function CollectionsPage({
 }) {
   const { category } = await searchParams;
   const active = CATEGORIES.includes(category as Category) ? (category as Category) : null;
-  const results = active ? STYLES.filter((s) => s.category === active) : STYLES;
+  const styles = await getAllStyles();
+  const results = active ? styles.filter((s) => s.category === active) : styles;
 
   return (
     <div className="mx-auto max-w-[1440px] px-6 py-12 lg:px-10">
@@ -45,7 +46,12 @@ export default async function CollectionsPage({
       <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {results.map((style) => (
           <Link key={style.id} href={`/product/${style.slug}`} className="group block border border-stone-300 bg-white">
-            <StylePlate swatch={style.colorways[0].swatch} styleNumber={style.styleNumber} className="aspect-[4/3] w-full" />
+            <StylePlate
+              swatch={style.colorways[0].swatch}
+              styleNumber={style.styleNumber}
+              imageUrl={style.primaryImageUrl}
+              className="aspect-[4/3] w-full"
+            />
             <div className="p-5">
               <AvailabilityBadge availability={style.availability} shipWindow={style.shipWindow} />
               <h3 className="font-display mt-2 text-lg font-bold uppercase tracking-tight text-ink group-hover:underline">

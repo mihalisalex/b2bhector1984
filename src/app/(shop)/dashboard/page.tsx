@@ -20,7 +20,7 @@ export default async function DashboardPage() {
   if (!account) redirect("/login");
 
   const orders = await getOrdersForAccount(account.id);
-  const assortments = getAssortmentsForAccount(account.id);
+  const assortments = await getAssortmentsForAccount(account.id);
   const tier = getTier(account.tier);
   const ytdTotal = orders.reduce((sum, o) => sum + summarizeOrder(o).total, 0);
 
@@ -123,7 +123,7 @@ export default async function DashboardPage() {
               {assortments.map((a) => (
                 <Link key={a.id} href="/dashboard/assortments" className="block border border-stone-300 bg-white p-3 hover:border-ink">
                   <p className="text-sm font-medium text-ink">{a.name}</p>
-                  <p className="text-xs text-ink-soft">{a.styleIds.length} styles · saved {a.createdAt}</p>
+                  <p className="text-xs text-ink-soft">{a.styleIds.length} styles · saved {formatDate(a.createdAt)}</p>
                 </Link>
               ))}
             </div>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getApplication } from "@/lib/session";
-import { activateAccount, simulateApproval } from "@/lib/actions";
+import { activateAccount } from "@/lib/actions";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 
@@ -87,19 +87,6 @@ export default async function ApplicationPendingPage() {
           </>
         )}
       </div>
-
-      {application.status === "pending" && (
-        <div className="mt-6 border border-dashed border-cinder-300 bg-stone-100 p-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Demo Controls</p>
-          <p className="mt-1 text-xs leading-relaxed text-ink-soft">
-            In production this step happens when our team reviews your application. For this demo,
-            you can advance it yourself.
-          </p>
-          <form action={simulateApproval} className="mt-3">
-            <Button type="submit" variant="secondary" size="sm">Simulate Approval</Button>
-          </form>
-        </div>
-      )}
 
       <p className="mt-8 text-center text-xs text-ink-soft">
         Already have an account? <Link href="/login" className="text-signal underline">Sign in</Link>

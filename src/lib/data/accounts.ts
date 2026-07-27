@@ -1,128 +1,176 @@
-import type { Account } from "@/lib/types";
+import "server-only";
+import { supabaseAdmin } from "@/lib/supabase/server";
+import { fromDbId, toDbId, toNumber } from "@/lib/data/dbIds";
+import type { Account, SalesRep } from "@/lib/types";
 
-export const ACCOUNTS: Account[] = [
-  {
-    id: "acct-001",
-    businessName: "Union Supply Co.",
-    contactName: "Dana Ferris",
-    email: "buyer@unionsupply.com",
-    password: "wholesale84",
-    tier: "preferred",
-    status: "active",
-    creditTerms: "net30",
-    creditLimit: 45000,
-    resaleCertId: "OR-RS-88214",
-    businessType: "Multi-brand run specialty (2 doors)",
-    storeLocation: "Portland, OR",
-    expectedVolume: "$40,000–$75,000 / year",
-    appliedAt: "2025-11-03",
-    approvedAt: "2025-11-06",
-    shipTo: [
-      {
-        id: "ship-1",
-        label: "Union Supply — Hawthorne",
-        line1: "4110 SE Hawthorne Blvd",
-        city: "Portland",
-        state: "OR",
-        zip: "97214",
-        isDefault: true,
-      },
-      {
-        id: "ship-2",
-        label: "Union Supply — Distribution Annex",
-        line1: "8800 NE Alderwood Rd, Suite C",
-        city: "Portland",
-        state: "OR",
-        zip: "97220",
-      },
-    ],
-    rep: {
-      name: "Marcus Iyer",
-      title: "Territory Sales Manager, Pacific NW",
-      email: "marcus.iyer@hector1984.com",
-      phone: "(503) 555-0148",
-      initials: "MI",
-      territory: "WA / OR / ID",
-    },
-  },
-  {
-    id: "acct-002",
-    businessName: "Fieldhouse Athletics",
-    contactName: "Priya Nandakumar",
-    email: "buyer@fieldhouseath.com",
-    password: "wholesale84",
-    tier: "vip",
-    status: "active",
-    creditTerms: "net60",
-    creditLimit: 120000,
-    resaleCertId: "IL-RS-40217",
-    businessType: "Regional chain (6 doors)",
-    storeLocation: "Chicago, IL",
-    expectedVolume: "$150,000+ / year",
-    appliedAt: "2024-02-11",
-    approvedAt: "2024-02-14",
-    shipTo: [
-      {
-        id: "ship-1",
-        label: "Fieldhouse — DC Chicago",
-        line1: "2200 S Ashland Ave",
-        city: "Chicago",
-        state: "IL",
-        zip: "60608",
-        isDefault: true,
-      },
-    ],
-    rep: {
-      name: "Renata Souza",
-      title: "Key Account Director",
-      email: "renata.souza@hector1984.com",
-      phone: "(312) 555-0193",
-      initials: "RS",
-      territory: "National Accounts",
-    },
-  },
-  {
-    id: "acct-003",
-    businessName: "Trailhead Mercantile",
-    contactName: "Owen Bright",
-    email: "buyer@trailheadmerc.com",
-    password: "wholesale84",
-    tier: "standard",
-    status: "active",
-    creditTerms: "prepay",
-    creditLimit: 8000,
-    resaleCertId: "CO-RS-11209",
-    businessType: "Independent outdoor specialty (1 door)",
-    storeLocation: "Bend, OR",
-    expectedVolume: "$10,000–$25,000 / year",
-    appliedAt: "2026-05-19",
-    approvedAt: "2026-05-24",
-    shipTo: [
-      {
-        id: "ship-1",
-        label: "Trailhead Mercantile",
-        line1: "119 NW Newport Ave",
-        city: "Bend",
-        state: "OR",
-        zip: "97703",
-        isDefault: true,
-      },
-    ],
-    rep: {
-      name: "Marcus Iyer",
-      title: "Territory Sales Manager, Pacific NW",
-      email: "marcus.iyer@hector1984.com",
-      phone: "(503) 555-0148",
-      initials: "MI",
-      territory: "WA / OR / ID",
-    },
-  },
-];
+const UNASSIGNED_REP: SalesRep = {
+  name: "New Accounts Team",
+  title: "Wholesale Onboarding",
+  email: "newaccounts@hector1984.com",
+  phone: "(503) 555-0100",
+  initials: "NA",
+  territory: "Unassigned — a territory rep will follow up within 2 business days",
+};
 
-export function getAccountByEmail(email: string): Account | undefined {
-  return ACCOUNTS.find((a) => a.email.toLowerCase() === email.toLowerCase());
+interface AccountRow {
+  id: string;
+  business_name: string;
+  contact_name: string;
+  email: string;
+  password: string;
+  tier: Account["tier"];
+  status: Account["status"];
+  credit_terms: Account["creditTerms"];
+  credit_limit: number | string;
+  resale_cert_id: string;
+  business_type: string;
+  store_location: string;
+  expected_volume: string;
+  applied_at: string;
+  approved_at: string | null;
+  role: Account["role"];
+  sales_reps: {
+    name: string;
+    title: string;
+    email: string;
+    phone: string;
+    initials: string;
+    territory: string;
+  } | null;
 }
 
-export function getAccountById(id: string): Account | undefined {
-  return ACCOUNTS.find((a) => a.id === id);
+interface ShipToRow {
+  id: string;
+  account_id: string;
+  label: string;
+  line1: string;
+  line2: string | null;
+  city: string;
+  state: string;
+  zip: string;
+  is_default: boolean;
+}
+
+async function mapAccount(row: AccountRow): Promise<Account> {
+  const { data: shipToRows, error } = await supabaseAdmin
+    .from("ship_to_addresses")
+    .select("*")
+    .eq("account_id", row.id);
+  if (error) throw new Error(`ship_to_addresses: ${error.message}`);
+
+  const shipTo = ((shipToRows ?? []) as ShipToRow[]).map((s) => ({
+    id: fromDbId(row.id, s.id),
+    label: s.label,
+    line1: s.line1,
+    line2: s.line2 ?? undefined,
+    city: s.city,
+    state: s.state,
+    zip: s.zip,
+    isDefault: s.is_default,
+  }));
+
+  return {
+    id: row.id,
+    businessName: row.business_name,
+    contactName: row.contact_name,
+    email: row.email,
+    password: row.password,
+    tier: row.tier,
+    status: row.status,
+    creditTerms: row.credit_terms,
+    creditLimit: toNumber(row.credit_limit),
+    resaleCertId: row.resale_cert_id,
+    businessType: row.business_type,
+    storeLocation: row.store_location,
+    expectedVolume: row.expected_volume,
+    appliedAt: row.applied_at,
+    approvedAt: row.approved_at ?? undefined,
+    shipTo,
+    rep: row.sales_reps
+      ? {
+          name: row.sales_reps.name,
+          title: row.sales_reps.title,
+          email: row.sales_reps.email,
+          phone: row.sales_reps.phone,
+          initials: row.sales_reps.initials,
+          territory: row.sales_reps.territory,
+        }
+      : UNASSIGNED_REP,
+    role: row.role,
+  };
+}
+
+export async function getAccountByEmail(email: string): Promise<Account | undefined> {
+  const { data, error } = await supabaseAdmin
+    .from("accounts")
+    .select("*, sales_reps(*)")
+    .ilike("email", email)
+    .limit(1);
+  if (error) throw new Error(`accounts: ${error.message}`);
+  const row = data?.[0] as AccountRow | undefined;
+  return row ? mapAccount(row) : undefined;
+}
+
+export async function getAccountById(id: string): Promise<Account | undefined> {
+  const { data, error } = await supabaseAdmin
+    .from("accounts")
+    .select("*, sales_reps(*)")
+    .eq("id", id)
+    .limit(1);
+  if (error) throw new Error(`accounts: ${error.message}`);
+  const row = data?.[0] as AccountRow | undefined;
+  return row ? mapAccount(row) : undefined;
+}
+
+/** Provisions a brand-new buyer account (self-activation after an approved application). */
+export async function createAccount(input: {
+  id: string;
+  businessName: string;
+  contactName: string;
+  email: string;
+  password: string;
+  tier: Account["tier"];
+  status: Account["status"];
+  creditTerms: Account["creditTerms"];
+  creditLimit: number;
+  resaleCertId: string;
+  businessType: string;
+  storeLocation: string;
+  expectedVolume: string;
+  appliedAt: string;
+  approvedAt: string;
+  shipTo: { label: string; line1: string; city: string; state: string; zip: string };
+}): Promise<void> {
+  const { error } = await supabaseAdmin.from("accounts").insert({
+    id: input.id,
+    business_name: input.businessName,
+    contact_name: input.contactName,
+    email: input.email,
+    password: input.password,
+    tier: input.tier,
+    status: input.status,
+    credit_terms: input.creditTerms,
+    credit_limit: input.creditLimit,
+    resale_cert_id: input.resaleCertId,
+    business_type: input.businessType,
+    store_location: input.storeLocation,
+    expected_volume: input.expectedVolume,
+    applied_at: input.appliedAt,
+    approved_at: input.approvedAt,
+    rep_id: null,
+    role: "buyer",
+  });
+  if (error) throw new Error(`accounts: ${error.message}`);
+
+  const { error: shipToError } = await supabaseAdmin.from("ship_to_addresses").insert({
+    id: toDbId(input.id, "ship-1"),
+    account_id: input.id,
+    label: input.shipTo.label,
+    line1: input.shipTo.line1,
+    city: input.shipTo.city,
+    state: input.shipTo.state,
+    zip: input.shipTo.zip,
+    is_default: true,
+  });
+  if (shipToError) throw new Error(`ship_to_addresses: ${shipToError.message}`);
 }

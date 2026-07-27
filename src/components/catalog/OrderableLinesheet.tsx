@@ -1,0 +1,281 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useCart, type CartLine } from "@/lib/cart-context";
+import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
+import { formatUSD, getPriceBreakTable, validateMatrix } from "@/lib/pricing";
+import { CATEGORY_LABEL, GENDER_LABEL } from "@/lib/data/styleLabels";
+import type { BoxTypeId, PricingTierId, Style } from "@/lib/types";
+import { AvailabilityBadge } from "@/components/ui/Badge";
+import { cn } from "@/lib/cn";
+
+/** colorwayId -> boxTypeId -> qty (boxes) */
+type StyleQtyMap = Record<string, Partial<Record<BoxTypeId, number>>>;
+/** styleId -> StyleQtyMap */
+type AllQtyMap = Record<string, StyleQtyMap>;
+
+function buildInitialQtyForStyle(style: Style, cartLines: CartLine[]): StyleQtyMap {
+  const map: StyleQtyMap = {};
+  for (const colorway of style.colorways) map[colorway.id] = {};
+  for (const line of cartLines) {
+    if (line.styleId !== style.id) continue;
+    map[line.colorwayId] = map[line.colorwayId] || {};
+    map[line.colorwayId]![line.boxTypeId] = line.qty;
+  }
+  return map;
+}
+
+export function OrderableLinesheet({ styles, tier }: { styles: Style[]; tier: PricingTierId }) {
+  const { lines, addLines } = useCart();
+  const [qty, setQty] = useState<AllQtyMap>(() => {
+    const map: AllQtyMap = {};
+    for (const style of styles) map[style.id] = buildInitialQtyForStyle(style, lines);
+    return map;
+  });
+  const [confirmed, setConfirmed] = useState(false);
+
+  // Seed state for any style that enters the view after a filter change,
+  // without touching in-progress edits on styles already present.
+  useEffect(() => {
+    setQty((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      for (const style of styles) {
+        if (!next[style.id]) {
+          next[style.id] = buildInitialQtyForStyle(style, lines);
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    });
+  }, [styles]);
+
+  function setCell(styleId: string, colorwayId: string, boxTypeId: BoxTypeId, value: number) {
+    setConfirmed(false);
+    setQty((prev) => ({
+      ...prev,
+      [styleId]: {
+        ...prev[styleId],
+        [colorwayId]: { ...prev[styleId]?.[colorwayId], [boxTypeId]: Math.max(0, Math.floor(value) || 0) },
+      },
+    }));
+  }
+
+  function step(styleId: string, colorwayId: string, boxTypeId: BoxTypeId, delta: number) {
+    const current = qty[styleId]?.[colorwayId]?.[boxTypeId] ?? 0;
+    setCell(styleId, colorwayId, boxTypeId, current + delta);
+  }
+
+  const validations = useMemo(
+    () =>
+      styles
+        .map((style) => ({ style, ...validateMatrix(style, tier, qty[style.id] ?? {}) }))
+        .filter((v) => v.totalBoxes > 0),
+    [styles, tier, qty],
+  );
+
+  const anyErrors = validations.some((v) => v.orderError);
+  const grandTotal = validations.reduce((sum, v) => sum + v.subtotal, 0);
+
+  function handleAddAllToCart() {
+    if (validations.length === 0 || anyErrors) return;
+    for (const style of styles) {
+      const styleQty = qty[style.id];
+      if (!styleQty) continue;
+      const entries = style.colorways.flatMap((c) =>
+        getAvailableBoxTypes(style).map((box) => ({
+          colorwayId: c.id,
+          boxTypeId: box.id,
+          qty: styleQty[c.id]?.[box.id] ?? 0,
+        })),
+      );
+      if (entries.some((e) => e.qty > 0)) addLines(style.id, entries);
+    }
+    setConfirmed(true);
+  }
+
+  return (
+    <div>
+      <div className="scroll-thin overflow-x-auto border border-stone-300">
+        <table className="w-full min-w-[1100px] border-collapse text-sm">
+          <thead>
+            <tr className="border-b border-stone-300 bg-stone-100 text-left text-[11px] uppercase tracking-wide text-ink-soft">
+              <Th>Style</Th>
+              <Th>Colorway</Th>
+              <Th>Delivery</Th>
+              <Th align="right">Price</Th>
+              <Th align="center">8-Pair</Th>
+              <Th align="center">10-Pair</Th>
+              <Th align="center">12-Pair</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {styles.map((style) => {
+              const breaks = getPriceBreakTable(style, tier);
+              const boxTypes = getAvailableBoxTypes(style);
+              return style.colorways.map((colorway, i) => (
+                <tr
+                  key={`${style.id}-${colorway.id}`}
+                  className={cn(
+                    "border-b border-stone-200 last:border-b-0 even:bg-stone-50/40 hover:bg-signal-100/30",
+                    i === 0 && "border-t-2 border-t-ink",
+                  )}
+                >
+                  {i === 0 ? (
+                    <td className="px-3 py-2.5 align-top" rowSpan={style.colorways.length}>
+                      <Link href={`/product/${style.slug}`} className="font-medium text-ink hover:underline">
+                        {style.name}
+                      </Link>
+                      <p className="font-mono-tab text-[11px] text-ink-soft">
+                        {style.styleNumber} · {GENDER_LABEL[style.gender]}
+                      </p>
+                      <p className="text-[11px] text-ink-soft">{CATEGORY_LABEL[style.category]}</p>
+                    </td>
+                  ) : null}
+                  <td className="px-3 py-2.5">
+                    <span className="flex items-center gap-2">
+                      <span className="flex h-4 w-6 shrink-0 overflow-hidden border border-stone-300" aria-hidden>
+                        <span className="h-full w-1/2" style={{ background: colorway.swatch[0] }} />
+                        <span className="h-full w-1/2" style={{ background: colorway.swatch[1] ?? colorway.swatch[0] }} />
+                      </span>
+                      <span className="text-ink-soft">{colorway.name}</span>
+                    </span>
+                  </td>
+                  {i === 0 ? (
+                    <td className="px-3 py-2.5 align-top" rowSpan={style.colorways.length}>
+                      <AvailabilityBadge availability={style.availability} shipWindow={style.shipWindow} />
+                    </td>
+                  ) : null}
+                  {i === 0 ? (
+                    <td className="font-mono-tab px-3 py-2.5 text-right align-top tabular-nums text-ink" rowSpan={style.colorways.length}>
+                      {formatUSD(breaks[0].price)}
+                      {breaks.length > 1 && (
+                        <span className="block text-[11px] text-positive">from {formatUSD(breaks[breaks.length - 1].price)}</span>
+                      )}
+                    </td>
+                  ) : null}
+                  {(["box8", "box10", "box12"] as BoxTypeId[]).map((boxTypeId) => (
+                    <td key={boxTypeId} className="px-2 py-1.5 text-center">
+                      {boxTypes.some((b) => b.id === boxTypeId) ? (
+                        <Stepper
+                          value={qty[style.id]?.[colorway.id]?.[boxTypeId] ?? 0}
+                          onChange={(v) => setCell(style.id, colorway.id, boxTypeId, v)}
+                          onStep={(d) => step(style.id, colorway.id, boxTypeId, d)}
+                          label={`${boxTypeId} for ${style.name} ${colorway.name}`}
+                        />
+                      ) : (
+                        <span className="text-ink-soft">—</span>
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ));
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {validations.length > 0 && (
+        <div className="mt-6 border border-stone-300 bg-stone-100 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Order summary by style</p>
+          <div className="mt-2 flex flex-col gap-1.5">
+            {validations.map((v) => (
+              <div key={v.style.id} className="flex items-center justify-between text-sm">
+                <Link href={`/product/${v.style.slug}`} className="text-ink hover:underline">
+                  {v.style.name}
+                </Link>
+                <span className="flex items-center gap-3">
+                  <span className="font-mono-tab text-ink-soft">{v.totalBoxes} boxes · {v.totalPairs} pairs</span>
+                  {v.orderError ? (
+                    <span className="text-xs text-ember">{v.orderError}</span>
+                  ) : (
+                    <span className="font-mono-tab font-semibold text-ink">{formatUSD(v.subtotal)}</span>
+                  )}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="mt-4 flex items-center justify-between gap-4 border-t border-stone-300 pt-4">
+        <div className="flex items-center gap-4">
+          <span className="font-mono-tab text-sm font-semibold text-ink">Total: {formatUSD(grandTotal)}</span>
+          {confirmed && validations.length === 0 && <span className="text-xs text-positive">Added to cart.</span>}
+        </div>
+        <button
+          type="button"
+          onClick={handleAddAllToCart}
+          disabled={validations.length === 0 || anyErrors}
+          className={cn(
+            "bg-ink px-6 py-3 text-xs font-semibold uppercase tracking-wide text-white transition-colors hover:bg-ink/85",
+            (validations.length === 0 || anyErrors) && "cursor-not-allowed bg-cinder-300 text-white/70",
+          )}
+        >
+          Add All to Cart
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Stepper({
+  value,
+  onChange,
+  onStep,
+  label,
+}: {
+  value: number;
+  onChange: (value: number) => void;
+  onStep: (delta: number) => void;
+  label: string;
+}) {
+  return (
+    <div className={cn("mx-auto flex w-24 items-center justify-between border px-1 py-1", value > 0 ? "border-ink bg-signal-100/40" : "border-stone-300")}>
+      <button
+        type="button"
+        aria-label={`Decrease ${label} quantity`}
+        onClick={() => onStep(-1)}
+        disabled={value === 0}
+        className="flex h-6 w-6 items-center justify-center text-ink hover:text-signal disabled:opacity-30"
+      >
+        −
+      </button>
+      <input
+        type="number"
+        min={0}
+        inputMode="numeric"
+        value={value || ""}
+        placeholder="0"
+        aria-label={`${label} quantity`}
+        onChange={(e) => onChange(Number(e.target.value))}
+        onFocus={(e) => e.target.select()}
+        className="font-mono-tab w-8 border-0 bg-transparent text-center text-sm font-semibold tabular-nums text-ink outline-none"
+      />
+      <button
+        type="button"
+        aria-label={`Increase ${label} quantity`}
+        onClick={() => onStep(1)}
+        className="flex h-6 w-6 items-center justify-center text-ink hover:text-signal"
+      >
+        +
+      </button>
+    </div>
+  );
+}
+
+function Th({ children, align }: { children: React.ReactNode; align?: "right" | "center" }) {
+  return (
+    <th
+      className={cn(
+        "px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-ink-soft",
+        align === "right" && "text-right",
+        align === "center" && "text-center",
+      )}
+    >
+      {children}
+    </th>
+  );
+}

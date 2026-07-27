@@ -2,6 +2,7 @@
 
 import type { PricingTierId, Style } from "@/lib/types";
 import { getPriceBreakTable } from "@/lib/pricing";
+import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 
 export function LinesheetToolbar({ styles, tier }: { styles: Style[]; tier: PricingTierId }) {
   function exportCsv() {
@@ -14,7 +15,7 @@ export function LinesheetToolbar({ styles, tier }: { styles: Style[]; tier: Pric
         s.category,
         s.availability === "available" ? "Available now" : `Pre-book (${s.shipWindow ?? ""})`,
         s.colorways.map((c) => c.name).join(" / "),
-        "8 / 10 / 12-pair",
+        getAvailableBoxTypes(s).map((b) => b.totalPairs).join(" / ") + "-pair",
         String(s.moqBoxes),
         breaks[0].price.toFixed(2),
         breaks[breaks.length - 1].price.toFixed(2),

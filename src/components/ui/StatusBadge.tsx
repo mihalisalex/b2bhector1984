@@ -2,7 +2,7 @@ import { cn } from "@/lib/cn";
 import type { OrderStatus } from "@/lib/types";
 
 const STATUS: Record<OrderStatus, { label: string; className: string }> = {
-  submitted: { label: "Submitted", className: "border-cinder-300 bg-stone-100 text-ink-soft" },
+  submitted: { label: "Proforma Invoice", className: "border-cinder-300 bg-stone-100 text-ink-soft" },
   confirmed: { label: "Confirmed", className: "border-signal/40 bg-signal-100 text-signal-600" },
   in_production: { label: "In Production", className: "border-court/50 bg-court-100 text-ink" },
   shipped: { label: "Shipped", className: "border-signal/40 bg-signal-100 text-signal-600" },

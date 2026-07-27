@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { STYLES } from "@/lib/data/styles";
+import { getAllStyles } from "@/lib/data/styles";
 import { getCurrentAccount } from "@/lib/session";
 import { filterStyles, parseFilters } from "@/lib/catalogFilters";
 import { getPriceBreakTable } from "@/lib/pricing";
@@ -17,8 +17,9 @@ export default async function CatalogPage({
   const sp = await searchParams;
   const account = await getCurrentAccount();
   const tier = account!.tier;
+  const styles = await getAllStyles();
   const filters = parseFilters(sp);
-  const results = filterStyles(STYLES, filters, (s) => getPriceBreakTable(s, tier)[0].price);
+  const results = filterStyles(styles, filters, (s) => getPriceBreakTable(s, tier)[0].price);
 
   return (
     <div className="mx-auto max-w-[1600px] px-6 py-8 lg:px-10">
@@ -26,7 +27,7 @@ export default async function CatalogPage({
         <div>
           <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink">Catalog</h1>
           <p className="mt-1 text-sm text-ink-soft">
-            {STYLES.length} styles across Running, Court, and Trail. Pricing shown at your {tier} tier.
+            {styles.length} styles across Running, Court, and Trail. Pricing shown at your {tier} tier.
           </p>
         </div>
       </div>

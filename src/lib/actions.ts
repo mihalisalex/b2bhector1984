@@ -3,17 +3,12 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { addOrder } from "@/lib/runtimeOrders";
-import {
-  APPLICATION_COOKIE,
-  PROVISIONED_ACCOUNT_COOKIE,
-  SESSION_COOKIE,
-  findAccountByEmailAnywhere,
-  getApplication,
-  getCurrentAccount,
-} from "@/lib/session";
+import { APPLICATION_COOKIE, SESSION_COOKIE, getApplication, getCurrentAccount } from "@/lib/session";
+import { getAccountByEmail, createAccount } from "@/lib/data/accounts";
+import { insertApplication, updateApplicationStatus } from "@/lib/data/applications";
 import { getStyleById } from "@/lib/data/styles";
 import { getUnitPrice, validateMatrix } from "@/lib/pricing";
-import type { Account, Application, BoxTypeId, CreditTerms, Order, OrderLine } from "@/lib/types";
+import type { Application, BoxTypeId, CreditTerms, Order, OrderLine } from "@/lib/types";
 
 const APPLICATION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 const SESSION_MAX_AGE = 60 * 60 * 24 * 14; // 14 days
@@ -26,7 +21,7 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
-  const account = await findAccountByEmailAnywhere(email);
+  const account = await getAccountByEmail(email);
   if (!account || account.password !== password) {
     return { error: "We couldn't find an active account with that email and password." };
   }
@@ -36,7 +31,7 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
 
   const store = await cookies();
   store.set(SESSION_COOKIE, account.id, { maxAge: SESSION_MAX_AGE, path: "/", httpOnly: true, sameSite: "lax" });
-  redirect("/dashboard");
+  redirect(account.role === "admin" ? "/admin" : "/dashboard");
 }
 
 export async function logout() {
@@ -66,7 +61,7 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
     }
   }
 
-  const application: Application = {
+  const application: Omit<Application, "id" | "status" | "submittedAt"> = {
     businessName: String(formData.get("businessName")),
     contactName: String(formData.get("contactName")),
     email: String(formData.get("email")),
@@ -80,28 +75,12 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
     zip: String(formData.get("zip")),
     expectedVolume: String(formData.get("expectedVolume")),
     website: String(formData.get("website") ?? "") || undefined,
-    status: "pending",
-    submittedAt: new Date().toISOString(),
   };
 
-  const store = await cookies();
-  store.set(APPLICATION_COOKIE, JSON.stringify(application), {
-    maxAge: APPLICATION_MAX_AGE,
-    path: "/",
-    httpOnly: true,
-    sameSite: "lax",
-  });
-  redirect("/apply/pending");
-}
+  const id = await insertApplication(application);
 
-/** Demo-only: advances a pending application to approved. Stands in for manual review. */
-export async function simulateApproval() {
-  const application = await getApplication();
-  if (!application || application.status !== "pending") redirect("/apply/pending");
-
-  const updated: Application = { ...application, status: "approved" };
   const store = await cookies();
-  store.set(APPLICATION_COOKIE, JSON.stringify(updated), {
+  store.set(APPLICATION_COOKIE, id, {
     maxAge: APPLICATION_MAX_AGE,
     path: "/",
     httpOnly: true,
@@ -115,8 +94,8 @@ export async function activateAccount() {
   const application = await getApplication();
   if (!application || application.status !== "approved") redirect("/apply/pending");
 
-  const id = `acct-${Date.now()}`;
-  const account: Account = {
+  const id = `acct-${crypto.randomUUID().slice(0, 8)}`;
+  await createAccount({
     id,
     businessName: application.businessName,
     contactName: application.contactName,
@@ -132,34 +111,17 @@ export async function activateAccount() {
     expectedVolume: application.expectedVolume,
     appliedAt: application.submittedAt,
     approvedAt: new Date().toISOString(),
-    shipTo: [
-      {
-        id: "ship-1",
-        label: application.businessName,
-        line1: application.addressLine1,
-        city: application.city,
-        state: application.state,
-        zip: application.zip,
-        isDefault: true,
-      },
-    ],
-    rep: {
-      name: "New Accounts Team",
-      title: "Wholesale Onboarding",
-      email: "newaccounts@hector1984.com",
-      phone: "(503) 555-0100",
-      initials: "NA",
-      territory: "Unassigned — a territory rep will follow up within 2 business days",
+    shipTo: {
+      label: application.businessName,
+      line1: application.addressLine1,
+      city: application.city,
+      state: application.state,
+      zip: application.zip,
     },
-  };
+  });
+  await updateApplicationStatus(application.id, "active");
 
   const store = await cookies();
-  store.set(PROVISIONED_ACCOUNT_COOKIE, JSON.stringify(account), {
-    maxAge: SESSION_MAX_AGE,
-    path: "/",
-    httpOnly: true,
-    sameSite: "lax",
-  });
   store.set(SESSION_COOKIE, id, { maxAge: SESSION_MAX_AGE, path: "/", httpOnly: true, sameSite: "lax" });
   store.delete(APPLICATION_COOKIE);
   redirect("/dashboard");
@@ -200,7 +162,7 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
 
   const orderLines: OrderLine[] = [];
   for (const [styleId, qtyMap] of byStyle.entries()) {
-    const style = getStyleById(styleId);
+    const style = await getStyleById(styleId);
     if (!style) continue;
     const validation = validateMatrix(style, account.tier, qtyMap);
     if (!validation.moqMet) {

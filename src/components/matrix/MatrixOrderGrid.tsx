@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useCart } from "@/lib/cart-context";
-import { BOX_TYPES, getSizeBreakdown, getTotalPairs } from "@/lib/data/boxTypes";
+import { getAvailableBoxTypes, getSizeBreakdown, getTotalPairs } from "@/lib/data/boxTypes";
 import { formatUSD, getPriceBreakTable, validateMatrix } from "@/lib/pricing";
 import type { BoxTypeId, Style } from "@/lib/types";
 import { cn } from "@/lib/cn";
@@ -11,12 +11,13 @@ type BoxQtyMap = Record<string, Partial<Record<BoxTypeId, number>>>;
 
 function buildInitialQty(
   style: Style,
+  boxTypes: { id: BoxTypeId }[],
   cartLines: { styleId: string; colorwayId: string; boxTypeId: BoxTypeId; qty: number }[],
 ): BoxQtyMap {
   const map: BoxQtyMap = {};
   for (const colorway of style.colorways) {
     map[colorway.id] = {};
-    for (const box of BOX_TYPES) {
+    for (const box of boxTypes) {
       const line = cartLines.find(
         (l) => l.styleId === style.id && l.colorwayId === colorway.id && l.boxTypeId === box.id,
       );
@@ -28,7 +29,8 @@ function buildInitialQty(
 
 export function MatrixOrderGrid({ style }: { style: Style }) {
   const { tier, addLines, lines } = useCart();
-  const [qty, setQty] = useState<BoxQtyMap>(() => buildInitialQty(style, lines));
+  const boxTypes = getAvailableBoxTypes(style);
+  const [qty, setQty] = useState<BoxQtyMap>(() => buildInitialQty(style, boxTypes, lines));
   const [confirmed, setConfirmed] = useState(false);
 
   const validation = useMemo(() => validateMatrix(style, tier, qty), [style, tier, qty]);
@@ -55,14 +57,14 @@ export function MatrixOrderGrid({ style }: { style: Style }) {
   }
 
   function handleReset() {
-    setQty(buildInitialQty(style, []));
+    setQty(buildInitialQty(style, boxTypes, []));
     setConfirmed(false);
   }
 
   function handleAddToCart() {
     if (validation.totalBoxes === 0 || !validation.moqMet) return;
     const entries = style.colorways.flatMap((c) =>
-      BOX_TYPES.map((box) => ({ colorwayId: c.id, boxTypeId: box.id, qty: qty[c.id]?.[box.id] ?? 0 })),
+      boxTypes.map((box) => ({ colorwayId: c.id, boxTypeId: box.id, qty: qty[c.id]?.[box.id] ?? 0 })),
     );
     addLines(style.id, entries);
     setConfirmed(true);
@@ -103,7 +105,7 @@ export function MatrixOrderGrid({ style }: { style: Style }) {
 
       {/* Box legend */}
       <div className="grid grid-cols-1 gap-px border-b border-stone-300 bg-stone-300 sm:grid-cols-3">
-        {BOX_TYPES.map((box) => (
+        {boxTypes.map((box) => (
           <div key={box.id} className="flex items-center justify-between gap-3 bg-stone-50 px-4 py-2.5">
             <span className="text-xs font-semibold uppercase tracking-wide text-ink">{box.label}</span>
             <span className="font-mono-tab text-[11px] text-ink-soft">
@@ -145,7 +147,7 @@ export function MatrixOrderGrid({ style }: { style: Style }) {
               </div>
 
               <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                {BOX_TYPES.map((box) => {
+                {boxTypes.map((box) => {
                   const boxQty = rowBoxes[box.id] ?? 0;
                   return (
                     <div
