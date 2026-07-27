@@ -3,6 +3,7 @@ import { getAllStyles, CATEGORY_LABEL } from "@/lib/data/styles";
 import { LinkButton } from "@/components/ui/Button";
 import { StylePlate } from "@/components/product/StylePlate";
 import { ScoreboardStrip } from "@/components/marketing/ScoreboardStrip";
+import { HeroShoeArt } from "@/components/marketing/HeroShoeArt";
 
 export default async function HomePage() {
   const categories: Array<"running" | "court" | "trail"> = ["running", "court", "trail"];
@@ -40,7 +41,7 @@ export default async function HomePage() {
             </Link>
           </div>
           <div className="relative hidden aspect-[4/3] lg:block">
-            <StylePlate swatch={["#6b6560", "#e4e1d9"]} styleNumber="HR-1001" className="h-full w-full" />
+            <HeroShoeArt className="h-full w-full" />
           </div>
         </div>
       </section>
