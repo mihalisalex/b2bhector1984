@@ -1,0 +1,64 @@
+import Link from "next/link";
+import { Logo } from "@/components/layout/Logo";
+
+export function Footer() {
+  return (
+    <footer className="border-t border-stone-300 bg-ink text-stone-200">
+      <div className="mx-auto max-w-[1440px] px-6 py-14 lg:px-10">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
+          <div>
+            <Logo inverted />
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-stone-300/80">
+              Track-engineered footwear, wholesaled the way serious retailers expect. Est. 1984.
+            </p>
+          </div>
+
+          <FooterCol
+            title="Wholesale"
+            links={[
+              { href: "/apply", label: "Apply for access" },
+              { href: "/login", label: "Buyer login" },
+              { href: "/collections", label: "Collections" },
+            ]}
+          />
+          <FooterCol
+            title="Company"
+            links={[
+              { href: "/brand-story", label: "The brand" },
+              { href: "/brand-story#materials", label: "Materials & craft" },
+            ]}
+          />
+          <FooterCol
+            title="Contact"
+            links={[
+              { href: "mailto:wholesale@hector1984.com", label: "wholesale@hector1984.com" },
+              { href: "tel:+15035550100", label: "(503) 555-0100" },
+            ]}
+          />
+        </div>
+
+        <div className="mt-12 flex flex-col gap-2 border-t border-white/10 pt-6 text-xs text-stone-300/60 md:flex-row md:items-center md:justify-between">
+          <span>© {new Date().getFullYear()} Hector 1984 Footwear Co. Wholesale accounts only.</span>
+          <span>All pricing and inventory data on this site is illustrative.</span>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+function FooterCol({ title, links }: { title: string; links: { href: string; label: string }[] }) {
+  return (
+    <div>
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-stone-300/60">{title}</h3>
+      <ul className="mt-4 space-y-2.5">
+        {links.map((l) => (
+          <li key={l.href}>
+            <Link href={l.href} className="text-sm text-stone-200 transition-colors hover:text-white">
+              {l.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}

@@ -1,0 +1,158 @@
+"use client";
+
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { getStyleById } from "@/lib/data/styles";
+import { getBoxType } from "@/lib/data/boxTypes";
+import { getUnitPrice } from "@/lib/pricing";
+import type { BoxTypeId, PricingTierId } from "@/lib/types";
+
+export interface CartLine {
+  styleId: string;
+  colorwayId: string;
+  boxTypeId: BoxTypeId;
+  /** Number of boxes. */
+  qty: number;
+}
+
+interface CartContextValue {
+  lines: CartLine[];
+  /** Total pairs across the cart (not box count). */
+  itemCount: number;
+  tier: PricingTierId;
+  addLines: (styleId: string, incoming: { colorwayId: string; boxTypeId: BoxTypeId; qty: number }[]) => void;
+  setLineQty: (styleId: string, colorwayId: string, boxTypeId: BoxTypeId, qty: number) => void;
+  removeStyle: (styleId: string) => void;
+  clearCart: () => void;
+  styleSubtotal: (styleId: string) => number;
+  cartTotal: number;
+}
+
+const CartContext = createContext<CartContextValue | null>(null);
+
+function storageKey(accountId: string) {
+  return `hector_cart_${accountId}`;
+}
+
+function pairsInLine(line: CartLine): number {
+  return line.qty * getBoxType(line.boxTypeId).totalPairs;
+}
+
+export function CartProvider({
+  accountId,
+  tier,
+  children,
+}: {
+  accountId: string;
+  tier: PricingTierId;
+  children: ReactNode;
+}) {
+  const [lines, setLines] = useState<CartLine[]>([]);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    // One-time sync from localStorage (an external system unavailable during SSR),
+    // not a derived-state update — the documented exception to this rule.
+    try {
+      const raw = window.localStorage.getItem(storageKey(accountId));
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        // Defensive against an older cart shape lingering in localStorage
+        // (pre box-ordering: lines keyed by size instead of boxTypeId).
+        const valid = Array.isArray(parsed)
+          ? parsed.filter(
+              (l): l is CartLine =>
+                l && typeof l.qty === "number" && ["box8", "box10", "box12"].includes(l.boxTypeId),
+            )
+          : [];
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setLines(valid);
+      }
+    } catch {
+      // ignore malformed local storage
+    }
+    setHydrated(true);
+  }, [accountId]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    window.localStorage.setItem(storageKey(accountId), JSON.stringify(lines));
+  }, [lines, accountId, hydrated]);
+
+  const addLines: CartContextValue["addLines"] = (styleId, incoming) => {
+    setLines((prev) => {
+      const next = [...prev];
+      for (const item of incoming) {
+        const idx = next.findIndex(
+          (l) => l.styleId === styleId && l.colorwayId === item.colorwayId && l.boxTypeId === item.boxTypeId,
+        );
+        if (item.qty <= 0) {
+          if (idx >= 0) next.splice(idx, 1);
+          continue;
+        }
+        if (idx >= 0) next[idx] = { ...next[idx], qty: item.qty };
+        else next.push({ styleId, colorwayId: item.colorwayId, boxTypeId: item.boxTypeId, qty: item.qty });
+      }
+      return next;
+    });
+  };
+
+  const setLineQty: CartContextValue["setLineQty"] = (styleId, colorwayId, boxTypeId, qty) => {
+    setLines((prev) => {
+      if (qty <= 0) {
+        return prev.filter(
+          (l) => !(l.styleId === styleId && l.colorwayId === colorwayId && l.boxTypeId === boxTypeId),
+        );
+      }
+      const idx = prev.findIndex(
+        (l) => l.styleId === styleId && l.colorwayId === colorwayId && l.boxTypeId === boxTypeId,
+      );
+      if (idx < 0) return [...prev, { styleId, colorwayId, boxTypeId, qty }];
+      const next = [...prev];
+      next[idx] = { ...next[idx], qty };
+      return next;
+    });
+  };
+
+  const removeStyle: CartContextValue["removeStyle"] = (styleId) => {
+    setLines((prev) => prev.filter((l) => l.styleId !== styleId));
+  };
+
+  const clearCart = () => setLines([]);
+
+  const itemCount = useMemo(() => lines.reduce((sum, l) => sum + pairsInLine(l), 0), [lines]);
+
+  const styleSubtotal = (styleId: string) => {
+    const style = getStyleById(styleId);
+    if (!style) return 0;
+    const styleLines = lines.filter((l) => l.styleId === styleId);
+    const totalPairs = styleLines.reduce((sum, l) => sum + pairsInLine(l), 0);
+    const unitPrice = getUnitPrice(style, tier, totalPairs);
+    return Math.round(unitPrice * totalPairs * 100) / 100;
+  };
+
+  const cartTotal = useMemo(() => {
+    const styleIds = Array.from(new Set(lines.map((l) => l.styleId)));
+    return Math.round(styleIds.reduce((sum, id) => sum + styleSubtotal(id), 0) * 100) / 100;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lines, tier]);
+
+  const value: CartContextValue = {
+    lines,
+    itemCount,
+    tier,
+    addLines,
+    setLineQty,
+    removeStyle,
+    clearCart,
+    styleSubtotal,
+    cartTotal,
+  };
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+}
+
+export function useCart(): CartContextValue {
+  const ctx = useContext(CartContext);
+  if (!ctx) throw new Error("useCart must be used within a CartProvider");
+  return ctx;
+}

@@ -1,0 +1,64 @@
+import { Suspense } from "react";
+import { STYLES } from "@/lib/data/styles";
+import { getCurrentAccount } from "@/lib/session";
+import { filterStyles, parseFilters } from "@/lib/catalogFilters";
+import { getPriceBreakTable } from "@/lib/pricing";
+import { CatalogFilters } from "@/components/catalog/CatalogFilters";
+import { BoxPolicyBanner } from "@/components/catalog/BoxPolicyBanner";
+import { ProductCard } from "@/components/product/ProductCard";
+
+export const metadata = { title: "Catalog", robots: { index: false, follow: false } };
+
+export default async function CatalogPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = await searchParams;
+  const account = await getCurrentAccount();
+  const tier = account!.tier;
+  const filters = parseFilters(sp);
+  const results = filterStyles(STYLES, filters, (s) => getPriceBreakTable(s, tier)[0].price);
+
+  return (
+    <div className="mx-auto max-w-[1600px] px-6 py-8 lg:px-10">
+      <div className="mb-6 flex flex-col gap-2 border-b border-stone-300 pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink">Catalog</h1>
+          <p className="mt-1 text-sm text-ink-soft">
+            {STYLES.length} styles across Running, Court, and Trail. Pricing shown at your {tier} tier.
+          </p>
+        </div>
+      </div>
+
+      <BoxPolicyBanner />
+
+      <div className="flex flex-col gap-8 lg:flex-row">
+        <Suspense fallback={null}>
+          <CatalogFilters resultCount={results.length} />
+        </Suspense>
+
+        <div className="flex-1">
+          <div className="mb-4 hidden items-center justify-between lg:flex">
+            <span className="font-mono-tab text-xs text-ink-soft">{results.length} styles</span>
+          </div>
+
+          {results.length === 0 ? (
+            <div className="border border-dashed border-stone-300 bg-stone-100 px-6 py-20 text-center">
+              <p className="font-display text-lg font-bold uppercase text-ink">No styles match this filter</p>
+              <p className="mt-2 text-sm text-ink-soft">
+                Try clearing a filter or searching a different style name or number.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {results.map((style) => (
+                <ProductCard key={style.id} style={style} tier={tier} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

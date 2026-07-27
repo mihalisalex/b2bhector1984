@@ -1,26 +1,121 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* -- Hector 1984 brand tokens -------------------------------------- */
+  --color-ink: #1a1d22;
+  --color-ink-soft: #4a4e57;
+  --color-white: #ffffff;
+  --color-stone-50: #f5f4f1;
+  --color-stone-100: #efece6;
+  --color-stone-200: #e4e1d9;
+  --color-stone-300: #cfcabc;
+  --color-cinder: #6b6560;
+  --color-cinder-300: #a9a39a;
+  --color-signal: #1e48b8;
+  --color-signal-600: #16368c;
+  --color-signal-100: #e4eafb;
+  --color-ember: #c1451e;
+  --color-ember-100: #fbe7de;
+  --color-court: #e8b400;
+  --color-court-100: #fbf0cc;
+  --color-positive: #2c7a4b;
+  --color-positive-100: #e2f2e7;
+
+  --shell-header-h: 4.5rem;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+
+  --color-ink: var(--color-ink);
+  --color-ink-soft: var(--color-ink-soft);
+  --color-white: var(--color-white);
+  --color-stone-50: var(--color-stone-50);
+  --color-stone-100: var(--color-stone-100);
+  --color-stone-200: var(--color-stone-200);
+  --color-stone-300: var(--color-stone-300);
+  --color-cinder: var(--color-cinder);
+  --color-cinder-300: var(--color-cinder-300);
+  --color-signal: var(--color-signal);
+  --color-signal-600: var(--color-signal-600);
+  --color-signal-100: var(--color-signal-100);
+  --color-ember: var(--color-ember);
+  --color-ember-100: var(--color-ember-100);
+  --color-court: var(--color-court);
+  --color-court-100: var(--color-court-100);
+  --color-positive: var(--color-positive);
+  --color-positive-100: var(--color-positive-100);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: var(--color-stone-300);
+}
+
+html {
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-stone-50);
+  color: var(--color-ink);
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
+  font-feature-settings: "cv11", "ss01";
+}
+
+.font-display {
+  font-family: var(--font-display), Arial, Helvetica, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.font-mono-tab {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Visible keyboard focus everywhere, no exceptions */
+:focus-visible {
+  outline: 2px solid var(--color-signal);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--color-signal);
+  color: var(--color-white);
+}
+
+/* Scrollbar restraint on dense tables */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-cinder-300) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes flap-in {
+  from {
+    transform: rotateX(-100deg);
+    opacity: 0;
+  }
+  to {
+    transform: rotateX(0deg);
+    opacity: 1;
+  }
+}
+
+.flap-tile {
+  animation: flap-in 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transform-origin: 50% 0%;
+  perspective: 200px;
 }
