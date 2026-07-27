@@ -1,9 +1,9 @@
+import Image from "next/image";
 import Link from "next/link";
 import { getAllStyles, CATEGORY_LABEL } from "@/lib/data/styles";
 import { LinkButton } from "@/components/ui/Button";
 import { StylePlate } from "@/components/product/StylePlate";
 import { ScoreboardStrip } from "@/components/marketing/ScoreboardStrip";
-import { HeroShoeArt } from "@/components/marketing/HeroShoeArt";
 
 export default async function HomePage() {
   const categories: Array<"running" | "court" | "trail"> = ["running", "court", "trail"];
@@ -13,8 +13,23 @@ export default async function HomePage() {
     <div>
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-stone-300 bg-ink">
-        <div className="mx-auto grid max-w-[1440px] grid-cols-1 items-center gap-8 px-6 py-10 lg:grid-cols-2 lg:px-10 lg:py-14">
-          <div>
+        <Image
+          src="/images/hero-shoes.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover grayscale"
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(105deg, rgba(8,9,11,0.75) 0%, rgba(8,9,11,0.55) 32%, rgba(8,9,11,0.15) 60%, rgba(8,9,11,0.4) 100%)" }}
+          aria-hidden
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent" aria-hidden />
+
+        <div className="relative mx-auto max-w-[1440px] px-6 py-16 lg:px-10 lg:py-28">
+          <div className="max-w-xl">
             <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-stone-300/70">
               Wholesale — Est. 1984
             </span>
@@ -39,9 +54,6 @@ export default async function HomePage() {
             <Link href="/collections" className="mt-3 inline-block text-sm font-medium text-stone-300 underline underline-offset-2 hover:text-white">
               View the collection first →
             </Link>
-          </div>
-          <div className="relative hidden aspect-[4/3] lg:block">
-            <HeroShoeArt className="h-full w-full" />
           </div>
         </div>
       </section>
