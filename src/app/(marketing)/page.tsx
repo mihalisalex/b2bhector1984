@@ -83,8 +83,18 @@ export default async function HomePage() {
             const rep = styles.find((s) => s.category === cat)!;
             const count = styles.filter((s) => s.category === cat).length;
             return (
-              <Link key={cat} href={`/collections?category=${cat}`} className="group block border border-stone-300 bg-white">
-                <StylePlate swatch={rep.colorways[0].swatch} imageUrl={rep.primaryImageUrl} className="aspect-[4/3] w-full" />
+              <Link
+                key={cat}
+                href={`/collections?category=${cat}`}
+                className="group block border border-stone-300 bg-white transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(26,29,34,0.12)]"
+              >
+                <div className="overflow-hidden">
+                  <StylePlate
+                    swatch={rep.colorways[0].swatch}
+                    imageUrl={rep.primaryImageUrl}
+                    className="aspect-[4/3] w-full transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+                  />
+                </div>
                 <div className="p-5">
                   <h3 className="font-display text-lg font-bold uppercase tracking-tight text-ink group-hover:underline">
                     {CATEGORY_LABEL[cat]}

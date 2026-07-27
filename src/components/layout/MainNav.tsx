@@ -7,11 +7,14 @@ import { usePathname } from "next/navigation";
 import { logout } from "@/lib/actions";
 import type { Account } from "@/lib/types";
 import { cn } from "@/lib/cn";
+import { HWatermark } from "@/components/layout/HWatermark";
 
 const LINKS = [
+  { href: "/", label: "Home" },
   { href: "/quick-order", label: "Quick Order" },
   { href: "/catalog", label: "Catalogue" },
   { href: "/brand-story", label: "The Brand" },
+  { href: "/contact", label: "Contact" },
   { href: "/dashboard", label: "Wholesale Dashboard" },
 ];
 
@@ -76,12 +79,7 @@ export function MainNav({ account }: { account: Account | null }) {
                 open ? "translate-x-0" : "-translate-x-full",
               )}
             >
-              <span
-                aria-hidden
-                className="font-display pointer-events-none absolute -left-24 top-1/2 -translate-y-1/2 select-none text-[32rem] font-bold leading-none text-ink/[0.06] blur-2xl"
-              >
-                H
-              </span>
+              <HWatermark className="-right-16 -top-10 text-[22rem] text-ink/[0.4]" />
 
               <div className="relative flex items-center justify-between border-b border-stone-300 px-5 py-4">
                 <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">Menu</span>
@@ -100,9 +98,15 @@ export function MainNav({ account }: { account: Account | null }) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="border-b border-stone-200 py-3 font-display text-lg font-bold uppercase tracking-tight text-ink hover:text-signal"
+                    className="group flex items-center justify-between border-b border-stone-200 py-3 font-display text-lg font-bold uppercase tracking-tight text-ink transition-colors duration-150 hover:text-signal"
                   >
                     {item.label}
+                    <span
+                      aria-hidden
+                      className="translate-x-1 text-signal opacity-0 transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100"
+                    >
+                      →
+                    </span>
                   </Link>
                 ))}
               </nav>

@@ -31,6 +31,7 @@ export function Footer() {
           <FooterCol
             title="Contact"
             links={[
+              { href: "/contact", label: "Contact us" },
               { href: "mailto:wholesale@hector1984.com", label: "wholesale@hector1984.com" },
               { href: "tel:+15035550100", label: "(503) 555-0100" },
             ]}

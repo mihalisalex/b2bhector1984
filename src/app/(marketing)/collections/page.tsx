@@ -45,13 +45,19 @@ export default async function CollectionsPage({
 
       <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {results.map((style) => (
-          <Link key={style.id} href={`/product/${style.slug}`} className="group block border border-stone-300 bg-white">
-            <StylePlate
-              swatch={style.colorways[0].swatch}
-              styleNumber={style.styleNumber}
-              imageUrl={style.primaryImageUrl}
-              className="aspect-[4/3] w-full"
-            />
+          <Link
+            key={style.id}
+            href={`/product/${style.slug}`}
+            className="group block border border-stone-300 bg-white transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(26,29,34,0.12)]"
+          >
+            <div className="overflow-hidden">
+              <StylePlate
+                swatch={style.colorways[0].swatch}
+                styleNumber={style.styleNumber}
+                imageUrl={style.primaryImageUrl}
+                className="aspect-[4/3] w-full transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+              />
+            </div>
             <div className="p-5">
               <AvailabilityBadge availability={style.availability} shipWindow={style.shipWindow} />
               <h3 className="font-display mt-2 text-lg font-bold uppercase tracking-tight text-ink group-hover:underline">
