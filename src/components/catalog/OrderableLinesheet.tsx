@@ -6,6 +6,7 @@ import { useCart, type CartLine } from "@/lib/cart-context";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { formatEUR, validateMatrix } from "@/lib/pricing";
 import { CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styleLabels";
+import type { StyleInventory } from "@/lib/data/inventory";
 import type { BoxTypeId, Style } from "@/lib/types";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
@@ -27,7 +28,7 @@ function buildInitialQtyForStyle(style: Style, cartLines: CartLine[]): StyleQtyM
   return map;
 }
 
-export function OrderableLinesheet({ styles }: { styles: Style[] }) {
+export function OrderableLinesheet({ styles, inventory }: { styles: Style[]; inventory: Record<string, StyleInventory> }) {
   const { lines, addLines } = useCart();
   const [qty, setQty] = useState<AllQtyMap>(() => {
     const map: AllQtyMap = {};
@@ -55,11 +56,12 @@ export function OrderableLinesheet({ styles }: { styles: Style[] }) {
 
   function setCell(styleId: string, colorwayId: string, boxTypeId: BoxTypeId, value: number) {
     setConfirmed(false);
+    const onHand = inventory[styleId]?.[colorwayId]?.[boxTypeId] ?? 0;
     setQty((prev) => ({
       ...prev,
       [styleId]: {
         ...prev[styleId],
-        [colorwayId]: { ...prev[styleId]?.[colorwayId], [boxTypeId]: Math.max(0, Math.floor(value) || 0) },
+        [colorwayId]: { ...prev[styleId]?.[colorwayId], [boxTypeId]: Math.min(onHand, Math.max(0, Math.floor(value) || 0)) },
       },
     }));
   }
@@ -145,6 +147,7 @@ export function OrderableLinesheet({ styles }: { styles: Style[] }) {
                             onChange={(v) => setCell(style.id, colorway.id, box.id, v)}
                             onStep={(d) => step(style.id, colorway.id, box.id, d)}
                             label={`${box.label} for ${style.name} ${colorway.name}`}
+                            max={inventory[style.id]?.[colorway.id]?.[box.id] ?? 0}
                           />
                         </div>
                       ))}
@@ -231,6 +234,7 @@ export function OrderableLinesheet({ styles }: { styles: Style[] }) {
                           onChange={(v) => setCell(style.id, colorway.id, boxTypeId, v)}
                           onStep={(d) => step(style.id, colorway.id, boxTypeId, d)}
                           label={`${boxTypeId} for ${style.name} ${colorway.name}`}
+                          max={inventory[style.id]?.[colorway.id]?.[boxTypeId] ?? 0}
                         />
                       ) : (
                         <span className="text-ink-soft">—</span>
@@ -289,42 +293,58 @@ function Stepper({
   onChange,
   onStep,
   label,
+  max,
 }: {
   value: number;
   onChange: (value: number) => void;
   onStep: (delta: number) => void;
   label: string;
+  max: number;
 }) {
+  const outOfStock = max === 0;
   return (
-    <div className={cn("mx-auto flex w-24 items-center justify-between border px-1 py-1", value > 0 ? "border-ink bg-signal-100/40" : "border-stone-300")}>
-      <button
-        type="button"
-        aria-label={`Decrease ${label} quantity`}
-        onClick={() => onStep(-1)}
-        disabled={value === 0}
-        className="flex h-6 w-6 items-center justify-center text-ink hover:text-signal disabled:opacity-30"
+    <div className="flex flex-col items-center gap-0.5">
+      <div
+        className={cn(
+          "mx-auto flex w-24 items-center justify-between border px-1 py-1",
+          outOfStock ? "border-stone-300 opacity-60" : value > 0 ? "border-ink bg-signal-100/40" : "border-stone-300",
+        )}
       >
-        −
-      </button>
-      <input
-        type="number"
-        min={0}
-        inputMode="numeric"
-        value={value || ""}
-        placeholder="0"
-        aria-label={`${label} quantity`}
-        onChange={(e) => onChange(Number(e.target.value))}
-        onFocus={(e) => e.target.select()}
-        className="font-mono-tab w-8 border-0 bg-transparent text-center text-sm font-semibold tabular-nums text-ink outline-none"
-      />
-      <button
-        type="button"
-        aria-label={`Increase ${label} quantity`}
-        onClick={() => onStep(1)}
-        className="flex h-6 w-6 items-center justify-center text-ink hover:text-signal"
-      >
-        +
-      </button>
+        <button
+          type="button"
+          aria-label={`Decrease ${label} quantity`}
+          onClick={() => onStep(-1)}
+          disabled={value === 0}
+          className="flex h-6 w-6 items-center justify-center text-ink hover:text-signal disabled:opacity-30"
+        >
+          −
+        </button>
+        <input
+          type="number"
+          min={0}
+          max={max}
+          inputMode="numeric"
+          value={value || ""}
+          placeholder="0"
+          disabled={outOfStock}
+          aria-label={`${label} quantity`}
+          onChange={(e) => onChange(Number(e.target.value))}
+          onFocus={(e) => e.target.select()}
+          className="font-mono-tab w-8 border-0 bg-transparent text-center text-sm font-semibold tabular-nums text-ink outline-none disabled:cursor-not-allowed"
+        />
+        <button
+          type="button"
+          aria-label={`Increase ${label} quantity`}
+          onClick={() => onStep(1)}
+          disabled={value >= max}
+          className="flex h-6 w-6 items-center justify-center text-ink hover:text-signal disabled:opacity-30"
+        >
+          +
+        </button>
+      </div>
+      <span className={cn("font-mono-tab text-[9px]", outOfStock ? "text-ember" : "text-ink-soft/70")}>
+        {outOfStock ? "out" : `${max} avail.`}
+      </span>
     </div>
   );
 }

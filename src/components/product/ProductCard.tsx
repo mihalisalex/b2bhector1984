@@ -4,22 +4,39 @@ import { formatEUR } from "@/lib/pricing";
 import type { Style } from "@/lib/types";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
+import { cn } from "@/lib/cn";
 
-export function ProductCard({ style }: { style: Style }) {
+export function ProductCard({ style, totalOnHand }: { style: Style; totalOnHand?: number }) {
+  const soldOut = totalOnHand === 0;
+  const lowStock = typeof totalOnHand === "number" && totalOnHand > 0 && totalOnHand <= 10;
+
   return (
     <Link
       href={`/product/${style.slug}`}
       className="group flex flex-col border border-stone-300 bg-white transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-stone-300 hover:shadow-[0_14px_32px_rgba(26,29,34,0.12)]"
     >
-      <div className="overflow-hidden">
+      <div className="relative overflow-hidden">
         <StylePlate
           swatch={style.colorways[0].swatch}
           styleNumber={style.styleNumber}
           imageUrl={getStyleImageUrl(style)}
           alt={style.name}
-          className="aspect-[4/3] w-full transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+          className={cn(
+            "aspect-[4/3] w-full transition-transform duration-500 ease-out group-hover:scale-[1.04]",
+            soldOut && "grayscale",
+          )}
           dense
         />
+        {(soldOut || lowStock) && (
+          <span
+            className={cn(
+              "absolute right-2 top-2 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white",
+              soldOut ? "bg-ember" : "bg-ink",
+            )}
+          >
+            {soldOut ? "Sold out" : "Low stock"}
+          </span>
+        )}
       </div>
       <div className="flex flex-1 flex-col gap-2 p-4">
         <div className="flex items-center justify-between gap-2">

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getOrderByIdAdmin } from "@/lib/runtimeOrders";
+import { getOrderByIdAdmin, getOrderStatusHistory } from "@/lib/runtimeOrders";
 import { getAccountById } from "@/lib/data/accounts";
 import { getStyleById } from "@/lib/data/styles";
 import { getBoxType } from "@/lib/data/boxTypes";
@@ -11,6 +11,7 @@ import { OrderStatusForm } from "@/components/admin/OrderStatusForm";
 import { OrderDetailsForm } from "@/components/admin/OrderDetailsForm";
 import { OrderLineRow } from "@/components/admin/OrderLineRow";
 import { EmailBuyerPanel } from "@/components/admin/EmailBuyerPanel";
+import { StatusTimeline } from "@/components/order/StatusTimeline";
 
 export const metadata = { title: "Order", robots: { index: false, follow: false } };
 
@@ -20,6 +21,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
   if (!order) notFound();
 
   const account = await getAccountById(order.accountId);
+  const statusHistory = await getOrderStatusHistory(order.id);
   const { total, totalBoxes, totalPairs } = summarizeOrder(order);
 
   const uniqueStyleIds = Array.from(new Set(order.lines.map((l) => l.styleId)));
@@ -45,6 +47,12 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <a
+            href={`/api/orders/${order.id}/invoice`}
+            className="border border-stone-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-ink-soft hover:border-ink hover:text-ink"
+          >
+            Download Invoice
+          </a>
           <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Status</span>
           <OrderStatusForm orderId={order.id} status={order.status} />
         </div>
@@ -62,32 +70,43 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
               shipToId={order.shipToId}
               notes={order.notes}
               invoiceUrl={order.invoiceUrl}
+              trackingNumber={order.trackingNumber}
+              carrier={order.carrier}
               shipToOptions={account?.shipTo ?? []}
             />
           </div>
         </section>
 
-        <section className="border border-stone-300 bg-ink p-5 text-stone-200">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-stone-300/70">Buyer</h2>
-          <div className="mt-3">
-            <p className="text-sm font-semibold text-white">{order.contactName}</p>
-            <p className="text-xs text-stone-300/70">{order.businessName}</p>
-          </div>
-          <div className="mt-3 flex flex-col gap-1 text-xs text-stone-300/80">
-            <a href={`mailto:${order.email}`} className="hover:text-white">{order.email}</a>
-            {account && (
-              <a href={telHref(account.rep.phone)} className="hover:text-white">Rep: {account.rep.name}</a>
-            )}
-          </div>
-          <div className="mt-4">
-            <EmailBuyerPanel
-              to={order.email}
-              toName={order.contactName}
-              defaultSubject={`Your Hector 1984 order ${order.id}`}
-              defaultBody={emailBody}
-            />
-          </div>
-        </section>
+        <div className="flex flex-col gap-6">
+          <section className="border border-stone-300 bg-ink p-5 text-stone-200">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-stone-300/70">Buyer</h2>
+            <div className="mt-3">
+              <p className="text-sm font-semibold text-white">{order.contactName}</p>
+              <p className="text-xs text-stone-300/70">{order.businessName}</p>
+            </div>
+            <div className="mt-3 flex flex-col gap-1 text-xs text-stone-300/80">
+              <a href={`mailto:${order.email}`} className="hover:text-white">{order.email}</a>
+              {account && (
+                <a href={telHref(account.rep.phone)} className="hover:text-white">Rep: {account.rep.name}</a>
+              )}
+            </div>
+            <div className="mt-4">
+              <EmailBuyerPanel
+                to={order.email}
+                toName={order.contactName}
+                defaultSubject={`Your Hector 1984 order ${order.id}`}
+                defaultBody={emailBody}
+              />
+            </div>
+          </section>
+
+          <section className="border border-stone-300 bg-white p-5">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Status History</h2>
+            <div className="mt-4">
+              <StatusTimeline events={statusHistory} />
+            </div>
+          </section>
+        </div>
       </div>
 
       <section className="mt-6 border border-stone-300 bg-white">

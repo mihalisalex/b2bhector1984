@@ -134,6 +134,13 @@ export interface Order {
   notes?: string;
   lines: OrderLine[];
   invoiceUrl?: string;
+  trackingNumber?: string;
+  carrier?: string;
+}
+
+export interface OrderStatusEvent {
+  status: OrderStatus;
+  changedAt: string;
 }
 
 export type ApplicationStatus = "pending" | "approved" | "active" | "declined";

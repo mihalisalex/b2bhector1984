@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { CATEGORY_LABEL, GENDER_LABEL, getStyleBySlug, getStyleImageUrl } from "@/lib/data/styles";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
+import { getInventoryForStyle } from "@/lib/data/inventory";
 import { formatEUR } from "@/lib/pricing";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
@@ -21,6 +22,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const { slug } = await params;
   const style = await getStyleBySlug(slug);
   if (!style) notFound();
+  const inventory = await getInventoryForStyle(style.id);
 
   return (
     <div className="mx-auto max-w-[1600px] px-6 py-8 lg:px-10">
@@ -88,7 +90,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <h2 className="font-display mb-3 text-lg font-bold uppercase tracking-tight text-ink">
           Build Your Order
         </h2>
-        <MatrixOrderGrid style={style} />
+        <MatrixOrderGrid style={style} inventory={inventory} />
       </div>
     </div>
   );

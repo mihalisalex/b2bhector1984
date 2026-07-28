@@ -11,6 +11,7 @@ import {
   deleteStyleImage,
 } from "@/lib/data/styleImages";
 import { updateAvailableBoxTypes } from "@/lib/data/styles";
+import { setInventoryLevel } from "@/lib/data/inventory";
 import { updateHomepageHero, createHeroImageUploadTarget, finalizeHeroImageUpload } from "@/lib/data/siteContent";
 import {
   updateOrderStatus as updateOrderStatusInDb,
@@ -29,14 +30,17 @@ async function requireAdmin() {
 
 const ORDER_STATUSES: OrderStatus[] = ["submitted", "confirmed", "in_production", "shipped", "delivered"];
 
-/** Bound to a specific orderId via `.bind(null, orderId)` for use as a <form action>. */
-export async function updateOrderStatus(orderId: string, formData: FormData) {
+/** Bound to `.bind(null, orderId)` for use as a <form action>. */
+export async function updateOrderStatus(orderId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   await requireAdmin();
   const status = String(formData.get("status") ?? "");
-  if (!ORDER_STATUSES.includes(status as OrderStatus)) return;
-  await updateOrderStatusInDb(orderId, status as OrderStatus);
+  if (!ORDER_STATUSES.includes(status as OrderStatus)) return { error: "Invalid status." };
+  const result = await updateOrderStatusInDb(orderId, status as OrderStatus);
+  if (result.error) return { error: result.error };
   revalidatePath("/admin");
   revalidatePath(`/admin/orders/${orderId}`);
+  revalidatePath(`/dashboard/orders/${orderId}`);
+  return {};
 }
 
 const ORDER_TERMS: CreditTerms[] = ["prepay", "net30", "net60"];
@@ -55,6 +59,8 @@ export async function updateOrderDetailsAction(
   const shipToId = String(formData.get("shipToId") ?? "");
   const notes = String(formData.get("notes") ?? "").trim();
   const invoiceUrl = String(formData.get("invoiceUrl") ?? "").trim();
+  const trackingNumber = String(formData.get("trackingNumber") ?? "").trim();
+  const carrier = String(formData.get("carrier") ?? "").trim();
 
   if (!poNumber) return { error: "PO number is required." };
   if (!ORDER_TERMS.includes(terms as CreditTerms)) return { error: "Select valid payment terms." };
@@ -65,6 +71,8 @@ export async function updateOrderDetailsAction(
     shipToId,
     notes: notes || undefined,
     invoiceUrl: invoiceUrl || undefined,
+    trackingNumber: trackingNumber || undefined,
+    carrier: carrier || undefined,
   });
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath("/admin");
@@ -153,6 +161,20 @@ export async function updateAvailableBoxTypesAction(formData: FormData) {
   if (!styleId) return;
   const selected = ALL_BOX_TYPES.filter((id) => formData.get(id) === "on");
   await updateAvailableBoxTypes(styleId, selected.length > 0 ? selected : ALL_BOX_TYPES);
+  revalidatePath(`/admin/styles/${styleId}`);
+  revalidatePath("/catalogue");
+  revalidatePath("/quick-order");
+  revalidatePath("/product/[slug]", "page");
+}
+
+/** Bound to `.bind(null, styleId)` — a <form action> per colorway/box-type stock cell. */
+export async function updateInventoryLevelAction(styleId: string, formData: FormData) {
+  await requireAdmin();
+  const colorwayId = String(formData.get("colorwayId") ?? "");
+  const boxTypeId = String(formData.get("boxTypeId") ?? "") as BoxTypeId;
+  const onHand = Number(formData.get("onHand") ?? 0);
+  if (!colorwayId || !boxTypeId || !Number.isFinite(onHand)) return;
+  await setInventoryLevel(styleId, colorwayId, boxTypeId, Math.round(onHand));
   revalidatePath(`/admin/styles/${styleId}`);
   revalidatePath("/catalogue");
   revalidatePath("/quick-order");

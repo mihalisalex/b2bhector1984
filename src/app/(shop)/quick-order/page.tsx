@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { getAllStyles } from "@/lib/data/styles";
 import { filterStyles, parseFilters } from "@/lib/catalogFilters";
+import { getInventoryForStyles } from "@/lib/data/inventory";
 import { CatalogFilters } from "@/components/catalog/CatalogFilters";
 import { LinesheetToolbar } from "@/components/catalog/LinesheetToolbar";
 import { OrderableLinesheet } from "@/components/catalog/OrderableLinesheet";
@@ -16,6 +17,7 @@ export default async function QuickOrderPage({
   const styles = await getAllStyles();
   const filters = parseFilters(sp);
   const results = filterStyles(styles, filters);
+  const inventory = await getInventoryForStyles(results.map((s) => s.id));
 
   return (
     <div className="mx-auto max-w-[1800px] px-6 py-8 lg:px-10 print:px-0 print:py-0">
@@ -44,7 +46,7 @@ export default async function QuickOrderPage({
               <p className="mt-2 text-sm text-ink-soft">Clear a filter to see more of the collection.</p>
             </div>
           ) : (
-            <OrderableLinesheet styles={results} />
+            <OrderableLinesheet styles={results} inventory={inventory} />
           )}
         </div>
       </div>

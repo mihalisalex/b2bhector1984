@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import { getAvailableBoxTypes, getSizeBreakdown, getTotalPairs } from "@/lib/data/boxTypes";
 import { formatEUR, validateMatrix } from "@/lib/pricing";
+import type { StyleInventory } from "@/lib/data/inventory";
 import type { BoxTypeId, Style } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
@@ -27,7 +28,7 @@ function buildInitialQty(
   return map;
 }
 
-export function MatrixOrderGrid({ style }: { style: Style }) {
+export function MatrixOrderGrid({ style, inventory }: { style: Style; inventory: StyleInventory }) {
   const { addLines, lines } = useCart();
   const boxTypes = getAvailableBoxTypes(style);
   const [qty, setQty] = useState<BoxQtyMap>(() => buildInitialQty(style, boxTypes, lines));
@@ -37,9 +38,10 @@ export function MatrixOrderGrid({ style }: { style: Style }) {
 
   function setCell(colorwayId: string, boxTypeId: BoxTypeId, value: number) {
     setConfirmed(false);
+    const onHand = inventory[colorwayId]?.[boxTypeId] ?? 0;
     setQty((prev) => ({
       ...prev,
-      [colorwayId]: { ...prev[colorwayId], [boxTypeId]: Math.max(0, Math.floor(value) || 0) },
+      [colorwayId]: { ...prev[colorwayId], [boxTypeId]: Math.min(onHand, Math.max(0, Math.floor(value) || 0)) },
     }));
   }
 
@@ -123,17 +125,25 @@ export function MatrixOrderGrid({ style }: { style: Style }) {
               <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
                 {boxTypes.map((box) => {
                   const boxQty = rowBoxes[box.id] ?? 0;
+                  const onHand = inventory[colorway.id]?.[box.id] ?? 0;
+                  const outOfStock = onHand === 0;
+                  const lowStock = onHand > 0 && onHand <= 4;
                   return (
                     <div
                       key={box.id}
                       className={cn(
                         "flex flex-col gap-2 border px-3 py-3 transition-colors",
-                        boxQty > 0 ? "border-ink bg-signal-100/40" : "border-stone-300",
+                        outOfStock ? "border-stone-300 opacity-60" : boxQty > 0 ? "border-ink bg-signal-100/40" : "border-stone-300",
                       )}
                     >
-                      <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">
-                        {box.label}
-                      </span>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">
+                          {box.label}
+                        </span>
+                        <span className={cn("font-mono-tab text-[10px]", outOfStock ? "text-ember" : lowStock ? "text-ember" : "text-ink-soft")}>
+                          {outOfStock ? "Out of stock" : `${onHand} avail.`}
+                        </span>
+                      </div>
                       <div className="flex items-center justify-between">
                         <button
                           type="button"
@@ -147,19 +157,22 @@ export function MatrixOrderGrid({ style }: { style: Style }) {
                         <input
                           type="number"
                           min={0}
+                          max={onHand}
                           inputMode="numeric"
                           value={boxQty || ""}
                           placeholder="0"
+                          disabled={outOfStock}
                           aria-label={`${box.label} quantity for ${colorway.name}`}
                           onChange={(e) => setCell(colorway.id, box.id, Number(e.target.value))}
                           onFocus={(e) => e.target.select()}
-                          className="font-mono-tab w-12 border-0 bg-transparent text-center text-lg font-semibold tabular-nums text-ink outline-none"
+                          className="font-mono-tab w-12 border-0 bg-transparent text-center text-lg font-semibold tabular-nums text-ink outline-none disabled:cursor-not-allowed"
                         />
                         <button
                           type="button"
                           aria-label={`Increase ${box.label} quantity for ${colorway.name}`}
                           onClick={() => step(colorway.id, box.id, 1)}
-                          className="flex h-8 w-8 items-center justify-center border border-stone-300 text-ink hover:border-ink"
+                          className="flex h-8 w-8 items-center justify-center border border-stone-300 text-ink hover:border-ink disabled:opacity-30"
+                          disabled={boxQty >= onHand}
                         >
                           +
                         </button>

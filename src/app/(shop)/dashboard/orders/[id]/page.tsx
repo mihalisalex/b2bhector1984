@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
-import { getOrderById } from "@/lib/runtimeOrders";
+import { getOrderById, getOrderStatusHistory } from "@/lib/runtimeOrders";
 import { getStyleById } from "@/lib/data/styles";
 import { getBoxType } from "@/lib/data/boxTypes";
 import { formatEUR, summarizeOrder } from "@/lib/pricing";
@@ -10,6 +10,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { ReorderButton } from "@/components/dashboard/ReorderButton";
 import { ClearCartOnMount } from "@/components/dashboard/ClearCartOnMount";
 import { PrintButton } from "@/components/dashboard/PrintButton";
+import { StatusTimeline } from "@/components/order/StatusTimeline";
 
 export const metadata = { title: "Order Detail", robots: { index: false, follow: false } };
 
@@ -29,6 +30,7 @@ export default async function OrderDetailPage({
   if (!order) notFound();
 
   const shipTo = account.shipTo.find((s) => s.id === order.shipToId);
+  const statusHistory = await getOrderStatusHistory(order.id);
   const { total, totalBoxes, totalPairs } = summarizeOrder(order);
 
   const uniqueStyleIds = Array.from(new Set(order.lines.map((l) => l.styleId)));
@@ -60,6 +62,12 @@ export default async function OrderDetailPage({
         </div>
         <div className="flex items-center gap-3 print:hidden">
           <ReorderButton order={order} className="border border-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-white" />
+          <a
+            href={`/api/orders/${order.id}/invoice`}
+            className="border border-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-white"
+          >
+            Download Invoice
+          </a>
           <PrintButton />
         </div>
       </div>
@@ -73,7 +81,17 @@ export default async function OrderDetailPage({
           ) : "—"}
         </Detail>
         <Detail label="Terms">{order.terms.toUpperCase()}</Detail>
+        <Detail label="Tracking">
+          {order.trackingNumber ? `${order.carrier ?? ""} ${order.trackingNumber}`.trim() : "—"}
+        </Detail>
         <Detail label="Notes">{order.notes ?? "—"}</Detail>
+      </div>
+
+      <div className="mt-8 border border-stone-300 bg-white p-5 print:hidden">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Status History</h2>
+        <div className="mt-4">
+          <StatusTimeline events={statusHistory} />
+        </div>
       </div>
 
       <div className="mt-8 scroll-thin overflow-x-auto border border-stone-300">

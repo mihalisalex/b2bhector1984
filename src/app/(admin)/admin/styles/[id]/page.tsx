@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getStyleById } from "@/lib/data/styles";
 import { BOX_TYPES } from "@/lib/data/boxTypes";
+import { getInventoryForStyle } from "@/lib/data/inventory";
 import { listImagesForStyle } from "@/lib/data/styleImages";
 import {
   createStyleImageUploadUrlAction,
@@ -11,6 +12,7 @@ import {
   updateAvailableBoxTypesAction,
 } from "@/lib/adminActions";
 import { ImageUploadForm } from "@/components/admin/ImageUploadForm";
+import { InventoryLevelInput } from "@/components/admin/InventoryLevelInput";
 
 export default async function AdminStyleDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -18,6 +20,8 @@ export default async function AdminStyleDetailPage({ params }: { params: Promise
   if (!style) notFound();
 
   const images = await listImagesForStyle(id);
+  const inventory = await getInventoryForStyle(id);
+  const offeredBoxTypes = BOX_TYPES.filter((b) => style.availableBoxTypes.includes(b.id));
 
   return (
     <div>
@@ -54,6 +58,43 @@ export default async function AdminStyleDetailPage({ params }: { params: Promise
             Save
           </button>
         </form>
+      </section>
+
+      <section className="mt-8">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Inventory</h2>
+        <p className="mt-1 text-sm text-ink-soft">
+          On-hand boxes per colorway. Buyers can&rsquo;t order more than what&rsquo;s shown here — changes take
+          effect immediately.
+        </p>
+        <div className="scroll-thin mt-3 overflow-x-auto border border-stone-300 bg-white">
+          <table className="w-full min-w-[420px] border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-stone-300 bg-stone-100 text-left text-[11px] uppercase tracking-wide text-ink-soft">
+                <th className="px-4 py-2.5">Colorway</th>
+                {offeredBoxTypes.map((box) => (
+                  <th key={box.id} className="px-3 py-2.5 text-right">{box.label}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {style.colorways.map((colorway) => (
+                <tr key={colorway.id} className="border-b border-stone-200 last:border-b-0">
+                  <td className="px-4 py-2 text-ink">{colorway.name}</td>
+                  {offeredBoxTypes.map((box) => (
+                    <td key={box.id} className="px-3 py-2 text-right">
+                      <InventoryLevelInput
+                        styleId={style.id}
+                        colorwayId={colorway.id}
+                        boxTypeId={box.id}
+                        onHand={inventory[colorway.id]?.[box.id] ?? 0}
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section className="mt-8">

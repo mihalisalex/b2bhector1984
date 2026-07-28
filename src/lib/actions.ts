@@ -28,6 +28,7 @@ import { getStyleById } from "@/lib/data/styles";
 import { hashPassword, verifyPassword } from "@/lib/passwords";
 import { formatEUR, getOrderMinimumError, getUnitPrice, summarizeOrder, validateMatrix } from "@/lib/pricing";
 import { createSavedAssortment, deleteSavedAssortment as deleteSavedAssortmentData } from "@/lib/data/assortments";
+import { decrementInventoryForOrder } from "@/lib/data/inventory";
 import type { Application, BoxTypeId, CreditTerms, Order, OrderLine } from "@/lib/types";
 
 const APPLICATION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
@@ -187,10 +188,12 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
   }
 
   const orderLines: OrderLine[] = [];
+  const styleById = new Map<string, Awaited<ReturnType<typeof getStyleById>>>();
   let totalPairs = 0;
   for (const [styleId, qtyMap] of byStyle.entries()) {
     const style = await getStyleById(styleId);
     if (!style) continue;
+    styleById.set(styleId, style);
     const validation = validateMatrix(style, qtyMap, terms);
     totalPairs += validation.totalPairs;
     const unitPrice = getUnitPrice(style, terms);
@@ -213,6 +216,15 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
   if (orderTotal > availableCredit) {
     return {
       error: `This order (${formatEUR(orderTotal)}) exceeds your available credit (${formatEUR(Math.max(availableCredit, 0))} of a ${formatEUR(account.creditLimit)} limit). Contact ${account.rep.name} to raise your limit or reduce the order.`,
+    };
+  }
+
+  const stockResult = await decrementInventoryForOrder(orderLines);
+  if (!stockResult.ok) {
+    const style = styleById.get(stockResult.failedLine.styleId);
+    const boxLabel = { box8: "8-pair", box10: "10-pair", box12: "12-pair" }[stockResult.failedLine.boxTypeId];
+    return {
+      error: `Not enough stock for ${style?.name ?? "that style"} (${boxLabel} box) to cover this order. Reduce the quantity or contact ${account.rep.name}.`,
     };
   }
 

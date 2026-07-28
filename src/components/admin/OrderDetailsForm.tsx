@@ -18,6 +18,8 @@ export function OrderDetailsForm({
   shipToId,
   notes,
   invoiceUrl,
+  trackingNumber,
+  carrier,
   shipToOptions,
 }: {
   orderId: string;
@@ -27,6 +29,8 @@ export function OrderDetailsForm({
   shipToId: string;
   notes?: string;
   invoiceUrl?: string;
+  trackingNumber?: string;
+  carrier?: string;
   shipToOptions: ShipToAddress[];
 }) {
   const [state, formAction, pending] = useActionState(updateOrderDetailsAction.bind(null, orderId, accountId), initialState);
@@ -68,6 +72,9 @@ export function OrderDetailsForm({
 
         <Field label="Invoice URL" name="invoiceUrl" defaultValue={invoiceUrl} className="sm:col-span-2" />
 
+        <Field label="Carrier" name="carrier" defaultValue={carrier} placeholder="e.g. UPS, DHL" />
+        <Field label="Tracking number" name="trackingNumber" defaultValue={trackingNumber} />
+
         <label className="flex flex-col gap-1.5 sm:col-span-2">
           <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Notes</span>
           <textarea
@@ -103,12 +110,14 @@ function Field({
   defaultValue,
   required,
   className,
+  placeholder,
 }: {
   label: string;
   name: string;
   defaultValue?: string;
   required?: boolean;
   className?: string;
+  placeholder?: string;
 }) {
   return (
     <label className={`flex flex-col gap-1.5 ${className ?? ""}`}>
@@ -117,6 +126,7 @@ function Field({
         name={name}
         defaultValue={defaultValue}
         required={required}
+        placeholder={placeholder}
         className="border border-stone-300 bg-white px-3 py-2.5 text-sm text-ink outline-none focus-visible:border-signal"
       />
     </label>

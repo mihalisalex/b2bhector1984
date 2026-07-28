@@ -9,9 +9,11 @@
     "lint": "eslint",
     "seed": "tsx scripts/seed.ts",
     "seed:admin": "tsx scripts/seedAdmin.ts",
+    "seed:inventory": "tsx scripts/seedInventory.ts",
     "rehash-passwords": "tsx scripts/rehashPasswords.ts"
   },
   "dependencies": {
+    "@react-pdf/renderer": "^4.5.1",
     "@supabase/supabase-js": "^2.110.8",
     "clsx": "^2.1.1",
     "next": "16.2.12",

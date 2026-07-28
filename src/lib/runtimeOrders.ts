@@ -1,7 +1,7 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { fromDbId, toDbId, toNumber } from "@/lib/data/dbIds";
-import type { BoxTypeId, CreditTerms, Order, OrderLine } from "@/lib/types";
+import type { BoxTypeId, CreditTerms, Order, OrderLine, OrderStatusEvent } from "@/lib/types";
 
 interface OrderRow {
   id: string;
@@ -13,6 +13,8 @@ interface OrderRow {
   ship_to_id: string | null;
   notes: string | null;
   invoice_url: string | null;
+  tracking_number: string | null;
+  carrier: string | null;
 }
 
 interface OrderLineRow {
@@ -47,6 +49,8 @@ function mapOrder(accountId: string, row: OrderRow, lineRows: OrderLineRow[]): O
     notes: row.notes ?? undefined,
     lines,
     invoiceUrl: row.invoice_url ?? undefined,
+    trackingNumber: row.tracking_number ?? undefined,
+    carrier: row.carrier ?? undefined,
   };
 }
 
@@ -98,6 +102,8 @@ export async function addOrder(accountId: string, order: Order): Promise<void> {
   });
   if (orderError) throw new Error(`orders: ${orderError.message}`);
 
+  await supabaseAdmin.from("order_status_history").insert({ order_id: order.id, status: order.status });
+
   if (order.lines.length === 0) return;
   const { error: linesError } = await supabaseAdmin.from("order_lines").insert(
     order.lines.map((line) => ({
@@ -133,9 +139,35 @@ export async function listAllOrders(): Promise<AdminOrder[]> {
   }));
 }
 
-export async function updateOrderStatus(orderId: string, status: Order["status"]): Promise<void> {
+/** Shipping requires tracking info to already be saved (see OrderDetailsForm) — a real carrier/tracking number, not a status flip with no way to actually track the box. */
+export async function updateOrderStatus(orderId: string, status: Order["status"]): Promise<{ error?: string }> {
+  if (status === "shipped") {
+    const { data, error: fetchError } = await supabaseAdmin
+      .from("orders")
+      .select("tracking_number, carrier")
+      .eq("id", orderId)
+      .limit(1);
+    if (fetchError) throw new Error(`orders: ${fetchError.message}`);
+    const row = data?.[0];
+    if (!row?.tracking_number || !row?.carrier) {
+      return { error: "Add a tracking number and carrier in Order Details before marking this shipped." };
+    }
+  }
+
   const { error } = await supabaseAdmin.from("orders").update({ status }).eq("id", orderId);
   if (error) throw new Error(`orders: ${error.message}`);
+  await supabaseAdmin.from("order_status_history").insert({ order_id: orderId, status });
+  return {};
+}
+
+export async function getOrderStatusHistory(orderId: string): Promise<OrderStatusEvent[]> {
+  const { data, error } = await supabaseAdmin
+    .from("order_status_history")
+    .select("status, changed_at")
+    .eq("order_id", orderId)
+    .order("changed_at", { ascending: true });
+  if (error) throw new Error(`order_status_history: ${error.message}`);
+  return (data ?? []).map((row) => ({ status: row.status, changedAt: row.changed_at }));
 }
 
 export interface AdminOrderDetail extends Order {
@@ -171,7 +203,15 @@ export async function getOrderByIdAdmin(orderId: string): Promise<AdminOrderDeta
 export async function updateOrderDetails(
   orderId: string,
   accountId: string,
-  input: { poNumber: string; terms: CreditTerms; shipToId: string; notes?: string; invoiceUrl?: string },
+  input: {
+    poNumber: string;
+    terms: CreditTerms;
+    shipToId: string;
+    notes?: string;
+    invoiceUrl?: string;
+    trackingNumber?: string;
+    carrier?: string;
+  },
 ): Promise<void> {
   const { error } = await supabaseAdmin
     .from("orders")
@@ -181,6 +221,8 @@ export async function updateOrderDetails(
       ship_to_id: input.shipToId ? toDbId(accountId, input.shipToId) : null,
       notes: input.notes || null,
       invoice_url: input.invoiceUrl || null,
+      tracking_number: input.trackingNumber || null,
+      carrier: input.carrier || null,
     })
     .eq("id", orderId);
   if (error) throw new Error(`orders: ${error.message}`);

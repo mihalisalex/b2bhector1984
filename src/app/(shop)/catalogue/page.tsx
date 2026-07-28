@@ -1,9 +1,18 @@
 import { Suspense } from "react";
 import { getAllStyles } from "@/lib/data/styles";
 import { filterStyles, parseFilters } from "@/lib/catalogFilters";
+import { getInventoryForStyles, type StyleInventory } from "@/lib/data/inventory";
 import { CatalogFilters } from "@/components/catalog/CatalogFilters";
 import { BoxPolicyBanner } from "@/components/catalog/BoxPolicyBanner";
 import { ProductCard } from "@/components/product/ProductCard";
+
+function totalOnHand(styleId: string, inventory: Record<string, StyleInventory>): number {
+  const byColorway = inventory[styleId] ?? {};
+  return Object.values(byColorway).reduce(
+    (sum, byBox) => sum + Object.values(byBox).reduce((s: number, n) => s + (n ?? 0), 0),
+    0,
+  );
+}
 
 export const metadata = { title: "Catalog", robots: { index: false, follow: false } };
 
@@ -16,6 +25,7 @@ export default async function CatalogPage({
   const styles = await getAllStyles();
   const filters = parseFilters(sp);
   const results = filterStyles(styles, filters);
+  const inventory = await getInventoryForStyles(results.map((s) => s.id));
 
   return (
     <div className="mx-auto max-w-[1600px] px-6 py-8 lg:px-10">
@@ -50,7 +60,7 @@ export default async function CatalogPage({
           ) : (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {results.map((style) => (
-                <ProductCard key={style.id} style={style} />
+                <ProductCard key={style.id} style={style} totalOnHand={totalOnHand(style.id, inventory)} />
               ))}
             </div>
           )}
