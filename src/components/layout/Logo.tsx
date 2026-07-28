@@ -2,23 +2,22 @@ import { cn } from "@/lib/cn";
 
 export function Logo({ inverted = false, className }: { inverted?: boolean; className?: string }) {
   return (
-    <span className={cn("flex items-center gap-2.5", className)}>
+    <span className={cn("flex items-baseline gap-2", className)}>
       <span
         className={cn(
-          "font-display flex h-8 w-8 shrink-0 items-center justify-center text-[19px] font-bold",
-          inverted ? "bg-white text-ink" : "bg-ink text-white",
-        )}
-        aria-hidden
-      >
-        H
-      </span>
-      <span
-        className={cn(
-          "font-display text-[19px] font-bold uppercase leading-none tracking-[0.08em]",
+          "font-display text-[23px] font-bold uppercase leading-none tracking-[0.08em]",
           inverted ? "text-white" : "text-ink",
         )}
       >
         Hector
+      </span>
+      <span
+        className={cn(
+          "font-display text-[11px] font-normal uppercase leading-none tracking-[0.18em]",
+          inverted ? "text-stone-300" : "text-ink-soft",
+        )}
+      >
+        Footwear
       </span>
     </span>
   );

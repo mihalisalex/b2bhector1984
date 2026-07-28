@@ -6,7 +6,7 @@ import { Bodoni_Moda, Geist, Geist_Mono } from "next/font/google";
 export const displaySerif = Bodoni_Moda({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: ["600", "700", "800"],
+  weight: ["400", "600", "700", "800"],
 });
 
 export const bodySans = Geist({
