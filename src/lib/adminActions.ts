@@ -314,6 +314,7 @@ export async function createSalesRepAction(_prev: FormState, formData: FormData)
 }
 
 /** Bound to `.bind(null, repId)` — uses useActionState so a "rep still assigned" error can surface inline. */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- signature required by useActionState, neither param is needed
 export async function deleteSalesRepAction(repId: string, _prev: FormState, _formData: FormData): Promise<FormState> {
   const admin = await requireAdmin();
   const result = await deleteSalesRep(repId);

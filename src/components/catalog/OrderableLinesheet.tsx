@@ -48,6 +48,9 @@ export function OrderableLinesheet({
   // Seed state for any style that enters the view after a filter change,
   // without touching in-progress edits on styles already present.
   useEffect(() => {
+    // Syncing new styles into local qty state when the filtered list changes,
+    // without resetting in-progress edits on styles already present.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setQty((prev) => {
       let changed = false;
       const next = { ...prev };
@@ -58,8 +61,10 @@ export function OrderableLinesheet({
         }
       }
       return changed ? next : prev;
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     });
+    // Intentionally excludes `lines`: this effect should only re-seed on a
+    // styles/filter change, not re-run every time cart lines change elsewhere.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [styles]);
 
   function setCell(styleId: string, colorwayId: string, boxTypeId: BoxTypeId, value: number) {

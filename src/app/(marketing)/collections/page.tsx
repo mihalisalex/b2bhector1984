@@ -107,9 +107,15 @@ export default async function CollectionsPage({
               </p>
               <div className="mt-3 flex items-center gap-1.5">
                 {style.colorways.map((c) => (
-                  <span key={c.id} className="flex h-4 w-6 overflow-hidden border border-stone-300" title={c.name}>
-                    <span className="h-full w-1/2" style={{ background: c.swatch[0] }} />
-                    <span className="h-full w-1/2" style={{ background: c.swatch[1] ?? c.swatch[0] }} />
+                  <span
+                    key={c.id}
+                    role="img"
+                    aria-label={c.name}
+                    title={c.name}
+                    className="flex h-4 w-6 overflow-hidden border border-stone-300"
+                  >
+                    <span aria-hidden className="h-full w-1/2" style={{ background: c.swatch[0] }} />
+                    <span aria-hidden className="h-full w-1/2" style={{ background: c.swatch[1] ?? c.swatch[0] }} />
                   </span>
                 ))}
               </div>

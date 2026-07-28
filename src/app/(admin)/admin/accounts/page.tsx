@@ -44,16 +44,33 @@ export default async function AdminAccountsPage() {
                     <p className="text-xs text-ink-soft">{account.contactName} · {account.email}</p>
                   </td>
                   <td className="px-4 py-2.5">
-                    <CreditTermsSelect accountId={account.id} creditTerms={account.creditTerms} />
+                    <CreditTermsSelect
+                      accountId={account.id}
+                      creditTerms={account.creditTerms}
+                      businessName={account.businessName}
+                    />
                   </td>
                   <td className="px-4 py-2.5">
-                    <CreditLimitInput accountId={account.id} creditLimit={account.creditLimit} />
+                    <CreditLimitInput
+                      accountId={account.id}
+                      creditLimit={account.creditLimit}
+                      businessName={account.businessName}
+                    />
                   </td>
                   <td className="px-4 py-2.5">
-                    <RepSelect accountId={account.id} repId={account.repId} reps={reps} />
+                    <RepSelect
+                      accountId={account.id}
+                      repId={account.repId}
+                      reps={reps}
+                      businessName={account.businessName}
+                    />
                   </td>
                   <td className="px-4 py-2.5 text-right">
-                    <PriceMultiplierInput accountId={account.id} priceMultiplier={account.priceMultiplier} />
+                    <PriceMultiplierInput
+                      accountId={account.id}
+                      priceMultiplier={account.priceMultiplier}
+                      businessName={account.businessName}
+                    />
                   </td>
                 </tr>
               ))}

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { cn } from "@/lib/cn";
 
 /**
@@ -24,8 +25,7 @@ export function StylePlate({
   if (imageUrl) {
     return (
       <div className={cn("relative overflow-hidden bg-stone-200", className)}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={imageUrl} alt={alt} className="h-full w-full object-cover" />
+        <Image src={imageUrl} alt={alt} fill sizes="(min-width: 1024px) 440px, 100vw" className="object-cover" />
         {styleNumber && (
           <span className="font-mono-tab absolute bottom-2 right-2 bg-ink/80 px-1.5 py-0.5 text-[10px] tracking-wide text-white">
             {styleNumber}

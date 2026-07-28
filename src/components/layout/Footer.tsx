@@ -5,7 +5,7 @@ export function Footer() {
   return (
     <footer className="border-t border-stone-300 bg-ink text-stone-200">
       <div className="mx-auto max-w-[1440px] px-6 py-14 lg:px-10">
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-5">
           <div>
             <Logo inverted />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-stone-300/80">
@@ -35,6 +35,14 @@ export function Footer() {
               { href: "/contact", label: "Contact us" },
               { href: "mailto:wholesale@hector1984.com", label: "wholesale@hector1984.com" },
               { href: "tel:+15035550100", label: "(503) 555-0100" },
+            ]}
+          />
+          <FooterCol
+            title="Legal"
+            links={[
+              { href: "/terms", label: "Terms of Service" },
+              { href: "/privacy", label: "Privacy Policy" },
+              { href: "/cookies", label: "Cookie Notice" },
             ]}
           />
         </div>

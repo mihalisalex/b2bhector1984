@@ -63,9 +63,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           )}
           <div className="mt-4 grid grid-cols-4 gap-2">
             {style.colorways.map((c) => (
-              <div key={c.id} className="flex h-14 overflow-hidden border border-stone-300" title={c.name}>
-                <span className="h-full w-1/2" style={{ background: c.swatch[0] }} />
-                <span className="h-full w-1/2" style={{ background: c.swatch[1] ?? c.swatch[0] }} />
+              <div
+                key={c.id}
+                role="img"
+                aria-label={c.name}
+                title={c.name}
+                className="flex h-14 overflow-hidden border border-stone-300"
+              >
+                <span aria-hidden className="h-full w-1/2" style={{ background: c.swatch[0] }} />
+                <span aria-hidden className="h-full w-1/2" style={{ background: c.swatch[1] ?? c.swatch[0] }} />
               </div>
             ))}
           </div>

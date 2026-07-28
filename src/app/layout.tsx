@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { bodySans, displaySerif, mono } from "@/lib/fonts";
+import { CookieConsentBanner } from "@/components/layout/CookieConsentBanner";
 import "./globals.css";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://hector1984.com";
@@ -54,6 +55,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     >
       <body className="flex min-h-full flex-col bg-stone-50 text-ink">
         {children}
+        <CookieConsentBanner />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}

@@ -39,7 +39,7 @@ export function CheckoutForm({ account }: { account: Account }) {
       }
       return [{ style, ...validateMatrix(style, qtyMap, terms, account.priceMultiplier) }];
     });
-  }, [lines, terms, getStyleById]);
+  }, [lines, terms, getStyleById, account.priceMultiplier]);
 
   const cartTotal = useMemo(
     () => Math.round(styleGroups.reduce((sum, g) => sum + g.subtotal, 0) * 100) / 100,

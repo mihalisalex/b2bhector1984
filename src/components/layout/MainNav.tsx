@@ -24,8 +24,11 @@ export function MainNav({ account }: { account: Account | null }) {
   const pathname = usePathname();
 
   // Portal target isn't available during SSR; the drawer renders after mount.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
+  // Close the drawer on navigation.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setOpen(false), [pathname]);
 
   useEffect(() => {

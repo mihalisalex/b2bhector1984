@@ -26,6 +26,7 @@ export function OrderStatusForm({ orderId, status }: { orderId: string; status: 
         <select
           name="status"
           defaultValue={status}
+          aria-label="Order status"
           onChange={(e) => e.currentTarget.form?.requestSubmit()}
           className="font-mono-tab border border-stone-300 bg-white px-2 py-1.5 text-xs outline-none focus-visible:border-signal"
         >

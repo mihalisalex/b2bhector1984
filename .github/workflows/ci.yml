@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-typecheck-build:
+    runs-on: ubuntu-latest
+    env:
+      # Placeholder values only — no real Supabase project is contacted during
+      # a build. These exist so module-scope client construction (e.g.
+      # src/lib/supabase/server.ts) doesn't fail on a missing/invalid URL.
+      NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "placeholder-anon-key"
+      SUPABASE_SERVICE_ROLE_KEY: "placeholder-service-role-key"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build

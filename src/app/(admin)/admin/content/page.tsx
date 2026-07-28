@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getHomepageHero } from "@/lib/data/siteContent";
 import {
   updateHomepageHeroAction,
@@ -19,8 +20,13 @@ export default async function AdminContentPage() {
       <section className="mt-8">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Hero image</h2>
         <div className="relative mt-3 aspect-[21/9] w-full max-w-xl overflow-hidden border border-stone-300 bg-ink">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={hero.heroImageUrl} alt="Homepage hero image preview" className="h-full w-full object-cover grayscale" />
+          <Image
+            src={hero.heroImageUrl}
+            alt="Homepage hero image preview"
+            fill
+            sizes="(min-width: 1024px) 576px, 100vw"
+            className="object-cover grayscale"
+          />
         </div>
         <ImageUploadForm
           createUploadTarget={createHeroImageUploadUrlAction}

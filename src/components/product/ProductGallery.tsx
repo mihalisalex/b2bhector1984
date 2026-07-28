@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/cn";
 import type { StyleImage } from "@/lib/data/styleImages";
@@ -19,6 +19,9 @@ export function ProductGallery({
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const active = images[activeIndex];
+  const mainButtonRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const wasOpenRef = useRef(false);
 
   useEffect(() => {
     if (!lightboxOpen) return;
@@ -31,11 +34,24 @@ export function ProductGallery({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [lightboxOpen, images.length]);
 
+  // Move focus into the dialog on open, and back to the trigger on close —
+  // guarded so this doesn't fire on initial mount (lightboxOpen starts false).
+  useEffect(() => {
+    if (lightboxOpen) {
+      wasOpenRef.current = true;
+      closeButtonRef.current?.focus();
+    } else if (wasOpenRef.current) {
+      wasOpenRef.current = false;
+      mainButtonRef.current?.focus();
+    }
+  }, [lightboxOpen]);
+
   if (!active) return null;
 
   return (
     <div className={className}>
       <button
+        ref={mainButtonRef}
         type="button"
         onClick={() => setLightboxOpen(true)}
         className="relative block aspect-[4/3] w-full overflow-hidden bg-stone-200"
@@ -89,6 +105,7 @@ export function ProductGallery({
           onClick={() => setLightboxOpen(false)}
         >
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={() => setLightboxOpen(false)}
             className="absolute right-5 top-5 text-3xl leading-none text-white/80 hover:text-white"
