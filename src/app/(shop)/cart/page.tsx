@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { useCart } from "@/lib/cart-context";
 import { useCatalog } from "@/lib/catalog-context";
 import { getBoxType } from "@/lib/data/boxTypes";
-import { formatUSD, validateMatrix } from "@/lib/pricing";
+import { formatEUR, validateMatrix } from "@/lib/pricing";
 import type { BoxTypeId } from "@/lib/types";
 import { LinkButton } from "@/components/ui/Button";
 import { StylePlate } from "@/components/product/StylePlate";
@@ -115,7 +115,7 @@ export default function CartPage() {
                     <span className="font-medium text-ember">{validation.orderError}</span>
                   )}
                 </div>
-                <span className="font-mono-tab text-base font-semibold text-ink">{formatUSD(validation.subtotal)}</span>
+                <span className="font-mono-tab text-base font-semibold text-ink">{formatEUR(validation.subtotal)}</span>
               </div>
             </div>
           );
@@ -125,7 +125,7 @@ export default function CartPage() {
       <div className="mt-8 flex flex-col items-end gap-3 border-t border-stone-300 pt-6">
         <div className="flex items-baseline gap-3">
           <span className="text-sm font-semibold uppercase tracking-wide text-ink-soft">Cart total</span>
-          <span className="font-mono-tab text-2xl font-bold text-ink">{formatUSD(cartTotal)}</span>
+          <span className="font-mono-tab text-2xl font-bold text-ink">{formatEUR(cartTotal)}</span>
         </div>
         {blocking && (
           <p className="max-w-sm text-right text-xs font-medium text-ember">

@@ -16,11 +16,11 @@ const BUSINESS_TYPES = [
 ];
 
 const VOLUME_BANDS = [
-  "Under $10,000 / year",
-  "$10,000–$25,000 / year",
-  "$25,000–$75,000 / year",
-  "$75,000–$150,000 / year",
-  "$150,000+ / year",
+  "Under €10,000 / year",
+  "€10,000–€25,000 / year",
+  "€25,000–€75,000 / year",
+  "€75,000–€150,000 / year",
+  "€150,000+ / year",
 ];
 
 export function ApplyForm() {

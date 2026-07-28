@@ -5,10 +5,10 @@ export const COLOR_FAMILIES = [
 ] as const;
 
 export const PRICE_BANDS = [
-  { id: "u30", label: "Under $30", min: 0, max: 30 },
-  { id: "30-40", label: "$30–40", min: 30, max: 40 },
-  { id: "40-50", label: "$40–50", min: 40, max: 50 },
-  { id: "50up", label: "$50+", min: 50, max: Infinity },
+  { id: "u30", label: "Under €30", min: 0, max: 30 },
+  { id: "30-40", label: "€30–40", min: 30, max: 40 },
+  { id: "40-50", label: "€40–50", min: 40, max: 50 },
+  { id: "50up", label: "€50+", min: 50, max: Infinity },
 ] as const;
 
 export interface CatalogFilters {

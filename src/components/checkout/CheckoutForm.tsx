@@ -4,7 +4,7 @@ import { useActionState, useMemo, useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
 import { useCatalog } from "@/lib/catalog-context";
-import { formatUSD, TERMS_DISCOUNT, TERMS_LABEL, validateMatrix } from "@/lib/pricing";
+import { formatEUR, TERMS_DISCOUNT, TERMS_LABEL, validateMatrix } from "@/lib/pricing";
 import { placeOrder, type CheckoutState } from "@/lib/actions";
 import type { Account, BoxTypeId, CreditTerms } from "@/lib/types";
 import { Button, LinkButton } from "@/components/ui/Button";
@@ -146,13 +146,13 @@ export function CheckoutForm({ account }: { account: Account }) {
               <span className="text-ink-soft">
                 {g.style.name} <span className="font-mono-tab text-xs">×{g.totalPairs}</span>
               </span>
-              <span className="font-mono-tab text-ink">{formatUSD(g.subtotal)}</span>
+              <span className="font-mono-tab text-ink">{formatEUR(g.subtotal)}</span>
             </div>
           ))}
         </div>
         <div className="mt-4 flex items-center justify-between">
           <span className="text-sm font-semibold uppercase tracking-wide text-ink-soft">Total</span>
-          <span className="font-mono-tab text-xl font-bold text-ink">{formatUSD(cartTotal)}</span>
+          <span className="font-mono-tab text-xl font-bold text-ink">{formatEUR(cartTotal)}</span>
         </div>
         <p className="mt-1 text-right text-[11px] text-ink-soft">
           {TERMS_DISCOUNT[terms] > 0

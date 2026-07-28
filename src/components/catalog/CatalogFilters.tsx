@@ -110,29 +110,27 @@ export function CatalogFilters({ resultCount }: { resultCount: number }) {
 
   return (
     <div className="lg:w-64 lg:shrink-0">
-      <div className="flex items-center justify-between gap-3 lg:hidden">
+      {/* Always visible (not behind the Filters toggle) so mobile buyers can search
+          without opening the drawer or scrolling past the whole product list. */}
+      <div className="flex items-center gap-2">
+        <input
+          type="search"
+          defaultValue={searchParams.get("q") ?? ""}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search style name or number"
+          className="w-full border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal"
+        />
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
-          className="flex items-center gap-2 border border-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide"
+          className="flex shrink-0 items-center gap-2 border border-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide lg:hidden"
         >
           Filters {activeCount > 0 && `(${activeCount})`}
         </button>
-        <span className="font-mono-tab text-xs text-ink-soft">{resultCount} styles</span>
       </div>
+      <span className="mt-1.5 block font-mono-tab text-xs text-ink-soft lg:hidden">{resultCount} styles</span>
 
-      <div className={cn("mt-4 flex-col gap-6 lg:mt-0 lg:flex", open ? "flex" : "hidden")}>
-        <div>
-          <label className="text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Search</label>
-          <input
-            type="search"
-            defaultValue={searchParams.get("q") ?? ""}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Style name or number"
-            className="mt-1.5 w-full border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal"
-          />
-        </div>
-
+      <div className={cn("mt-4 flex-col gap-6 lg:mt-6 lg:flex", open ? "flex" : "hidden")}>
         <FilterGroup title="Season">
           {SEASON_OPTIONS.map((opt) => (
             <Checkbox key={opt.value} label={opt.label} checked={isChecked("season", opt.value)} onChange={() => toggleSeason(opt.value)} />

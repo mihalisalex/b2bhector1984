@@ -23,8 +23,8 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
-export function formatUSD(n: number): string {
-  return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
+export function formatEUR(n: number): string {
+  return n.toLocaleString("en-US", { style: "currency", currency: "EUR" });
 }
 
 /** Total order value, boxes, and pairs — order lines store per-box qty and per-pair price. */

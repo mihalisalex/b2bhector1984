@@ -4,7 +4,7 @@ import { getCurrentAccount } from "@/lib/session";
 import { getOrderById } from "@/lib/runtimeOrders";
 import { getStyleById } from "@/lib/data/styles";
 import { getBoxType } from "@/lib/data/boxTypes";
-import { formatUSD, summarizeOrder } from "@/lib/pricing";
+import { formatEUR, summarizeOrder } from "@/lib/pricing";
 import { formatDate } from "@/lib/format";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { ReorderButton } from "@/components/dashboard/ReorderButton";
@@ -100,9 +100,9 @@ export default async function OrderDetailPage({
                   <td className="px-3 py-2 text-ink-soft">{colorway?.name ?? line.colorwayId}</td>
                   <td className="font-mono-tab px-3 py-2 text-ink-soft">{box.label}</td>
                   <td className="font-mono-tab px-3 py-2 text-right tabular-nums text-ink">{line.qty}</td>
-                  <td className="font-mono-tab px-3 py-2 text-right tabular-nums text-ink-soft">{formatUSD(line.unitPrice)}</td>
+                  <td className="font-mono-tab px-3 py-2 text-right tabular-nums text-ink-soft">{formatEUR(line.unitPrice)}</td>
                   <td className="font-mono-tab px-4 py-2 text-right font-semibold tabular-nums text-ink">
-                    {formatUSD(lineTotal)}
+                    {formatEUR(lineTotal)}
                   </td>
                 </tr>
               );
@@ -117,7 +117,7 @@ export default async function OrderDetailPage({
                 Order Total
               </td>
               <td className="font-mono-tab px-4 py-3 text-right text-base font-bold tabular-nums text-ink">
-                {formatUSD(total)}
+                {formatEUR(total)}
               </td>
             </tr>
           </tfoot>

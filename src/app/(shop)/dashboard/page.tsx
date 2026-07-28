@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
 import { getOrdersForAccount } from "@/lib/runtimeOrders";
 import { getAssortmentsForAccount } from "@/lib/data/assortments";
-import { formatUSD, summarizeOrder, TERMS_LABEL } from "@/lib/pricing";
+import { formatEUR, summarizeOrder, TERMS_LABEL } from "@/lib/pricing";
 import { formatDate, telHref } from "@/lib/format";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { ReorderButton } from "@/components/dashboard/ReorderButton";
@@ -39,8 +39,8 @@ export default async function DashboardPage() {
           <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Account</h2>
           <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
             <Stat label="Terms" value={TERMS_LABEL[account.creditTerms]} />
-            <Stat label="Credit limit" value={formatUSD(account.creditLimit)} />
-            <Stat label="YTD ordered" value={formatUSD(ytdTotal)} />
+            <Stat label="Credit limit" value={formatEUR(account.creditLimit)} />
+            <Stat label="YTD ordered" value={formatEUR(ytdTotal)} />
           </div>
           <p className="mt-4 border-t border-stone-200 pt-3 text-xs text-ink-soft">
             Wholesale price is set by payment terms at checkout — pay in full for 10% off, net-30 for 5% off,
@@ -93,7 +93,7 @@ export default async function DashboardPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="font-mono-tab text-sm font-semibold text-ink">{formatUSD(total)}</span>
+                      <span className="font-mono-tab text-sm font-semibold text-ink">{formatEUR(total)}</span>
                       <ReorderButton order={order} />
                       <Link href={`/dashboard/orders/${order.id}`} className="text-xs font-medium text-ink-soft hover:text-ink">
                         Details

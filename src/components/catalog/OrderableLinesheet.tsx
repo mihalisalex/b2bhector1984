@@ -4,10 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useCart, type CartLine } from "@/lib/cart-context";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
-import { formatUSD, validateMatrix } from "@/lib/pricing";
+import { formatEUR, validateMatrix } from "@/lib/pricing";
 import { CATEGORY_LABEL, GENDER_LABEL } from "@/lib/data/styleLabels";
 import type { BoxTypeId, Style } from "@/lib/types";
 import { AvailabilityBadge } from "@/components/ui/Badge";
+import { StylePlate } from "@/components/product/StylePlate";
 import { cn } from "@/lib/cn";
 
 /** colorwayId -> boxTypeId -> qty (boxes) */
@@ -98,7 +99,66 @@ export function OrderableLinesheet({ styles }: { styles: Style[] }) {
 
   return (
     <div>
-      <div className="scroll-thin overflow-x-auto border border-stone-300">
+      {/* Mobile / tablet: one card per style, steppers wrap instead of requiring horizontal scroll. */}
+      <div className="flex flex-col gap-3 lg:hidden">
+        {styles.map((style) => {
+          const boxTypes = getAvailableBoxTypes(style);
+          return (
+            <div key={style.id} className="border border-stone-300 bg-white">
+              <div className="flex items-center gap-3 border-b border-stone-200 p-3">
+                <StylePlate
+                  swatch={style.colorways[0].swatch}
+                  imageUrl={style.primaryImageUrl}
+                  className="h-16 w-20 shrink-0"
+                  dense
+                />
+                <div className="min-w-0 flex-1">
+                  <Link href={`/product/${style.slug}`} className="font-medium text-ink hover:underline">
+                    {style.name}
+                  </Link>
+                  <p className="font-mono-tab text-[11px] text-ink-soft">
+                    {style.styleNumber} · {GENDER_LABEL[style.gender]} · {CATEGORY_LABEL[style.category]}
+                  </p>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <AvailabilityBadge availability={style.availability} shipWindow={style.shipWindow} />
+                    <span className="font-mono-tab text-sm font-semibold text-ink">{formatEUR(style.basePrice)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col divide-y divide-stone-200">
+                {style.colorways.map((colorway) => (
+                  <div key={colorway.id} className="p-3">
+                    <div className="flex items-center gap-2">
+                      <span className="flex h-4 w-6 shrink-0 overflow-hidden border border-stone-300" aria-hidden>
+                        <span className="h-full w-1/2" style={{ background: colorway.swatch[0] }} />
+                        <span className="h-full w-1/2" style={{ background: colorway.swatch[1] ?? colorway.swatch[0] }} />
+                      </span>
+                      <span className="text-sm text-ink-soft">{colorway.name}</span>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {boxTypes.map((box) => (
+                        <div key={box.id} className="flex flex-col items-center gap-1">
+                          <span className="text-[10px] font-semibold uppercase tracking-wide text-ink-soft">{box.label}</span>
+                          <Stepper
+                            value={qty[style.id]?.[colorway.id]?.[box.id] ?? 0}
+                            onChange={(v) => setCell(style.id, colorway.id, box.id, v)}
+                            onStep={(d) => step(style.id, colorway.id, box.id, d)}
+                            label={`${box.label} for ${style.name} ${colorway.name}`}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop: full linesheet table. */}
+      <div className="scroll-thin hidden overflow-x-auto border border-stone-300 lg:block">
         <table className="w-full min-w-[1100px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-stone-300 bg-stone-100 text-left text-[11px] uppercase tracking-wide text-ink-soft">
@@ -124,13 +184,23 @@ export function OrderableLinesheet({ styles }: { styles: Style[] }) {
                 >
                   {i === 0 ? (
                     <td className="px-3 py-2.5 align-top" rowSpan={style.colorways.length}>
-                      <Link href={`/product/${style.slug}`} className="font-medium text-ink hover:underline">
-                        {style.name}
-                      </Link>
-                      <p className="font-mono-tab text-[11px] text-ink-soft">
-                        {style.styleNumber} · {GENDER_LABEL[style.gender]}
-                      </p>
-                      <p className="text-[11px] text-ink-soft">{CATEGORY_LABEL[style.category]}</p>
+                      <div className="flex items-center gap-3">
+                        <StylePlate
+                          swatch={style.colorways[0].swatch}
+                          imageUrl={style.primaryImageUrl}
+                          className="h-12 w-16 shrink-0"
+                          dense
+                        />
+                        <div className="min-w-0">
+                          <Link href={`/product/${style.slug}`} className="font-medium text-ink hover:underline">
+                            {style.name}
+                          </Link>
+                          <p className="font-mono-tab text-[11px] text-ink-soft">
+                            {style.styleNumber} · {GENDER_LABEL[style.gender]}
+                          </p>
+                          <p className="text-[11px] text-ink-soft">{CATEGORY_LABEL[style.category]}</p>
+                        </div>
+                      </div>
                     </td>
                   ) : null}
                   <td className="px-3 py-2.5">
@@ -149,7 +219,7 @@ export function OrderableLinesheet({ styles }: { styles: Style[] }) {
                   ) : null}
                   {i === 0 ? (
                     <td className="font-mono-tab px-3 py-2.5 text-right align-top tabular-nums text-ink" rowSpan={style.colorways.length}>
-                      {formatUSD(style.basePrice)}
+                      {formatEUR(style.basePrice)}
                     </td>
                   ) : null}
                   {(["box8", "box10", "box12"] as BoxTypeId[]).map((boxTypeId) => (
@@ -187,7 +257,7 @@ export function OrderableLinesheet({ styles }: { styles: Style[] }) {
                   {v.orderError ? (
                     <span className="text-xs text-ember">{v.orderError}</span>
                   ) : (
-                    <span className="font-mono-tab font-semibold text-ink">{formatUSD(v.subtotal)}</span>
+                    <span className="font-mono-tab font-semibold text-ink">{formatEUR(v.subtotal)}</span>
                   )}
                 </span>
               </div>
@@ -198,7 +268,7 @@ export function OrderableLinesheet({ styles }: { styles: Style[] }) {
 
       <div className="mt-4 flex items-center justify-between gap-4 border-t border-stone-300 pt-4">
         <div className="flex items-center gap-4">
-          <span className="font-mono-tab text-sm font-semibold text-ink">Total: {formatUSD(grandTotal)}</span>
+          <span className="font-mono-tab text-sm font-semibold text-ink">Total: {formatEUR(grandTotal)}</span>
           {confirmed && validations.length === 0 && <span className="text-xs text-positive">Added to cart.</span>}
         </div>
         <button

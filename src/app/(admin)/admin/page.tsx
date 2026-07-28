@@ -1,5 +1,5 @@
 import { listAllOrders } from "@/lib/runtimeOrders";
-import { formatUSD, summarizeOrder } from "@/lib/pricing";
+import { formatEUR, summarizeOrder } from "@/lib/pricing";
 import { formatDate } from "@/lib/format";
 import { OrderStatusForm } from "@/components/admin/OrderStatusForm";
 
@@ -39,7 +39,7 @@ export default async function AdminOrdersPage() {
                     <td className="px-3 py-2.5 text-ink-soft">{formatDate(order.placedAt)}</td>
                     <td className="px-3 py-2.5 text-ink-soft">{order.terms.toUpperCase()}</td>
                     <td className="font-mono-tab px-3 py-2.5 text-right font-semibold text-ink">
-                      {formatUSD(total)}
+                      {formatEUR(total)}
                     </td>
                     <td className="px-4 py-2.5">
                       <OrderStatusForm orderId={order.id} status={order.status} />

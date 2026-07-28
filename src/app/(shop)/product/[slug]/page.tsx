@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { CATEGORY_LABEL, GENDER_LABEL, getStyleBySlug } from "@/lib/data/styles";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
+import { formatEUR } from "@/lib/pricing";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
 import { MatrixOrderGrid } from "@/components/matrix/MatrixOrderGrid";
@@ -69,7 +70,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-3 border-y border-stone-300 py-5 sm:grid-cols-3">
             <Spec label="Materials" value={style.materials.join(", ")} wide />
             <Spec label="Weight" value={`${style.weightOz} oz`} />
-            <Spec label="MSRP" value={`$${style.msrp.toFixed(2)}`} />
+            <Spec label="MSRP" value={formatEUR(style.msrp)} />
             <Spec label="Sold as" value={`${getAvailableBoxTypes(style).map((b) => b.totalPairs).join(" / ")}-pair boxes`} />
           </dl>
 

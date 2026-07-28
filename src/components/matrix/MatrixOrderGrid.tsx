@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import { getAvailableBoxTypes, getSizeBreakdown, getTotalPairs } from "@/lib/data/boxTypes";
-import { formatUSD, validateMatrix } from "@/lib/pricing";
+import { formatEUR, validateMatrix } from "@/lib/pricing";
 import type { BoxTypeId, Style } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
@@ -70,7 +70,7 @@ export function MatrixOrderGrid({ style }: { style: Style }) {
       <div className="flex flex-wrap items-stretch divide-x divide-stone-300 border-b border-stone-300 bg-stone-100">
         <div className="flex flex-1 min-w-[160px] flex-col px-4 py-2.5">
           <span className="font-mono-tab text-[11px] uppercase tracking-wide text-ink-soft">Wholesale price</span>
-          <span className="font-mono-tab text-base font-semibold tabular-nums text-ink">{formatUSD(validation.unitPrice)}</span>
+          <span className="font-mono-tab text-base font-semibold tabular-nums text-ink">{formatEUR(validation.unitPrice)}</span>
         </div>
         <div className="flex flex-1 min-w-[220px] flex-col justify-center px-4 py-2.5 text-ink-soft">
           <span className="text-xs">Pay in full for 10% off, net-30 for 5% off — set at checkout.</span>
@@ -184,8 +184,8 @@ export function MatrixOrderGrid({ style }: { style: Style }) {
         <div className="flex flex-wrap items-center gap-x-6 gap-y-1.5">
           <Stat label="Boxes" value={String(validation.totalBoxes)} />
           <Stat label="Pairs" value={String(validation.totalPairs)} />
-          <Stat label="Unit price" value={formatUSD(validation.unitPrice)} />
-          <Stat label="Subtotal" value={formatUSD(validation.subtotal)} emphasize />
+          <Stat label="Unit price" value={formatEUR(validation.unitPrice)} />
+          <Stat label="Subtotal" value={formatEUR(validation.subtotal)} emphasize />
           <MoqMeter total={validation.totalBoxes} moq={validation.moqBoxes} />
         </div>
         <div className="flex items-center gap-3">
