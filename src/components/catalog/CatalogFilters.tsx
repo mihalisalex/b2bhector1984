@@ -20,6 +20,11 @@ const CATEGORY_OPTIONS = [
   { value: "anatomic", label: "Anatomic" },
 ];
 
+const SEASON_CATEGORIES: Record<string, string[]> = {
+  summer: ["loafers", "wedding", "sneakers", "sandals"],
+  winter: ["boots", "sneakers", "formal", "anatomic"],
+};
+
 const GENDER_OPTIONS = [
   { value: "mens", label: "Men's" },
   { value: "womens", label: "Women's" },
@@ -52,6 +57,30 @@ export function CatalogFilters({ resultCount }: { resultCount: number }) {
     [pathname, router, searchParams],
   );
 
+  const toggleSeason = useCallback(
+    (value: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      const existingSeasons = params.getAll("season");
+      const nextSeasons = existingSeasons.includes(value)
+        ? existingSeasons.filter((v) => v !== value)
+        : [...existingSeasons, value];
+
+      // Drop any checked category that isn't offered in the new season selection,
+      // so the checkbox list and the active filter never disagree.
+      const allowedCategories =
+        nextSeasons.length > 0 ? new Set(nextSeasons.flatMap((s) => SEASON_CATEGORIES[s] ?? [])) : null;
+      const nextCategories = params.getAll("category").filter((c) => !allowedCategories || allowedCategories.has(c));
+
+      params.delete("season");
+      nextSeasons.forEach((v) => params.append("season", v));
+      params.delete("category");
+      nextCategories.forEach((v) => params.append("category", v));
+
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
+
   const setQuery = useCallback(
     (value: string) => {
       const params = new URLSearchParams(searchParams.toString());
@@ -65,6 +94,11 @@ export function CatalogFilters({ resultCount }: { resultCount: number }) {
   const clearAll = () => router.push(pathname, { scroll: false });
 
   const isChecked = (key: string, value: string) => searchParams.getAll(key).includes(value);
+  const checkedSeasons = searchParams.getAll("season");
+  const visibleCategoryOptions =
+    checkedSeasons.length > 0
+      ? CATEGORY_OPTIONS.filter((opt) => checkedSeasons.some((s) => SEASON_CATEGORIES[s]?.includes(opt.value)))
+      : CATEGORY_OPTIONS;
   const activeCount = Array.from(searchParams.keys()).filter((k) => k !== "q").length
     ? searchParams.getAll("category").length +
       searchParams.getAll("season").length +
@@ -101,12 +135,12 @@ export function CatalogFilters({ resultCount }: { resultCount: number }) {
 
         <FilterGroup title="Season">
           {SEASON_OPTIONS.map((opt) => (
-            <Checkbox key={opt.value} label={opt.label} checked={isChecked("season", opt.value)} onChange={() => toggle("season", opt.value)} />
+            <Checkbox key={opt.value} label={opt.label} checked={isChecked("season", opt.value)} onChange={() => toggleSeason(opt.value)} />
           ))}
         </FilterGroup>
 
         <FilterGroup title="Category">
-          {CATEGORY_OPTIONS.map((opt) => (
+          {visibleCategoryOptions.map((opt) => (
             <Checkbox key={opt.value} label={opt.label} checked={isChecked("category", opt.value)} onChange={() => toggle("category", opt.value)} />
           ))}
         </FilterGroup>
