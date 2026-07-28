@@ -31,7 +31,10 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
 
   const store = await cookies();
   store.set(SESSION_COOKIE, account.id, { maxAge: SESSION_MAX_AGE, path: "/", httpOnly: true, sameSite: "lax" });
-  redirect(account.role === "admin" ? "/admin" : "/dashboard");
+
+  if (account.role === "admin") redirect("/admin");
+  const next = String(formData.get("next") ?? "");
+  redirect(next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard");
 }
 
 export async function logout() {
@@ -101,7 +104,6 @@ export async function activateAccount() {
     contactName: application.contactName,
     email: application.email,
     password: "wholesale84",
-    tier: "standard",
     status: "active",
     creditTerms: "prepay",
     creditLimit: 5000,
@@ -164,11 +166,11 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
   for (const [styleId, qtyMap] of byStyle.entries()) {
     const style = await getStyleById(styleId);
     if (!style) continue;
-    const validation = validateMatrix(style, account.tier, qtyMap);
+    const validation = validateMatrix(style, qtyMap, terms);
     if (!validation.moqMet) {
       return { error: `${style.name} no longer meets its box minimum. Return to cart to fix it.` };
     }
-    const unitPrice = getUnitPrice(style, account.tier, validation.totalPairs);
+    const unitPrice = getUnitPrice(style, terms);
     for (const [colorwayId, boxes] of Object.entries(qtyMap)) {
       for (const [boxTypeId, qty] of Object.entries(boxes)) {
         if (qty && qty > 0) orderLines.push({ styleId, colorwayId, boxTypeId: boxTypeId as BoxTypeId, qty, unitPrice });

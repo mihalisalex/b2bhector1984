@@ -5,10 +5,19 @@ import { useCallback, useState } from "react";
 import { COLOR_FAMILIES, PRICE_BANDS } from "@/lib/catalogFilters";
 import { cn } from "@/lib/cn";
 
+const SEASON_OPTIONS = [
+  { value: "summer", label: "Summer" },
+  { value: "winter", label: "Winter" },
+];
+
 const CATEGORY_OPTIONS = [
-  { value: "running", label: "Running" },
-  { value: "court", label: "Court" },
-  { value: "trail", label: "Trail" },
+  { value: "loafers", label: "Loafers" },
+  { value: "wedding", label: "Wedding" },
+  { value: "sneakers", label: "Sneakers" },
+  { value: "sandals", label: "Sandals" },
+  { value: "boots", label: "Boots" },
+  { value: "formal", label: "Formal" },
+  { value: "anatomic", label: "Anatomic" },
 ];
 
 const GENDER_OPTIONS = [
@@ -58,6 +67,7 @@ export function CatalogFilters({ resultCount }: { resultCount: number }) {
   const isChecked = (key: string, value: string) => searchParams.getAll(key).includes(value);
   const activeCount = Array.from(searchParams.keys()).filter((k) => k !== "q").length
     ? searchParams.getAll("category").length +
+      searchParams.getAll("season").length +
       searchParams.getAll("gender").length +
       searchParams.getAll("availability").length +
       searchParams.getAll("color").length +
@@ -88,6 +98,12 @@ export function CatalogFilters({ resultCount }: { resultCount: number }) {
             className="mt-1.5 w-full border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal"
           />
         </div>
+
+        <FilterGroup title="Season">
+          {SEASON_OPTIONS.map((opt) => (
+            <Checkbox key={opt.value} label={opt.label} checked={isChecked("season", opt.value)} onChange={() => toggle("season", opt.value)} />
+          ))}
+        </FilterGroup>
 
         <FilterGroup title="Category">
           {CATEGORY_OPTIONS.map((opt) => (

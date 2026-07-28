@@ -1,14 +1,12 @@
 "use client";
 
-import type { PricingTierId, Style } from "@/lib/types";
-import { getPriceBreakTable } from "@/lib/pricing";
+import type { Style } from "@/lib/types";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 
-export function LinesheetToolbar({ styles, tier }: { styles: Style[]; tier: PricingTierId }) {
+export function LinesheetToolbar({ styles }: { styles: Style[] }) {
   function exportCsv() {
-    const header = ["Style #", "Name", "Category", "Availability", "Colorways", "Box Options", "Min Boxes", "Entry Price", "Best Price"];
+    const header = ["Style #", "Name", "Category", "Availability", "Colorways", "Box Options", "Min Boxes", "Wholesale Price"];
     const rows = styles.map((s) => {
-      const breaks = getPriceBreakTable(s, tier);
       return [
         s.styleNumber,
         s.name,
@@ -17,8 +15,7 @@ export function LinesheetToolbar({ styles, tier }: { styles: Style[]; tier: Pric
         s.colorways.map((c) => c.name).join(" / "),
         getAvailableBoxTypes(s).map((b) => b.totalPairs).join(" / ") + "-pair",
         String(s.moqBoxes),
-        breaks[0].price.toFixed(2),
-        breaks[breaks.length - 1].price.toFixed(2),
+        s.basePrice.toFixed(2),
       ];
     });
     const csv = [header, ...rows]

@@ -1,8 +1,6 @@
 import { Suspense } from "react";
 import { getAllStyles } from "@/lib/data/styles";
-import { getCurrentAccount } from "@/lib/session";
 import { filterStyles, parseFilters } from "@/lib/catalogFilters";
-import { getPriceBreakTable } from "@/lib/pricing";
 import { CatalogFilters } from "@/components/catalog/CatalogFilters";
 import { BoxPolicyBanner } from "@/components/catalog/BoxPolicyBanner";
 import { ProductCard } from "@/components/product/ProductCard";
@@ -15,11 +13,9 @@ export default async function CatalogPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const sp = await searchParams;
-  const account = await getCurrentAccount();
-  const tier = account!.tier;
   const styles = await getAllStyles();
   const filters = parseFilters(sp);
-  const results = filterStyles(styles, filters, (s) => getPriceBreakTable(s, tier)[0].price);
+  const results = filterStyles(styles, filters);
 
   return (
     <div className="mx-auto max-w-[1600px] px-6 py-8 lg:px-10">
@@ -27,7 +23,7 @@ export default async function CatalogPage({
         <div>
           <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink">Catalog</h1>
           <p className="mt-1 text-sm text-ink-soft">
-            {styles.length} styles across Running, Court, and Trail. Pricing shown at your {tier} tier.
+            {styles.length} styles across Summer and Winter collections. Wholesale price is set by payment terms at checkout.
           </p>
         </div>
       </div>
@@ -54,7 +50,7 @@ export default async function CatalogPage({
           ) : (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {results.map((style) => (
-                <ProductCard key={style.id} style={style} tier={tier} />
+                <ProductCard key={style.id} style={style} />
               ))}
             </div>
           )}

@@ -1,40 +1,22 @@
-import { getTier } from "@/lib/data/pricingTiers";
 import { getBoxType, getTotalBoxes, getTotalPairs } from "@/lib/data/boxTypes";
-import type { BoxTypeId, Order, PricingTierId, Style } from "@/lib/types";
+import type { BoxTypeId, CreditTerms, Order, Style } from "@/lib/types";
 
-/** Break multiplier that applies at a given total-pair quantity for a style. */
-export function getBreakMultiplier(style: Style, pairs: number): number {
-  let multiplier = style.priceBreaks[0]?.multiplier ?? 1;
-  for (const brk of style.priceBreaks) {
-    if (pairs >= brk.minUnits) multiplier = brk.multiplier;
-  }
-  return multiplier;
-}
+/** Payment-terms discount off a style's base price — the only lever on wholesale price. */
+export const TERMS_DISCOUNT: Record<CreditTerms, number> = {
+  prepay: 0.1,
+  net30: 0.05,
+  net60: 0,
+};
 
-/** Final per-pair wholesale price for a style at a given tier and order quantity (in pairs). */
-export function getUnitPrice(style: Style, tierId: PricingTierId, pairs: number): number {
-  const tier = getTier(tierId);
-  const breakMultiplier = getBreakMultiplier(style, Math.max(pairs, 1));
-  return round2(style.basePrice * breakMultiplier * tier.priceMultiplier);
-}
+export const TERMS_LABEL: Record<CreditTerms, string> = {
+  prepay: "Prepay",
+  net30: "Net 30",
+  net60: "Net 60",
+};
 
-/** Displayable price-break table (per-pair price per break, at this tier). */
-export function getPriceBreakTable(style: Style, tierId: PricingTierId) {
-  const tier = getTier(tierId);
-  return style.priceBreaks.map((brk, i) => {
-    const next = style.priceBreaks[i + 1];
-    return {
-      label: next ? `${brk.minUnits}–${next.minUnits - 1}` : `${brk.minUnits}+`,
-      minUnits: brk.minUnits,
-      price: round2(style.basePrice * brk.multiplier * tier.priceMultiplier),
-    };
-  });
-}
-
-/** Minimum order quantity for a style, in boxes, at a given tier. */
-export function getMoqBoxesForTier(style: Style, tierId: PricingTierId): number {
-  const tier = getTier(tierId);
-  return Math.max(1, Math.round(style.moqBoxes * tier.moqMultiplier));
+/** Final per-pair wholesale price for a style at the given payment terms. */
+export function getUnitPrice(style: Style, terms: CreditTerms): number {
+  return round2(style.basePrice * (1 - TERMS_DISCOUNT[terms]));
 }
 
 function round2(n: number): number {
@@ -71,13 +53,16 @@ export interface MatrixValidation {
 
 /**
  * boxQuantities: colorwayId -> boxTypeId -> qty (number of boxes)
+ * `terms` defaults to net60 (list price) for pre-checkout screens, where the
+ * buyer hasn't chosen payment terms yet — checkout recomputes with the terms
+ * they actually select.
  */
 export function validateMatrix(
   style: Style,
-  tierId: PricingTierId,
   boxQuantities: Record<string, Partial<Record<BoxTypeId, number>>>,
+  terms: CreditTerms = "net60",
 ): MatrixValidation {
-  const moqBoxes = getMoqBoxesForTier(style, tierId);
+  const moqBoxes = style.moqBoxes;
 
   let totalPairs = 0;
   let totalBoxes = 0;
@@ -87,7 +72,7 @@ export function validateMatrix(
     totalBoxes += getTotalBoxes(boxes);
   }
 
-  const unitPrice = getUnitPrice(style, tierId, totalPairs);
+  const unitPrice = getUnitPrice(style, terms);
   const subtotal = round2(unitPrice * totalPairs);
   const moqMet = totalBoxes >= moqBoxes;
 

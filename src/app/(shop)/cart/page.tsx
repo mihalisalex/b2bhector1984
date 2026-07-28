@@ -11,7 +11,7 @@ import { LinkButton } from "@/components/ui/Button";
 import { StylePlate } from "@/components/product/StylePlate";
 
 export default function CartPage() {
-  const { lines, tier, setLineQty, removeStyle, cartTotal } = useCart();
+  const { lines, setLineQty, removeStyle, cartTotal } = useCart();
   const { getStyleById } = useCatalog();
 
   const styleIds = useMemo(() => Array.from(new Set(lines.map((l) => l.styleId))), [lines]);
@@ -44,7 +44,7 @@ export default function CartPage() {
             qtyMap[l.colorwayId] = qtyMap[l.colorwayId] || {};
             qtyMap[l.colorwayId]![l.boxTypeId] = l.qty;
           }
-          const validation = validateMatrix(style, tier, qtyMap);
+          const validation = validateMatrix(style, qtyMap);
           if (!validation.moqMet) blocking = true;
 
           return (

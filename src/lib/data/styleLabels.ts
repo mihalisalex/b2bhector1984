@@ -5,9 +5,18 @@ import type { Style } from "@/lib/types";
  * so client components can import them without pulling in the Supabase reads.
  */
 export const CATEGORY_LABEL: Record<Style["category"], string> = {
-  running: "Running",
-  court: "Court",
-  trail: "Trail",
+  loafers: "Loafers",
+  wedding: "Wedding",
+  sneakers: "Sneakers",
+  sandals: "Sandals",
+  boots: "Boots",
+  formal: "Formal",
+  anatomic: "Anatomic",
+};
+
+export const SEASON_LABEL: Record<Style["season"], string> = {
+  summer: "Summer",
+  winter: "Winter",
 };
 
 export const GENDER_LABEL: Record<Style["gender"], string> = {

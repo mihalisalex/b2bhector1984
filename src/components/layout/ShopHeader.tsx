@@ -3,7 +3,6 @@ import type { Account } from "@/lib/types";
 import { Logo } from "@/components/layout/Logo";
 import { MainNav } from "@/components/layout/MainNav";
 import { CartBadge } from "@/components/layout/CartBadge";
-import { TierBadge } from "@/components/ui/Badge";
 import { HWatermark } from "@/components/layout/HWatermark";
 
 export function ShopHeader({ account }: { account: Account }) {
@@ -19,9 +18,6 @@ export function ShopHeader({ account }: { account: Account }) {
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
-          <span className="hidden sm:block">
-            <TierBadge tier={account.tier} />
-          </span>
           <CartBadge />
         </div>
       </div>

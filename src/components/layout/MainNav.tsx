@@ -12,7 +12,7 @@ import { HWatermark } from "@/components/layout/HWatermark";
 const LINKS = [
   { href: "/", label: "Home" },
   { href: "/quick-order", label: "Quick Order" },
-  { href: "/catalog", label: "Catalogue" },
+  { href: "/collections", label: "Collections" },
   { href: "/brand-story", label: "The Brand" },
   { href: "/contact", label: "Contact" },
   { href: "/dashboard", label: "Wholesale Dashboard" },

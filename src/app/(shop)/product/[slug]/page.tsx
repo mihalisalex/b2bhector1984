@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { CATEGORY_LABEL, GENDER_LABEL, getStyleBySlug } from "@/lib/data/styles";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
-import { getCurrentAccount } from "@/lib/session";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
 import { MatrixOrderGrid } from "@/components/matrix/MatrixOrderGrid";
@@ -21,9 +20,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const { slug } = await params;
   const style = await getStyleBySlug(slug);
   if (!style) notFound();
-
-  const account = await getCurrentAccount();
-  const eligible = account ? style.tierEligibility.includes(account.tier) : false;
 
   return (
     <div className="mx-auto max-w-[1600px] px-6 py-8 lg:px-10">
@@ -83,13 +79,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               {style.lastNote}
             </p>
           )}
-
-          {!eligible && account && (
-            <p className="mt-4 border border-ember/40 bg-ember-100 px-3 py-2 text-sm text-ember">
-              This style requires {style.tierEligibility[0]} tier or above. Contact {account.rep.name} to
-              discuss allocation.
-            </p>
-          )}
         </div>
       </div>
 
@@ -97,13 +86,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <h2 className="font-display mb-3 text-lg font-bold uppercase tracking-tight text-ink">
           Build Your Order
         </h2>
-        {eligible ? (
-          <MatrixOrderGrid style={style} />
-        ) : (
-          <div className="border border-stone-300 bg-stone-100 px-6 py-10 text-center text-sm text-ink-soft">
-            Ordering for this style is limited to accounts at {style.tierEligibility[0]} tier or above.
-          </div>
-        )}
+        <MatrixOrderGrid style={style} />
       </div>
     </div>
   );

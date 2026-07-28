@@ -4,9 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useCart, type CartLine } from "@/lib/cart-context";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
-import { formatUSD, getPriceBreakTable, validateMatrix } from "@/lib/pricing";
+import { formatUSD, validateMatrix } from "@/lib/pricing";
 import { CATEGORY_LABEL, GENDER_LABEL } from "@/lib/data/styleLabels";
-import type { BoxTypeId, PricingTierId, Style } from "@/lib/types";
+import type { BoxTypeId, Style } from "@/lib/types";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { cn } from "@/lib/cn";
 
@@ -26,7 +26,7 @@ function buildInitialQtyForStyle(style: Style, cartLines: CartLine[]): StyleQtyM
   return map;
 }
 
-export function OrderableLinesheet({ styles, tier }: { styles: Style[]; tier: PricingTierId }) {
+export function OrderableLinesheet({ styles }: { styles: Style[] }) {
   const { lines, addLines } = useCart();
   const [qty, setQty] = useState<AllQtyMap>(() => {
     const map: AllQtyMap = {};
@@ -71,9 +71,9 @@ export function OrderableLinesheet({ styles, tier }: { styles: Style[]; tier: Pr
   const validations = useMemo(
     () =>
       styles
-        .map((style) => ({ style, ...validateMatrix(style, tier, qty[style.id] ?? {}) }))
+        .map((style) => ({ style, ...validateMatrix(style, qty[style.id] ?? {}) }))
         .filter((v) => v.totalBoxes > 0),
-    [styles, tier, qty],
+    [styles, qty],
   );
 
   const anyErrors = validations.some((v) => v.orderError);
@@ -113,7 +113,6 @@ export function OrderableLinesheet({ styles, tier }: { styles: Style[]; tier: Pr
           </thead>
           <tbody>
             {styles.map((style) => {
-              const breaks = getPriceBreakTable(style, tier);
               const boxTypes = getAvailableBoxTypes(style);
               return style.colorways.map((colorway, i) => (
                 <tr
@@ -150,10 +149,7 @@ export function OrderableLinesheet({ styles, tier }: { styles: Style[]; tier: Pr
                   ) : null}
                   {i === 0 ? (
                     <td className="font-mono-tab px-3 py-2.5 text-right align-top tabular-nums text-ink" rowSpan={style.colorways.length}>
-                      {formatUSD(breaks[0].price)}
-                      {breaks.length > 1 && (
-                        <span className="block text-[11px] text-positive">from {formatUSD(breaks[breaks.length - 1].price)}</span>
-                      )}
+                      {formatUSD(style.basePrice)}
                     </td>
                   ) : null}
                   {(["box8", "box10", "box12"] as BoxTypeId[]).map((boxTypeId) => (

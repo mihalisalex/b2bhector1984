@@ -1,4 +1,4 @@
-import type { Category, Gender, Style } from "@/lib/types";
+import type { Category, Gender, Season, Style } from "@/lib/types";
 
 export const COLOR_FAMILIES = [
   "Ink", "Cinder", "Bone", "Chalk", "Signal", "Navy", "Red", "Yellow", "Merlot", "Olive", "Ember",
@@ -14,6 +14,7 @@ export const PRICE_BANDS = [
 export interface CatalogFilters {
   q: string;
   category: Category[];
+  season: Season[];
   gender: Gender[];
   availability: ("available" | "prebook")[];
   color: string[];
@@ -25,6 +26,7 @@ export function parseFilters(sp: Record<string, string | string[] | undefined>):
   return {
     q: typeof sp.q === "string" ? sp.q : "",
     category: list(sp.category) as Category[],
+    season: list(sp.season) as Season[],
     gender: list(sp.gender) as Gender[],
     availability: list(sp.availability) as ("available" | "prebook")[],
     color: list(sp.color),
@@ -32,13 +34,14 @@ export function parseFilters(sp: Record<string, string | string[] | undefined>):
   };
 }
 
-export function filterStyles(styles: Style[], filters: CatalogFilters, tierPrice: (s: Style) => number): Style[] {
+export function filterStyles(styles: Style[], filters: CatalogFilters): Style[] {
   return styles.filter((s) => {
     if (filters.q) {
       const q = filters.q.toLowerCase();
       if (!s.name.toLowerCase().includes(q) && !s.styleNumber.toLowerCase().includes(q)) return false;
     }
     if (filters.category.length && !filters.category.includes(s.category)) return false;
+    if (filters.season.length && !filters.season.includes(s.season)) return false;
     if (filters.gender.length && !filters.gender.includes(s.gender)) return false;
     if (filters.availability.length && !filters.availability.includes(s.availability)) return false;
     if (filters.color.length) {
@@ -48,7 +51,7 @@ export function filterStyles(styles: Style[], filters: CatalogFilters, tierPrice
       if (!hasColor) return false;
     }
     if (filters.price.length) {
-      const price = tierPrice(s);
+      const price = s.basePrice;
       const inBand = filters.price.some((bandId) => {
         const band = PRICE_BANDS.find((b) => b.id === bandId);
         return band && price >= band.min && price < band.max;

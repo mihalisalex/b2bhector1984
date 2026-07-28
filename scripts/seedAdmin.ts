@@ -33,7 +33,6 @@ async function main() {
       contact_name: "House Admin",
       email: adminEmail,
       password: adminPassword,
-      tier: "vip",
       status: "active",
       credit_terms: "net60",
       credit_limit: 0,

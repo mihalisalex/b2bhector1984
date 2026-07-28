@@ -1,15 +1,15 @@
 "use client";
 
-import { useActionState, useMemo } from "react";
+import { useActionState, useMemo, useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
 import { useCatalog } from "@/lib/catalog-context";
-import { formatUSD, validateMatrix } from "@/lib/pricing";
+import { formatUSD, TERMS_DISCOUNT, TERMS_LABEL, validateMatrix } from "@/lib/pricing";
 import { placeOrder, type CheckoutState } from "@/lib/actions";
-import type { Account, BoxTypeId } from "@/lib/types";
+import type { Account, BoxTypeId, CreditTerms } from "@/lib/types";
 import { Button, LinkButton } from "@/components/ui/Button";
 
-const TERMS_OPTIONS: { value: string; label: string }[] = [
+const TERMS_OPTIONS: { value: CreditTerms; label: string }[] = [
   { value: "prepay", label: "Prepay" },
   { value: "net30", label: "Net 30" },
   { value: "net60", label: "Net 60" },
@@ -18,8 +18,9 @@ const TERMS_OPTIONS: { value: string; label: string }[] = [
 const initialState: CheckoutState = {};
 
 export function CheckoutForm({ account }: { account: Account }) {
-  const { lines, tier, cartTotal } = useCart();
+  const { lines } = useCart();
   const { getStyleById } = useCatalog();
+  const [terms, setTerms] = useState<CreditTerms>(account.creditTerms);
 
   const [state, formAction, pending] = useActionState(async (prev: CheckoutState, formData: FormData) => {
     formData.set("lines", JSON.stringify(lines));
@@ -36,9 +37,14 @@ export function CheckoutForm({ account }: { account: Account }) {
         qtyMap[l.colorwayId] = qtyMap[l.colorwayId] || {};
         qtyMap[l.colorwayId]![l.boxTypeId] = l.qty;
       }
-      return [{ style, ...validateMatrix(style, tier, qtyMap) }];
+      return [{ style, ...validateMatrix(style, qtyMap, terms) }];
     });
-  }, [lines, tier]);
+  }, [lines, terms, getStyleById]);
+
+  const cartTotal = useMemo(
+    () => Math.round(styleGroups.reduce((sum, g) => sum + g.subtotal, 0) * 100) / 100,
+    [styleGroups],
+  );
 
   const availableNow = styleGroups.filter((g) => g.style.availability === "available");
   const prebook = styleGroups.filter((g) => g.style.availability === "prebook");
@@ -85,15 +91,18 @@ export function CheckoutForm({ account }: { account: Account }) {
         <Section title="Payment Terms">
           <select
             name="terms"
-            defaultValue={account.creditTerms}
+            value={terms}
+            onChange={(e) => setTerms(e.target.value as CreditTerms)}
             className="max-w-xs border border-stone-300 bg-white px-3 py-2.5 text-sm outline-none focus-visible:border-signal"
           >
             {TERMS_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
+              <option key={opt.value} value={opt.value}>
+                {opt.label}{TERMS_DISCOUNT[opt.value] > 0 ? ` — ${Math.round(TERMS_DISCOUNT[opt.value] * 100)}% off` : " — list price"}
+              </option>
             ))}
           </select>
           <p className="mt-2 max-w-sm text-xs text-ink-soft">
-            Your account is currently approved for <strong className="text-ink">{TERMS_OPTIONS.find((t) => t.value === account.creditTerms)?.label}</strong>.
+            Your account is currently approved for <strong className="text-ink">{TERMS_LABEL[account.creditTerms]}</strong>.
             Requesting different terms routes this order to {account.rep.name} for credit approval before it ships.
           </p>
         </Section>
@@ -145,6 +154,11 @@ export function CheckoutForm({ account }: { account: Account }) {
           <span className="text-sm font-semibold uppercase tracking-wide text-ink-soft">Total</span>
           <span className="font-mono-tab text-xl font-bold text-ink">{formatUSD(cartTotal)}</span>
         </div>
+        <p className="mt-1 text-right text-[11px] text-ink-soft">
+          {TERMS_DISCOUNT[terms] > 0
+            ? `${TERMS_LABEL[terms]} — ${Math.round(TERMS_DISCOUNT[terms] * 100)}% off applied`
+            : `${TERMS_LABEL[terms]} — list price`}
+        </p>
 
         {state.error && (
           <p role="alert" className="mt-4 border border-ember/40 bg-ember-100 px-3 py-2 text-xs text-ember">

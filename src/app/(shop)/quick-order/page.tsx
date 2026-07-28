@@ -1,8 +1,6 @@
 import { Suspense } from "react";
 import { getAllStyles } from "@/lib/data/styles";
-import { getCurrentAccount } from "@/lib/session";
 import { filterStyles, parseFilters } from "@/lib/catalogFilters";
-import { getPriceBreakTable } from "@/lib/pricing";
 import { CatalogFilters } from "@/components/catalog/CatalogFilters";
 import { LinesheetToolbar } from "@/components/catalog/LinesheetToolbar";
 import { OrderableLinesheet } from "@/components/catalog/OrderableLinesheet";
@@ -15,11 +13,9 @@ export default async function QuickOrderPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const sp = await searchParams;
-  const account = await getCurrentAccount();
-  const tier = account!.tier;
   const styles = await getAllStyles();
   const filters = parseFilters(sp);
-  const results = filterStyles(styles, filters, (s) => getPriceBreakTable(s, tier)[0].price);
+  const results = filterStyles(styles, filters);
 
   return (
     <div className="mx-auto max-w-[1800px] px-6 py-8 lg:px-10 print:px-0 print:py-0">
@@ -27,11 +23,11 @@ export default async function QuickOrderPage({
         <div>
           <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink">Quick Order</h1>
           <p className="mt-1 max-w-xl text-sm text-ink-soft">
-            The full collection, priced at your {tier} tier — find a style and press + or − to build boxes
-            directly in the table below.
+            The full collection at list price — find a style and press + or − to build boxes directly in
+            the table below. Payment terms (and any discount) are set at checkout.
           </p>
         </div>
-        <LinesheetToolbar styles={results} tier={tier} />
+        <LinesheetToolbar styles={results} />
       </div>
 
       <div className="flex flex-col gap-8 lg:flex-row">
@@ -48,7 +44,7 @@ export default async function QuickOrderPage({
               <p className="mt-2 text-sm text-ink-soft">Clear a filter to see more of the collection.</p>
             </div>
           ) : (
-            <OrderableLinesheet styles={results} tier={tier} />
+            <OrderableLinesheet styles={results} />
           )}
         </div>
       </div>

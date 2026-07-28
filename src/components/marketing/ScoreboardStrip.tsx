@@ -1,7 +1,7 @@
 const STATS = [
   { label: "Founded", value: "1984" },
-  { label: "Styles this season", value: "14" },
-  { label: "Categories", value: "3" },
+  { label: "Styles this season", value: "16" },
+  { label: "Categories", value: "7" },
   { label: "Wholesale terms", value: "NET 30/60" },
   { label: "Active retailers", value: "310+" },
 ];

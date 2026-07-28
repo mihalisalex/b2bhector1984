@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { useCatalog } from "@/lib/catalog-context";
 import { getBoxType } from "@/lib/data/boxTypes";
 import { getUnitPrice } from "@/lib/pricing";
-import type { BoxTypeId, PricingTierId } from "@/lib/types";
+import type { BoxTypeId } from "@/lib/types";
 
 export interface CartLine {
   styleId: string;
@@ -18,7 +18,6 @@ interface CartContextValue {
   lines: CartLine[];
   /** Total pairs across the cart (not box count). */
   itemCount: number;
-  tier: PricingTierId;
   addLines: (styleId: string, incoming: { colorwayId: string; boxTypeId: BoxTypeId; qty: number }[]) => void;
   setLineQty: (styleId: string, colorwayId: string, boxTypeId: BoxTypeId, qty: number) => void;
   removeStyle: (styleId: string) => void;
@@ -39,11 +38,9 @@ function pairsInLine(line: CartLine): number {
 
 export function CartProvider({
   accountId,
-  tier,
   children,
 }: {
   accountId: string;
-  tier: PricingTierId;
   children: ReactNode;
 }) {
   const { getStyleById } = useCatalog();
@@ -127,7 +124,7 @@ export function CartProvider({
     if (!style) return 0;
     const styleLines = lines.filter((l) => l.styleId === styleId);
     const totalPairs = styleLines.reduce((sum, l) => sum + pairsInLine(l), 0);
-    const unitPrice = getUnitPrice(style, tier, totalPairs);
+    const unitPrice = getUnitPrice(style, "net60");
     return Math.round(unitPrice * totalPairs * 100) / 100;
   };
 
@@ -135,12 +132,11 @@ export function CartProvider({
     const styleIds = Array.from(new Set(lines.map((l) => l.styleId)));
     return Math.round(styleIds.reduce((sum, id) => sum + styleSubtotal(id), 0) * 100) / 100;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lines, tier]);
+  }, [lines]);
 
   const value: CartContextValue = {
     lines,
     itemCount,
-    tier,
     addLines,
     setLineQty,
     removeStyle,

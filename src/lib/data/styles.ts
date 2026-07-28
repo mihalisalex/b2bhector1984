@@ -1,7 +1,7 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { fromDbId, toNumber } from "@/lib/data/dbIds";
-import type { BoxTypeId, Colorway, PriceBreak, PricingTierId, Style } from "@/lib/types";
+import type { BoxTypeId, Colorway, Style } from "@/lib/types";
 
 interface StyleRow {
   id: string;
@@ -9,6 +9,7 @@ interface StyleRow {
   style_number: string;
   name: string;
   category: Style["category"];
+  season: Style["season"];
   gender: Style["gender"];
   availability: Style["availability"];
   ship_window: string | null;
@@ -17,9 +18,7 @@ interface StyleRow {
   materials: string[];
   base_price: number | string;
   msrp: number | string;
-  price_breaks: PriceBreak[];
   moq_boxes: number;
-  tier_eligibility: PricingTierId[];
   weight_oz: number | string | null;
   last_note: string | null;
   available_box_types: BoxTypeId[];
@@ -78,6 +77,7 @@ function assembleStyles(
       styleNumber: s.style_number,
       name: s.name,
       category: s.category,
+      season: s.season,
       gender: s.gender,
       availability: s.availability,
       shipWindow: s.ship_window ?? undefined,
@@ -87,9 +87,7 @@ function assembleStyles(
       colorways,
       basePrice: toNumber(s.base_price),
       msrp: toNumber(s.msrp),
-      priceBreaks: s.price_breaks,
       moqBoxes: s.moq_boxes,
-      tierEligibility: s.tier_eligibility,
       weightOz: toNumber(s.weight_oz ?? 0),
       lastNote: s.last_note ?? "",
       primaryImageUrl,
@@ -146,4 +144,4 @@ export async function updateAvailableBoxTypes(styleId: string, boxTypeIds: BoxTy
   if (error) throw new Error(`styles: ${error.message}`);
 }
 
-export { CATEGORY_LABEL, GENDER_LABEL } from "@/lib/data/styleLabels";
+export { CATEGORY_LABEL, GENDER_LABEL, SEASON_LABEL } from "@/lib/data/styleLabels";

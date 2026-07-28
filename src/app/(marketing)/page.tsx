@@ -1,13 +1,18 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getAllStyles, CATEGORY_LABEL } from "@/lib/data/styles";
+import { getAllStyles, CATEGORY_LABEL, SEASON_LABEL } from "@/lib/data/styles";
 import { getHomepageHero } from "@/lib/data/siteContent";
+import type { Category, Season } from "@/lib/types";
 import { LinkButton } from "@/components/ui/Button";
 import { StylePlate } from "@/components/product/StylePlate";
 import { ScoreboardStrip } from "@/components/marketing/ScoreboardStrip";
 
+const SEASON_CATEGORIES: Record<Season, Category[]> = {
+  summer: ["loafers", "wedding", "sneakers", "sandals"],
+  winter: ["boots", "sneakers", "formal", "anatomic"],
+};
+
 export default async function HomePage() {
-  const categories: Array<"running" | "court" | "trail"> = ["running", "court", "trail"];
   const [styles, hero] = await Promise.all([getAllStyles(), getHomepageHero()]);
   const headingLines = hero.heading.split("\n");
 
@@ -83,8 +88,8 @@ export default async function HomePage() {
               The Collection
             </h2>
             <p className="mt-2 max-w-lg text-sm text-ink-soft">
-              Three categories, one construction philosophy. Full pricing, MOQs, and matrix
-              ordering unlock once your wholesale account is approved.
+              Two seasons, seven categories. Full pricing, MOQs, and matrix ordering unlock once
+              your wholesale account is approved.
             </p>
           </div>
           <Link href="/collections" className="hidden text-sm font-medium text-signal hover:underline sm:block">
@@ -92,33 +97,41 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
-          {categories.map((cat) => {
-            const rep = styles.find((s) => s.category === cat)!;
-            const count = styles.filter((s) => s.category === cat).length;
-            return (
-              <Link
-                key={cat}
-                href={`/collections?category=${cat}`}
-                className="group block border border-stone-300 bg-white transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(26,29,34,0.12)]"
-              >
-                <div className="overflow-hidden">
-                  <StylePlate
-                    swatch={rep.colorways[0].swatch}
-                    imageUrl={rep.primaryImageUrl}
-                    className="aspect-[4/3] w-full transition-transform duration-500 ease-out group-hover:scale-[1.04]"
-                  />
-                </div>
-                <div className="p-5">
-                  <h3 className="font-display text-lg font-bold uppercase tracking-tight text-ink group-hover:underline">
-                    {CATEGORY_LABEL[cat]}
-                  </h3>
-                  <p className="mt-1 text-xs text-ink-soft">{count} styles this season</p>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
+        {(Object.keys(SEASON_CATEGORIES) as Season[]).map((season) => (
+          <div key={season} className="mt-10 first:mt-8">
+            <h3 className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">
+              {SEASON_LABEL[season]}
+            </h3>
+            <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {SEASON_CATEGORIES[season].map((cat) => {
+                const rep = styles.find((s) => s.season === season && s.category === cat);
+                if (!rep) return null;
+                const count = styles.filter((s) => s.season === season && s.category === cat).length;
+                return (
+                  <Link
+                    key={`${season}-${cat}`}
+                    href={`/collections?season=${season}&category=${cat}`}
+                    className="group block border border-stone-300 bg-white transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(26,29,34,0.12)]"
+                  >
+                    <div className="overflow-hidden">
+                      <StylePlate
+                        swatch={rep.colorways[0].swatch}
+                        imageUrl={rep.primaryImageUrl}
+                        className="aspect-[4/3] w-full transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+                      />
+                    </div>
+                    <div className="p-5">
+                      <h3 className="font-display text-lg font-bold uppercase tracking-tight text-ink group-hover:underline">
+                        {CATEGORY_LABEL[cat]}
+                      </h3>
+                      <p className="mt-1 text-xs text-ink-soft">{count} style{count > 1 ? "s" : ""} this season</p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </section>
 
       {/* Built for operators */}
@@ -133,8 +146,8 @@ export default async function HomePage() {
               body="Build a full colorway × size-run order on one screen, with live MOQ and case-pack validation."
             />
             <Feature
-              title="Account-Specific Pricing"
-              body="Standard, Preferred, and VIP tiers change your unit price and MOQ automatically — no calls to confirm."
+              title="Terms-Based Pricing"
+              body="Pay in full for 10% off, net-30 for 5% off, or net-60 at list price — the same simple rule for every account."
             />
             <Feature
               title="Pre-Book & At-Once"

@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { getAllStyles, CATEGORY_LABEL, GENDER_LABEL } from "@/lib/data/styles";
-import type { Category } from "@/lib/types";
+import { getAllStyles, CATEGORY_LABEL, GENDER_LABEL, SEASON_LABEL } from "@/lib/data/styles";
+import type { Category, Season } from "@/lib/types";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
 import { LinkButton } from "@/components/ui/Button";
@@ -8,20 +8,24 @@ import { LinkButton } from "@/components/ui/Button";
 export const metadata = {
   title: "Collections",
   description:
-    "Browse the current Hector 1984 collection — Running, Court, and Trail. Wholesale pricing and matrix ordering unlock with an approved buyer account.",
+    "Browse the current Hector 1984 collection — Summer and Winter, seven categories. Wholesale pricing and matrix ordering unlock with an approved buyer account.",
 };
 
-const CATEGORIES: Category[] = ["running", "court", "trail"];
+const CATEGORIES: Category[] = ["loafers", "wedding", "sneakers", "sandals", "boots", "formal", "anatomic"];
+const SEASONS: Season[] = ["summer", "winter"];
 
 export default async function CollectionsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string }>;
+  searchParams: Promise<{ category?: string; season?: string }>;
 }) {
-  const { category } = await searchParams;
-  const active = CATEGORIES.includes(category as Category) ? (category as Category) : null;
+  const { category, season } = await searchParams;
+  const activeCategory = CATEGORIES.includes(category as Category) ? (category as Category) : null;
+  const activeSeason = SEASONS.includes(season as Season) ? (season as Season) : null;
   const styles = await getAllStyles();
-  const results = active ? styles.filter((s) => s.category === active) : styles;
+  const results = styles.filter(
+    (s) => (!activeCategory || s.category === activeCategory) && (!activeSeason || s.season === activeSeason),
+  );
 
   return (
     <div className="mx-auto max-w-[1440px] px-6 py-12 lg:px-10">
@@ -36,9 +40,30 @@ export default async function CollectionsPage({
         </p>
 
         <div className="mt-6 flex flex-wrap gap-2">
-          <CategoryPill href="/collections" active={!active} label="All" />
+          <CategoryPill href="/collections" active={!activeSeason} label="All seasons" />
+          {SEASONS.map((s) => (
+            <CategoryPill
+              key={s}
+              href={`/collections?season=${s}${activeCategory ? `&category=${activeCategory}` : ""}`}
+              active={activeSeason === s}
+              label={SEASON_LABEL[s]}
+            />
+          ))}
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          <CategoryPill
+            href={activeSeason ? `/collections?season=${activeSeason}` : "/collections"}
+            active={!activeCategory}
+            label="All categories"
+          />
           {CATEGORIES.map((c) => (
-            <CategoryPill key={c} href={`/collections?category=${c}`} active={active === c} label={CATEGORY_LABEL[c]} />
+            <CategoryPill
+              key={c}
+              href={`/collections?category=${c}${activeSeason ? `&season=${activeSeason}` : ""}`}
+              active={activeCategory === c}
+              label={CATEGORY_LABEL[c]}
+            />
           ))}
         </div>
       </div>

@@ -1,22 +1,23 @@
-export type Category = "running" | "court" | "trail";
+export type Category =
+  | "loafers"
+  | "wedding"
+  | "sneakers"
+  | "sandals"
+  | "boots"
+  | "formal"
+  | "anatomic";
+
+export type Season = "summer" | "winter";
 
 export type Gender = "mens" | "womens" | "unisex";
 
 export type Availability = "available" | "prebook";
-
-export type PricingTierId = "standard" | "preferred" | "vip";
 
 export type AccountStatus = "pending" | "approved" | "active" | "declined";
 
 export type CreditTerms = "prepay" | "net30" | "net60";
 
 export type AccountRole = "buyer" | "admin";
-
-export interface PriceBreak {
-  minUnits: number;
-  /** Multiplier applied to the style's base (standard-tier) unit price. */
-  multiplier: number;
-}
 
 export interface Colorway {
   id: string;
@@ -46,6 +47,7 @@ export interface Style {
   styleNumber: string;
   name: string;
   category: Category;
+  season: Season;
   gender: Gender;
   availability: Availability;
   shipWindow?: string;
@@ -55,25 +57,14 @@ export interface Style {
   colorways: Colorway[];
   basePrice: number;
   msrp: number;
-  priceBreaks: PriceBreak[];
   /** Minimum order quantity for this style, in boxes (any mix of box types). */
   moqBoxes: number;
-  tierEligibility: PricingTierId[];
   weightOz: number;
   lastNote: string;
   /** Public URL of the admin-uploaded primary product photo, if any. */
   primaryImageUrl?: string;
   /** Which of the 3 fixed box sizes this style is sold in — not every style offers all three. */
   availableBoxTypes: BoxTypeId[];
-}
-
-export interface PricingTier {
-  id: PricingTierId;
-  label: string;
-  description: string;
-  priceMultiplier: number;
-  moqMultiplier: number;
-  discountBadge: string;
 }
 
 export interface ShipToAddress {
@@ -102,7 +93,6 @@ export interface Account {
   contactName: string;
   email: string;
   password: string;
-  tier: PricingTierId;
   status: AccountStatus;
   creditTerms: CreditTerms;
   creditLimit: number;

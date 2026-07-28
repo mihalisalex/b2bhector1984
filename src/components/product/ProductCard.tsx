@@ -1,15 +1,11 @@
 import Link from "next/link";
 import { CATEGORY_LABEL, GENDER_LABEL } from "@/lib/data/styles";
-import { formatUSD, getPriceBreakTable } from "@/lib/pricing";
-import type { PricingTierId, Style } from "@/lib/types";
+import { formatUSD } from "@/lib/pricing";
+import type { Style } from "@/lib/types";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
 
-export function ProductCard({ style, tier }: { style: Style; tier: PricingTierId }) {
-  const breaks = getPriceBreakTable(style, tier);
-  const from = breaks[breaks.length - 1].price;
-  const startAt = breaks[0].price;
-
+export function ProductCard({ style }: { style: Style }) {
   return (
     <Link
       href={`/product/${style.slug}`}
@@ -47,10 +43,8 @@ export function ProductCard({ style, tier }: { style: Style; tier: PricingTierId
 
         <div className="mt-auto flex items-end justify-between border-t border-stone-200 pt-3">
           <div>
-            <p className="font-mono-tab text-[11px] uppercase tracking-wide text-ink-soft">
-              {startAt < breaks[0].price ? "As low as" : "Wholesale from"}
-            </p>
-            <p className="font-mono-tab text-lg font-semibold tabular-nums text-ink">{formatUSD(from)}</p>
+            <p className="font-mono-tab text-[11px] uppercase tracking-wide text-ink-soft">Wholesale</p>
+            <p className="font-mono-tab text-lg font-semibold tabular-nums text-ink">{formatUSD(style.basePrice)}</p>
           </div>
           <p className="font-mono-tab text-[11px] text-ink-soft">
             Min {style.moqBoxes} box{style.moqBoxes > 1 ? "es" : ""}

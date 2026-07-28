@@ -9,7 +9,6 @@ config({ path: ".env.local" });
 
 import { createClient } from "@supabase/supabase-js";
 import { STYLES, ACCOUNTS, ORDERS, ASSORTMENTS } from "./seedData";
-import { PRICING_TIERS } from "../src/lib/data/pricingTiers";
 import { BOX_TYPES } from "../src/lib/data/boxTypes";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -31,21 +30,17 @@ async function insert(table: string, rows: unknown[]) {
   console.log(`  ${table}: ${rows.length} rows`);
 }
 
+/** Static reference data — upsert so reseeding after a catalog-only migration doesn't hit a PK conflict. */
+async function upsert(table: string, rows: unknown[]) {
+  if (rows.length === 0) return;
+  const { error } = await supabase.from(table).upsert(rows);
+  if (error) throw new Error(`${table}: ${error.message}`);
+  console.log(`  ${table}: ${rows.length} rows`);
+}
+
 async function main() {
-  console.log("Seeding pricing_tiers, box_types...");
-  await insert(
-    "pricing_tiers",
-    PRICING_TIERS.map((t, i) => ({
-      id: t.id,
-      label: t.label,
-      description: t.description,
-      price_multiplier: t.priceMultiplier,
-      moq_multiplier: t.moqMultiplier,
-      discount_badge: t.discountBadge,
-      sort_order: i,
-    })),
-  );
-  await insert(
+  console.log("Seeding box_types...");
+  await upsert(
     "box_types",
     BOX_TYPES.map((b, i) => ({
       id: b.id,
@@ -76,7 +71,6 @@ async function main() {
       contact_name: a.contactName,
       email: a.email,
       password: a.password,
-      tier: a.tier,
       status: a.status,
       credit_terms: a.creditTerms,
       credit_limit: a.creditLimit,
@@ -118,6 +112,7 @@ async function main() {
       style_number: s.styleNumber,
       name: s.name,
       category: s.category,
+      season: s.season,
       gender: s.gender,
       availability: s.availability,
       ship_window: s.shipWindow ?? null,
@@ -126,9 +121,7 @@ async function main() {
       materials: s.materials,
       base_price: s.basePrice,
       msrp: s.msrp,
-      price_breaks: s.priceBreaks,
       moq_boxes: s.moqBoxes,
-      tier_eligibility: s.tierEligibility,
       weight_oz: s.weightOz,
       last_note: s.lastNote,
     })),

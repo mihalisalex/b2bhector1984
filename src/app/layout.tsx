@@ -5,7 +5,7 @@ import "./globals.css";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://hector1984.com";
 const SITE_NAME = "Hector 1984 Wholesale";
 const DESCRIPTION =
-  "Track-engineered footwear, wholesaled the way serious retailers expect. Apply for a Hector 1984 wholesale account — matrix ordering, tiered pricing, net terms.";
+  "Full-grain leather footwear, wholesaled the way serious retailers expect. Apply for a Hector 1984 wholesale account — matrix ordering, terms-based pricing, net terms.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   keywords: [
     "footwear wholesale",
     "wholesale sneakers",
-    "running shoe wholesale",
+    "wholesale boots and formal shoes",
     "B2B footwear",
     "independent retailer wholesale account",
   ],

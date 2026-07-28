@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import { getAvailableBoxTypes, getSizeBreakdown, getTotalPairs } from "@/lib/data/boxTypes";
-import { formatUSD, getPriceBreakTable, validateMatrix } from "@/lib/pricing";
+import { formatUSD, validateMatrix } from "@/lib/pricing";
 import type { BoxTypeId, Style } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
@@ -28,20 +28,12 @@ function buildInitialQty(
 }
 
 export function MatrixOrderGrid({ style }: { style: Style }) {
-  const { tier, addLines, lines } = useCart();
+  const { addLines, lines } = useCart();
   const boxTypes = getAvailableBoxTypes(style);
   const [qty, setQty] = useState<BoxQtyMap>(() => buildInitialQty(style, boxTypes, lines));
   const [confirmed, setConfirmed] = useState(false);
 
-  const validation = useMemo(() => validateMatrix(style, tier, qty), [style, tier, qty]);
-  const breakTable = useMemo(() => getPriceBreakTable(style, tier), [style, tier]);
-  const activeBreakIndex = useMemo(() => {
-    let idx = 0;
-    style.priceBreaks.forEach((brk, i) => {
-      if (validation.totalPairs >= brk.minUnits) idx = i;
-    });
-    return validation.totalPairs > 0 ? idx : -1;
-  }, [style.priceBreaks, validation.totalPairs]);
+  const validation = useMemo(() => validateMatrix(style, qty), [style, qty]);
 
   function setCell(colorwayId: string, boxTypeId: BoxTypeId, value: number) {
     setConfirmed(false);
@@ -74,27 +66,15 @@ export function MatrixOrderGrid({ style }: { style: Style }) {
 
   return (
     <div className="border border-stone-300 bg-white">
-      {/* Price break strip */}
+      {/* Price / MOQ strip */}
       <div className="flex flex-wrap items-stretch divide-x divide-stone-300 border-b border-stone-300 bg-stone-100">
-        {breakTable.map((brk, i) => (
-          <div
-            key={brk.label}
-            className={cn(
-              "flex flex-1 min-w-[120px] flex-col px-4 py-2.5 transition-colors",
-              i === activeBreakIndex && "bg-signal text-white",
-            )}
-          >
-            <span
-              className={cn(
-                "font-mono-tab text-[11px] uppercase tracking-wide",
-                i === activeBreakIndex ? "text-white/80" : "text-ink-soft",
-              )}
-            >
-              {brk.label} pairs
-            </span>
-            <span className="font-mono-tab text-base font-semibold tabular-nums">{formatUSD(brk.price)}</span>
-          </div>
-        ))}
+        <div className="flex flex-1 min-w-[160px] flex-col px-4 py-2.5">
+          <span className="font-mono-tab text-[11px] uppercase tracking-wide text-ink-soft">Wholesale price</span>
+          <span className="font-mono-tab text-base font-semibold tabular-nums text-ink">{formatUSD(validation.unitPrice)}</span>
+        </div>
+        <div className="flex flex-1 min-w-[220px] flex-col justify-center px-4 py-2.5 text-ink-soft">
+          <span className="text-xs">Pay in full for 10% off, net-30 for 5% off — set at checkout.</span>
+        </div>
         <div className="flex flex-1 min-w-[160px] flex-col justify-center px-4 py-2.5 text-right">
           <span className="font-mono-tab text-[11px] uppercase tracking-wide text-ink-soft">Box minimum</span>
           <span className="font-mono-tab text-base font-semibold tabular-nums text-ink">

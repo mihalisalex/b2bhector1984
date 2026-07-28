@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { login, type FormState } from "@/lib/actions";
 import { Button } from "@/components/ui/Button";
 
@@ -9,6 +10,8 @@ const initialState: FormState = {};
 
 export function LoginForm() {
   const [state, formAction, pending] = useActionState(login, initialState);
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next");
 
   return (
     <div className="mx-auto flex min-h-[calc(100vh-var(--shell-header-h))] max-w-[1440px] items-stretch">
@@ -21,13 +24,13 @@ export function LoginForm() {
             Everything your store needs to buy Hector 1984, in one place.
           </p>
           <p className="mt-6 max-w-md text-sm leading-relaxed text-stone-300/80">
-            Matrix ordering, account-specific pricing, pre-book and at-once inventory, net terms,
+            Matrix ordering, terms-based pricing, pre-book and at-once inventory, net terms,
             and a direct line to your rep — the way the wholesale channel should run.
           </p>
         </div>
         <div className="flex gap-8 font-mono-tab text-xs text-stone-300/60">
           <span>EST. 1984</span>
-          <span>3 CATEGORIES</span>
+          <span>2 SEASONS</span>
           <span>NET 30 / 60</span>
         </div>
       </div>
@@ -44,6 +47,7 @@ export function LoginForm() {
           </p>
 
           <form action={formAction} className="mt-8 flex flex-col gap-4">
+            {next && <input type="hidden" name="next" value={next} />}
             <Field label="Email" name="email" type="email" defaultValue="buyer@unionsupply.com" required />
             <Field label="Password" name="password" type="password" defaultValue="wholesale84" required />
 

@@ -18,7 +18,6 @@ interface AccountRow {
   contact_name: string;
   email: string;
   password: string;
-  tier: Account["tier"];
   status: Account["status"];
   credit_terms: Account["creditTerms"];
   credit_limit: number | string;
@@ -75,7 +74,6 @@ async function mapAccount(row: AccountRow): Promise<Account> {
     contactName: row.contact_name,
     email: row.email,
     password: row.password,
-    tier: row.tier,
     status: row.status,
     creditTerms: row.credit_terms,
     creditLimit: toNumber(row.credit_limit),
@@ -129,7 +127,6 @@ export async function createAccount(input: {
   contactName: string;
   email: string;
   password: string;
-  tier: Account["tier"];
   status: Account["status"];
   creditTerms: Account["creditTerms"];
   creditLimit: number;
@@ -147,7 +144,6 @@ export async function createAccount(input: {
     contact_name: input.contactName,
     email: input.email,
     password: input.password,
-    tier: input.tier,
     status: input.status,
     credit_terms: input.creditTerms,
     credit_limit: input.creditLimit,
