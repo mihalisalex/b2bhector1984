@@ -18,6 +18,12 @@ export function ShopHeader({ account }: { account: Account }) {
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
+          <Link
+            href="/dashboard/account"
+            className="hidden items-center gap-2 border border-stone-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-ink transition-colors hover:border-ink sm:flex"
+          >
+            Account
+          </Link>
           <CartBadge />
         </div>
       </div>

@@ -1,0 +1,114 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getCurrentAccount } from "@/lib/session";
+import { formatEUR, TERMS_LABEL } from "@/lib/pricing";
+import { formatDate, telHref } from "@/lib/format";
+import { ProfileForm } from "@/components/account/ProfileForm";
+import { PasswordForm } from "@/components/account/PasswordForm";
+import { ShipToManager } from "@/components/account/ShipToManager";
+import { LinkButton } from "@/components/ui/Button";
+
+export const metadata = { title: "Account", robots: { index: false, follow: false } };
+
+export default async function AccountPage() {
+  const account = await getCurrentAccount();
+  if (!account) redirect("/login");
+
+  return (
+    <div className="mx-auto max-w-[1100px] px-6 py-8 lg:px-10">
+      <div className="border-b border-stone-300 pb-6">
+        <p className="text-xs text-ink-soft">
+          <Link href="/dashboard" className="hover:text-ink">
+            Dashboard
+          </Link>{" "}
+          / Account
+        </p>
+        <h1 className="font-display mt-1 text-2xl font-bold uppercase tracking-tight text-ink">Account</h1>
+        <p className="mt-1 text-sm text-ink-soft">
+          {account.businessName} · manage your contact info, password, and shipping addresses.
+        </p>
+      </div>
+
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border border-stone-300 bg-white p-5">
+        <div>
+          <h2 className="font-display text-lg font-bold uppercase tracking-tight text-ink">Wholesale Dashboard</h2>
+          <p className="mt-1 text-sm text-ink-soft">Order history and saved assortments live here.</p>
+        </div>
+        <LinkButton href="/dashboard" variant="secondary" size="sm">
+          Go to Dashboard
+        </LinkButton>
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <section className="border border-stone-300 bg-white p-5">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Profile</h2>
+          <div className="mt-4">
+            <ProfileForm account={account} />
+          </div>
+        </section>
+
+        <section className="border border-stone-300 bg-white p-5">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Password</h2>
+          <div className="mt-4">
+            <PasswordForm />
+          </div>
+        </section>
+      </div>
+
+      <section className="mt-6 border border-stone-300 bg-white p-5">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Shipping Addresses</h2>
+        <div className="mt-4">
+          <ShipToManager addresses={account.shipTo} />
+        </div>
+      </section>
+
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <section className="border border-stone-300 bg-white p-5">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Billing &amp; Terms</h2>
+          <div className="mt-4 grid grid-cols-2 gap-4">
+            <Stat label="Payment terms" value={TERMS_LABEL[account.creditTerms]} />
+            <Stat label="Credit limit" value={formatEUR(account.creditLimit)} />
+            <Stat label="Resale cert." value={account.resaleCertId} />
+            <Stat label="Business type" value={account.businessType} />
+            <Stat label="Store location" value={account.storeLocation} />
+            <Stat label="Applied" value={formatDate(account.appliedAt)} />
+          </div>
+          <p className="mt-4 border-t border-stone-200 pt-3 text-xs text-ink-soft">
+            Payment terms, credit limit, and compliance fields are managed by your sales rep — contact them below to
+            request a change.
+          </p>
+        </section>
+
+        <section className="border border-stone-300 bg-ink p-5 text-stone-200">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-stone-300/70">Your Rep</h2>
+          <div className="mt-3 flex items-center gap-3">
+            <span className="font-mono-tab flex h-11 w-11 shrink-0 items-center justify-center bg-white text-sm font-semibold text-ink">
+              {account.rep.initials}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-white">{account.rep.name}</p>
+              <p className="truncate text-xs text-stone-300/70">{account.rep.title}</p>
+            </div>
+          </div>
+          <div className="mt-3 flex flex-col gap-1 text-xs text-stone-300/80">
+            <a href={`mailto:${account.rep.email}`} className="hover:text-white">
+              {account.rep.email}
+            </a>
+            <a href={telHref(account.rep.phone)} className="hover:text-white">
+              {account.rep.phone}
+            </a>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-soft">{label}</p>
+      <div className="font-mono-tab mt-1 text-sm font-semibold text-ink">{value}</div>
+    </div>
+  );
+}

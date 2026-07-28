@@ -2,9 +2,19 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { addOrder } from "@/lib/runtimeOrders";
 import { APPLICATION_COOKIE, SESSION_COOKIE, getApplication, getCurrentAccount } from "@/lib/session";
-import { getAccountByEmail, createAccount } from "@/lib/data/accounts";
+import {
+  getAccountByEmail,
+  createAccount,
+  updateAccountContact,
+  updateAccountPassword as updateAccountPasswordData,
+  insertShipToAddress,
+  updateShipToAddress as updateShipToAddressRow,
+  deleteShipToAddress as deleteShipToAddressRow,
+  setDefaultShipToAddress as setDefaultShipToAddressRow,
+} from "@/lib/data/accounts";
 import { insertApplication, updateApplicationStatus } from "@/lib/data/applications";
 import { getStyleById } from "@/lib/data/styles";
 import { getOrderMinimumError, getUnitPrice, validateMatrix } from "@/lib/pricing";
@@ -15,6 +25,7 @@ const SESSION_MAX_AGE = 60 * 60 * 24 * 14; // 14 days
 
 export interface FormState {
   error?: string;
+  success?: string;
 }
 
 export async function login(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -193,4 +204,104 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
 
   await addOrder(account.id, order);
   redirect(`/dashboard/orders/${order.id}?justPlaced=1`);
+}
+
+export async function updateAccountProfile(_prev: FormState, formData: FormData): Promise<FormState> {
+  const account = await getCurrentAccount();
+  if (!account) redirect("/login");
+
+  const businessName = String(formData.get("businessName") ?? "").trim();
+  const contactName = String(formData.get("contactName") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  if (!businessName || !contactName || !email) {
+    return { error: "Business name, contact name, and email are all required." };
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { error: "Enter a valid email address." };
+  }
+
+  const result = await updateAccountContact(account.id, { businessName, contactName, email });
+  if (result.error) return { error: result.error };
+
+  revalidatePath("/dashboard/account");
+  revalidatePath("/dashboard");
+  return { success: "Profile updated." };
+}
+
+export async function updateAccountPassword(_prev: FormState, formData: FormData): Promise<FormState> {
+  const account = await getCurrentAccount();
+  if (!account) redirect("/login");
+
+  const currentPassword = String(formData.get("currentPassword") ?? "");
+  const newPassword = String(formData.get("newPassword") ?? "");
+  const confirmPassword = String(formData.get("confirmPassword") ?? "");
+
+  if (currentPassword !== account.password) return { error: "Current password is incorrect." };
+  if (newPassword.length < 6) return { error: "New password must be at least 6 characters." };
+  if (newPassword !== confirmPassword) return { error: "New password and confirmation don't match." };
+
+  await updateAccountPasswordData(account.id, newPassword);
+  revalidatePath("/dashboard/account");
+  return { success: "Password updated." };
+}
+
+export async function addShipToAddress(_prev: FormState, formData: FormData): Promise<FormState> {
+  const account = await getCurrentAccount();
+  if (!account) redirect("/login");
+
+  const label = String(formData.get("label") ?? "").trim();
+  const line1 = String(formData.get("line1") ?? "").trim();
+  const line2 = String(formData.get("line2") ?? "").trim();
+  const city = String(formData.get("city") ?? "").trim();
+  const state = String(formData.get("state") ?? "").trim();
+  const zip = String(formData.get("zip") ?? "").trim();
+  const isDefault = formData.get("isDefault") === "on" || account.shipTo.length === 0;
+
+  if (!label || !line1 || !city || !state || !zip) {
+    return { error: "Label, address, city, state, and ZIP are required." };
+  }
+
+  await insertShipToAddress(account.id, { label, line1, line2: line2 || undefined, city, state, zip, isDefault });
+  revalidatePath("/dashboard/account");
+  return { success: "Address added." };
+}
+
+export async function updateShipToAddress(_prev: FormState, formData: FormData): Promise<FormState> {
+  const account = await getCurrentAccount();
+  if (!account) redirect("/login");
+
+  const shipToId = String(formData.get("shipToId") ?? "");
+  const label = String(formData.get("label") ?? "").trim();
+  const line1 = String(formData.get("line1") ?? "").trim();
+  const line2 = String(formData.get("line2") ?? "").trim();
+  const city = String(formData.get("city") ?? "").trim();
+  const state = String(formData.get("state") ?? "").trim();
+  const zip = String(formData.get("zip") ?? "").trim();
+
+  if (!shipToId || !account.shipTo.some((s) => s.id === shipToId)) return { error: "Address not found." };
+  if (!label || !line1 || !city || !state || !zip) {
+    return { error: "Label, address, city, state, and ZIP are required." };
+  }
+
+  await updateShipToAddressRow(account.id, shipToId, { label, line1, line2: line2 || undefined, city, state, zip });
+  revalidatePath("/dashboard/account");
+  return { success: "Address updated." };
+}
+
+export async function deleteShipToAddress(formData: FormData): Promise<void> {
+  const account = await getCurrentAccount();
+  if (!account) redirect("/login");
+
+  const shipToId = String(formData.get("shipToId") ?? "");
+  if (shipToId) await deleteShipToAddressRow(account.id, shipToId);
+  revalidatePath("/dashboard/account");
+}
+
+export async function setDefaultShipToAddress(formData: FormData): Promise<void> {
+  const account = await getCurrentAccount();
+  if (!account) redirect("/login");
+
+  const shipToId = String(formData.get("shipToId") ?? "");
+  if (shipToId) await setDefaultShipToAddressRow(account.id, shipToId);
+  revalidatePath("/dashboard/account");
 }

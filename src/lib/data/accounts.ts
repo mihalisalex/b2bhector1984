@@ -170,3 +170,111 @@ export async function createAccount(input: {
   });
   if (shipToError) throw new Error(`ship_to_addresses: ${shipToError.message}`);
 }
+
+/** Buyer-editable identity fields — everything else (terms, credit limit, rep) is rep-managed. */
+export async function updateAccountContact(
+  id: string,
+  input: { businessName: string; contactName: string; email: string },
+): Promise<{ error?: string }> {
+  const { error } = await supabaseAdmin
+    .from("accounts")
+    .update({ business_name: input.businessName, contact_name: input.contactName, email: input.email })
+    .eq("id", id);
+  if (error) {
+    if (error.code === "23505") return { error: "That email is already in use by another account." };
+    throw new Error(`accounts: ${error.message}`);
+  }
+  return {};
+}
+
+export async function updateAccountPassword(id: string, newPassword: string): Promise<void> {
+  const { error } = await supabaseAdmin.from("accounts").update({ password: newPassword }).eq("id", id);
+  if (error) throw new Error(`accounts: ${error.message}`);
+}
+
+export async function insertShipToAddress(
+  accountId: string,
+  input: { label: string; line1: string; line2?: string; city: string; state: string; zip: string; isDefault: boolean },
+): Promise<void> {
+  const localId = `ship-${crypto.randomUUID().slice(0, 8)}`;
+  if (input.isDefault) {
+    const { error: clearError } = await supabaseAdmin
+      .from("ship_to_addresses")
+      .update({ is_default: false })
+      .eq("account_id", accountId);
+    if (clearError) throw new Error(`ship_to_addresses: ${clearError.message}`);
+  }
+  const { error } = await supabaseAdmin.from("ship_to_addresses").insert({
+    id: toDbId(accountId, localId),
+    account_id: accountId,
+    label: input.label,
+    line1: input.line1,
+    line2: input.line2 || null,
+    city: input.city,
+    state: input.state,
+    zip: input.zip,
+    is_default: input.isDefault,
+  });
+  if (error) throw new Error(`ship_to_addresses: ${error.message}`);
+}
+
+export async function updateShipToAddress(
+  accountId: string,
+  localId: string,
+  input: { label: string; line1: string; line2?: string; city: string; state: string; zip: string },
+): Promise<void> {
+  const { error } = await supabaseAdmin
+    .from("ship_to_addresses")
+    .update({
+      label: input.label,
+      line1: input.line1,
+      line2: input.line2 || null,
+      city: input.city,
+      state: input.state,
+      zip: input.zip,
+    })
+    .eq("id", toDbId(accountId, localId))
+    .eq("account_id", accountId);
+  if (error) throw new Error(`ship_to_addresses: ${error.message}`);
+}
+
+export async function deleteShipToAddress(accountId: string, localId: string): Promise<void> {
+  const { data: rows, error: fetchError } = await supabaseAdmin
+    .from("ship_to_addresses")
+    .select("id, is_default")
+    .eq("account_id", accountId);
+  if (fetchError) throw new Error(`ship_to_addresses: ${fetchError.message}`);
+
+  const dbId = toDbId(accountId, localId);
+  const remaining = (rows ?? []).filter((r) => r.id !== dbId);
+  if (remaining.length === (rows ?? []).length) return; // already gone
+  if (remaining.length === 0) return; // never delete the last ship-to address
+
+  const wasDefault = (rows ?? []).find((r) => r.id === dbId)?.is_default;
+
+  const { error } = await supabaseAdmin.from("ship_to_addresses").delete().eq("id", dbId).eq("account_id", accountId);
+  if (error) throw new Error(`ship_to_addresses: ${error.message}`);
+
+  if (wasDefault) {
+    const { error: promoteError } = await supabaseAdmin
+      .from("ship_to_addresses")
+      .update({ is_default: true })
+      .eq("id", remaining[0].id);
+    if (promoteError) throw new Error(`ship_to_addresses: ${promoteError.message}`);
+  }
+}
+
+export async function setDefaultShipToAddress(accountId: string, localId: string): Promise<void> {
+  const { error: clearError } = await supabaseAdmin
+    .from("ship_to_addresses")
+    .update({ is_default: false })
+    .eq("account_id", accountId);
+  if (clearError) throw new Error(`ship_to_addresses: ${clearError.message}`);
+
+  const { error } = await supabaseAdmin
+    .from("ship_to_addresses")
+    .update({ is_default: true })
+    .eq("id", toDbId(accountId, localId))
+    .eq("account_id", accountId);
+  if (error) throw new Error(`ship_to_addresses: ${error.message}`);
+}

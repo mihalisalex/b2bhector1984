@@ -16,7 +16,6 @@ const LINKS = [
   { href: "/brand-story", label: "The Brand" },
   { href: "/faq", label: "FAQ" },
   { href: "/contact", label: "Contact" },
-  { href: "/dashboard", label: "Wholesale Dashboard" },
 ];
 
 export function MainNav({ account }: { account: Account | null }) {
@@ -115,10 +114,16 @@ export function MainNav({ account }: { account: Account | null }) {
               <div className="relative border-t border-stone-300 bg-stone-100 px-5 py-5">
                 {account ? (
                   <div className="flex flex-col gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-ink">{account.contactName}</p>
+                    <Link href="/dashboard/account" className="group">
+                      <p className="text-sm font-semibold text-ink group-hover:text-signal">{account.contactName}</p>
                       <p className="text-xs text-ink-soft">{account.businessName}</p>
-                    </div>
+                    </Link>
+                    <Link href="/dashboard" className="text-sm font-medium text-ink-soft hover:text-ink">
+                      Dashboard
+                    </Link>
+                    <Link href="/dashboard/account" className="text-sm font-medium text-ink-soft hover:text-ink">
+                      Account settings
+                    </Link>
                     <Link href="/dashboard/assortments" className="text-sm font-medium text-ink-soft hover:text-ink">
                       Saved assortments
                     </Link>

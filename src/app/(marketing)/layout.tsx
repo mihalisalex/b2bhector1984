@@ -1,6 +1,5 @@
 import { MarketingHeader } from "@/components/layout/MarketingHeader";
 import { Footer } from "@/components/layout/Footer";
-import { FloatingQuickOrder } from "@/components/layout/FloatingQuickOrder";
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -8,7 +7,6 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       <MarketingHeader />
       <main className="flex-1">{children}</main>
       <Footer />
-      <FloatingQuickOrder />
     </>
   );
 }
