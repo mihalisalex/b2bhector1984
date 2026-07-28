@@ -6,7 +6,7 @@ export function BoxPolicyBanner() {
       </span>
       <span>
         Every style ships in fixed 8, 10, or 12-pair pre-pack boxes (EU 40–45) — single pairs aren&rsquo;t sold
-        wholesale.
+        wholesale. Orders require a minimum of 40 pairs total, mixed across any styles.
       </span>
     </div>
   );

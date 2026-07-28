@@ -7,7 +7,7 @@ import { APPLICATION_COOKIE, SESSION_COOKIE, getApplication, getCurrentAccount }
 import { getAccountByEmail, createAccount } from "@/lib/data/accounts";
 import { insertApplication, updateApplicationStatus } from "@/lib/data/applications";
 import { getStyleById } from "@/lib/data/styles";
-import { getUnitPrice, validateMatrix } from "@/lib/pricing";
+import { getOrderMinimumError, getUnitPrice, validateMatrix } from "@/lib/pricing";
 import type { Application, BoxTypeId, CreditTerms, Order, OrderLine } from "@/lib/types";
 
 const APPLICATION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
@@ -163,13 +163,12 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
   }
 
   const orderLines: OrderLine[] = [];
+  let totalPairs = 0;
   for (const [styleId, qtyMap] of byStyle.entries()) {
     const style = await getStyleById(styleId);
     if (!style) continue;
     const validation = validateMatrix(style, qtyMap, terms);
-    if (!validation.moqMet) {
-      return { error: `${style.name} no longer meets its box minimum. Return to cart to fix it.` };
-    }
+    totalPairs += validation.totalPairs;
     const unitPrice = getUnitPrice(style, terms);
     for (const [colorwayId, boxes] of Object.entries(qtyMap)) {
       for (const [boxTypeId, qty] of Object.entries(boxes)) {
@@ -177,6 +176,9 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
       }
     }
   }
+
+  const minimumError = getOrderMinimumError(totalPairs);
+  if (minimumError) return { error: minimumError };
 
   const order: Order = {
     id: `ORD-${Date.now().toString().slice(-5)}`,

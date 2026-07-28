@@ -1,6 +1,9 @@
-import { Archivo, IBM_Plex_Mono, Inter } from "next/font/google";
+import { Bodoni_Moda, IBM_Plex_Mono, Inter } from "next/font/google";
 
-export const archivo = Archivo({
+// A high-contrast Didone serif (named for the Italian typographer) carries
+// the "Italian luxury" register on headlines; IBM Plex Mono keeps the
+// spec-sheet/numeric details reading precise and modern by contrast.
+export const displaySerif = Bodoni_Moda({
   variable: "--font-display",
   subsets: ["latin"],
   weight: ["600", "700", "800"],

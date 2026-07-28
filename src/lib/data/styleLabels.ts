@@ -24,3 +24,23 @@ export const GENDER_LABEL: Record<Style["gender"], string> = {
   womens: "Women's",
   unisex: "Unisex",
 };
+
+/**
+ * Real category-representative photos standing in until per-style product
+ * photography is uploaded via the admin dashboard — a photo, not the
+ * generated swatch plate, for every style right away.
+ */
+export const CATEGORY_PLACEHOLDER_IMAGE: Record<Style["category"], string> = {
+  loafers: "/images/products/loafers.jpg",
+  wedding: "/images/products/wedding.jpg",
+  sneakers: "/images/products/sneakers.jpg",
+  sandals: "/images/products/sandals.jpg",
+  boots: "/images/products/boots.jpg",
+  formal: "/images/products/formal.jpg",
+  anatomic: "/images/products/anatomic.jpg",
+};
+
+/** The style's uploaded photo if one exists, otherwise its category placeholder. */
+export function getStyleImageUrl(style: Style): string {
+  return style.primaryImageUrl ?? CATEGORY_PLACEHOLDER_IMAGE[style.category];
+}

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getAllStyles, CATEGORY_LABEL, GENDER_LABEL, SEASON_LABEL } from "@/lib/data/styles";
+import { getAllStyles, CATEGORY_LABEL, GENDER_LABEL, SEASON_LABEL, getStyleImageUrl } from "@/lib/data/styles";
 import type { Category, Season } from "@/lib/types";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
@@ -43,7 +43,7 @@ export default async function CollectionsPage({
           Current Collection
         </h1>
         <p className="mt-2 max-w-lg text-sm text-ink-soft">
-          Browse the full range. Wholesale pricing, MOQs, and matrix ordering are visible once
+          Browse the full range. Wholesale pricing and matrix ordering are visible once
           you&rsquo;re signed in with an approved account.
         </p>
 
@@ -92,7 +92,7 @@ export default async function CollectionsPage({
               <StylePlate
                 swatch={style.colorways[0].swatch}
                 styleNumber={style.styleNumber}
-                imageUrl={style.primaryImageUrl}
+                imageUrl={getStyleImageUrl(style)}
                 className="aspect-[4/3] w-full transition-transform duration-500 ease-out group-hover:scale-[1.04]"
               />
             </div>

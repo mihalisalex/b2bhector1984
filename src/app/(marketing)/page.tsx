@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getAllStyles, CATEGORY_LABEL, SEASON_LABEL } from "@/lib/data/styles";
+import { getAllStyles, CATEGORY_LABEL, SEASON_LABEL, getStyleImageUrl } from "@/lib/data/styles";
 import { getHomepageHero } from "@/lib/data/siteContent";
 import type { Category, Season } from "@/lib/types";
 import { LinkButton } from "@/components/ui/Button";
@@ -72,7 +72,7 @@ export default async function HomePage() {
           </p>
           <div className="mt-5 grid grid-cols-1 gap-6 sm:grid-cols-3">
             <QuickStep n="1" title="Apply" body="Tell us about your store — takes 2 minutes." href="/apply" cta="Apply now" />
-            <QuickStep n="2" title="Log in" body="Once approved, sign in to unlock pricing and MOQs." href="/login" cta="Buyer login" />
+            <QuickStep n="2" title="Log in" body="Once approved, sign in to unlock full wholesale pricing." href="/login" cta="Buyer login" />
             <QuickStep n="3" title="Order" body="Browse Quick Order or the Catalogue and check out." href="/quick-order" cta="Quick Order" />
           </div>
         </div>
@@ -80,7 +80,7 @@ export default async function HomePage() {
 
       <ScoreboardStrip />
 
-      {/* Category teaser */}
+      {/* Season teaser */}
       <section className="mx-auto max-w-[1440px] px-6 py-20 lg:px-10">
         <div className="flex items-end justify-between border-b border-stone-300 pb-6">
           <div>
@@ -88,8 +88,8 @@ export default async function HomePage() {
               The Collection
             </h2>
             <p className="mt-2 max-w-lg text-sm text-ink-soft">
-              Two seasons, seven categories. Full pricing, MOQs, and matrix ordering unlock once
-              your wholesale account is approved.
+              Two seasons, seven categories. Full pricing and matrix ordering unlock once your
+              wholesale account is approved.
             </p>
           </div>
           <Link href="/collections" className="hidden text-sm font-medium text-signal hover:underline sm:block">
@@ -97,41 +97,39 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        {(Object.keys(SEASON_CATEGORIES) as Season[]).map((season) => (
-          <div key={season} className="mt-10 first:mt-8">
-            <h3 className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">
-              {SEASON_LABEL[season]}
-            </h3>
-            <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {SEASON_CATEGORIES[season].map((cat) => {
-                const rep = styles.find((s) => s.season === season && s.category === cat);
-                if (!rep) return null;
-                const count = styles.filter((s) => s.season === season && s.category === cat).length;
-                return (
-                  <Link
-                    key={`${season}-${cat}`}
-                    href={`/collections?season=${season}&category=${cat}`}
-                    className="group block border border-stone-300 bg-white transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(26,29,34,0.12)]"
-                  >
-                    <div className="overflow-hidden">
-                      <StylePlate
-                        swatch={rep.colorways[0].swatch}
-                        imageUrl={rep.primaryImageUrl}
-                        className="aspect-[4/3] w-full transition-transform duration-500 ease-out group-hover:scale-[1.04]"
-                      />
-                    </div>
-                    <div className="p-5">
-                      <h3 className="font-display text-lg font-bold uppercase tracking-tight text-ink group-hover:underline">
-                        {CATEGORY_LABEL[cat]}
-                      </h3>
-                      <p className="mt-1 text-xs text-ink-soft">{count} style{count > 1 ? "s" : ""} this season</p>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        ))}
+        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {(Object.keys(SEASON_CATEGORIES) as Season[]).map((season) => {
+            const seasonStyles = styles.filter((s) => s.season === season);
+            const rep = seasonStyles[0];
+            if (!rep) return null;
+            return (
+              <Link
+                key={season}
+                href={`/collections?season=${season}`}
+                className="group relative block aspect-[4/3] overflow-hidden border border-stone-300 bg-ink sm:aspect-[16/11]"
+              >
+                <StylePlate
+                  swatch={rep.colorways[0].swatch}
+                  imageUrl={getStyleImageUrl(rep)}
+                  className="h-full w-full transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+                />
+                <div
+                  className="absolute inset-0"
+                  style={{ background: "linear-gradient(0deg, rgba(8,9,11,0.75) 0%, rgba(8,9,11,0.1) 55%)" }}
+                  aria-hidden
+                />
+                <div className="absolute inset-x-0 bottom-0 p-6">
+                  <h3 className="font-display text-2xl font-bold uppercase tracking-tight text-white group-hover:underline">
+                    {SEASON_LABEL[season]}
+                  </h3>
+                  <p className="mt-1 text-xs uppercase tracking-wide text-stone-300/80">
+                    {seasonStyles.length} styles · {SEASON_CATEGORIES[season].map((c) => CATEGORY_LABEL[c]).join(", ")}
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
       </section>
 
       {/* Built for operators */}
@@ -143,7 +141,7 @@ export default async function HomePage() {
           <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <Feature
               title="Matrix Ordering"
-              body="Build a full colorway × size-run order on one screen, with live MOQ and case-pack validation."
+              body="Build a full colorway × size-run order on one screen, with live case-pack validation."
             />
             <Feature
               title="Terms-Based Pricing"

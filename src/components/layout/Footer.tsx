@@ -9,7 +9,7 @@ export function Footer() {
           <div>
             <Logo inverted />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-stone-300/80">
-              Track-engineered footwear, wholesaled the way serious retailers expect. Est. 1984.
+              Full-grain leather footwear, wholesaled the way serious retailers expect. Est. 1984.
             </p>
           </div>
 
@@ -31,6 +31,7 @@ export function Footer() {
           <FooterCol
             title="Contact"
             links={[
+              { href: "/faq", label: "FAQ" },
               { href: "/contact", label: "Contact us" },
               { href: "mailto:wholesale@hector1984.com", label: "wholesale@hector1984.com" },
               { href: "tel:+15035550100", label: "(503) 555-0100" },

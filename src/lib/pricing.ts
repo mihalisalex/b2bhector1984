@@ -41,14 +41,19 @@ export function summarizeOrder(order: Order): { total: number; totalBoxes: numbe
   return { total: round2(total), totalBoxes, totalPairs };
 }
 
+/** The only minimum that applies — no more per-style box minimums. */
+export const MIN_ORDER_PAIRS = 40;
+
+export function getOrderMinimumError(totalPairs: number): string | undefined {
+  if (totalPairs === 0 || totalPairs >= MIN_ORDER_PAIRS) return undefined;
+  return `Orders require a minimum of ${MIN_ORDER_PAIRS} pairs total. Add ${MIN_ORDER_PAIRS - totalPairs} more pairs to check out.`;
+}
+
 export interface MatrixValidation {
   totalPairs: number;
   totalBoxes: number;
   subtotal: number;
   unitPrice: number;
-  moqBoxes: number;
-  moqMet: boolean;
-  orderError?: string;
 }
 
 /**
@@ -62,8 +67,6 @@ export function validateMatrix(
   boxQuantities: Record<string, Partial<Record<BoxTypeId, number>>>,
   terms: CreditTerms = "net60",
 ): MatrixValidation {
-  const moqBoxes = style.moqBoxes;
-
   let totalPairs = 0;
   let totalBoxes = 0;
   for (const colorway of style.colorways) {
@@ -74,18 +77,6 @@ export function validateMatrix(
 
   const unitPrice = getUnitPrice(style, terms);
   const subtotal = round2(unitPrice * totalPairs);
-  const moqMet = totalBoxes >= moqBoxes;
 
-  return {
-    totalPairs,
-    totalBoxes,
-    subtotal,
-    unitPrice,
-    moqBoxes,
-    moqMet,
-    orderError:
-      totalBoxes > 0 && !moqMet
-        ? `This style requires a minimum of ${moqBoxes} box${moqBoxes > 1 ? "es" : ""} per order. Add ${moqBoxes - totalBoxes} more.`
-        : undefined,
-  };
+  return { totalPairs, totalBoxes, subtotal, unitPrice };
 }

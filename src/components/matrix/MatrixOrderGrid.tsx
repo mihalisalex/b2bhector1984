@@ -54,7 +54,7 @@ export function MatrixOrderGrid({ style }: { style: Style }) {
   }
 
   function handleAddToCart() {
-    if (validation.totalBoxes === 0 || !validation.moqMet) return;
+    if (validation.totalBoxes === 0) return;
     const entries = style.colorways.flatMap((c) =>
       boxTypes.map((box) => ({ colorwayId: c.id, boxTypeId: box.id, qty: qty[c.id]?.[box.id] ?? 0 })),
     );
@@ -62,11 +62,11 @@ export function MatrixOrderGrid({ style }: { style: Style }) {
     setConfirmed(true);
   }
 
-  const canAdd = validation.totalBoxes > 0 && validation.moqMet;
+  const canAdd = validation.totalBoxes > 0;
 
   return (
     <div className="border border-stone-300 bg-white">
-      {/* Price / MOQ strip */}
+      {/* Price strip */}
       <div className="flex flex-wrap items-stretch divide-x divide-stone-300 border-b border-stone-300 bg-stone-100">
         <div className="flex flex-1 min-w-[160px] flex-col px-4 py-2.5">
           <span className="font-mono-tab text-[11px] uppercase tracking-wide text-ink-soft">Wholesale price</span>
@@ -74,12 +74,6 @@ export function MatrixOrderGrid({ style }: { style: Style }) {
         </div>
         <div className="flex flex-1 min-w-[220px] flex-col justify-center px-4 py-2.5 text-ink-soft">
           <span className="text-xs">Pay in full for 10% off, net-30 for 5% off — set at checkout.</span>
-        </div>
-        <div className="flex flex-1 min-w-[160px] flex-col justify-center px-4 py-2.5 text-right">
-          <span className="font-mono-tab text-[11px] uppercase tracking-wide text-ink-soft">Box minimum</span>
-          <span className="font-mono-tab text-base font-semibold tabular-nums text-ink">
-            {validation.moqBoxes} box{validation.moqBoxes > 1 ? "es" : ""}
-          </span>
         </div>
       </div>
 
@@ -186,17 +180,9 @@ export function MatrixOrderGrid({ style }: { style: Style }) {
           <Stat label="Pairs" value={String(validation.totalPairs)} />
           <Stat label="Unit price" value={formatEUR(validation.unitPrice)} />
           <Stat label="Subtotal" value={formatEUR(validation.subtotal)} emphasize />
-          <MoqMeter total={validation.totalBoxes} moq={validation.moqBoxes} />
         </div>
         <div className="flex items-center gap-3">
-          {validation.orderError && (
-            <p role="alert" className="max-w-xs text-xs font-medium leading-snug text-ember">
-              {validation.orderError}
-            </p>
-          )}
-          {confirmed && !validation.orderError && (
-            <p className="text-xs font-medium text-positive">Added to cart.</p>
-          )}
+          {confirmed && <p className="text-xs font-medium text-positive">Added to cart.</p>}
           <button
             type="button"
             onClick={handleReset}
@@ -229,23 +215,6 @@ function Stat({ label, value, emphasize }: { label: string; value: string; empha
         )}
       >
         {value}
-      </span>
-    </div>
-  );
-}
-
-function MoqMeter({ total, moq }: { total: number; moq: number }) {
-  const met = total >= moq;
-  const pct = total === 0 ? 0 : Math.min(100, Math.round((total / moq) * 100));
-  const barColor = total === 0 ? "bg-cinder-300" : met ? "bg-positive" : "bg-court";
-  const textColor = total === 0 ? "text-ink-soft" : met ? "text-positive" : "text-ember";
-  return (
-    <div className="flex items-center gap-2">
-      <div className="h-1.5 w-24 overflow-hidden bg-stone-200" aria-hidden>
-        <div className={cn("h-full transition-all", barColor)} style={{ width: `${pct}%` }} />
-      </div>
-      <span className={cn("text-[11px] font-medium", textColor)}>
-        {met ? "Minimum met" : `Min ${moq} box${moq > 1 ? "es" : ""}`}
       </span>
     </div>
   );

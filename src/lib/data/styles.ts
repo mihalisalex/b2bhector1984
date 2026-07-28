@@ -18,7 +18,6 @@ interface StyleRow {
   materials: string[];
   base_price: number | string;
   msrp: number | string;
-  moq_boxes: number;
   weight_oz: number | string | null;
   last_note: string | null;
   available_box_types: BoxTypeId[];
@@ -87,7 +86,6 @@ function assembleStyles(
       colorways,
       basePrice: toNumber(s.base_price),
       msrp: toNumber(s.msrp),
-      moqBoxes: s.moq_boxes,
       weightOz: toNumber(s.weight_oz ?? 0),
       lastNote: s.last_note ?? "",
       primaryImageUrl,
@@ -144,4 +142,4 @@ export async function updateAvailableBoxTypes(styleId: string, boxTypeIds: BoxTy
   if (error) throw new Error(`styles: ${error.message}`);
 }
 
-export { CATEGORY_LABEL, GENDER_LABEL, SEASON_LABEL } from "@/lib/data/styleLabels";
+export { CATEGORY_LABEL, GENDER_LABEL, SEASON_LABEL, getStyleImageUrl } from "@/lib/data/styleLabels";

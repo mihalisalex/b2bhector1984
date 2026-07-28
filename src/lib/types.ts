@@ -57,8 +57,6 @@ export interface Style {
   colorways: Colorway[];
   basePrice: number;
   msrp: number;
-  /** Minimum order quantity for this style, in boxes (any mix of box types). */
-  moqBoxes: number;
   weightOz: number;
   lastNote: string;
   /** Public URL of the admin-uploaded primary product photo, if any. */

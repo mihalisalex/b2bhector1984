@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CATEGORY_LABEL, GENDER_LABEL } from "@/lib/data/styles";
+import { CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styles";
 import { formatEUR } from "@/lib/pricing";
 import type { Style } from "@/lib/types";
 import { AvailabilityBadge } from "@/components/ui/Badge";
@@ -15,7 +15,7 @@ export function ProductCard({ style }: { style: Style }) {
         <StylePlate
           swatch={style.colorways[0].swatch}
           styleNumber={style.styleNumber}
-          imageUrl={style.primaryImageUrl}
+          imageUrl={getStyleImageUrl(style)}
           className="aspect-[4/3] w-full transition-transform duration-500 ease-out group-hover:scale-[1.04]"
           dense
         />
@@ -41,14 +41,9 @@ export function ProductCard({ style }: { style: Style }) {
           ))}
         </div>
 
-        <div className="mt-auto flex items-end justify-between border-t border-stone-200 pt-3">
-          <div>
-            <p className="font-mono-tab text-[11px] uppercase tracking-wide text-ink-soft">Wholesale</p>
-            <p className="font-mono-tab text-lg font-semibold tabular-nums text-ink">{formatEUR(style.basePrice)}</p>
-          </div>
-          <p className="font-mono-tab text-[11px] text-ink-soft">
-            Min {style.moqBoxes} box{style.moqBoxes > 1 ? "es" : ""}
-          </p>
+        <div className="mt-auto border-t border-stone-200 pt-3">
+          <p className="font-mono-tab text-[11px] uppercase tracking-wide text-ink-soft">Wholesale</p>
+          <p className="font-mono-tab text-lg font-semibold tabular-nums text-ink">{formatEUR(style.basePrice)}</p>
         </div>
       </div>
     </Link>

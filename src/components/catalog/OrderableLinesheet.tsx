@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useCart, type CartLine } from "@/lib/cart-context";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { formatEUR, validateMatrix } from "@/lib/pricing";
-import { CATEGORY_LABEL, GENDER_LABEL } from "@/lib/data/styleLabels";
+import { CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styleLabels";
 import type { BoxTypeId, Style } from "@/lib/types";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
@@ -77,11 +77,10 @@ export function OrderableLinesheet({ styles }: { styles: Style[] }) {
     [styles, qty],
   );
 
-  const anyErrors = validations.some((v) => v.orderError);
   const grandTotal = validations.reduce((sum, v) => sum + v.subtotal, 0);
 
   function handleAddAllToCart() {
-    if (validations.length === 0 || anyErrors) return;
+    if (validations.length === 0) return;
     for (const style of styles) {
       const styleQty = qty[style.id];
       if (!styleQty) continue;
@@ -108,7 +107,7 @@ export function OrderableLinesheet({ styles }: { styles: Style[] }) {
               <div className="flex items-center gap-3 border-b border-stone-200 p-3">
                 <StylePlate
                   swatch={style.colorways[0].swatch}
-                  imageUrl={style.primaryImageUrl}
+                  imageUrl={getStyleImageUrl(style)}
                   className="h-16 w-20 shrink-0"
                   dense
                 />
@@ -187,7 +186,7 @@ export function OrderableLinesheet({ styles }: { styles: Style[] }) {
                       <div className="flex items-center gap-3">
                         <StylePlate
                           swatch={style.colorways[0].swatch}
-                          imageUrl={style.primaryImageUrl}
+                          imageUrl={getStyleImageUrl(style)}
                           className="h-12 w-16 shrink-0"
                           dense
                         />
@@ -254,11 +253,7 @@ export function OrderableLinesheet({ styles }: { styles: Style[] }) {
                 </Link>
                 <span className="flex items-center gap-3">
                   <span className="font-mono-tab text-ink-soft">{v.totalBoxes} boxes · {v.totalPairs} pairs</span>
-                  {v.orderError ? (
-                    <span className="text-xs text-ember">{v.orderError}</span>
-                  ) : (
-                    <span className="font-mono-tab font-semibold text-ink">{formatEUR(v.subtotal)}</span>
-                  )}
+                  <span className="font-mono-tab font-semibold text-ink">{formatEUR(v.subtotal)}</span>
                 </span>
               </div>
             ))}
@@ -274,10 +269,10 @@ export function OrderableLinesheet({ styles }: { styles: Style[] }) {
         <button
           type="button"
           onClick={handleAddAllToCart}
-          disabled={validations.length === 0 || anyErrors}
+          disabled={validations.length === 0}
           className={cn(
             "bg-ink px-6 py-3 text-xs font-semibold uppercase tracking-wide text-white transition-colors hover:bg-ink/85",
-            (validations.length === 0 || anyErrors) && "cursor-not-allowed bg-cinder-300 text-white/70",
+            validations.length === 0 && "cursor-not-allowed bg-cinder-300 text-white/70",
           )}
         >
           Add All to Cart

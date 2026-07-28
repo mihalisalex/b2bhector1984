@@ -14,6 +14,7 @@ const LINKS = [
   { href: "/quick-order", label: "Quick Order" },
   { href: "/collections", label: "Collections" },
   { href: "/brand-story", label: "The Brand" },
+  { href: "/faq", label: "FAQ" },
   { href: "/contact", label: "Contact" },
   { href: "/dashboard", label: "Wholesale Dashboard" },
 ];

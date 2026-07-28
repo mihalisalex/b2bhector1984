@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { archivo, inter, plexMono } from "@/lib/fonts";
+import { displaySerif, inter, plexMono } from "@/lib/fonts";
 import "./globals.css";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://hector1984.com";
@@ -50,7 +50,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html
       lang="en"
-      className={`${archivo.variable} ${inter.variable} ${plexMono.variable} h-full antialiased`}
+      className={`${displaySerif.variable} ${inter.variable} ${plexMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-stone-50 text-ink">
         {children}

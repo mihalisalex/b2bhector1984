@@ -5,7 +5,8 @@ import { useMemo } from "react";
 import { useCart } from "@/lib/cart-context";
 import { useCatalog } from "@/lib/catalog-context";
 import { getBoxType } from "@/lib/data/boxTypes";
-import { formatEUR, validateMatrix } from "@/lib/pricing";
+import { getStyleImageUrl } from "@/lib/data/styleLabels";
+import { formatEUR, getOrderMinimumError, validateMatrix } from "@/lib/pricing";
 import type { BoxTypeId } from "@/lib/types";
 import { LinkButton } from "@/components/ui/Button";
 import { StylePlate } from "@/components/product/StylePlate";
@@ -15,6 +16,11 @@ export default function CartPage() {
   const { getStyleById } = useCatalog();
 
   const styleIds = useMemo(() => Array.from(new Set(lines.map((l) => l.styleId))), [lines]);
+  const grandTotalPairs = useMemo(
+    () => lines.reduce((sum, l) => sum + l.qty * getBoxType(l.boxTypeId).totalPairs, 0),
+    [lines],
+  );
+  const minimumError = getOrderMinimumError(grandTotalPairs);
 
   if (lines.length === 0) {
     return (
@@ -25,8 +31,6 @@ export default function CartPage() {
       </div>
     );
   }
-
-  let blocking = false;
 
   return (
     <div className="mx-auto max-w-[1100px] px-6 py-8 lg:px-10">
@@ -45,14 +49,13 @@ export default function CartPage() {
             qtyMap[l.colorwayId]![l.boxTypeId] = l.qty;
           }
           const validation = validateMatrix(style, qtyMap);
-          if (!validation.moqMet) blocking = true;
 
           return (
             <div key={styleId} className="border border-stone-300 bg-white">
               <div className="flex items-center gap-4 border-b border-stone-200 p-4">
                 <StylePlate
                   swatch={style.colorways[0].swatch}
-                  imageUrl={style.primaryImageUrl}
+                  imageUrl={getStyleImageUrl(style)}
                   className="h-16 w-20 shrink-0"
                 />
                 <div className="min-w-0 flex-1">
@@ -110,10 +113,6 @@ export default function CartPage() {
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-200 bg-stone-50 px-4 py-3">
                 <div className="flex items-center gap-4 text-xs text-ink-soft">
                   <span className="font-mono-tab">{validation.totalBoxes} boxes · {validation.totalPairs} pairs</span>
-                  <span>Min {validation.moqBoxes} box{validation.moqBoxes > 1 ? "es" : ""}</span>
-                  {!validation.moqMet && (
-                    <span className="font-medium text-ember">{validation.orderError}</span>
-                  )}
                 </div>
                 <span className="font-mono-tab text-base font-semibold text-ink">{formatEUR(validation.subtotal)}</span>
               </div>
@@ -127,12 +126,15 @@ export default function CartPage() {
           <span className="text-sm font-semibold uppercase tracking-wide text-ink-soft">Cart total</span>
           <span className="font-mono-tab text-2xl font-bold text-ink">{formatEUR(cartTotal)}</span>
         </div>
-        {blocking && (
-          <p className="max-w-sm text-right text-xs font-medium text-ember">
-            One or more styles are below their box minimum. Fix these before checkout.
-          </p>
+        <p className="text-right text-xs text-ink-soft">{grandTotalPairs} pairs in cart</p>
+        {minimumError && (
+          <p className="max-w-sm text-right text-xs font-medium text-ember">{minimumError}</p>
         )}
-        <LinkButton href={blocking ? "#" : "/checkout"} size="lg" className={blocking ? "pointer-events-none opacity-40" : ""}>
+        <LinkButton
+          href={minimumError ? "#" : "/checkout"}
+          size="lg"
+          className={minimumError ? "pointer-events-none opacity-40" : ""}
+        >
           Proceed to Checkout
         </LinkButton>
       </div>

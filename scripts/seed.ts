@@ -121,7 +121,6 @@ async function main() {
       materials: s.materials,
       base_price: s.basePrice,
       msrp: s.msrp,
-      moq_boxes: s.moqBoxes,
       weight_oz: s.weightOz,
       last_note: s.lastNote,
     })),

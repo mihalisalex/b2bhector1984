@@ -5,7 +5,7 @@ import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 
 export function LinesheetToolbar({ styles }: { styles: Style[] }) {
   function exportCsv() {
-    const header = ["Style #", "Name", "Category", "Availability", "Colorways", "Box Options", "Min Boxes", "Wholesale Price"];
+    const header = ["Style #", "Name", "Category", "Availability", "Colorways", "Box Options", "Wholesale Price (EUR)"];
     const rows = styles.map((s) => {
       return [
         s.styleNumber,
@@ -14,7 +14,6 @@ export function LinesheetToolbar({ styles }: { styles: Style[] }) {
         s.availability === "available" ? "Available now" : `Pre-book (${s.shipWindow ?? ""})`,
         s.colorways.map((c) => c.name).join(" / "),
         getAvailableBoxTypes(s).map((b) => b.totalPairs).join(" / ") + "-pair",
-        String(s.moqBoxes),
         s.basePrice.toFixed(2),
       ];
     });

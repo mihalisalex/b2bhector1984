@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
 import { getAssortmentsForAccount } from "@/lib/data/assortments";
-import { getAllStyles } from "@/lib/data/styles";
+import { getAllStyles, getStyleImageUrl } from "@/lib/data/styles";
 import { formatDate } from "@/lib/format";
 import { StylePlate } from "@/components/product/StylePlate";
 import { AvailabilityBadge } from "@/components/ui/Badge";
@@ -49,7 +49,7 @@ export default async function AssortmentsPage() {
                     <Link key={id} href={`/product/${style.slug}`} className="group border border-stone-300 bg-white">
                       <StylePlate
                         swatch={style.colorways[0].swatch}
-                        imageUrl={style.primaryImageUrl}
+                        imageUrl={getStyleImageUrl(style)}
                         className="aspect-[4/3] w-full"
                         dense
                       />

@@ -4,7 +4,7 @@ import { useActionState, useMemo, useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
 import { useCatalog } from "@/lib/catalog-context";
-import { formatEUR, TERMS_DISCOUNT, TERMS_LABEL, validateMatrix } from "@/lib/pricing";
+import { formatEUR, getOrderMinimumError, TERMS_DISCOUNT, TERMS_LABEL, validateMatrix } from "@/lib/pricing";
 import { placeOrder, type CheckoutState } from "@/lib/actions";
 import type { Account, BoxTypeId, CreditTerms } from "@/lib/types";
 import { Button, LinkButton } from "@/components/ui/Button";
@@ -45,6 +45,8 @@ export function CheckoutForm({ account }: { account: Account }) {
     () => Math.round(styleGroups.reduce((sum, g) => sum + g.subtotal, 0) * 100) / 100,
     [styleGroups],
   );
+  const totalPairs = useMemo(() => styleGroups.reduce((sum, g) => sum + g.totalPairs, 0), [styleGroups]);
+  const minimumError = getOrderMinimumError(totalPairs);
 
   const availableNow = styleGroups.filter((g) => g.style.availability === "available");
   const prebook = styleGroups.filter((g) => g.style.availability === "prebook");
@@ -160,13 +162,18 @@ export function CheckoutForm({ account }: { account: Account }) {
             : `${TERMS_LABEL[terms]} — list price`}
         </p>
 
+        {minimumError && (
+          <p role="alert" className="mt-4 border border-ember/40 bg-ember-100 px-3 py-2 text-xs text-ember">
+            {minimumError}
+          </p>
+        )}
         {state.error && (
           <p role="alert" className="mt-4 border border-ember/40 bg-ember-100 px-3 py-2 text-xs text-ember">
             {state.error}
           </p>
         )}
 
-        <Button type="submit" size="lg" className="mt-5 w-full" disabled={pending}>
+        <Button type="submit" size="lg" className="mt-5 w-full" disabled={pending || !!minimumError}>
           {pending ? "Requesting…" : "Request Proforma Invoice"}
         </Button>
         <p className="mt-3 text-center text-[11px] text-ink-soft">

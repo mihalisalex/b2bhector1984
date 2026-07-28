@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { CATEGORY_LABEL, GENDER_LABEL, getStyleBySlug } from "@/lib/data/styles";
+import { CATEGORY_LABEL, GENDER_LABEL, getStyleBySlug, getStyleImageUrl } from "@/lib/data/styles";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { formatEUR } from "@/lib/pricing";
 import { AvailabilityBadge } from "@/components/ui/Badge";
@@ -39,7 +39,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <StylePlate
             swatch={style.colorways[0].swatch}
             styleNumber={style.styleNumber}
-            imageUrl={style.primaryImageUrl}
+            imageUrl={getStyleImageUrl(style)}
             className="aspect-[4/3] w-full"
           />
           <div className="mt-4 grid grid-cols-4 gap-2">
