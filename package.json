@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx scripts/seed.ts",
-    "seed:admin": "tsx scripts/seedAdmin.ts"
+    "seed:admin": "tsx scripts/seedAdmin.ts",
+    "rehash-passwords": "tsx scripts/rehashPasswords.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.8",

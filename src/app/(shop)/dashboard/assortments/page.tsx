@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
 import { getAssortmentsForAccount } from "@/lib/data/assortments";
 import { getAllStyles, getStyleImageUrl } from "@/lib/data/styles";
+import { deleteAssortment } from "@/lib/actions";
 import { formatDate } from "@/lib/format";
 import { StylePlate } from "@/components/product/StylePlate";
 import { AvailabilityBadge } from "@/components/ui/Badge";
@@ -30,7 +31,8 @@ export default async function AssortmentsPage() {
       {assortments.length === 0 ? (
         <div className="mt-8 border border-dashed border-stone-300 bg-stone-100 px-6 py-16 text-center">
           <p className="text-sm text-ink-soft">
-            No saved assortments yet. Build a set of styles you order together and ask your rep to save it here.
+            No saved assortments yet. Add styles to your cart, then use &ldquo;Save as assortment&rdquo; there to
+            build a reorder set.
           </p>
         </div>
       ) : (
@@ -39,7 +41,15 @@ export default async function AssortmentsPage() {
             <section key={a.id}>
               <div className="flex items-baseline justify-between">
                 <h2 className="font-display text-lg font-bold uppercase tracking-tight text-ink">{a.name}</h2>
-                <span className="text-xs text-ink-soft">Saved {formatDate(a.createdAt)}</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-ink-soft">Saved {formatDate(a.createdAt)}</span>
+                  <form action={deleteAssortment}>
+                    <input type="hidden" name="assortmentId" value={a.id} />
+                    <button type="submit" className="text-xs font-medium text-ember hover:underline">
+                      Delete
+                    </button>
+                  </form>
+                </div>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                 {a.styleIds.map((id) => {
@@ -50,6 +60,7 @@ export default async function AssortmentsPage() {
                       <StylePlate
                         swatch={style.colorways[0].swatch}
                         imageUrl={getStyleImageUrl(style)}
+                        alt={style.name}
                         className="aspect-[4/3] w-full"
                         dense
                       />

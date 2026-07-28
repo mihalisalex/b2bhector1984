@@ -3,8 +3,16 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { addOrder } from "@/lib/runtimeOrders";
-import { APPLICATION_COOKIE, SESSION_COOKIE, getApplication, getCurrentAccount } from "@/lib/session";
+import { addOrder, getOrdersForAccount } from "@/lib/runtimeOrders";
+import {
+  APPLICATION_COOKIE,
+  SESSION_COOKIE,
+  SESSION_MAX_AGE,
+  createSession,
+  destroySession,
+  getApplication,
+  getCurrentAccount,
+} from "@/lib/session";
 import {
   getAccountByEmail,
   createAccount,
@@ -17,11 +25,12 @@ import {
 } from "@/lib/data/accounts";
 import { insertApplication, updateApplicationStatus } from "@/lib/data/applications";
 import { getStyleById } from "@/lib/data/styles";
-import { getOrderMinimumError, getUnitPrice, validateMatrix } from "@/lib/pricing";
+import { hashPassword, verifyPassword } from "@/lib/passwords";
+import { formatEUR, getOrderMinimumError, getUnitPrice, summarizeOrder, validateMatrix } from "@/lib/pricing";
+import { createSavedAssortment, deleteSavedAssortment as deleteSavedAssortmentData } from "@/lib/data/assortments";
 import type { Application, BoxTypeId, CreditTerms, Order, OrderLine } from "@/lib/types";
 
 const APPLICATION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
-const SESSION_MAX_AGE = 60 * 60 * 24 * 14; // 14 days
 
 export interface FormState {
   error?: string;
@@ -33,15 +42,16 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   const password = String(formData.get("password") ?? "");
 
   const account = await getAccountByEmail(email);
-  if (!account || account.password !== password) {
+  if (!account || !(await verifyPassword(password, account.password))) {
     return { error: "We couldn't find an active account with that email and password." };
   }
   if (account.status !== "active") {
     return { error: "This account has not been activated yet. Contact your sales rep." };
   }
 
+  const token = await createSession(account.id);
   const store = await cookies();
-  store.set(SESSION_COOKIE, account.id, { maxAge: SESSION_MAX_AGE, path: "/", httpOnly: true, sameSite: "lax" });
+  store.set(SESSION_COOKIE, token, { maxAge: SESSION_MAX_AGE, path: "/", httpOnly: true, sameSite: "lax" });
 
   if (account.role === "admin") redirect("/admin");
   const next = String(formData.get("next") ?? "");
@@ -50,6 +60,8 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
 
 export async function logout() {
   const store = await cookies();
+  const token = store.get(SESSION_COOKIE)?.value;
+  if (token) await destroySession(token);
   store.delete(SESSION_COOKIE);
   redirect("/");
 }
@@ -114,7 +126,7 @@ export async function activateAccount() {
     businessName: application.businessName,
     contactName: application.contactName,
     email: application.email,
-    password: "wholesale84",
+    password: await hashPassword("wholesale84"),
     status: "active",
     creditTerms: "prepay",
     creditLimit: 5000,
@@ -134,8 +146,9 @@ export async function activateAccount() {
   });
   await updateApplicationStatus(application.id, "active");
 
+  const token = await createSession(id);
   const store = await cookies();
-  store.set(SESSION_COOKIE, id, { maxAge: SESSION_MAX_AGE, path: "/", httpOnly: true, sameSite: "lax" });
+  store.set(SESSION_COOKIE, token, { maxAge: SESSION_MAX_AGE, path: "/", httpOnly: true, sameSite: "lax" });
   store.delete(APPLICATION_COOKIE);
   redirect("/dashboard");
 }
@@ -191,6 +204,18 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
   const minimumError = getOrderMinimumError(totalPairs);
   if (minimumError) return { error: minimumError };
 
+  const { total: orderTotal } = summarizeOrder({ lines: orderLines });
+  const existingOrders = await getOrdersForAccount(account.id);
+  const outstanding = existingOrders
+    .filter((o) => o.status !== "delivered")
+    .reduce((sum, o) => sum + summarizeOrder(o).total, 0);
+  const availableCredit = account.creditLimit - outstanding;
+  if (orderTotal > availableCredit) {
+    return {
+      error: `This order (${formatEUR(orderTotal)}) exceeds your available credit (${formatEUR(Math.max(availableCredit, 0))} of a ${formatEUR(account.creditLimit)} limit). Contact ${account.rep.name} to raise your limit or reduce the order.`,
+    };
+  }
+
   const order: Order = {
     id: `ORD-${Date.now().toString().slice(-5)}`,
     poNumber,
@@ -236,11 +261,11 @@ export async function updateAccountPassword(_prev: FormState, formData: FormData
   const newPassword = String(formData.get("newPassword") ?? "");
   const confirmPassword = String(formData.get("confirmPassword") ?? "");
 
-  if (currentPassword !== account.password) return { error: "Current password is incorrect." };
+  if (!(await verifyPassword(currentPassword, account.password))) return { error: "Current password is incorrect." };
   if (newPassword.length < 6) return { error: "New password must be at least 6 characters." };
   if (newPassword !== confirmPassword) return { error: "New password and confirmation don't match." };
 
-  await updateAccountPasswordData(account.id, newPassword);
+  await updateAccountPasswordData(account.id, await hashPassword(newPassword));
   revalidatePath("/dashboard/account");
   return { success: "Password updated." };
 }
@@ -304,4 +329,27 @@ export async function setDefaultShipToAddress(formData: FormData): Promise<void>
   const shipToId = String(formData.get("shipToId") ?? "");
   if (shipToId) await setDefaultShipToAddressRow(account.id, shipToId);
   revalidatePath("/dashboard/account");
+}
+
+export async function saveAssortment(_prev: FormState, formData: FormData): Promise<FormState> {
+  const account = await getCurrentAccount();
+  if (!account) redirect("/login");
+
+  const name = String(formData.get("name") ?? "").trim();
+  const styleIds = JSON.parse(String(formData.get("styleIds") ?? "[]")) as string[];
+  if (!name) return { error: "Give this assortment a name." };
+  if (styleIds.length === 0) return { error: "Add at least one style before saving." };
+
+  await createSavedAssortment(account.id, name, styleIds);
+  revalidatePath("/dashboard/assortments");
+  return { success: "Assortment saved." };
+}
+
+export async function deleteAssortment(formData: FormData): Promise<void> {
+  const account = await getCurrentAccount();
+  if (!account) redirect("/login");
+
+  const assortmentId = String(formData.get("assortmentId") ?? "");
+  if (assortmentId) await deleteSavedAssortmentData(account.id, assortmentId);
+  revalidatePath("/dashboard/assortments");
 }

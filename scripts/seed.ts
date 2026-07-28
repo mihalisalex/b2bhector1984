@@ -10,6 +10,7 @@ config({ path: ".env.local" });
 import { createClient } from "@supabase/supabase-js";
 import { STYLES, ACCOUNTS, ORDERS, ASSORTMENTS } from "./seedData";
 import { BOX_TYPES } from "../src/lib/data/boxTypes";
+import { hashPassword } from "../src/lib/passwords";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -63,14 +64,13 @@ async function main() {
   }
   await insert("sales_reps", repRows);
 
-  await insert(
-    "accounts",
-    ACCOUNTS.map((a) => ({
+  const accountRows = await Promise.all(
+    ACCOUNTS.map(async (a) => ({
       id: a.id,
       business_name: a.businessName,
       contact_name: a.contactName,
       email: a.email,
-      password: a.password,
+      password: await hashPassword(a.password),
       status: a.status,
       credit_terms: a.creditTerms,
       credit_limit: a.creditLimit,
@@ -84,6 +84,7 @@ async function main() {
       role: "buyer",
     })),
   );
+  await insert("accounts", accountRows);
 
   console.log("Seeding ship_to_addresses...");
   await insert(

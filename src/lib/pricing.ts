@@ -28,7 +28,7 @@ export function formatEUR(n: number): string {
 }
 
 /** Total order value, boxes, and pairs — order lines store per-box qty and per-pair price. */
-export function summarizeOrder(order: Order): { total: number; totalBoxes: number; totalPairs: number } {
+export function summarizeOrder(order: { lines: Order["lines"] }): { total: number; totalBoxes: number; totalPairs: number } {
   let total = 0;
   let totalBoxes = 0;
   let totalPairs = 0;

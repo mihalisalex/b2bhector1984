@@ -40,6 +40,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             swatch={style.colorways[0].swatch}
             styleNumber={style.styleNumber}
             imageUrl={getStyleImageUrl(style)}
+            alt={style.name}
             className="aspect-[4/3] w-full"
           />
           <div className="mt-4 grid grid-cols-4 gap-2">

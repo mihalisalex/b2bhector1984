@@ -109,6 +109,7 @@ export default async function HomePage() {
                 <StylePlate
                   swatch={rep.colorways[0].swatch}
                   imageUrl={getStyleImageUrl(rep)}
+                  alt={rep.name}
                   className="h-full w-full transition-transform duration-500 ease-out group-hover:scale-[1.04]"
                 />
                 <div

@@ -108,6 +108,7 @@ export function OrderableLinesheet({ styles }: { styles: Style[] }) {
                 <StylePlate
                   swatch={style.colorways[0].swatch}
                   imageUrl={getStyleImageUrl(style)}
+                  alt={style.name}
                   className="h-16 w-20 shrink-0"
                   dense
                 />
@@ -187,6 +188,7 @@ export function OrderableLinesheet({ styles }: { styles: Style[] }) {
                         <StylePlate
                           swatch={style.colorways[0].swatch}
                           imageUrl={getStyleImageUrl(style)}
+                          alt={style.name}
                           className="h-12 w-16 shrink-0"
                           dense
                         />

@@ -9,6 +9,7 @@ import { config } from "dotenv";
 config({ path: ".env.local" });
 
 import { createClient } from "@supabase/supabase-js";
+import { hashPassword } from "../src/lib/passwords";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -32,7 +33,7 @@ async function main() {
       business_name: "Hector 1984 HQ",
       contact_name: "House Admin",
       email: adminEmail,
-      password: adminPassword,
+      password: await hashPassword(adminPassword!), // validated non-empty above
       status: "active",
       credit_terms: "net60",
       credit_limit: 0,

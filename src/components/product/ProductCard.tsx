@@ -16,6 +16,7 @@ export function ProductCard({ style }: { style: Style }) {
           swatch={style.colorways[0].swatch}
           styleNumber={style.styleNumber}
           imageUrl={getStyleImageUrl(style)}
+          alt={style.name}
           className="aspect-[4/3] w-full transition-transform duration-500 ease-out group-hover:scale-[1.04]"
           dense
         />

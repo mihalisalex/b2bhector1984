@@ -9,12 +9,15 @@ export function StylePlate({
   swatch,
   styleNumber,
   imageUrl,
+  alt = "",
   className,
   dense = false,
 }: {
   swatch: [string, string?];
   styleNumber?: string;
   imageUrl?: string | null;
+  /** Real photos need real alt text — the generated plate below is decorative and stays alt-free. */
+  alt?: string;
   className?: string;
   dense?: boolean;
 }) {
@@ -22,7 +25,7 @@ export function StylePlate({
     return (
       <div className={cn("relative overflow-hidden bg-stone-200", className)}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+        <img src={imageUrl} alt={alt} className="h-full w-full object-cover" />
         {styleNumber && (
           <span className="font-mono-tab absolute bottom-2 right-2 bg-ink/80 px-1.5 py-0.5 text-[10px] tracking-wide text-white">
             {styleNumber}

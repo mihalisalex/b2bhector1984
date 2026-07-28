@@ -75,7 +75,7 @@ export default async function AdminStyleDetailPage({ params }: { params: Promise
               <div key={image.id} className="border border-stone-300 bg-white">
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-stone-200">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={image.publicUrl} alt="" className="h-full w-full object-cover" />
+                  <img src={image.publicUrl} alt={style.name} className="h-full w-full object-cover" />
                   {image.isPrimary && (
                     <span className="absolute left-2 top-2 bg-signal px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
                       Primary

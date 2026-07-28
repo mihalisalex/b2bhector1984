@@ -10,6 +10,7 @@ import { formatEUR, getOrderMinimumError, validateMatrix } from "@/lib/pricing";
 import type { BoxTypeId } from "@/lib/types";
 import { LinkButton } from "@/components/ui/Button";
 import { StylePlate } from "@/components/product/StylePlate";
+import { SaveAssortmentButton } from "@/components/dashboard/SaveAssortmentButton";
 
 export default function CartPage() {
   const { lines, setLineQty, removeStyle, cartTotal } = useCart();
@@ -56,6 +57,7 @@ export default function CartPage() {
                 <StylePlate
                   swatch={style.colorways[0].swatch}
                   imageUrl={getStyleImageUrl(style)}
+                  alt={style.name}
                   className="h-16 w-20 shrink-0"
                 />
                 <div className="min-w-0 flex-1">
@@ -122,6 +124,7 @@ export default function CartPage() {
       </div>
 
       <div className="mt-8 flex flex-col items-end gap-3 border-t border-stone-300 pt-6">
+        <SaveAssortmentButton styleIds={styleIds} />
         <div className="flex items-baseline gap-3">
           <span className="text-sm font-semibold uppercase tracking-wide text-ink-soft">Cart total</span>
           <span className="font-mono-tab text-2xl font-bold text-ink">{formatEUR(cartTotal)}</span>
