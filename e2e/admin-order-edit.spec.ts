@@ -28,12 +28,19 @@ test("admin can change an order's status and it persists", async ({ page }) => {
   );
   const nextStatus = originalStatus === "submitted" ? "confirmed" : "submitted";
 
+  // selectOption's onChange handler fires an async server action — wait for
+  // that round-trip to actually complete before reloading, or the reload can
+  // race ahead of the write and read back stale data.
+  const change = page.waitForResponse((res) => res.request().method() === "POST");
   await statusSelect.selectOption(nextStatus);
-  await expect(statusSelect).toHaveValue(nextStatus);
+  await change;
   await page.reload();
   await expect(page.getByLabel("Order status")).toHaveValue(nextStatus);
 
   // Revert so this smoke test doesn't leave demo data mutated.
+  const revert = page.waitForResponse((res) => res.request().method() === "POST");
   await page.getByLabel("Order status").selectOption(originalStatus);
+  await revert;
+  await page.reload();
   await expect(page.getByLabel("Order status")).toHaveValue(originalStatus);
 });
