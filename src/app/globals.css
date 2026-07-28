@@ -1,23 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  /* -- Hector 1984 brand tokens: black, ivory & gold ------------------ */
+  /* -- Hector 1984 brand tokens: black & white, neutral gray scale ---- */
   --color-ink: #121212;
-  --color-ink-soft: #5c5648;
-  --color-white: #fbf8f2;
-  --color-stone-50: #f7f3ea;
-  --color-stone-100: #efe7d6;
-  --color-stone-200: #e2d5b8;
-  --color-stone-300: #cbb98c;
-  --color-cinder: #7a715c;
-  --color-cinder-300: #a89b7d;
-  --color-signal: #b8923c;
-  --color-signal-600: #8a6f2c;
-  --color-signal-100: #f3e7c9;
+  --color-ink-soft: #6b6b6b;
+  --color-white: #ffffff;
+  --color-stone-50: #fafafa;
+  --color-stone-100: #f0f0f0;
+  --color-stone-200: #e0e0e0;
+  --color-stone-300: #d4d4d4;
+  --color-cinder: #737373;
+  --color-cinder-300: #a3a3a3;
+  --color-signal: #121212;
+  --color-signal-600: #000000;
+  --color-signal-100: #ececec;
   --color-ember: #7a2e22;
   --color-ember-100: #f0ded9;
-  --color-court: #6b5637;
-  --color-court-100: #e8ddc8;
+  --color-court: #404040;
+  --color-court-100: #e5e5e5;
   --color-positive: #3d5c3a;
   --color-positive-100: #dde6d8;
 

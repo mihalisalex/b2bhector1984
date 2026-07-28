@@ -1,9 +1,16 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-export default function OpengraphImage() {
+export default async function OpengraphImage() {
+  const [bodoniExtraBold, bodoniBold] = await Promise.all([
+    readFile(join(process.cwd(), "src/assets/fonts/BodoniModa-ExtraBold.ttf")),
+    readFile(join(process.cwd(), "src/assets/fonts/BodoniModa-Bold.ttf")),
+  ]);
+
   return new ImageResponse(
     (
       <div
@@ -27,15 +34,22 @@ export default function OpengraphImage() {
               height: 64,
               background: "#fff",
               color: "#1a1d22",
-              fontSize: 26,
-              fontWeight: 700,
-              fontFamily: "monospace",
+              fontSize: 38,
+              fontFamily: "Bodoni Moda ExtraBold",
             }}
           >
-            84
+            H
           </div>
-          <div style={{ display: "flex", fontSize: 34, fontWeight: 700, color: "#fff", letterSpacing: -1 }}>
-            HECTOR&nbsp;<span style={{ color: "#a9a39a" }}>1984</span>
+          <div
+            style={{
+              display: "flex",
+              fontSize: 36,
+              color: "#fff",
+              letterSpacing: 4,
+              fontFamily: "Bodoni Moda Bold",
+            }}
+          >
+            HECTOR
           </div>
         </div>
 
@@ -55,6 +69,12 @@ export default function OpengraphImage() {
         </div>
       </div>
     ),
-    { ...size },
+    {
+      ...size,
+      fonts: [
+        { name: "Bodoni Moda ExtraBold", data: bodoniExtraBold, style: "normal", weight: 800 },
+        { name: "Bodoni Moda Bold", data: bodoniBold, style: "normal", weight: 700 },
+      ],
+    },
   );
 }

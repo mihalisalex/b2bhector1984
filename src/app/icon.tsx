@@ -1,9 +1,15 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
 export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
 
-export default function Icon() {
+export default async function Icon() {
+  const bodoniExtraBold = await readFile(
+    join(process.cwd(), "src/assets/fonts/BodoniModa-ExtraBold.ttf"),
+  );
+
   return new ImageResponse(
     (
       <div
@@ -13,17 +19,18 @@ export default function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#1a1d22",
+          background: "#121212",
           color: "#fff",
-          fontSize: 15,
-          fontWeight: 700,
-          fontFamily: "monospace",
-          letterSpacing: -0.5,
+          fontSize: 22,
+          fontFamily: "Bodoni Moda",
         }}
       >
-        84
+        H
       </div>
     ),
-    { ...size },
+    {
+      ...size,
+      fonts: [{ name: "Bodoni Moda", data: bodoniExtraBold, style: "normal", weight: 800 }],
+    },
   );
 }
