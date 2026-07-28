@@ -12,8 +12,14 @@ import {
 } from "@/lib/data/styleImages";
 import { updateAvailableBoxTypes } from "@/lib/data/styles";
 import { updateHomepageHero, createHeroImageUploadTarget, finalizeHeroImageUpload } from "@/lib/data/siteContent";
-import { updateOrderStatus as updateOrderStatusInDb } from "@/lib/runtimeOrders";
-import type { BoxTypeId, OrderStatus } from "@/lib/types";
+import {
+  updateOrderStatus as updateOrderStatusInDb,
+  updateOrderDetails as updateOrderDetailsInDb,
+  updateOrderLineQty as updateOrderLineQtyInDb,
+  deleteOrderLine as deleteOrderLineInDb,
+} from "@/lib/runtimeOrders";
+import type { FormState } from "@/lib/actions";
+import type { BoxTypeId, CreditTerms, OrderStatus } from "@/lib/types";
 
 async function requireAdmin() {
   const account = await getCurrentAccount();
@@ -29,6 +35,58 @@ export async function updateOrderStatus(orderId: string, formData: FormData) {
   const status = String(formData.get("status") ?? "");
   if (!ORDER_STATUSES.includes(status as OrderStatus)) return;
   await updateOrderStatusInDb(orderId, status as OrderStatus);
+  revalidatePath("/admin");
+  revalidatePath(`/admin/orders/${orderId}`);
+}
+
+const ORDER_TERMS: CreditTerms[] = ["prepay", "net30", "net60"];
+
+/** Bound to `.bind(null, orderId, accountId)` — edits everything on an order except status and line items. */
+export async function updateOrderDetailsAction(
+  orderId: string,
+  accountId: string,
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  await requireAdmin();
+
+  const poNumber = String(formData.get("poNumber") ?? "").trim();
+  const terms = String(formData.get("terms") ?? "");
+  const shipToId = String(formData.get("shipToId") ?? "");
+  const notes = String(formData.get("notes") ?? "").trim();
+  const invoiceUrl = String(formData.get("invoiceUrl") ?? "").trim();
+
+  if (!poNumber) return { error: "PO number is required." };
+  if (!ORDER_TERMS.includes(terms as CreditTerms)) return { error: "Select valid payment terms." };
+
+  await updateOrderDetailsInDb(orderId, accountId, {
+    poNumber,
+    terms: terms as CreditTerms,
+    shipToId,
+    notes: notes || undefined,
+    invoiceUrl: invoiceUrl || undefined,
+  });
+  revalidatePath(`/admin/orders/${orderId}`);
+  revalidatePath("/admin");
+  return { success: "Order updated." };
+}
+
+/** Bound to `.bind(null, orderId)` — a <form action> per line row's qty stepper. */
+export async function updateOrderLineQtyAction(orderId: string, formData: FormData) {
+  await requireAdmin();
+  const lineId = String(formData.get("lineId") ?? "");
+  const qty = Number(formData.get("qty") ?? 0);
+  if (!lineId || !Number.isFinite(qty) || qty < 1) return;
+  await updateOrderLineQtyInDb(lineId, Math.round(qty));
+  revalidatePath(`/admin/orders/${orderId}`);
+  revalidatePath("/admin");
+}
+
+/** Bound to `.bind(null, orderId, lineId)` — a <form action> per line row's remove button. */
+export async function deleteOrderLineAction(orderId: string, lineId: string) {
+  await requireAdmin();
+  await deleteOrderLineInDb(lineId);
+  revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath("/admin");
 }
 

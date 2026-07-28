@@ -1,7 +1,7 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { fromDbId, toDbId, toNumber } from "@/lib/data/dbIds";
-import type { BoxTypeId, Order, OrderLine } from "@/lib/types";
+import type { BoxTypeId, CreditTerms, Order, OrderLine } from "@/lib/types";
 
 interface OrderRow {
   id: string;
@@ -16,6 +16,7 @@ interface OrderRow {
 }
 
 interface OrderLineRow {
+  id: string;
   order_id: string;
   style_id: string;
   colorway_id: string;
@@ -28,6 +29,7 @@ function mapOrder(accountId: string, row: OrderRow, lineRows: OrderLineRow[]): O
   const lines: OrderLine[] = lineRows
     .filter((l) => l.order_id === row.id)
     .map((l) => ({
+      id: l.id,
       styleId: l.style_id,
       colorwayId: fromDbId(l.style_id, l.colorway_id),
       boxTypeId: l.box_type_id,
@@ -134,4 +136,62 @@ export async function listAllOrders(): Promise<AdminOrder[]> {
 export async function updateOrderStatus(orderId: string, status: Order["status"]): Promise<void> {
   const { error } = await supabaseAdmin.from("orders").update({ status }).eq("id", orderId);
   if (error) throw new Error(`orders: ${error.message}`);
+}
+
+export interface AdminOrderDetail extends Order {
+  accountId: string;
+  businessName: string;
+  contactName: string;
+  email: string;
+}
+
+/** Single order for the admin detail/edit view, joined with the buyer's contact info. */
+export async function getOrderByIdAdmin(orderId: string): Promise<AdminOrderDetail | undefined> {
+  const { data, error } = await supabaseAdmin
+    .from("orders")
+    .select("*, accounts(business_name, contact_name, email)")
+    .eq("id", orderId)
+    .limit(1);
+  if (error) throw new Error(`orders: ${error.message}`);
+  const row = data?.[0] as (OrderRow & { accounts: { business_name: string; contact_name: string; email: string } | null }) | undefined;
+  if (!row) return undefined;
+
+  const lineRows = await fetchLines([row.id]);
+  const order = mapOrder(row.account_id, row, lineRows);
+  return {
+    ...order,
+    accountId: row.account_id,
+    businessName: row.accounts?.business_name ?? row.account_id,
+    contactName: row.accounts?.contact_name ?? "",
+    email: row.accounts?.email ?? "",
+  };
+}
+
+/** Admin-editable order metadata — everything except status (see `updateOrderStatus`) and line items. */
+export async function updateOrderDetails(
+  orderId: string,
+  accountId: string,
+  input: { poNumber: string; terms: CreditTerms; shipToId: string; notes?: string; invoiceUrl?: string },
+): Promise<void> {
+  const { error } = await supabaseAdmin
+    .from("orders")
+    .update({
+      po_number: input.poNumber,
+      terms: input.terms,
+      ship_to_id: input.shipToId ? toDbId(accountId, input.shipToId) : null,
+      notes: input.notes || null,
+      invoice_url: input.invoiceUrl || null,
+    })
+    .eq("id", orderId);
+  if (error) throw new Error(`orders: ${error.message}`);
+}
+
+export async function updateOrderLineQty(lineId: string, qty: number): Promise<void> {
+  const { error } = await supabaseAdmin.from("order_lines").update({ qty }).eq("id", lineId);
+  if (error) throw new Error(`order_lines: ${error.message}`);
+}
+
+export async function deleteOrderLine(lineId: string): Promise<void> {
+  const { error } = await supabaseAdmin.from("order_lines").delete().eq("id", lineId);
+  if (error) throw new Error(`order_lines: ${error.message}`);
 }

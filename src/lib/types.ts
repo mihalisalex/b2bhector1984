@@ -106,6 +106,8 @@ export interface Account {
 }
 
 export interface OrderLine {
+  /** DB row id — only populated when a line is read back from storage (not on cart lines). */
+  id?: string;
   styleId: string;
   colorwayId: string;
   boxTypeId: BoxTypeId;
