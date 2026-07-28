@@ -29,6 +29,7 @@ interface AccountRow {
   applied_at: string;
   approved_at: string | null;
   role: Account["role"];
+  rep_id: string | null;
   sales_reps: {
     name: string;
     title: string;
@@ -96,6 +97,7 @@ async function mapAccount(row: AccountRow): Promise<Account> {
           territory: row.sales_reps.territory,
         }
       : UNASSIGNED_REP,
+    repId: row.rep_id ?? undefined,
     role: row.role,
   };
 }
@@ -124,6 +126,22 @@ export async function getAllAccounts(): Promise<Account[]> {
 
 export async function updateAccountPriceMultiplier(id: string, priceMultiplier: number): Promise<void> {
   const { error } = await supabaseAdmin.from("accounts").update({ price_multiplier: priceMultiplier }).eq("id", id);
+  if (error) throw new Error(`accounts: ${error.message}`);
+}
+
+export async function updateAccountCreditTerms(id: string, creditTerms: Account["creditTerms"]): Promise<void> {
+  const { error } = await supabaseAdmin.from("accounts").update({ credit_terms: creditTerms }).eq("id", id);
+  if (error) throw new Error(`accounts: ${error.message}`);
+}
+
+export async function updateAccountCreditLimit(id: string, creditLimit: number): Promise<void> {
+  const { error } = await supabaseAdmin.from("accounts").update({ credit_limit: creditLimit }).eq("id", id);
+  if (error) throw new Error(`accounts: ${error.message}`);
+}
+
+/** `repId: null` unassigns the account (falls back to the synthetic `UNASSIGNED_REP` on read). */
+export async function updateAccountRep(id: string, repId: string | null): Promise<void> {
+  const { error } = await supabaseAdmin.from("accounts").update({ rep_id: repId }).eq("id", id);
   if (error) throw new Error(`accounts: ${error.message}`);
 }
 

@@ -12,6 +12,7 @@ import { OrderDetailsForm } from "@/components/admin/OrderDetailsForm";
 import { OrderLineRow } from "@/components/admin/OrderLineRow";
 import { EmailBuyerPanel } from "@/components/admin/EmailBuyerPanel";
 import { StatusTimeline } from "@/components/order/StatusTimeline";
+import { buildOrderStatusEmailBody } from "@/lib/emailTemplates";
 
 export const metadata = { title: "Order", robots: { index: false, follow: false } };
 
@@ -28,7 +29,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
   const styleEntries = await Promise.all(uniqueStyleIds.map(async (sid) => [sid, await getStyleById(sid)] as const));
   const styleById = new Map(styleEntries);
 
-  const emailBody = `Hi ${order.contactName.split(" ")[0] || "there"},\n\nWriting about your order ${order.id} (PO ${order.poNumber}), currently ${order.status.replace("_", " ")}.\n\n\n\nBest,\nHector 1984 Wholesale`;
+  const emailBody = buildOrderStatusEmailBody(order, order.contactName);
 
   return (
     <div>

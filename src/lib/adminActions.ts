@@ -12,14 +12,24 @@ import {
 } from "@/lib/data/styleImages";
 import { updateAvailableBoxTypes } from "@/lib/data/styles";
 import { setInventoryLevel } from "@/lib/data/inventory";
-import { updateAccountPriceMultiplier } from "@/lib/data/accounts";
+import {
+  updateAccountPriceMultiplier,
+  updateAccountCreditTerms,
+  updateAccountCreditLimit,
+  updateAccountRep,
+} from "@/lib/data/accounts";
+import { createSalesRep, updateSalesRep, deleteSalesRep } from "@/lib/data/salesReps";
+import { logAudit } from "@/lib/data/auditLog";
 import { updateHomepageHero, createHeroImageUploadTarget, finalizeHeroImageUpload } from "@/lib/data/siteContent";
 import {
   updateOrderStatus as updateOrderStatusInDb,
   updateOrderDetails as updateOrderDetailsInDb,
   updateOrderLineQty as updateOrderLineQtyInDb,
   deleteOrderLine as deleteOrderLineInDb,
+  getOrderByIdAdmin,
 } from "@/lib/runtimeOrders";
+import { sendEmail } from "@/lib/email";
+import { buildOrderStatusEmailBody, orderStatusEmailSubject, textToHtml } from "@/lib/emailTemplates";
 import type { FormState } from "@/lib/actions";
 import type { BoxTypeId, CreditTerms, OrderStatus } from "@/lib/types";
 
@@ -29,15 +39,28 @@ async function requireAdmin() {
   return account;
 }
 
+/** Best-effort — `sendEmail` never throws, so this can't fail the status update that triggered it. */
+async function notifyOrderStatusChange(orderId: string, status: OrderStatus) {
+  const order = await getOrderByIdAdmin(orderId);
+  if (!order?.email) return;
+  await sendEmail({
+    to: order.email,
+    subject: orderStatusEmailSubject({ id: order.id, status }),
+    html: textToHtml(buildOrderStatusEmailBody({ id: order.id, poNumber: order.poNumber, status }, order.contactName)),
+  });
+}
+
 const ORDER_STATUSES: OrderStatus[] = ["submitted", "confirmed", "in_production", "shipped", "delivered"];
 
 /** Bound to `.bind(null, orderId)` for use as a <form action>. */
 export async function updateOrderStatus(orderId: string, _prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const status = String(formData.get("status") ?? "");
   if (!ORDER_STATUSES.includes(status as OrderStatus)) return { error: "Invalid status." };
   const result = await updateOrderStatusInDb(orderId, status as OrderStatus);
   if (result.error) return { error: result.error };
+  await logAudit(admin.id, "order.status_changed", "order", orderId, status);
+  await notifyOrderStatusChange(orderId, status as OrderStatus);
   revalidatePath("/admin");
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath(`/dashboard/orders/${orderId}`);
@@ -53,7 +76,7 @@ export async function updateOrderDetailsAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  await requireAdmin();
+  const admin = await requireAdmin();
 
   const poNumber = String(formData.get("poNumber") ?? "").trim();
   const terms = String(formData.get("terms") ?? "");
@@ -75,6 +98,7 @@ export async function updateOrderDetailsAction(
     trackingNumber: trackingNumber || undefined,
     carrier: carrier || undefined,
   });
+  await logAudit(admin.id, "order.details_updated", "order", orderId);
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath("/admin");
   return { success: "Order updated." };
@@ -82,33 +106,67 @@ export async function updateOrderDetailsAction(
 
 /** Bound to `.bind(null, orderId)` — a <form action> per line row's qty stepper. */
 export async function updateOrderLineQtyAction(orderId: string, formData: FormData) {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const lineId = String(formData.get("lineId") ?? "");
   const qty = Number(formData.get("qty") ?? 0);
   if (!lineId || !Number.isFinite(qty) || qty < 1) return;
   await updateOrderLineQtyInDb(lineId, Math.round(qty));
+  await logAudit(admin.id, "order.line_qty_updated", "order", orderId, `line ${lineId} → qty ${Math.round(qty)}`);
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath("/admin");
 }
 
 /** Bound to `.bind(null, orderId, lineId)` — a <form action> per line row's remove button. */
 export async function deleteOrderLineAction(orderId: string, lineId: string) {
-  await requireAdmin();
+  const admin = await requireAdmin();
   await deleteOrderLineInDb(lineId);
+  await logAudit(admin.id, "order.line_deleted", "order", orderId, `line ${lineId}`);
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath("/admin");
 }
 
 export async function approveApplication(applicationId: string) {
-  await requireAdmin();
+  const admin = await requireAdmin();
   await updateApplicationStatus(applicationId, "approved");
+  await logAudit(admin.id, "application.approved", "application", applicationId);
   revalidatePath("/admin/applications");
 }
 
 export async function declineApplication(applicationId: string) {
-  await requireAdmin();
+  const admin = await requireAdmin();
   await updateApplicationStatus(applicationId, "declined");
+  await logAudit(admin.id, "application.declined", "application", applicationId);
   revalidatePath("/admin/applications");
+}
+
+/** Bulk status update — loops the same per-order guard (e.g. shipped requires tracking). */
+export async function bulkUpdateOrderStatus(orderIds: string[], status: OrderStatus): Promise<FormState> {
+  const admin = await requireAdmin();
+  if (!ORDER_STATUSES.includes(status)) return { error: "Invalid status." };
+  const failures: string[] = [];
+  for (const orderId of orderIds) {
+    const result = await updateOrderStatusInDb(orderId, status);
+    if (result.error) {
+      failures.push(`${orderId}: ${result.error}`);
+    } else {
+      await logAudit(admin.id, "order.status_changed", "order", orderId, status);
+      await notifyOrderStatusChange(orderId, status);
+    }
+  }
+  revalidatePath("/admin");
+  if (failures.length > 0) return { error: `${failures.length} of ${orderIds.length} orders couldn't be updated — ${failures.join("; ")}` };
+  return { success: `Updated ${orderIds.length} orders to ${status}.` };
+}
+
+/** Bulk approve — loops the same single-application approval path. */
+export async function bulkApproveApplications(applicationIds: string[]): Promise<FormState> {
+  const admin = await requireAdmin();
+  for (const applicationId of applicationIds) {
+    await updateApplicationStatus(applicationId, "approved");
+    await logAudit(admin.id, "application.approved", "application", applicationId);
+  }
+  revalidatePath("/admin/applications");
+  return { success: `Approved ${applicationIds.length} applications.` };
 }
 
 export interface UploadState {
@@ -184,11 +242,85 @@ export async function updateInventoryLevelAction(styleId: string, formData: Form
 
 /** Bound to `.bind(null, accountId)` — a <form action> per account row on /admin/accounts. */
 export async function updateAccountPriceMultiplierAction(accountId: string, formData: FormData) {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const priceMultiplier = Number(formData.get("priceMultiplier") ?? 1);
   if (!Number.isFinite(priceMultiplier) || priceMultiplier <= 0) return;
   await updateAccountPriceMultiplier(accountId, priceMultiplier);
+  await logAudit(admin.id, "account.price_multiplier_updated", "account", accountId, String(priceMultiplier));
   revalidatePath("/admin/accounts");
+}
+
+const ACCOUNT_TERMS: CreditTerms[] = ["prepay", "net30", "net60"];
+
+/** Bound to `.bind(null, accountId)` — a <form action> per account row's terms select. */
+export async function updateAccountCreditTermsAction(accountId: string, formData: FormData) {
+  const admin = await requireAdmin();
+  const terms = String(formData.get("creditTerms") ?? "");
+  if (!ACCOUNT_TERMS.includes(terms as CreditTerms)) return;
+  await updateAccountCreditTerms(accountId, terms as CreditTerms);
+  await logAudit(admin.id, "account.credit_terms_updated", "account", accountId, terms);
+  revalidatePath("/admin/accounts");
+}
+
+/** Bound to `.bind(null, accountId)` — a <form action> per account row's credit-limit input. */
+export async function updateAccountCreditLimitAction(accountId: string, formData: FormData) {
+  const admin = await requireAdmin();
+  const creditLimit = Number(formData.get("creditLimit") ?? 0);
+  if (!Number.isFinite(creditLimit) || creditLimit < 0) return;
+  await updateAccountCreditLimit(accountId, creditLimit);
+  await logAudit(admin.id, "account.credit_limit_updated", "account", accountId, String(creditLimit));
+  revalidatePath("/admin/accounts");
+}
+
+/** Bound to `.bind(null, accountId)` — a <form action> per account row's rep select. */
+export async function updateAccountRepAction(accountId: string, formData: FormData) {
+  const admin = await requireAdmin();
+  const repId = String(formData.get("repId") ?? "").trim();
+  await updateAccountRep(accountId, repId || null);
+  await logAudit(admin.id, "account.rep_updated", "account", accountId, repId || "unassigned");
+  revalidatePath("/admin/accounts");
+}
+
+/** Bound to `.bind(null, repId)` — a <form action> per sales-rep row on /admin/sales-reps. */
+export async function updateSalesRepAction(repId: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  const admin = await requireAdmin();
+  const name = String(formData.get("name") ?? "").trim();
+  const title = String(formData.get("title") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim();
+  const initials = String(formData.get("initials") ?? "").trim();
+  const territory = String(formData.get("territory") ?? "").trim();
+  if (!name || !email) return { error: "Name and email are required." };
+  await updateSalesRep(repId, { name, title, email, phone, initials, territory });
+  await logAudit(admin.id, "sales_rep.updated", "sales_rep", repId, name);
+  revalidatePath("/admin/sales-reps");
+  revalidatePath("/admin/accounts");
+  return { success: "Saved." };
+}
+
+export async function createSalesRepAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  const admin = await requireAdmin();
+  const name = String(formData.get("name") ?? "").trim();
+  const title = String(formData.get("title") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim();
+  const initials = String(formData.get("initials") ?? "").trim();
+  const territory = String(formData.get("territory") ?? "").trim();
+  if (!name || !email) return { error: "Name and email are required." };
+  const rep = await createSalesRep({ name, title, email, phone, initials: initials || name.slice(0, 2).toUpperCase(), territory });
+  await logAudit(admin.id, "sales_rep.created", "sales_rep", rep.id, name);
+  revalidatePath("/admin/sales-reps");
+  return { success: "Sales rep added." };
+}
+
+/** Bound to `.bind(null, repId)` — uses useActionState so a "rep still assigned" error can surface inline. */
+export async function deleteSalesRepAction(repId: string, _prev: FormState, _formData: FormData): Promise<FormState> {
+  const admin = await requireAdmin();
+  const result = await deleteSalesRep(repId);
+  if (result.error) return { error: result.error };
+  await logAudit(admin.id, "sales_rep.deleted", "sales_rep", repId);
+  revalidatePath("/admin/sales-reps");
+  return { success: "Sales rep removed." };
 }
 
 export async function deleteStyleImageAction(formData: FormData) {

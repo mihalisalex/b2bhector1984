@@ -29,6 +29,8 @@ import { hashPassword, verifyPassword } from "@/lib/passwords";
 import { formatEUR, getOrderMinimumError, getUnitPrice, summarizeOrder, validateMatrix } from "@/lib/pricing";
 import { createSavedAssortment, deleteSavedAssortment as deleteSavedAssortmentData } from "@/lib/data/assortments";
 import { decrementInventoryForOrder } from "@/lib/data/inventory";
+import { sendEmail } from "@/lib/email";
+import { buildOrderConfirmationEmailBody, orderConfirmationEmailSubject, textToHtml } from "@/lib/emailTemplates";
 import type { Application, BoxTypeId, CreditTerms, Order, OrderLine } from "@/lib/types";
 
 const APPLICATION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
@@ -240,6 +242,11 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
   };
 
   await addOrder(account.id, order);
+  await sendEmail({
+    to: account.email,
+    subject: orderConfirmationEmailSubject(order),
+    html: textToHtml(buildOrderConfirmationEmailBody(order, account.contactName)),
+  });
   redirect(`/dashboard/orders/${order.id}?justPlaced=1`);
 }
 

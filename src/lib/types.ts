@@ -104,6 +104,8 @@ export interface Account {
   approvedAt?: string;
   shipTo: ShipToAddress[];
   rep: SalesRep;
+  /** The rep row's real id, if assigned — `rep` above stays the display-friendly embed (no id). */
+  repId?: string;
   role: AccountRole;
 }
 
