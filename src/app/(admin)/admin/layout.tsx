@@ -7,6 +7,7 @@ const NAV = [
   { href: "/admin", label: "Orders" },
   { href: "/admin/applications", label: "Applications" },
   { href: "/admin/styles", label: "Styles" },
+  { href: "/admin/content", label: "Content" },
 ];
 
 export const metadata = { title: "Admin", robots: { index: false, follow: false } };

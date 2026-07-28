@@ -6,6 +6,7 @@ import { getCurrentAccount } from "@/lib/session";
 import { updateApplicationStatus } from "@/lib/data/applications";
 import { uploadStyleImage, setPrimaryImage, deleteStyleImage } from "@/lib/data/styleImages";
 import { updateAvailableBoxTypes } from "@/lib/data/styles";
+import { updateHomepageHero, uploadHeroImage } from "@/lib/data/siteContent";
 import { updateOrderStatus as updateOrderStatusInDb } from "@/lib/runtimeOrders";
 import type { BoxTypeId, OrderStatus } from "@/lib/types";
 
@@ -80,4 +81,28 @@ export async function deleteStyleImageAction(formData: FormData) {
   await deleteStyleImage(imageId);
   revalidatePath(`/admin/styles/${styleId}`);
   revalidatePath("/admin/styles");
+}
+
+export async function updateHomepageHeroAction(formData: FormData) {
+  await requireAdmin();
+  await updateHomepageHero({
+    eyebrow: String(formData.get("eyebrow") ?? ""),
+    heading: String(formData.get("heading") ?? "").replace(/\r\n/g, "\n"),
+    body: String(formData.get("body") ?? ""),
+    primaryCtaLabel: String(formData.get("primaryCtaLabel") ?? ""),
+    primaryCtaHref: String(formData.get("primaryCtaHref") ?? ""),
+    secondaryCtaLabel: String(formData.get("secondaryCtaLabel") ?? ""),
+    secondaryCtaHref: String(formData.get("secondaryCtaHref") ?? ""),
+  });
+  revalidatePath("/admin/content");
+  revalidatePath("/");
+}
+
+export async function uploadHeroImageAction(formData: FormData) {
+  await requireAdmin();
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) return;
+  await uploadHeroImage(file);
+  revalidatePath("/admin/content");
+  revalidatePath("/");
 }

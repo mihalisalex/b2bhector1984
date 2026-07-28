@@ -1,20 +1,22 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getAllStyles, CATEGORY_LABEL } from "@/lib/data/styles";
+import { getHomepageHero } from "@/lib/data/siteContent";
 import { LinkButton } from "@/components/ui/Button";
 import { StylePlate } from "@/components/product/StylePlate";
 import { ScoreboardStrip } from "@/components/marketing/ScoreboardStrip";
 
 export default async function HomePage() {
   const categories: Array<"running" | "court" | "trail"> = ["running", "court", "trail"];
-  const styles = await getAllStyles();
+  const [styles, hero] = await Promise.all([getAllStyles(), getHomepageHero()]);
+  const headingLines = hero.heading.split("\n");
 
   return (
     <div>
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-stone-300 bg-ink">
         <Image
-          src="/images/hero-shoes.jpg"
+          src={hero.heroImageUrl}
           alt=""
           fill
           priority
@@ -31,25 +33,24 @@ export default async function HomePage() {
         <div className="relative mx-auto max-w-[1440px] px-6 py-16 lg:px-10 lg:py-28">
           <div className="max-w-xl">
             <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-stone-300/70">
-              Wholesale — Est. 1984
+              {hero.eyebrow}
             </span>
             <h1 className="font-display mt-3 text-4xl font-bold uppercase leading-[0.95] tracking-tight text-white sm:text-5xl">
-              Track-engineered
-              <br />
-              footwear for the
-              <br />
-              floor, not the feed.
+              {headingLines.map((line, i) => (
+                <span key={i}>
+                  {line}
+                  {i < headingLines.length - 1 && <br />}
+                </span>
+              ))}
             </h1>
             <div className="mt-6 flex flex-wrap gap-3">
-              <LinkButton href="/apply" size="lg">Apply for Wholesale Access</LinkButton>
-              <LinkButton href="/login" variant="secondary" size="lg" className="!border-white !text-white hover:!bg-white hover:!text-ink">
-                Buyer Login
+              <LinkButton href={hero.primaryCtaHref} size="lg">{hero.primaryCtaLabel}</LinkButton>
+              <LinkButton href={hero.secondaryCtaHref} variant="secondary" size="lg" className="!border-white !text-white hover:!bg-white hover:!text-ink">
+                {hero.secondaryCtaLabel}
               </LinkButton>
             </div>
             <p className="mt-6 max-w-md text-sm leading-relaxed text-stone-300/80">
-              Hector 1984 has sold into independent run shops, court specialty, and outdoor
-              retailers since the year we were founded. Same construction standards. Same
-              retailers who reorder every season.
+              {hero.body}
             </p>
             <Link href="/collections" className="mt-3 inline-block text-sm font-medium text-stone-300 underline underline-offset-2 hover:text-white">
               View the collection first →
