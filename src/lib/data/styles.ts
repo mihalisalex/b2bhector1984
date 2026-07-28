@@ -1,7 +1,7 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { fromDbId, toNumber } from "@/lib/data/dbIds";
-import type { BoxTypeId, Colorway, Style } from "@/lib/types";
+import type { BoxTypeId, Colorway, ProductStatus, Style } from "@/lib/types";
 
 interface StyleRow {
   id: string;
@@ -21,6 +21,51 @@ interface StyleRow {
   weight_oz: number | string | null;
   last_note: string | null;
   available_box_types: BoxTypeId[];
+  created_at?: string;
+  // --- Product-module columns (migrations 0013-0015) — all optional here so
+  // this mapper degrades gracefully if those migrations haven't run yet. ---
+  brand_id?: string;
+  supplier_id?: string | null;
+  product_type?: string;
+  tags?: string[];
+  status?: ProductStatus;
+  featured?: boolean;
+  publish_at?: string | null;
+  cost_price?: number | string | null;
+  distributor_price?: number | string | null;
+  sale_price?: number | string | null;
+  sale_start_at?: string | null;
+  sale_end_at?: string | null;
+  currency?: string;
+  tax_class?: string;
+  vat_rate?: number | string;
+  barcode?: string | null;
+  gtin?: string | null;
+  upc?: string | null;
+  mpn?: string | null;
+  low_stock_threshold?: number;
+  track_inventory?: boolean;
+  allow_backorder?: boolean;
+  incoming_stock?: number;
+  seo_title?: string | null;
+  meta_description?: string | null;
+  seo_keywords?: string[];
+  canonical_url?: string | null;
+  robots?: string;
+  og_title?: string | null;
+  og_description?: string | null;
+  og_image_url?: string | null;
+  twitter_card?: string;
+  structured_data?: Record<string, unknown> | null;
+  length_cm?: number | string | null;
+  width_cm?: number | string | null;
+  height_cm?: number | string | null;
+  shipping_class?: string;
+  freight_class?: string | null;
+  hazardous?: boolean;
+  package_length_cm?: number | string | null;
+  package_width_cm?: number | string | null;
+  package_height_cm?: number | string | null;
 }
 
 interface ColorwayRow {
@@ -31,6 +76,16 @@ interface ColorwayRow {
   swatch_1: string;
   swatch_2: string | null;
   sort_order: number;
+  sku?: string | null;
+  barcode?: string | null;
+  price_override?: number | string | null;
+  cost_override?: number | string | null;
+  sale_price_override?: number | string | null;
+  weight_oz?: number | string | null;
+  length_cm?: number | string | null;
+  width_cm?: number | string | null;
+  height_cm?: number | string | null;
+  status?: "active" | "draft" | "archived";
 }
 
 interface StyleImageRow {
@@ -44,6 +99,16 @@ function mapColorway(row: ColorwayRow): Colorway {
     name: row.name,
     swatch: [row.swatch_1, row.swatch_2 ?? undefined],
     skuSuffix: row.sku_suffix,
+    sku: row.sku ?? undefined,
+    barcode: row.barcode ?? undefined,
+    priceOverride: row.price_override != null ? toNumber(row.price_override) : undefined,
+    costOverride: row.cost_override != null ? toNumber(row.cost_override) : undefined,
+    salePriceOverride: row.sale_price_override != null ? toNumber(row.sale_price_override) : undefined,
+    weightOz: row.weight_oz != null ? toNumber(row.weight_oz) : undefined,
+    lengthCm: row.length_cm != null ? toNumber(row.length_cm) : undefined,
+    widthCm: row.width_cm != null ? toNumber(row.width_cm) : undefined,
+    heightCm: row.height_cm != null ? toNumber(row.height_cm) : undefined,
+    status: row.status ?? "active",
   };
 }
 
@@ -91,6 +156,64 @@ function assembleStyles(
       primaryImageUrl,
       // Falls back to all 3 boxes until migration 0003 (available_box_types) has been run.
       availableBoxTypes: s.available_box_types ?? ["box8", "box10", "box12"],
+      createdAt: s.created_at ?? new Date(0).toISOString(),
+
+      // Everything below defaults sanely if migrations 0013-0015 haven't run
+      // yet — the admin Products module flags that explicitly; every other
+      // page in the app (catalogue, cart, checkout, etc) keeps working either way.
+      brandId: s.brand_id ?? "hector-1984",
+      brandName: "",
+      supplierId: s.supplier_id ?? undefined,
+      productType: s.product_type ?? "Footwear",
+      tags: s.tags ?? [],
+      collectionIds: [],
+      status: s.status ?? "active",
+      featured: s.featured ?? false,
+      publishAt: s.publish_at ?? undefined,
+
+      costPrice: toNumber(s.cost_price ?? 0),
+      distributorPrice: s.distributor_price != null ? toNumber(s.distributor_price) : undefined,
+      salePrice: s.sale_price != null ? toNumber(s.sale_price) : undefined,
+      saleStartAt: s.sale_start_at ?? undefined,
+      saleEndAt: s.sale_end_at ?? undefined,
+      currency: s.currency ?? "EUR",
+      taxClass: s.tax_class ?? "standard",
+      vatRate: toNumber(s.vat_rate ?? 0.24),
+      customerGroupPrices: [],
+
+      barcode: s.barcode ?? undefined,
+      gtin: s.gtin ?? undefined,
+      upc: s.upc ?? undefined,
+      mpn: s.mpn ?? undefined,
+      lowStockThreshold: s.low_stock_threshold ?? 5,
+      trackInventory: s.track_inventory ?? true,
+      allowBackorder: s.allow_backorder ?? false,
+      incomingStock: s.incoming_stock ?? 0,
+
+      seoTitle: s.seo_title ?? undefined,
+      metaDescription: s.meta_description ?? undefined,
+      seoKeywords: s.seo_keywords ?? [],
+      canonicalUrl: s.canonical_url ?? undefined,
+      robots: s.robots ?? "index,follow",
+      ogTitle: s.og_title ?? undefined,
+      ogDescription: s.og_description ?? undefined,
+      ogImageUrl: s.og_image_url ?? undefined,
+      twitterCard: s.twitter_card ?? "summary_large_image",
+      structuredData: s.structured_data ?? undefined,
+
+      relations: [],
+      documents: [],
+      attributes: [],
+
+      lengthCm: s.length_cm != null ? toNumber(s.length_cm) : undefined,
+      widthCm: s.width_cm != null ? toNumber(s.width_cm) : undefined,
+      heightCm: s.height_cm != null ? toNumber(s.height_cm) : undefined,
+      shippingClass: s.shipping_class ?? "standard",
+      freightClass: s.freight_class ?? undefined,
+      hazardous: s.hazardous ?? false,
+      packageLengthCm: s.package_length_cm != null ? toNumber(s.package_length_cm) : undefined,
+      packageWidthCm: s.package_width_cm != null ? toNumber(s.package_width_cm) : undefined,
+      packageHeightCm: s.package_height_cm != null ? toNumber(s.package_height_cm) : undefined,
     };
   });
 }

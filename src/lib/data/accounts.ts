@@ -29,6 +29,7 @@ interface AccountRow {
   applied_at: string;
   approved_at: string | null;
   role: Account["role"];
+  admin_role?: Account["adminRole"] | null;
   rep_id: string | null;
   sales_reps: {
     name: string;
@@ -99,6 +100,7 @@ async function mapAccount(row: AccountRow): Promise<Account> {
       : UNASSIGNED_REP,
     repId: row.rep_id ?? undefined,
     role: row.role,
+    adminRole: row.admin_role ?? (row.role === "admin" ? "super_admin" : undefined),
   };
 }
 

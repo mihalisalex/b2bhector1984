@@ -5,8 +5,66 @@
  */
 import type { Account, Order, SavedAssortment, Style } from "../src/lib/types";
 
-/** Seed fixtures don't set availableBoxTypes/primaryImageUrl — the DB column defaults to all 3 boxes. */
-type SeedStyle = Omit<Style, "availableBoxTypes" | "primaryImageUrl">;
+/**
+ * Seed fixtures don't set availableBoxTypes/primaryImageUrl (DB defaults to
+ * all 3 boxes) or any of the Product Management module's columns (migrations
+ * 0013-0015) — those all have DB-side defaults too, and scripts/seed.ts's
+ * `styles` insert only ever sets the columns listed in this Omit.
+ */
+type SeedStyle = Omit<
+  Style,
+  | "availableBoxTypes"
+  | "primaryImageUrl"
+  | "createdAt"
+  | "brandId"
+  | "brandName"
+  | "supplierId"
+  | "productType"
+  | "tags"
+  | "collectionIds"
+  | "status"
+  | "featured"
+  | "publishAt"
+  | "costPrice"
+  | "distributorPrice"
+  | "salePrice"
+  | "saleStartAt"
+  | "saleEndAt"
+  | "currency"
+  | "taxClass"
+  | "vatRate"
+  | "customerGroupPrices"
+  | "barcode"
+  | "gtin"
+  | "upc"
+  | "mpn"
+  | "lowStockThreshold"
+  | "trackInventory"
+  | "allowBackorder"
+  | "incomingStock"
+  | "seoTitle"
+  | "metaDescription"
+  | "seoKeywords"
+  | "canonicalUrl"
+  | "robots"
+  | "ogTitle"
+  | "ogDescription"
+  | "ogImageUrl"
+  | "twitterCard"
+  | "structuredData"
+  | "relations"
+  | "documents"
+  | "attributes"
+  | "lengthCm"
+  | "widthCm"
+  | "heightCm"
+  | "shippingClass"
+  | "freightClass"
+  | "hazardous"
+  | "packageLengthCm"
+  | "packageWidthCm"
+  | "packageHeightCm"
+>;
 
 export const STYLES: SeedStyle[] = [
   // ---------------------------------------------------------------------

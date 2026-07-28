@@ -15,13 +15,29 @@ export const TERMS_LABEL: Record<CreditTerms, string> = {
 };
 
 /**
+ * `basePrice`, discounted to `salePrice` when a scheduled sale is currently
+ * active (both bounds optional/open-ended — set either, both, or neither).
+ * This is the one place discount scheduling actually affects a real price;
+ * everything downstream (getUnitPrice, validateMatrix, catalog/cart/checkout)
+ * reads through this rather than `style.basePrice` directly.
+ */
+export function getEffectiveBasePrice(style: Style, now: Date = new Date()): number {
+  if (style.salePrice == null) return style.basePrice;
+  const start = style.saleStartAt ? new Date(style.saleStartAt) : undefined;
+  const end = style.saleEndAt ? new Date(style.saleEndAt) : undefined;
+  if (start && now < start) return style.basePrice;
+  if (end && now > end) return style.basePrice;
+  return style.salePrice;
+}
+
+/**
  * Final per-pair wholesale price for a style at the given payment terms.
  * `priceMultiplier` is an optional per-account negotiated-pricing lever
  * (`accounts.price_multiplier`, defaults to 1 for every account) — applied
  * on top of the terms discount, not instead of it.
  */
 export function getUnitPrice(style: Style, terms: CreditTerms, priceMultiplier = 1): number {
-  return round2(style.basePrice * (1 - TERMS_DISCOUNT[terms]) * priceMultiplier);
+  return round2(getEffectiveBasePrice(style) * (1 - TERMS_DISCOUNT[terms]) * priceMultiplier);
 }
 
 function round2(n: number): number {

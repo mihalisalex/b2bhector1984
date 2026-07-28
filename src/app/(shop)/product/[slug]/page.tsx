@@ -5,6 +5,7 @@ import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { getInventoryForStyle, getInventoryForStyles, type StyleInventory } from "@/lib/data/inventory";
 import { listImagesForStyle } from "@/lib/data/styleImages";
 import { getCurrentAccount } from "@/lib/session";
+import { recordStyleView } from "@/lib/data/styleAnalytics";
 import { formatEUR } from "@/lib/pricing";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
@@ -35,6 +36,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   ]);
   const relatedInventory = await getInventoryForStyles(related.map((s) => s.id));
   const priceMultiplier = account?.priceMultiplier ?? 1;
+  void recordStyleView(style.id, account?.id ?? null);
 
   return (
     <div className="mx-auto max-w-[1600px] px-6 py-8 lg:px-10">

@@ -14,10 +14,12 @@ export function ImageUploadForm({
   createUploadTarget,
   finalizeUpload,
   buttonLabel,
+  accept = "image/*",
 }: {
   createUploadTarget: (fileName: string) => Promise<UploadTarget>;
   finalizeUpload: (path: string) => Promise<UploadState>;
   buttonLabel: string;
+  accept?: string;
 }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -64,7 +66,7 @@ export function ImageUploadForm({
       <input
         type="file"
         name="file"
-        accept="image/*"
+        accept={accept}
         required
         className="text-sm text-ink-soft file:mr-3 file:border file:border-stone-300 file:bg-white file:px-3 file:py-1.5 file:text-xs file:font-semibold file:uppercase file:tracking-wide file:text-ink"
       />

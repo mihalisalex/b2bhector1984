@@ -57,6 +57,33 @@ html {
   color-scheme: light;
 }
 
+/*
+ * Admin-dashboard-only dark mode (toggle in AdminShell.tsx). Scoped to the
+ * admin shell's own wrapper div via [data-admin-theme], never on :root/html —
+ * the public storefront's black/white/gray design is settled and stays
+ * light-only regardless of what an admin picks. `--color-ink` and
+ * `--color-white` are swapped as a pair (not just re-lightened) because the
+ * whole admin UI pairs them consistently (bg-ink + text-white buttons/badges,
+ * text-ink body copy on bg-white cards) — swapping both together keeps every
+ * existing pairing legible instead of only flipping one side and breaking
+ * contrast on the other.
+ */
+[data-admin-theme="dark"] {
+  color-scheme: dark;
+  --color-ink: #f2f2f0;
+  --color-ink-soft: #a8a8a8;
+  --color-white: #1c1d20;
+  --color-stone-50: #101113;
+  --color-stone-100: #1a1b1e;
+  --color-stone-200: #28292d;
+  --color-stone-300: #38393e;
+  --color-cinder: #8f8f8f;
+  --color-cinder-300: #58595e;
+  --color-signal: #f2f2f0;
+  --color-signal-600: #ffffff;
+  --color-signal-100: #28292d;
+}
+
 body {
   background: var(--color-stone-50);
   color: var(--color-ink);

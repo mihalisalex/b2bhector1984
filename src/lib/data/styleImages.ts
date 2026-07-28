@@ -80,6 +80,17 @@ export async function setPrimaryImage(styleId: string, imageId: string): Promise
   if (error) throw new Error(`style_images: ${error.message}`);
 }
 
+export async function updateImageAltText(imageId: string, altText: string): Promise<void> {
+  const { error } = await supabaseAdmin.from("style_images").update({ alt_text: altText }).eq("id", imageId);
+  if (error) throw new Error(`style_images: ${error.message}`);
+}
+
+export async function reorderStyleImages(styleId: string, orderedImageIds: string[]): Promise<void> {
+  await Promise.all(
+    orderedImageIds.map((id, index) => supabaseAdmin.from("style_images").update({ sort_order: index }).eq("id", id).eq("style_id", styleId)),
+  );
+}
+
 export async function deleteStyleImage(imageId: string): Promise<void> {
   const { data, error: fetchError } = await supabaseAdmin
     .from("style_images")
