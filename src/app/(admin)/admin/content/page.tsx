@@ -1,5 +1,10 @@
 import { getHomepageHero } from "@/lib/data/siteContent";
-import { updateHomepageHeroAction, uploadHeroImageAction } from "@/lib/adminActions";
+import {
+  updateHomepageHeroAction,
+  createHeroImageUploadUrlAction,
+  finalizeHeroImageUploadAction,
+} from "@/lib/adminActions";
+import { ImageUploadForm } from "@/components/admin/ImageUploadForm";
 
 export default async function AdminContentPage() {
   const hero = await getHomepageHero();
@@ -17,21 +22,11 @@ export default async function AdminContentPage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={hero.heroImageUrl} alt="" className="h-full w-full object-cover grayscale" />
         </div>
-        <form action={uploadHeroImageAction} className="mt-3 flex flex-wrap items-center gap-3">
-          <input
-            type="file"
-            name="file"
-            accept="image/*"
-            required
-            className="text-sm text-ink-soft file:mr-3 file:border file:border-stone-300 file:bg-white file:px-3 file:py-1.5 file:text-xs file:font-semibold file:uppercase file:tracking-wide file:text-ink"
-          />
-          <button
-            type="submit"
-            className="border border-ink bg-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85"
-          >
-            Upload &amp; replace
-          </button>
-        </form>
+        <ImageUploadForm
+          createUploadTarget={createHeroImageUploadUrlAction}
+          finalizeUpload={finalizeHeroImageUploadAction}
+          buttonLabel="Upload & replace"
+        />
       </section>
 
       <section className="mt-10 max-w-xl">

@@ -74,13 +74,19 @@ export async function updateHomepageHero(input: {
   if (error) throw new Error(`site_content: ${error.message}`);
 }
 
-export async function uploadHeroImage(file: File): Promise<void> {
-  const path = `${HERO_ID}/${crypto.randomUUID()}-${file.name}`;
-  const { error: uploadError } = await supabaseAdmin.storage.from(BUCKET).upload(path, file, {
-    contentType: file.type || "application/octet-stream",
-  });
-  if (uploadError) throw new Error(`storage upload: ${uploadError.message}`);
+/** Mints a signed Storage upload slot — the browser PUTs the file bytes directly
+ * to Supabase using this, never through the Next.js server (see supabase/browser.ts). */
+export async function createHeroImageUploadTarget(
+  fileName: string,
+): Promise<{ bucket: string; path: string; token: string }> {
+  const path = `${HERO_ID}/${crypto.randomUUID()}-${fileName}`;
+  const { data, error } = await supabaseAdmin.storage.from(BUCKET).createSignedUploadUrl(path);
+  if (error) throw new Error(`storage createSignedUploadUrl: ${error.message}`);
+  return { bucket: BUCKET, path: data.path, token: data.token };
+}
 
+/** Called once the browser has finished the direct-to-Storage upload for `path`. */
+export async function finalizeHeroImageUpload(path: string): Promise<void> {
   const publicUrl = supabaseAdmin.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
   const { error } = await supabaseAdmin
     .from("site_content")

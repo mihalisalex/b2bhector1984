@@ -44,13 +44,20 @@ export async function listImagesForStyle(styleId: string): Promise<StyleImage[]>
   return (data ?? []).map(mapImage);
 }
 
-export async function uploadStyleImage(styleId: string, file: File): Promise<void> {
-  const path = `${styleId}/${crypto.randomUUID()}-${file.name}`;
-  const { error: uploadError } = await supabaseAdmin.storage.from(BUCKET).upload(path, file, {
-    contentType: file.type || "application/octet-stream",
-  });
-  if (uploadError) throw new Error(`storage upload: ${uploadError.message}`);
+/** Mints a signed Storage upload slot — the browser PUTs the file bytes directly
+ * to Supabase using this, never through the Next.js server (see supabase/browser.ts). */
+export async function createStyleImageUploadTarget(
+  styleId: string,
+  fileName: string,
+): Promise<{ bucket: string; path: string; token: string }> {
+  const path = `${styleId}/${crypto.randomUUID()}-${fileName}`;
+  const { data, error } = await supabaseAdmin.storage.from(BUCKET).createSignedUploadUrl(path);
+  if (error) throw new Error(`storage createSignedUploadUrl: ${error.message}`);
+  return { bucket: BUCKET, path: data.path, token: data.token };
+}
 
+/** Called once the browser has finished the direct-to-Storage upload for `path`. */
+export async function finalizeStyleImageUpload(styleId: string, path: string): Promise<void> {
   const existing = await listImagesForStyle(styleId);
   const { error } = await supabaseAdmin.from("style_images").insert({
     style_id: styleId,
