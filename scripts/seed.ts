@@ -74,6 +74,7 @@ async function main() {
       status: a.status,
       credit_terms: a.creditTerms,
       credit_limit: a.creditLimit,
+      price_multiplier: a.priceMultiplier,
       resale_cert_id: a.resaleCertId,
       business_type: a.businessType,
       store_location: a.storeLocation,

@@ -2,8 +2,9 @@
 
 import type { Style } from "@/lib/types";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
+import { getUnitPrice } from "@/lib/pricing";
 
-export function LinesheetToolbar({ styles }: { styles: Style[] }) {
+export function LinesheetToolbar({ styles, priceMultiplier = 1 }: { styles: Style[]; priceMultiplier?: number }) {
   function exportCsv() {
     const header = ["Style #", "Name", "Category", "Availability", "Colorways", "Box Options", "Wholesale Price (EUR)"];
     const rows = styles.map((s) => {
@@ -14,7 +15,7 @@ export function LinesheetToolbar({ styles }: { styles: Style[] }) {
         s.availability === "available" ? "Available now" : `Pre-book (${s.shipWindow ?? ""})`,
         s.colorways.map((c) => c.name).join(" / "),
         getAvailableBoxTypes(s).map((b) => b.totalPairs).join(" / ") + "-pair",
-        s.basePrice.toFixed(2),
+        getUnitPrice(s, "net60", priceMultiplier).toFixed(2),
       ];
     });
     const csv = [header, ...rows]

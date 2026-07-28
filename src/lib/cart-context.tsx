@@ -24,6 +24,7 @@ interface CartContextValue {
   clearCart: () => void;
   styleSubtotal: (styleId: string) => number;
   cartTotal: number;
+  priceMultiplier: number;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -38,9 +39,11 @@ function pairsInLine(line: CartLine): number {
 
 export function CartProvider({
   accountId,
+  priceMultiplier = 1,
   children,
 }: {
   accountId: string;
+  priceMultiplier?: number;
   children: ReactNode;
 }) {
   const { getStyleById } = useCatalog();
@@ -124,7 +127,7 @@ export function CartProvider({
     if (!style) return 0;
     const styleLines = lines.filter((l) => l.styleId === styleId);
     const totalPairs = styleLines.reduce((sum, l) => sum + pairsInLine(l), 0);
-    const unitPrice = getUnitPrice(style, "net60");
+    const unitPrice = getUnitPrice(style, "net60", priceMultiplier);
     return Math.round(unitPrice * totalPairs * 100) / 100;
   };
 
@@ -143,6 +146,7 @@ export function CartProvider({
     clearCart,
     styleSubtotal,
     cartTotal,
+    priceMultiplier,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

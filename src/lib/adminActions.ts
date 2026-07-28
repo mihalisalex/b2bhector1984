@@ -12,6 +12,7 @@ import {
 } from "@/lib/data/styleImages";
 import { updateAvailableBoxTypes } from "@/lib/data/styles";
 import { setInventoryLevel } from "@/lib/data/inventory";
+import { updateAccountPriceMultiplier } from "@/lib/data/accounts";
 import { updateHomepageHero, createHeroImageUploadTarget, finalizeHeroImageUpload } from "@/lib/data/siteContent";
 import {
   updateOrderStatus as updateOrderStatusInDb,
@@ -179,6 +180,15 @@ export async function updateInventoryLevelAction(styleId: string, formData: Form
   revalidatePath("/catalogue");
   revalidatePath("/quick-order");
   revalidatePath("/product/[slug]", "page");
+}
+
+/** Bound to `.bind(null, accountId)` — a <form action> per account row on /admin/accounts. */
+export async function updateAccountPriceMultiplierAction(accountId: string, formData: FormData) {
+  await requireAdmin();
+  const priceMultiplier = Number(formData.get("priceMultiplier") ?? 1);
+  if (!Number.isFinite(priceMultiplier) || priceMultiplier <= 0) return;
+  await updateAccountPriceMultiplier(accountId, priceMultiplier);
+  revalidatePath("/admin/accounts");
 }
 
 export async function deleteStyleImageAction(formData: FormData) {

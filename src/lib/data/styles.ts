@@ -127,11 +127,37 @@ export async function getStyleBySlug(slug: string): Promise<Style | undefined> {
   return style;
 }
 
+/**
+ * Postgres full-text search over `styles.search_vector` (migration 0010) —
+ * returns matching style ids for `filterStyles`' `matchedIds` param. Falls
+ * back to an empty set (matches nothing) on a malformed query rather than
+ * throwing, since `q` is raw user input from a search box.
+ */
+export async function searchStyleIds(query: string): Promise<Set<string>> {
+  const { data, error } = await supabaseAdmin
+    .from("styles")
+    .select("id")
+    .textSearch("search_vector", query, { type: "websearch" });
+  if (error) return new Set();
+  return new Set((data ?? []).map((row) => row.id as string));
+}
+
 export async function getStyleById(id: string): Promise<Style | undefined> {
   const { data, error } = await supabaseAdmin.from("styles").select("*").eq("id", id).limit(1);
   if (error) throw new Error(`styles: ${error.message}`);
   const [style] = await fetchStyles(data ?? []);
   return style;
+}
+
+/** Same-category picks first, topped up with same-season picks if there aren't enough. */
+export async function getRelatedStyles(style: Style, limit = 4): Promise<Style[]> {
+  const all = await getAllStyles();
+  const sameCategory = all.filter((s) => s.id !== style.id && s.category === style.category);
+  if (sameCategory.length >= limit) return sameCategory.slice(0, limit);
+
+  const seen = new Set(sameCategory.map((s) => s.id));
+  const sameSeason = all.filter((s) => s.id !== style.id && s.season === style.season && !seen.has(s.id));
+  return [...sameCategory, ...sameSeason].slice(0, limit);
 }
 
 export async function updateAvailableBoxTypes(styleId: string, boxTypeIds: BoxTypeId[]): Promise<void> {

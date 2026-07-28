@@ -1,12 +1,20 @@
 import Link from "next/link";
 import { CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styles";
-import { formatEUR } from "@/lib/pricing";
+import { formatEUR, getUnitPrice } from "@/lib/pricing";
 import type { Style } from "@/lib/types";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
 import { cn } from "@/lib/cn";
 
-export function ProductCard({ style, totalOnHand }: { style: Style; totalOnHand?: number }) {
+export function ProductCard({
+  style,
+  totalOnHand,
+  priceMultiplier = 1,
+}: {
+  style: Style;
+  totalOnHand?: number;
+  priceMultiplier?: number;
+}) {
   const soldOut = totalOnHand === 0;
   const lowStock = typeof totalOnHand === "number" && totalOnHand > 0 && totalOnHand <= 10;
 
@@ -61,7 +69,9 @@ export function ProductCard({ style, totalOnHand }: { style: Style; totalOnHand?
 
         <div className="mt-auto border-t border-stone-200 pt-3">
           <p className="font-mono-tab text-[11px] uppercase tracking-wide text-ink-soft">Wholesale</p>
-          <p className="font-mono-tab text-lg font-semibold tabular-nums text-ink">{formatEUR(style.basePrice)}</p>
+          <p className="font-mono-tab text-lg font-semibold tabular-nums text-ink">
+            {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
+          </p>
         </div>
       </div>
     </Link>

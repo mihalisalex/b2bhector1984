@@ -28,13 +28,24 @@ function buildInitialQty(
   return map;
 }
 
-export function MatrixOrderGrid({ style, inventory }: { style: Style; inventory: StyleInventory }) {
+export function MatrixOrderGrid({
+  style,
+  inventory,
+  priceMultiplier = 1,
+}: {
+  style: Style;
+  inventory: StyleInventory;
+  priceMultiplier?: number;
+}) {
   const { addLines, lines } = useCart();
   const boxTypes = getAvailableBoxTypes(style);
   const [qty, setQty] = useState<BoxQtyMap>(() => buildInitialQty(style, boxTypes, lines));
   const [confirmed, setConfirmed] = useState(false);
 
-  const validation = useMemo(() => validateMatrix(style, qty), [style, qty]);
+  const validation = useMemo(
+    () => validateMatrix(style, qty, "net60", priceMultiplier),
+    [style, qty, priceMultiplier],
+  );
 
   function setCell(colorwayId: string, boxTypeId: BoxTypeId, value: number) {
     setConfirmed(false);

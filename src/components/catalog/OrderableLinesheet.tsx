@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useCart, type CartLine } from "@/lib/cart-context";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
-import { formatEUR, validateMatrix } from "@/lib/pricing";
+import { formatEUR, getUnitPrice, validateMatrix } from "@/lib/pricing";
 import { CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styleLabels";
 import type { StyleInventory } from "@/lib/data/inventory";
 import type { BoxTypeId, Style } from "@/lib/types";
@@ -28,7 +28,15 @@ function buildInitialQtyForStyle(style: Style, cartLines: CartLine[]): StyleQtyM
   return map;
 }
 
-export function OrderableLinesheet({ styles, inventory }: { styles: Style[]; inventory: Record<string, StyleInventory> }) {
+export function OrderableLinesheet({
+  styles,
+  inventory,
+  priceMultiplier = 1,
+}: {
+  styles: Style[];
+  inventory: Record<string, StyleInventory>;
+  priceMultiplier?: number;
+}) {
   const { lines, addLines } = useCart();
   const [qty, setQty] = useState<AllQtyMap>(() => {
     const map: AllQtyMap = {};
@@ -74,9 +82,9 @@ export function OrderableLinesheet({ styles, inventory }: { styles: Style[]; inv
   const validations = useMemo(
     () =>
       styles
-        .map((style) => ({ style, ...validateMatrix(style, qty[style.id] ?? {}) }))
+        .map((style) => ({ style, ...validateMatrix(style, qty[style.id] ?? {}, "net60", priceMultiplier) }))
         .filter((v) => v.totalBoxes > 0),
-    [styles, qty],
+    [styles, qty, priceMultiplier],
   );
 
   const grandTotal = validations.reduce((sum, v) => sum + v.subtotal, 0);
@@ -123,7 +131,9 @@ export function OrderableLinesheet({ styles, inventory }: { styles: Style[]; inv
                   </p>
                   <div className="mt-1 flex flex-wrap items-center gap-2">
                     <AvailabilityBadge availability={style.availability} shipWindow={style.shipWindow} />
-                    <span className="font-mono-tab text-sm font-semibold text-ink">{formatEUR(style.basePrice)}</span>
+                    <span className="font-mono-tab text-sm font-semibold text-ink">
+                      {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -223,7 +233,7 @@ export function OrderableLinesheet({ styles, inventory }: { styles: Style[]; inv
                   ) : null}
                   {i === 0 ? (
                     <td className="font-mono-tab px-3 py-2.5 text-right align-top tabular-nums text-ink" rowSpan={style.colorways.length}>
-                      {formatEUR(style.basePrice)}
+                      {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
                     </td>
                   ) : null}
                   {(["box8", "box10", "box12"] as BoxTypeId[]).map((boxTypeId) => (

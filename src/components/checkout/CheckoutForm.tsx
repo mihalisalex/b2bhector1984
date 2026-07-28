@@ -37,7 +37,7 @@ export function CheckoutForm({ account }: { account: Account }) {
         qtyMap[l.colorwayId] = qtyMap[l.colorwayId] || {};
         qtyMap[l.colorwayId]![l.boxTypeId] = l.qty;
       }
-      return [{ style, ...validateMatrix(style, qtyMap, terms) }];
+      return [{ style, ...validateMatrix(style, qtyMap, terms, account.priceMultiplier) }];
     });
   }, [lines, terms, getStyleById]);
 

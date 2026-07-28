@@ -14,7 +14,7 @@ export default async function ShopLayout({ children }: { children: React.ReactNo
 
   return (
     <CatalogProvider styles={styles}>
-      <CartProvider accountId={account.id}>
+      <CartProvider accountId={account.id} priceMultiplier={account.priceMultiplier}>
         <ShopHeader account={account} />
         <main className="flex-1 bg-stone-50">{children}</main>
         <ShopFooter account={account} />

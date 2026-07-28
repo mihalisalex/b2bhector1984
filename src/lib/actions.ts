@@ -194,9 +194,9 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
     const style = await getStyleById(styleId);
     if (!style) continue;
     styleById.set(styleId, style);
-    const validation = validateMatrix(style, qtyMap, terms);
+    const validation = validateMatrix(style, qtyMap, terms, account.priceMultiplier);
     totalPairs += validation.totalPairs;
-    const unitPrice = getUnitPrice(style, terms);
+    const unitPrice = getUnitPrice(style, terms, account.priceMultiplier);
     for (const [colorwayId, boxes] of Object.entries(qtyMap)) {
       for (const [boxTypeId, qty] of Object.entries(boxes)) {
         if (qty && qty > 0) orderLines.push({ styleId, colorwayId, boxTypeId: boxTypeId as BoxTypeId, qty, unitPrice });

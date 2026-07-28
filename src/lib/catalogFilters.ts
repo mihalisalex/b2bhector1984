@@ -34,11 +34,20 @@ export function parseFilters(sp: Record<string, string | string[] | undefined>):
   };
 }
 
-export function filterStyles(styles: Style[], filters: CatalogFilters): Style[] {
+/**
+ * `matchedIds`, when provided, is the result of a Postgres full-text search for
+ * `filters.q` (see `searchStyleIds` in `src/lib/data/styles.ts`) — it replaces the
+ * plain substring name/styleNumber check below with the DB's ranked match set.
+ */
+export function filterStyles(styles: Style[], filters: CatalogFilters, matchedIds?: Set<string>): Style[] {
   return styles.filter((s) => {
     if (filters.q) {
-      const q = filters.q.toLowerCase();
-      if (!s.name.toLowerCase().includes(q) && !s.styleNumber.toLowerCase().includes(q)) return false;
+      if (matchedIds) {
+        if (!matchedIds.has(s.id)) return false;
+      } else {
+        const q = filters.q.toLowerCase();
+        if (!s.name.toLowerCase().includes(q) && !s.styleNumber.toLowerCase().includes(q)) return false;
+      }
     }
     if (filters.category.length && !filters.category.includes(s.category)) return false;
     if (filters.season.length && !filters.season.includes(s.season)) return false;

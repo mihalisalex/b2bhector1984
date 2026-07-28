@@ -6,6 +6,7 @@ import { logout } from "@/lib/actions";
 const NAV = [
   { href: "/admin", label: "Orders" },
   { href: "/admin/applications", label: "Applications" },
+  { href: "/admin/accounts", label: "Accounts" },
   { href: "/admin/styles", label: "Styles" },
   { href: "/admin/content", label: "Content" },
 ];

@@ -14,9 +14,14 @@ export const TERMS_LABEL: Record<CreditTerms, string> = {
   net60: "Net 60",
 };
 
-/** Final per-pair wholesale price for a style at the given payment terms. */
-export function getUnitPrice(style: Style, terms: CreditTerms): number {
-  return round2(style.basePrice * (1 - TERMS_DISCOUNT[terms]));
+/**
+ * Final per-pair wholesale price for a style at the given payment terms.
+ * `priceMultiplier` is an optional per-account negotiated-pricing lever
+ * (`accounts.price_multiplier`, defaults to 1 for every account) — applied
+ * on top of the terms discount, not instead of it.
+ */
+export function getUnitPrice(style: Style, terms: CreditTerms, priceMultiplier = 1): number {
+  return round2(style.basePrice * (1 - TERMS_DISCOUNT[terms]) * priceMultiplier);
 }
 
 function round2(n: number): number {
@@ -66,6 +71,7 @@ export function validateMatrix(
   style: Style,
   boxQuantities: Record<string, Partial<Record<BoxTypeId, number>>>,
   terms: CreditTerms = "net60",
+  priceMultiplier = 1,
 ): MatrixValidation {
   let totalPairs = 0;
   let totalBoxes = 0;
@@ -75,7 +81,7 @@ export function validateMatrix(
     totalBoxes += getTotalBoxes(boxes);
   }
 
-  const unitPrice = getUnitPrice(style, terms);
+  const unitPrice = getUnitPrice(style, terms, priceMultiplier);
   const subtotal = round2(unitPrice * totalPairs);
 
   return { totalPairs, totalBoxes, subtotal, unitPrice };

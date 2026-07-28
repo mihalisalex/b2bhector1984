@@ -94,6 +94,8 @@ export interface Account {
   status: AccountStatus;
   creditTerms: CreditTerms;
   creditLimit: number;
+  /** Negotiated-pricing lever: multiplies the terms-discounted unit price. 1 = no adjustment. */
+  priceMultiplier: number;
   resaleCertId: string;
   businessType: string;
   storeLocation: string;

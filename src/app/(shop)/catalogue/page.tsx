@@ -1,7 +1,8 @@
 import { Suspense } from "react";
-import { getAllStyles } from "@/lib/data/styles";
+import { getAllStyles, searchStyleIds } from "@/lib/data/styles";
 import { filterStyles, parseFilters } from "@/lib/catalogFilters";
 import { getInventoryForStyles, type StyleInventory } from "@/lib/data/inventory";
+import { getCurrentAccount } from "@/lib/session";
 import { CatalogFilters } from "@/components/catalog/CatalogFilters";
 import { BoxPolicyBanner } from "@/components/catalog/BoxPolicyBanner";
 import { ProductCard } from "@/components/product/ProductCard";
@@ -24,8 +25,13 @@ export default async function CatalogPage({
   const sp = await searchParams;
   const styles = await getAllStyles();
   const filters = parseFilters(sp);
-  const results = filterStyles(styles, filters);
-  const inventory = await getInventoryForStyles(results.map((s) => s.id));
+  const matchedIds = filters.q ? await searchStyleIds(filters.q) : undefined;
+  const results = filterStyles(styles, filters, matchedIds);
+  const [inventory, account] = await Promise.all([
+    getInventoryForStyles(results.map((s) => s.id)),
+    getCurrentAccount(),
+  ]);
+  const priceMultiplier = account?.priceMultiplier ?? 1;
 
   return (
     <div className="mx-auto max-w-[1600px] px-6 py-8 lg:px-10">
@@ -60,7 +66,12 @@ export default async function CatalogPage({
           ) : (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {results.map((style) => (
-                <ProductCard key={style.id} style={style} totalOnHand={totalOnHand(style.id, inventory)} />
+                <ProductCard
+                  key={style.id}
+                  style={style}
+                  totalOnHand={totalOnHand(style.id, inventory)}
+                  priceMultiplier={priceMultiplier}
+                />
               ))}
             </div>
           )}

@@ -13,7 +13,7 @@ import { StylePlate } from "@/components/product/StylePlate";
 import { SaveAssortmentButton } from "@/components/dashboard/SaveAssortmentButton";
 
 export default function CartPage() {
-  const { lines, setLineQty, removeStyle, cartTotal } = useCart();
+  const { lines, setLineQty, removeStyle, cartTotal, priceMultiplier } = useCart();
   const { getStyleById } = useCatalog();
 
   const styleIds = useMemo(() => Array.from(new Set(lines.map((l) => l.styleId))), [lines]);
@@ -49,7 +49,7 @@ export default function CartPage() {
             qtyMap[l.colorwayId] = qtyMap[l.colorwayId] || {};
             qtyMap[l.colorwayId]![l.boxTypeId] = l.qty;
           }
-          const validation = validateMatrix(style, qtyMap);
+          const validation = validateMatrix(style, qtyMap, "net60", priceMultiplier);
 
           return (
             <div key={styleId} className="border border-stone-300 bg-white">

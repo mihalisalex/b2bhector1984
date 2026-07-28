@@ -21,6 +21,7 @@ interface AccountRow {
   status: Account["status"];
   credit_terms: Account["creditTerms"];
   credit_limit: number | string;
+  price_multiplier: number | string;
   resale_cert_id: string;
   business_type: string;
   store_location: string;
@@ -77,6 +78,7 @@ async function mapAccount(row: AccountRow): Promise<Account> {
     status: row.status,
     creditTerms: row.credit_terms,
     creditLimit: toNumber(row.credit_limit),
+    priceMultiplier: toNumber(row.price_multiplier),
     resaleCertId: row.resale_cert_id,
     businessType: row.business_type,
     storeLocation: row.store_location,
@@ -107,6 +109,22 @@ export async function getAccountByEmail(email: string): Promise<Account | undefi
   if (error) throw new Error(`accounts: ${error.message}`);
   const row = data?.[0] as AccountRow | undefined;
   return row ? mapAccount(row) : undefined;
+}
+
+/** Active/approved buyer accounts, for the admin price-multiplier list — newest first. */
+export async function getAllAccounts(): Promise<Account[]> {
+  const { data, error } = await supabaseAdmin
+    .from("accounts")
+    .select("*, sales_reps(*)")
+    .eq("role", "buyer")
+    .order("business_name");
+  if (error) throw new Error(`accounts: ${error.message}`);
+  return Promise.all(((data ?? []) as AccountRow[]).map(mapAccount));
+}
+
+export async function updateAccountPriceMultiplier(id: string, priceMultiplier: number): Promise<void> {
+  const { error } = await supabaseAdmin.from("accounts").update({ price_multiplier: priceMultiplier }).eq("id", id);
+  if (error) throw new Error(`accounts: ${error.message}`);
 }
 
 export async function getAccountById(id: string): Promise<Account | undefined> {
