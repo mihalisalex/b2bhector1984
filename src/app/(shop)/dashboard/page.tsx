@@ -30,7 +30,7 @@ export default async function DashboardPage() {
         </div>
         <div className="flex gap-2">
           <LinkButton href="/quick-order" variant="secondary" size="sm">Quick Order</LinkButton>
-          <LinkButton href="/catalog" size="sm">Browse Catalog</LinkButton>
+          <LinkButton href="/catalogue" size="sm">Browse Catalogue</LinkButton>
         </div>
       </div>
 

@@ -25,9 +25,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   return (
     <div className="mx-auto max-w-[1600px] px-6 py-8 lg:px-10">
       <nav className="mb-6 flex items-center gap-1.5 text-xs text-ink-soft">
-        <Link href="/catalog" className="hover:text-ink">Catalog</Link>
+        <Link href="/catalogue" className="hover:text-ink">Catalogue</Link>
         <span>/</span>
-        <Link href={`/catalog?category=${style.category}`} className="hover:text-ink">
+        <Link href={`/catalogue?category=${style.category}`} className="hover:text-ink">
           {CATEGORY_LABEL[style.category]}
         </Link>
         <span>/</span>

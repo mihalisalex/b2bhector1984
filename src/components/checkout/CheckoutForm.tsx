@@ -55,7 +55,7 @@ export function CheckoutForm({ account }: { account: Account }) {
     return (
       <div className="py-24 text-center">
         <p className="text-sm text-ink-soft">Your cart is empty — nothing to check out yet.</p>
-        <LinkButton href="/catalog" className="mt-6 inline-flex">Browse Catalog</LinkButton>
+        <LinkButton href="/catalogue" className="mt-6 inline-flex">Browse Catalogue</LinkButton>
       </div>
     );
   }

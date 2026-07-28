@@ -118,6 +118,9 @@ export function MainNav({ account }: { account: Account | null }) {
                       <p className="text-sm font-semibold text-ink group-hover:text-signal">{account.contactName}</p>
                       <p className="text-xs text-ink-soft">{account.businessName}</p>
                     </Link>
+                    <Link href="/catalogue" className="text-sm font-medium text-ink-soft hover:text-ink">
+                      Catalogue
+                    </Link>
                     <Link href="/dashboard" className="text-sm font-medium text-ink-soft hover:text-ink">
                       Dashboard
                     </Link>

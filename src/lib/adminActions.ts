@@ -96,7 +96,7 @@ export async function updateAvailableBoxTypesAction(formData: FormData) {
   const selected = ALL_BOX_TYPES.filter((id) => formData.get(id) === "on");
   await updateAvailableBoxTypes(styleId, selected.length > 0 ? selected : ALL_BOX_TYPES);
   revalidatePath(`/admin/styles/${styleId}`);
-  revalidatePath("/catalog");
+  revalidatePath("/catalogue");
   revalidatePath("/quick-order");
   revalidatePath("/product/[slug]", "page");
 }

@@ -27,7 +27,7 @@ export default function CartPage() {
       <div className="mx-auto max-w-[900px] px-6 py-24 text-center">
         <p className="font-display text-xl font-bold uppercase tracking-tight text-ink">Your cart is empty</p>
         <p className="mt-2 text-sm text-ink-soft">Build an order from the catalog, linesheet, or quick order.</p>
-        <LinkButton href="/catalog" className="mt-6 inline-flex">Browse Catalog</LinkButton>
+        <LinkButton href="/catalogue" className="mt-6 inline-flex">Browse Catalogue</LinkButton>
       </div>
     );
   }

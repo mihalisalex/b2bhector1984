@@ -13,8 +13,8 @@ export default function NotFound() {
       </p>
       <div className="mt-6 flex gap-3">
         <LinkButton href="/">Return Home</LinkButton>
-        <Link href="/catalog" className="flex items-center text-sm font-medium text-signal hover:underline">
-          Go to Catalog
+        <Link href="/catalogue" className="flex items-center text-sm font-medium text-signal hover:underline">
+          Go to Catalogue
         </Link>
       </div>
     </div>

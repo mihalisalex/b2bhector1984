@@ -5,7 +5,6 @@ import { getHomepageHero } from "@/lib/data/siteContent";
 import type { Category, Season } from "@/lib/types";
 import { LinkButton } from "@/components/ui/Button";
 import { StylePlate } from "@/components/product/StylePlate";
-import { ScoreboardStrip } from "@/components/marketing/ScoreboardStrip";
 
 const SEASON_CATEGORIES: Record<Season, Category[]> = {
   summer: ["loafers", "wedding", "sneakers", "sandals"],
@@ -65,20 +64,19 @@ export default async function HomePage() {
       </section>
 
       {/* Easy steps to order, right up top for first-time buyers */}
-      <section className="border-b border-stone-300 bg-stone-100 py-10">
+      <section className="border-b border-stone-300 bg-white py-16">
         <div className="mx-auto max-w-[1440px] px-6 lg:px-10">
           <p className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">
             New here? Ordering takes three steps.
           </p>
-          <div className="mt-5 grid grid-cols-1 gap-6 sm:grid-cols-3">
-            <QuickStep n="1" title="Apply" body="Tell us about your store — takes 2 minutes." href="/apply" cta="Apply now" />
-            <QuickStep n="2" title="Log in" body="Once approved, sign in to unlock full wholesale pricing." href="/login" cta="Buyer login" />
-            <QuickStep n="3" title="Order" body="Browse Quick Order or the Catalogue and check out." href="/quick-order" cta="Quick Order" />
+          <div className="relative mt-10 grid grid-cols-1 gap-10 sm:grid-cols-3">
+            <div className="pointer-events-none absolute inset-x-0 top-6 hidden h-px bg-stone-300 sm:block" aria-hidden />
+            <QuickStep n="01" title="Apply" body="Tell us about your store — takes 2 minutes." href="/apply" cta="Apply now" />
+            <QuickStep n="02" title="Log in" body="Once approved, sign in to unlock full wholesale pricing." href="/login" cta="Buyer login" />
+            <QuickStep n="03" title="Order" body="Browse Quick Order or the Catalogue and check out." href="/quick-order" cta="Quick Order" />
           </div>
         </div>
       </section>
-
-      <ScoreboardStrip />
 
       {/* Season teaser */}
       <section className="mx-auto max-w-[1440px] px-6 py-20 lg:px-10">
@@ -159,19 +157,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* How it works */}
-      <section className="mx-auto max-w-[1440px] px-6 py-20 lg:px-10">
-        <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-ink sm:text-3xl">
-          How wholesale access works
-        </h2>
-        <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-4">
-          <Step n="01" title="Apply" body="Tell us about your store — resale certificate, volume, location." />
-          <Step n="02" title="Review" body="Our team verifies your business, usually within 2 business days." />
-          <Step n="03" title="Approved" body="Your account is provisioned with a tier, terms, and a rep." />
-          <Step n="04" title="Order" body="Full catalog, linesheet, and matrix ordering unlock immediately." />
-        </div>
-      </section>
-
       {/* CTA */}
       <section className="border-t border-stone-300 bg-ink py-16">
         <div className="mx-auto flex max-w-[1440px] flex-col items-start justify-between gap-6 px-6 sm:flex-row sm:items-center lg:px-10">
@@ -204,16 +189,20 @@ function QuickStep({
   cta: string;
 }) {
   return (
-    <div className="border border-stone-300 bg-white p-5">
-      <div className="flex items-center gap-3">
-        <span className="font-mono-tab flex h-8 w-8 shrink-0 items-center justify-center bg-ink text-sm font-semibold text-white">
-          {n}
+    <div className="relative flex flex-col items-start">
+      <span className="font-mono-tab relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-ink text-sm font-semibold text-white">
+        {n}
+      </span>
+      <h3 className="font-display mt-4 text-lg font-bold uppercase tracking-tight text-ink">{title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-ink-soft">{body}</p>
+      <Link
+        href={href}
+        className="group mt-3 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-ink hover:text-signal"
+      >
+        {cta}
+        <span aria-hidden className="transition-transform duration-150 group-hover:translate-x-1">
+          →
         </span>
-        <h3 className="font-display text-sm font-bold uppercase tracking-tight text-ink">{title}</h3>
-      </div>
-      <p className="mt-3 text-sm leading-relaxed text-ink-soft">{body}</p>
-      <Link href={href} className="mt-3 inline-block text-xs font-semibold uppercase tracking-wide text-signal hover:underline">
-        {cta} →
       </Link>
     </div>
   );
@@ -224,16 +213,6 @@ function Feature({ title, body }: { title: string; body: string }) {
     <div className="border-l-2 border-ink pl-4">
       <h3 className="font-display text-sm font-bold uppercase tracking-tight text-ink">{title}</h3>
       <p className="mt-2 text-sm leading-relaxed text-ink-soft">{body}</p>
-    </div>
-  );
-}
-
-function Step({ n, title, body }: { n: string; title: string; body: string }) {
-  return (
-    <div>
-      <span className="font-mono-tab text-3xl font-bold text-stone-300">{n}</span>
-      <h3 className="font-display mt-2 text-sm font-bold uppercase tracking-tight text-ink">{title}</h3>
-      <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">{body}</p>
     </div>
   );
 }
