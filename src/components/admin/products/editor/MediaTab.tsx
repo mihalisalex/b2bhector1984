@@ -37,7 +37,7 @@ export function MediaTab({ style, images, canEdit }: { style: Style; images: Sty
         )}
         <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
           {images.map((image, index) => (
-            <ImageCard key={image.id} image={image} styleId={style.id} canEdit={canEdit} isFirst={index === 0} isLast={index === images.length - 1} />
+            <ImageCard key={image.id} image={image} styleId={style.id} canEdit={canEdit} index={index} isFirst={index === 0} isLast={index === images.length - 1} />
           ))}
           {images.length === 0 && <p className="text-sm text-ink-soft">No photos uploaded yet — the catalog shows a generated plate instead.</p>}
         </div>
@@ -73,12 +73,14 @@ function ImageCard({
   image,
   styleId,
   canEdit,
+  index,
   isFirst,
   isLast,
 }: {
   image: StyleImage;
   styleId: string;
   canEdit: boolean;
+  index: number;
   isFirst: boolean;
   isLast: boolean;
 }) {
@@ -104,6 +106,7 @@ function ImageCard({
             onChange={(e) => setAlt(e.target.value)}
             disabled={!canEdit}
             placeholder="Alt text"
+            aria-label={`Alt text for photo ${index + 1}`}
             className="w-full border border-stone-300 bg-white px-2 py-1 text-xs outline-none focus-visible:border-signal disabled:bg-stone-100"
           />
         </form>

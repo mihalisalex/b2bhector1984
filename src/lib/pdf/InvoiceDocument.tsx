@@ -1,4 +1,6 @@
 import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
+import { formatEUR } from "@/lib/pricing";
+import { formatDate } from "@/lib/format";
 
 const TERMS_LABEL: Record<string, string> = {
   prepay: "Prepay — 10% off",
@@ -13,14 +15,6 @@ const STATUS_LABEL: Record<string, string> = {
   shipped: "Shipped",
   delivered: "Delivered",
 };
-
-function formatEUR(n: number): string {
-  return n.toLocaleString("en-US", { style: "currency", currency: "EUR" });
-}
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
-}
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 10, fontFamily: "Helvetica", color: "#121212" },

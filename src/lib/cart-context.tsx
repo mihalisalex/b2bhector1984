@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useCatalog } from "@/lib/catalog-context";
 import { getBoxType } from "@/lib/data/boxTypes";
 import { getUnitPrice } from "@/lib/pricing";
@@ -79,7 +79,7 @@ export function CartProvider({
     window.localStorage.setItem(storageKey(accountId), JSON.stringify(lines));
   }, [lines, accountId, hydrated]);
 
-  const addLines: CartContextValue["addLines"] = (styleId, incoming) => {
+  const addLines: CartContextValue["addLines"] = useCallback((styleId, incoming) => {
     setLines((prev) => {
       const next = [...prev];
       for (const item of incoming) {
@@ -95,9 +95,9 @@ export function CartProvider({
       }
       return next;
     });
-  };
+  }, []);
 
-  const setLineQty: CartContextValue["setLineQty"] = (styleId, colorwayId, boxTypeId, qty) => {
+  const setLineQty: CartContextValue["setLineQty"] = useCallback((styleId, colorwayId, boxTypeId, qty) => {
     setLines((prev) => {
       if (qty <= 0) {
         return prev.filter(
@@ -112,42 +112,47 @@ export function CartProvider({
       next[idx] = { ...next[idx], qty };
       return next;
     });
-  };
+  }, []);
 
-  const removeStyle: CartContextValue["removeStyle"] = (styleId) => {
+  const removeStyle: CartContextValue["removeStyle"] = useCallback((styleId) => {
     setLines((prev) => prev.filter((l) => l.styleId !== styleId));
-  };
+  }, []);
 
-  const clearCart = () => setLines([]);
+  const clearCart = useCallback(() => setLines([]), []);
 
   const itemCount = useMemo(() => lines.reduce((sum, l) => sum + pairsInLine(l), 0), [lines]);
 
-  const styleSubtotal = (styleId: string) => {
-    const style = getStyleById(styleId);
-    if (!style) return 0;
-    const styleLines = lines.filter((l) => l.styleId === styleId);
-    const totalPairs = styleLines.reduce((sum, l) => sum + pairsInLine(l), 0);
-    const unitPrice = getUnitPrice(style, "net60", priceMultiplier);
-    return Math.round(unitPrice * totalPairs * 100) / 100;
-  };
+  const styleSubtotal = useCallback(
+    (styleId: string) => {
+      const style = getStyleById(styleId);
+      if (!style) return 0;
+      const styleLines = lines.filter((l) => l.styleId === styleId);
+      const totalPairs = styleLines.reduce((sum, l) => sum + pairsInLine(l), 0);
+      const unitPrice = getUnitPrice(style, "net60", priceMultiplier);
+      return Math.round(unitPrice * totalPairs * 100) / 100;
+    },
+    [getStyleById, lines, priceMultiplier],
+  );
 
   const cartTotal = useMemo(() => {
     const styleIds = Array.from(new Set(lines.map((l) => l.styleId)));
     return Math.round(styleIds.reduce((sum, id) => sum + styleSubtotal(id), 0) * 100) / 100;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lines]);
+  }, [lines, styleSubtotal]);
 
-  const value: CartContextValue = {
-    lines,
-    itemCount,
-    addLines,
-    setLineQty,
-    removeStyle,
-    clearCart,
-    styleSubtotal,
-    cartTotal,
-    priceMultiplier,
-  };
+  const value = useMemo<CartContextValue>(
+    () => ({
+      lines,
+      itemCount,
+      addLines,
+      setLineQty,
+      removeStyle,
+      clearCart,
+      styleSubtotal,
+      cartTotal,
+      priceMultiplier,
+    }),
+    [lines, itemCount, addLines, setLineQty, removeStyle, clearCart, styleSubtotal, cartTotal, priceMultiplier],
+  );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

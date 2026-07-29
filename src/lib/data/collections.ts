@@ -1,5 +1,6 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { slugify } from "@/lib/slug";
 import type { Collection } from "@/lib/types";
 
 interface CollectionRow {
@@ -23,7 +24,7 @@ export async function getAllCollections(): Promise<Collection[]> {
 }
 
 export async function createCollection(name: string): Promise<Collection> {
-  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const slug = slugify(name);
   const { count } = await supabaseAdmin.from("collections").select("id", { count: "exact", head: true });
   const { data, error } = await supabaseAdmin
     .from("collections")

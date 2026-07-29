@@ -133,16 +133,19 @@ export function ProductEditorShell({
           </div>
         </div>
 
-        <div className="scroll-thin mt-4 -mb-px flex gap-1 overflow-x-auto">
+        <div role="tablist" className="scroll-thin mt-4 -mb-px flex gap-1 overflow-x-auto">
           {TABS.map((t) => (
             <button
               key={t}
               type="button"
+              id={`tab-${t}`}
+              role="tab"
+              aria-selected={tab === t}
+              aria-controls="product-editor-tabpanel"
               onClick={() => setTab(t)}
               className={`whitespace-nowrap border-b-2 px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-colors ${
                 tab === t ? "border-ink text-ink" : "border-transparent text-ink-soft hover:text-ink"
               }`}
-              aria-current={tab === t ? "page" : undefined}
             >
               {t}
             </button>
@@ -150,7 +153,7 @@ export function ProductEditorShell({
         </div>
       </div>
 
-      <div className="pt-6">
+      <div id="product-editor-tabpanel" role="tabpanel" aria-labelledby={`tab-${tab}`} className="pt-6">
         {tab === "General" && (
           <GeneralTab style={style} brands={brands} suppliers={suppliers} collections={collections} canEdit={permissions["products.edit"]} />
         )}

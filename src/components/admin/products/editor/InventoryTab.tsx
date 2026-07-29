@@ -90,7 +90,7 @@ export function InventoryTab({
                               min={0}
                               disabled={!canEdit}
                               defaultValue={row?.onHand ?? 0}
-                              onChange={(e) => e.currentTarget.form?.requestSubmit()}
+                              onBlur={(e) => e.currentTarget.form?.requestSubmit()}
                               aria-label={`${colorway.name} ${box.label} on hand`}
                               className="font-mono-tab w-14 border border-stone-300 bg-white px-1.5 py-1 text-right text-sm outline-none focus-visible:border-signal disabled:bg-stone-100"
                             />
@@ -106,7 +106,7 @@ export function InventoryTab({
                               min={0}
                               disabled={!canEdit}
                               defaultValue={row?.reserved ?? 0}
-                              onChange={(e) => e.currentTarget.form?.requestSubmit()}
+                              onBlur={(e) => e.currentTarget.form?.requestSubmit()}
                               aria-label={`${colorway.name} ${box.label} reserved`}
                               className="font-mono-tab w-14 border border-stone-300 bg-white px-1.5 py-1 text-right text-sm outline-none focus-visible:border-signal disabled:bg-stone-100"
                             />

@@ -1,8 +1,5 @@
 import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
-
-function formatEUR(n: number): string {
-  return n.toLocaleString("en-US", { style: "currency", currency: "EUR" });
-}
+import { formatEUR } from "@/lib/pricing";
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 10, fontFamily: "Helvetica", color: "#121212" },

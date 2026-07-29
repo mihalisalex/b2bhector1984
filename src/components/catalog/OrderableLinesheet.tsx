@@ -181,6 +181,7 @@ export function OrderableLinesheet({
       {/* Desktop: full linesheet table. */}
       <div className="scroll-thin hidden overflow-x-auto border border-stone-300 lg:block">
         <table className="w-full min-w-[1100px] border-collapse text-sm">
+          <caption className="sr-only">Wholesale linesheet — order quantities by style and colorway</caption>
           <thead>
             <tr className="border-b border-stone-300 bg-stone-100 text-left text-[11px] uppercase tracking-wide text-ink-soft">
               <Th>Style</Th>
@@ -373,6 +374,7 @@ function Stepper({
 function Th({ children, align }: { children: React.ReactNode; align?: "right" | "center" }) {
   return (
     <th
+      scope="col"
       className={cn(
         "px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-ink-soft",
         align === "right" && "text-right",

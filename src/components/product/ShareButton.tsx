@@ -38,7 +38,7 @@ export function ShareButton({ title }: { title: string }) {
         <circle cx="18" cy="18" r="2.5" />
       </svg>
       {copied && (
-        <span className="absolute -bottom-8 right-0 whitespace-nowrap border border-stone-300 bg-ink px-2 py-1 text-[11px] font-medium text-white">
+        <span role="status" className="absolute -bottom-8 right-0 whitespace-nowrap border border-stone-300 bg-ink px-2 py-1 text-[11px] font-medium text-white">
           Link copied
         </span>
       )}

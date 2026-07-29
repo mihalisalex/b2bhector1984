@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { fromDbId, toNumber } from "@/lib/data/dbIds";
 import type { BoxTypeId, Colorway, ProductStatus, Style } from "@/lib/types";
@@ -237,17 +238,30 @@ async function fetchStyles(styleRows: StyleRow[]): Promise<Style[]> {
   return assembleStyles(styleRows, colorwayRows ?? [], imageRows ?? []);
 }
 
-export async function getAllStyles(): Promise<Style[]> {
+/**
+ * `cache()`-wrapped so multiple call sites in the same request's render tree
+ * (shop layout + page, which both need the full catalog) share one fetch
+ * instead of re-querying the DB once per caller.
+ */
+export const getAllStyles = cache(async (): Promise<Style[]> => {
   const { data, error } = await supabaseAdmin.from("styles").select("*").order("id");
   if (error) throw new Error(`styles: ${error.message}`);
   return fetchStyles(data ?? []);
-}
+});
 
-export async function getStyleBySlug(slug: string): Promise<Style | undefined> {
+export const getStyleBySlug = cache(async (slug: string): Promise<Style | undefined> => {
   const { data, error } = await supabaseAdmin.from("styles").select("*").eq("slug", slug).limit(1);
   if (error) throw new Error(`styles: ${error.message}`);
   const [style] = await fetchStyles(data ?? []);
   return style;
+});
+
+/** Batch-fetch by id in one query — use this instead of looping `getStyleById` per id. */
+export async function getStylesByIds(ids: string[]): Promise<Style[]> {
+  if (ids.length === 0) return [];
+  const { data, error } = await supabaseAdmin.from("styles").select("*").in("id", ids);
+  if (error) throw new Error(`styles: ${error.message}`);
+  return fetchStyles(data ?? []);
 }
 
 /**
@@ -265,12 +279,12 @@ export async function searchStyleIds(query: string): Promise<Set<string>> {
   return new Set((data ?? []).map((row) => row.id as string));
 }
 
-export async function getStyleById(id: string): Promise<Style | undefined> {
+export const getStyleById = cache(async (id: string): Promise<Style | undefined> => {
   const { data, error } = await supabaseAdmin.from("styles").select("*").eq("id", id).limit(1);
   if (error) throw new Error(`styles: ${error.message}`);
   const [style] = await fetchStyles(data ?? []);
   return style;
-}
+});
 
 /** Same-category picks first, topped up with same-season picks if there aren't enough. */
 export async function getRelatedStyles(style: Style, limit = 4): Promise<Style[]> {

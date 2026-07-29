@@ -1,5 +1,6 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { assertAllowedExtension, DOCUMENT_EXTENSIONS } from "@/lib/uploadValidation";
 import type { DocumentKind, StyleDocument } from "@/lib/types";
 
 const BUCKET = "style-documents";
@@ -41,6 +42,7 @@ export async function createStyleDocumentUploadTarget(
   styleId: string,
   fileName: string,
 ): Promise<{ bucket: string; path: string; token: string }> {
+  assertAllowedExtension(fileName, DOCUMENT_EXTENSIONS);
   const path = `${styleId}/${crypto.randomUUID()}-${fileName}`;
   const { data, error } = await supabaseAdmin.storage.from(BUCKET).createSignedUploadUrl(path);
   if (error) throw new Error(`storage createSignedUploadUrl: ${error.message}`);

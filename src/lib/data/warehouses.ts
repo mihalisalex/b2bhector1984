@@ -1,5 +1,6 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { slugify } from "@/lib/slug";
 import type { Warehouse } from "@/lib/types";
 
 interface WarehouseRow {
@@ -24,7 +25,7 @@ export async function getAllWarehouses(): Promise<Warehouse[]> {
 }
 
 export async function createWarehouse(name: string, location?: string): Promise<Warehouse> {
-  const id = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const id = slugify(name);
   const { data, error } = await supabaseAdmin
     .from("warehouses")
     .insert({ id, name, location: location ?? null, is_default: false })

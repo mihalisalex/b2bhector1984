@@ -70,6 +70,17 @@ here as they come up._
 
 ## Optimizations
 
+- **2026-07-29** — Full codebase quality audit (see the dedicated section at
+  the bottom of this log for the complete breakdown): `getAllStyles`/
+  `getStyleBySlug`/`getStyleById` in `src/lib/data/styles.ts` are now wrapped
+  in React's `cache()` so the several call sites that all need the full
+  catalog in one request (shop layout + page + admin product list) share one
+  DB round-trip instead of each re-querying. `placeOrder`'s per-style
+  `getStyleById` loop (sequential — N styles in cart = N serialized queries)
+  replaced with a single batched `getStylesByIds([...])` call. `SearchOverlay`
+  gained a request-id guard so a slower, earlier search response can no longer
+  overwrite a newer one's results (a real race, not just a theoretical one:
+  the 200ms debounce doesn't wait for the *response*, just the keystroke).
 - **2026-07-29** — Continuous review pass after the storefront UX overhaul:
   extended the sale-price "Sale" badge to the quick-order linesheet (both the
   mobile card view and desktop table), which the catalogue/list-row redesign
@@ -78,6 +89,25 @@ here as they come up._
 
 ## Refactors
 
+- **2026-07-29** — Codebase quality audit, dead-code + duplication cleanup
+  (full breakdown in the dedicated section below): removed 4 orphaned
+  pre-Product-Management-module actions in `adminActions.ts` (superseded by
+  `productActions.ts` equivalents), the unreferenced `InventoryLevelInput.tsx`,
+  and an unused 965KB `hero-shoes.jpg`. Extracted a shared `slugify()`
+  (`src/lib/slug.ts`) out of three copy-pasted implementations in
+  `brands.ts`/`collections.ts`/`warehouses.ts`. `InvoiceDocument.tsx`/
+  `SpecSheetDocument.tsx` now import `formatEUR`/`formatDate` from
+  `pricing.ts`/`format.ts` instead of redefining them. `CartContext`'s
+  handlers/value are now memoized (`useCallback`/`useMemo`), matching the
+  pattern `CatalogContext` already used — was previously recreating every
+  handler on every render, harmless today but a latent trap for any future
+  `React.memo` consumer. Left two things flagged, not touched: `zod` was an
+  unused dependency — now actually used (see Bugs Fixed) rather than removed;
+  `createBrandAction`/`createCollectionAction`/`reorderProductImagesAction`
+  in `productActions.ts` looked dead by import-graph but are confirmed
+  intentional stubs for not-yet-built admin UI (brand/collection quick-create,
+  drag-and-drop image reorder — the last one is explicitly disclosed as
+  deferred in this log's Product Management section) — left in place.
 - **2026-07-29** — Consolidated the "is this style currently on sale?" check
   (`getEffectiveBasePrice(style) < style.basePrice`), which had been copy-
   pasted inline in four places while building the storefront overhaul
@@ -96,6 +126,19 @@ here as they come up._
 
 ## Bugs Fixed
 
+- **2026-07-29** — Codebase quality audit (full breakdown below): admin
+  Inventory tab's on-hand/reserved stock inputs auto-submitted `onChange`
+  instead of `onBlur` (every keystroke fired a separate server action —
+  typing "150" over "12" could persist a stale intermediate value like "1" or
+  "15" if requests resolved out of order); now matches the `onBlur` pattern
+  every sibling auto-submit input already used. `placeOrder`'s cart-lines
+  payload was `JSON.parse`'d and cast with no runtime validation — a
+  malformed payload threw an uncaught error instead of the usual friendly
+  `FormState` error; now validated with a `zod` schema (was an installed-but-
+  unused dependency, now genuinely wired in) before use. Added a matching
+  file-extension allowlist (`src/lib/uploadValidation.ts`) to the three
+  signed-upload-URL mint functions (style images, hero image, style
+  documents) — previously accepted any filename/extension.
 - **2026-07-29** — Cart page's desktop-only "Proceed to Checkout" button was
   showing on mobile too (duplicating the new sticky mobile checkout bar).
   Root cause: the shared `Button`/`LinkButton` component hardcodes `inline-flex`
@@ -108,6 +151,56 @@ here as they come up._
   need an actual browser check, not just static analysis.
 
 ---
+### Codebase quality audit — DONE (2026-07-29, "improve quality/perf/stability, preserve all functionality" — no UI/design changes)
+Requested as a pre-launch senior-architect-style pass across dead code, duplication,
+performance, React/Next best practices, API/DB efficiency, accessibility, and security.
+Six parallel research agents covered each dimension read-only first; findings were then
+triaged and only the low-risk/high-confidence subset actually applied, verified with
+`npm run typecheck`/`lint`/`build` (all clean) plus live browser checks of the search
+overlay's focus trap/race-guard, catalogue, product page, and cart. See the itemized
+entries above (Optimizations/Refactors/Bugs Fixed) for exactly what changed.
+- [x] Dead code: 4 orphaned pre-Products-module admin actions, an orphaned
+  `InventoryLevelInput.tsx`, an unused 965KB image — removed. `zod` (installed,
+  unused) is now genuinely wired into `placeOrder` validation instead of removed.
+- [x] Duplication: shared `slugify()`, PDF documents now import `formatEUR`/
+  `formatDate` instead of redefining them.
+- [x] Performance: `getAllStyles`/`getStyleBySlug`/`getStyleById` deduped per-request
+  via React `cache()`; `placeOrder`'s N+1 style-fetch loop batched into one query;
+  `SearchOverlay` stale-response race fixed.
+- [x] React correctness: `CartContext` memoized (matches `CatalogContext`); dead
+  `useMemo` removed from `ProductsBrowser`; Inventory tab's `onChange`→`onBlur`
+  data-correctness fix (see Bugs Fixed).
+- [x] Accessibility (markup/ARIA only, zero visual changes): error toasts now
+  `role="alert"` (were `role="status"`, easy to miss); reusable `useFocusTrap`
+  hook (`src/lib/useFocusTrap.ts`) applied to `SearchOverlay` and `MainNav` —
+  both dialogs now trap Tab focus and return focus to their trigger button on
+  close (previously neither did); linesheet table got `scope="col"` headers +
+  a caption; the product-editor tab bar got proper `role="tablist"`/`role="tab"`/
+  `role="tabpanel"` wiring; rich-text editor and admin photo alt-text field
+  gained accessible names; share-button "Link copied" confirmation is now
+  announced (`role="status"`).
+- [x] Security: signed-upload-URL mint functions (style images, hero image,
+  style documents) now validate file extension against an allowlist before
+  minting the slot — previously accepted any filename.
+- **Confirmed intentional, not touched**: the buyer-account default password
+  (`wholesale84`, shown on the login page) is this project's documented
+  demo-access pattern (see the self-service-account-page section above,
+  "matches this project's existing demo-grade auth posture") — not a defect
+  to silently fix, since it's what lets a reviewer log in and try the app
+  without real credentials. `createBrandAction`/`createCollectionAction`/
+  `reorderProductImagesAction` are confirmed pre-built stubs for admin UI
+  that hasn't been built yet (the last one explicitly disclosed already, see
+  the Product Management section) — left as-is rather than deleted.
+- **Recommended but not applied this pass** (lower ROI or needs a product/infra
+  decision, not just a code change — see the chat summary for full detail):
+  a `fetchAllOrFallback` helper to dedupe the "query + migration-not-run
+  fallback" pattern repeated across ~10 files in `src/lib/data/*`; a shared
+  `FormStatus`/`FormField` component to dedupe near-identical success/error
+  JSX across 8 form components; sanitizing rich-text HTML on write (no live
+  XSS today since it's rendered as escaped text, but the raw HTML is stored
+  unsanitized); login rate-limiting (needs an infra choice); narrowing
+  `select("*")` on a few hot read paths.
+
 ### Storefront UX overhaul — DONE (2026-07-29, not a visual redesign — tokens/colors/typography untouched)
 - [x] Product page: primary purchase panel high on page, sticky desktop, sticky mobile bottom bar; Matrix grid demoted to advanced/secondary
 - [x] Real favorites/wishlist (DB-backed, migration 0018 — pending your run, see Pending Actions)

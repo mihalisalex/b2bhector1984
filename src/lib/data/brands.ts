@@ -1,5 +1,6 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { slugify } from "@/lib/slug";
 import type { Brand } from "@/lib/types";
 
 interface BrandRow {
@@ -22,10 +23,7 @@ export async function getAllBrands(): Promise<Brand[]> {
 }
 
 export async function createBrand(name: string): Promise<Brand> {
-  const id = name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
+  const id = slugify(name);
   const { data, error } = await supabaseAdmin.from("brands").insert({ id, name }).select().single();
   if (error) throw new Error(`brands: ${error.message}`);
   return mapBrand(data);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -8,6 +8,7 @@ import { logout } from "@/lib/actions";
 import type { Account } from "@/lib/types";
 import { cn } from "@/lib/cn";
 import { HWatermark } from "@/components/layout/HWatermark";
+import { useFocusTrap } from "@/lib/useFocusTrap";
 
 const LINKS = [
   { href: "/", label: "Home" },
@@ -21,7 +22,10 @@ const LINKS = [
 export function MainNav({ account }: { account: Account | null }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+
+  useFocusTrap(dialogRef, open);
 
   // Portal target isn't available during SSR; the drawer renders after mount.
   // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -74,6 +78,7 @@ export function MainNav({ account }: { account: Account | null }) {
             />
 
             <div
+              ref={dialogRef}
               role="dialog"
               aria-modal="true"
               aria-label="Main menu"

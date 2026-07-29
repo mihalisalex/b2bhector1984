@@ -20,7 +20,17 @@ const COMMANDS: { label: string; command: string; arg?: string }[] = [
  * field. Deliberately basic (bold/italic/underline/headings/lists/links) —
  * enough for wholesale product copy, not a general-purpose CMS editor.
  */
-export function RichTextEditor({ name, defaultValue, disabled }: { name: string; defaultValue: string; disabled?: boolean }) {
+export function RichTextEditor({
+  name,
+  label,
+  defaultValue,
+  disabled,
+}: {
+  name: string;
+  label: string;
+  defaultValue: string;
+  disabled?: boolean;
+}) {
   const editorRef = useRef<HTMLDivElement>(null);
   const hiddenRef = useRef<HTMLInputElement>(null);
 
@@ -61,6 +71,9 @@ export function RichTextEditor({ name, defaultValue, disabled }: { name: string;
         ref={editorRef}
         contentEditable={!disabled}
         suppressContentEditableWarning
+        role="textbox"
+        aria-multiline="true"
+        aria-label={label}
         onInput={sync}
         onBlur={sync}
         dangerouslySetInnerHTML={{ __html: defaultValue || "<p></p>" }}

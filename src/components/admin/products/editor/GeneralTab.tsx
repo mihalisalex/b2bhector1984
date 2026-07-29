@@ -46,7 +46,7 @@ export function GeneralTab({
 
       <div>
         <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Full description</label>
-        <RichTextEditor name="description" defaultValue={style.description} disabled={!canEdit} />
+        <RichTextEditor name="description" label="Full description" defaultValue={style.description} disabled={!canEdit} />
       </div>
 
       <div className="grid grid-cols-3 gap-4">

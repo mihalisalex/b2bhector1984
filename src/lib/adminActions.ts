@@ -4,12 +4,6 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
 import { updateApplicationStatus } from "@/lib/data/applications";
-import {
-  createStyleImageUploadTarget,
-  finalizeStyleImageUpload,
-  setPrimaryImage,
-  deleteStyleImage,
-} from "@/lib/data/styleImages";
 import { updateAvailableBoxTypes } from "@/lib/data/styles";
 import { setInventoryLevel } from "@/lib/data/inventory";
 import {
@@ -175,43 +169,6 @@ export interface UploadState {
 
 export type UploadTarget = { bucket: string; path: string; token: string } | { error: string };
 
-/**
- * Two-step upload: the browser gets a signed Storage upload slot from these
- * actions, PUTs the file bytes straight to Supabase itself (bypassing the
- * Vercel serverless function, which caps request bodies well under what a
- * real photo needs), then calls the matching finalize action with the path.
- */
-export async function createStyleImageUploadUrlAction(styleId: string, fileName: string): Promise<UploadTarget> {
-  await requireAdmin();
-  try {
-    return await createStyleImageUploadTarget(styleId, fileName);
-  } catch (err) {
-    return { error: err instanceof Error ? err.message : "Could not start upload." };
-  }
-}
-
-export async function finalizeStyleImageUploadAction(styleId: string, path: string): Promise<UploadState> {
-  await requireAdmin();
-  try {
-    await finalizeStyleImageUpload(styleId, path);
-  } catch (err) {
-    return { error: err instanceof Error ? err.message : "Upload failed." };
-  }
-  revalidatePath(`/admin/styles/${styleId}`);
-  revalidatePath("/admin/styles");
-  return {};
-}
-
-export async function setPrimaryImageAction(formData: FormData) {
-  await requireAdmin();
-  const styleId = String(formData.get("styleId") ?? "");
-  const imageId = String(formData.get("imageId") ?? "");
-  if (!styleId || !imageId) return;
-  await setPrimaryImage(styleId, imageId);
-  revalidatePath(`/admin/styles/${styleId}`);
-  revalidatePath("/admin/styles");
-}
-
 const ALL_BOX_TYPES: BoxTypeId[] = ["box8", "box10", "box12"];
 
 export async function updateAvailableBoxTypesAction(formData: FormData) {
@@ -322,16 +279,6 @@ export async function deleteSalesRepAction(repId: string, _prev: FormState, _for
   await logAudit(admin.id, "sales_rep.deleted", "sales_rep", repId);
   revalidatePath("/admin/sales-reps");
   return { success: "Sales rep removed." };
-}
-
-export async function deleteStyleImageAction(formData: FormData) {
-  await requireAdmin();
-  const styleId = String(formData.get("styleId") ?? "");
-  const imageId = String(formData.get("imageId") ?? "");
-  if (!imageId) return;
-  await deleteStyleImage(imageId);
-  revalidatePath(`/admin/styles/${styleId}`);
-  revalidatePath("/admin/styles");
 }
 
 export async function updateHomepageHeroAction(formData: FormData) {

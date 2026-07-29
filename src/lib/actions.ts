@@ -24,7 +24,8 @@ import {
   setDefaultShipToAddress as setDefaultShipToAddressRow,
 } from "@/lib/data/accounts";
 import { insertApplication, updateApplicationStatus } from "@/lib/data/applications";
-import { getStyleById } from "@/lib/data/styles";
+import { getStylesByIds } from "@/lib/data/styles";
+import { z } from "zod";
 import { hashPassword, verifyPassword } from "@/lib/passwords";
 import { formatEUR, getOrderMinimumError, getUnitPrice, summarizeOrder, validateMatrix } from "@/lib/pricing";
 import { createSavedAssortment, deleteSavedAssortment as deleteSavedAssortmentData } from "@/lib/data/assortments";
@@ -161,16 +162,24 @@ export interface CheckoutState extends FormState {
   orderId?: string;
 }
 
+const cartLineSchema = z.object({
+  styleId: z.string().min(1),
+  colorwayId: z.string().min(1),
+  boxTypeId: z.enum(["box8", "box10", "box12"]),
+  qty: z.number().int().positive(),
+});
+const cartLinesSchema = z.array(cartLineSchema);
+
 export async function placeOrder(_prev: CheckoutState, formData: FormData): Promise<CheckoutState> {
   const account = await getCurrentAccount();
   if (!account) redirect("/login");
 
-  const cartLines = JSON.parse(String(formData.get("lines") ?? "[]")) as {
-    styleId: string;
-    colorwayId: string;
-    boxTypeId: BoxTypeId;
-    qty: number;
-  }[];
+  let cartLines: z.infer<typeof cartLinesSchema>;
+  try {
+    cartLines = cartLinesSchema.parse(JSON.parse(String(formData.get("lines") ?? "[]")));
+  } catch {
+    return { error: "Your cart data looks invalid. Please refresh and try again." };
+  }
   if (cartLines.length === 0) return { error: "Your cart is empty." };
 
   const poNumber = String(formData.get("poNumber") ?? "").trim();
@@ -191,12 +200,12 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
   }
 
   const orderLines: OrderLine[] = [];
-  const styleById = new Map<string, Awaited<ReturnType<typeof getStyleById>>>();
+  const fetchedStyles = await getStylesByIds([...byStyle.keys()]);
+  const styleById = new Map(fetchedStyles.map((s) => [s.id, s]));
   let totalPairs = 0;
   for (const [styleId, qtyMap] of byStyle.entries()) {
-    const style = await getStyleById(styleId);
+    const style = styleById.get(styleId);
     if (!style) continue;
-    styleById.set(styleId, style);
     const validation = validateMatrix(style, qtyMap, terms, account.priceMultiplier);
     totalPairs += validation.totalPairs;
     const unitPrice = getUnitPrice(style, terms, account.priceMultiplier);

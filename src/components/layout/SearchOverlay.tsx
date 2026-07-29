@@ -7,6 +7,7 @@ import Image from "next/image";
 import { searchStylesAction, type SearchResult } from "@/lib/searchActions";
 import { formatEUR } from "@/lib/pricing";
 import { cn } from "@/lib/cn";
+import { useFocusTrap } from "@/lib/useFocusTrap";
 
 const RECENT_KEY = "hector_recent_searches";
 const MAX_RECENT = 6;
@@ -48,8 +49,12 @@ export function SearchOverlay() {
   const [activeIndex, setActiveIndex] = useState(-1);
   const [recent, setRecent] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const requestIdRef = useRef(0);
   const router = useRouter();
+
+  useFocusTrap(dialogRef, open);
 
   // Portal target isn't available during SSR; the overlay renders after mount.
   // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -83,16 +88,21 @@ export function SearchOverlay() {
       return;
     }
     setLoading(true);
+    const requestId = ++requestIdRef.current;
     debounceRef.current = setTimeout(async () => {
       try {
         const r = await searchStylesAction(value);
+        if (requestId !== requestIdRef.current) return; // a newer search superseded this one
         setResults(r);
       } catch (err) {
         console.error("Search failed:", err);
+        if (requestId !== requestIdRef.current) return;
         setResults([]);
       } finally {
-        setSearched(true);
-        setLoading(false);
+        if (requestId === requestIdRef.current) {
+          setSearched(true);
+          setLoading(false);
+        }
       }
     }, 200);
   }
@@ -149,6 +159,7 @@ export function SearchOverlay() {
             aria-hidden={!open}
           >
             <div
+              ref={dialogRef}
               role="dialog"
               aria-modal="true"
               aria-label="Search"

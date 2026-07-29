@@ -1,5 +1,6 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { assertAllowedExtension, IMAGE_EXTENSIONS } from "@/lib/uploadValidation";
 
 const BUCKET = "style-images";
 
@@ -50,6 +51,7 @@ export async function createStyleImageUploadTarget(
   styleId: string,
   fileName: string,
 ): Promise<{ bucket: string; path: string; token: string }> {
+  assertAllowedExtension(fileName, IMAGE_EXTENSIONS);
   const path = `${styleId}/${crypto.randomUUID()}-${fileName}`;
   const { data, error } = await supabaseAdmin.storage.from(BUCKET).createSignedUploadUrl(path);
   if (error) throw new Error(`storage createSignedUploadUrl: ${error.message}`);

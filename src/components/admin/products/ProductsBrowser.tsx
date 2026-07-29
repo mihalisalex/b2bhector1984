@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { formatEUR } from "@/lib/pricing";
@@ -121,9 +121,6 @@ export function ProductsBrowser({
     a.click();
     URL.revokeObjectURL(url);
   }
-
-  const marginRange = useMemo(() => items.map((i) => i.marginPct), [items]);
-  void marginRange;
 
   return (
     <div>
