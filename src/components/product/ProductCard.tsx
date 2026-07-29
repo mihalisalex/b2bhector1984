@@ -1,22 +1,27 @@
 import Link from "next/link";
 import { CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styles";
-import { formatEUR, getUnitPrice } from "@/lib/pricing";
+import { formatEUR, getEffectiveBasePrice, getUnitPrice } from "@/lib/pricing";
 import type { Style } from "@/lib/types";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
+import { FavoriteButton } from "@/components/product/FavoriteButton";
 import { cn } from "@/lib/cn";
 
 export function ProductCard({
   style,
   totalOnHand,
   priceMultiplier = 1,
+  favorited,
 }: {
   style: Style;
   totalOnHand?: number;
   priceMultiplier?: number;
+  /** Omit to hide the favorite toggle entirely (e.g. logged-out contexts). */
+  favorited?: boolean;
 }) {
   const soldOut = totalOnHand === 0;
   const lowStock = typeof totalOnHand === "number" && totalOnHand > 0 && totalOnHand <= 10;
+  const onSale = getEffectiveBasePrice(style) < style.basePrice;
 
   return (
     <Link
@@ -35,16 +40,19 @@ export function ProductCard({
           )}
           dense
         />
-        {(soldOut || lowStock) && (
-          <span
-            className={cn(
-              "absolute right-2 top-2 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white",
-              soldOut ? "bg-ember" : "bg-ink",
-            )}
-          >
-            {soldOut ? "Sold out" : "Low stock"}
-          </span>
-        )}
+        <div className="absolute right-2 top-2 flex flex-col items-end gap-1.5">
+          {favorited !== undefined && <FavoriteButton styleId={style.id} initialFavorited={favorited} variant="icon" />}
+          {(soldOut || lowStock || onSale) && (
+            <span
+              className={cn(
+                "px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white",
+                soldOut ? "bg-ember" : lowStock ? "bg-ink" : "bg-ember",
+              )}
+            >
+              {soldOut ? "Sold out" : lowStock ? "Low stock" : "Sale"}
+            </span>
+          )}
+        </div>
       </div>
       <div className="flex flex-1 flex-col gap-2 p-4">
         <div className="flex items-center justify-between gap-2">
@@ -74,8 +82,15 @@ export function ProductCard({
 
         <div className="mt-auto border-t border-stone-200 pt-3">
           <p className="font-mono-tab text-[11px] uppercase tracking-wide text-ink-soft">Wholesale</p>
-          <p className="font-mono-tab text-lg font-semibold tabular-nums text-ink">
-            {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
+          <p className="flex items-baseline gap-2">
+            <span className="font-mono-tab text-lg font-semibold tabular-nums text-ink">
+              {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
+            </span>
+            {onSale && (
+              <span className="font-mono-tab text-xs text-ink-soft line-through">
+                {formatEUR(style.basePrice * priceMultiplier)}
+              </span>
+            )}
           </p>
         </div>
       </div>

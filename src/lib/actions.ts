@@ -28,6 +28,7 @@ import { getStyleById } from "@/lib/data/styles";
 import { hashPassword, verifyPassword } from "@/lib/passwords";
 import { formatEUR, getOrderMinimumError, getUnitPrice, summarizeOrder, validateMatrix } from "@/lib/pricing";
 import { createSavedAssortment, deleteSavedAssortment as deleteSavedAssortmentData } from "@/lib/data/assortments";
+import { addFavorite, removeFavorite } from "@/lib/data/favorites";
 import { decrementInventoryForOrder } from "@/lib/data/inventory";
 import { sendEmail } from "@/lib/email";
 import { buildOrderConfirmationEmailBody, orderConfirmationEmailSubject, textToHtml } from "@/lib/emailTemplates";
@@ -371,4 +372,22 @@ export async function deleteAssortment(formData: FormData): Promise<void> {
   const assortmentId = String(formData.get("assortmentId") ?? "");
   if (assortmentId) await deleteSavedAssortmentData(account.id, assortmentId);
   revalidatePath("/dashboard/assortments");
+}
+
+/** Toggles a style in the current buyer's favorites/wishlist. Best-effort — degrades to a
+ * no-op error rather than crashing if migration 0018 hasn't run yet. */
+export async function toggleFavoriteAction(styleId: string, favorited: boolean): Promise<{ error?: string }> {
+  const account = await getCurrentAccount();
+  if (!account) redirect("/login");
+
+  try {
+    if (favorited) await removeFavorite(account.id, styleId);
+    else await addFavorite(account.id, styleId);
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Could not update favorites." };
+  }
+  revalidatePath("/product/[slug]", "page");
+  revalidatePath("/catalogue");
+  revalidatePath("/dashboard/favorites");
+  return {};
 }

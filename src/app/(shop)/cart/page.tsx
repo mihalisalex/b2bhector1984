@@ -11,6 +11,7 @@ import type { BoxTypeId } from "@/lib/types";
 import { LinkButton } from "@/components/ui/Button";
 import { StylePlate } from "@/components/product/StylePlate";
 import { SaveAssortmentButton } from "@/components/dashboard/SaveAssortmentButton";
+import { cn } from "@/lib/cn";
 
 export default function CartPage() {
   const { lines, setLineQty, removeStyle, cartTotal, priceMultiplier } = useCart();
@@ -34,10 +35,15 @@ export default function CartPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1100px] px-6 py-8 lg:px-10">
-      <h1 className="font-display border-b border-stone-300 pb-6 text-2xl font-bold uppercase tracking-tight text-ink">
-        Cart
-      </h1>
+    <div className="mx-auto max-w-[1100px] px-6 py-8 pb-28 lg:px-10 lg:pb-8">
+      <div className="flex items-center justify-between border-b border-stone-300 pb-6">
+        <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink">
+          Cart
+        </h1>
+        <Link href="/catalogue" className="text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-ink">
+          ← Continue shopping
+        </Link>
+      </div>
 
       <div className="mt-6 flex flex-col gap-6">
         {styleIds.map((styleId) => {
@@ -83,6 +89,7 @@ export default function CartPage() {
                       <th className="px-2 py-2 font-semibold">Box</th>
                       <th className="px-2 py-2 text-right font-semibold">Qty</th>
                       <th className="px-4 py-2 text-right font-semibold">Pairs</th>
+                      <th className="w-10 px-2 py-2" />
                     </tr>
                   </thead>
                   <tbody>
@@ -94,17 +101,46 @@ export default function CartPage() {
                           <td className="px-4 py-2 text-ink">{colorway?.name ?? l.colorwayId}</td>
                           <td className="font-mono-tab px-2 py-2 text-ink-soft">{box.label}</td>
                           <td className="px-2 py-2 text-right">
-                            <input
-                              type="number"
-                              min={0}
-                              value={l.qty}
-                              onChange={(e) =>
-                                setLineQty(styleId, l.colorwayId, l.boxTypeId, Number(e.target.value) || 0)
-                              }
-                              className="font-mono-tab w-16 border border-stone-300 bg-white px-2 py-1 text-right text-sm outline-none focus-visible:border-signal"
-                            />
+                            <div className="ml-auto flex w-fit items-center border border-stone-300">
+                              <button
+                                type="button"
+                                aria-label="Decrease quantity"
+                                onClick={() => setLineQty(styleId, l.colorwayId, l.boxTypeId, Math.max(0, l.qty - 1))}
+                                className="flex h-9 w-9 items-center justify-center text-ink hover:bg-stone-100"
+                              >
+                                −
+                              </button>
+                              <input
+                                type="number"
+                                min={0}
+                                value={l.qty}
+                                onChange={(e) =>
+                                  setLineQty(styleId, l.colorwayId, l.boxTypeId, Number(e.target.value) || 0)
+                                }
+                                aria-label={`${colorway?.name ?? "Colorway"} ${box.label} quantity`}
+                                className="font-mono-tab w-12 border-x border-stone-300 bg-white px-1 py-1 text-center text-sm outline-none focus-visible:border-signal"
+                              />
+                              <button
+                                type="button"
+                                aria-label="Increase quantity"
+                                onClick={() => setLineQty(styleId, l.colorwayId, l.boxTypeId, l.qty + 1)}
+                                className="flex h-9 w-9 items-center justify-center text-ink hover:bg-stone-100"
+                              >
+                                +
+                              </button>
+                            </div>
                           </td>
                           <td className="font-mono-tab px-4 py-2 text-right text-ink-soft">{l.qty * box.totalPairs}</td>
+                          <td className="px-2 py-2 text-right">
+                            <button
+                              type="button"
+                              onClick={() => setLineQty(styleId, l.colorwayId, l.boxTypeId, 0)}
+                              aria-label={`Remove ${colorway?.name ?? "line"} from cart`}
+                              className="text-ink-soft hover:text-ember"
+                            >
+                              ✕
+                            </button>
+                          </td>
                         </tr>
                       );
                     })}
@@ -126,20 +162,42 @@ export default function CartPage() {
       <div className="mt-8 flex flex-col items-end gap-3 border-t border-stone-300 pt-6">
         <SaveAssortmentButton styleIds={styleIds} />
         <div className="flex items-baseline gap-3">
-          <span className="text-sm font-semibold uppercase tracking-wide text-ink-soft">Cart total</span>
+          <span className="text-sm font-semibold uppercase tracking-wide text-ink-soft">Cart total (net-60)</span>
           <span className="font-mono-tab text-2xl font-bold text-ink">{formatEUR(cartTotal)}</span>
         </div>
         <p className="text-right text-xs text-ink-soft">{grandTotalPairs} pairs in cart</p>
+        <p className="text-right text-xs font-medium text-positive">
+          Prepay in full at checkout to save {formatEUR(cartTotal * 0.1)} (10% off)
+        </p>
         {minimumError && (
           <p className="max-w-sm text-right text-xs font-medium text-ember">{minimumError}</p>
         )}
-        <LinkButton
-          href={minimumError ? "#" : "/checkout"}
-          size="lg"
-          className={minimumError ? "pointer-events-none opacity-40" : ""}
-        >
-          Proceed to Checkout
-        </LinkButton>
+        <div className="hidden lg:block">
+          <LinkButton
+            href={minimumError ? "#" : "/checkout"}
+            size="lg"
+            className={minimumError ? "pointer-events-none opacity-40" : ""}
+          >
+            Proceed to Checkout
+          </LinkButton>
+        </div>
+      </div>
+
+      {/* Sticky mobile checkout bar — the primary action stays reachable without scrolling back down a long cart. */}
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-300 bg-white/97 px-4 py-3 backdrop-blur lg:hidden" style={{ boxShadow: "0 -8px 24px rgba(26,29,34,0.12)" }}>
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="font-mono-tab truncate text-lg font-bold text-ink">{formatEUR(cartTotal)}</p>
+            <p className="truncate text-[10px] text-ink-soft">{grandTotalPairs} pairs</p>
+          </div>
+          <LinkButton
+            href={minimumError ? "#" : "/checkout"}
+            className={cn("shrink-0", minimumError ? "pointer-events-none opacity-40" : "")}
+          >
+            Checkout
+          </LinkButton>
+        </div>
+        {minimumError && <p className="mt-1.5 text-[11px] font-medium text-ember">{minimumError}</p>}
       </div>
     </div>
   );

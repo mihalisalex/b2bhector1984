@@ -97,21 +97,31 @@ export function MainNav({ account }: { account: Account | null }) {
               </div>
 
               <nav className="relative flex flex-1 flex-col gap-1 px-5 py-6" aria-label="Primary">
-                {LINKS.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="group flex items-center justify-between border-b border-stone-200 py-3 font-display text-lg font-bold uppercase tracking-tight text-ink transition-colors duration-150 hover:text-signal"
-                  >
-                    {item.label}
-                    <span
-                      aria-hidden
-                      className="translate-x-1 text-signal opacity-0 transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100"
+                {LINKS.map((item) => {
+                  const active = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      aria-current={active ? "page" : undefined}
+                      className={cn(
+                        "group flex items-center justify-between border-b py-3 font-display text-lg font-bold uppercase tracking-tight transition-colors duration-150",
+                        active ? "border-ink text-signal" : "border-stone-200 text-ink hover:text-signal",
+                      )}
                     >
-                      →
-                    </span>
-                  </Link>
-                ))}
+                      <span className="flex items-center gap-2">
+                        {active && <span className="h-1.5 w-1.5 rounded-full bg-signal" aria-hidden />}
+                        {item.label}
+                      </span>
+                      <span
+                        aria-hidden
+                        className="translate-x-1 text-signal opacity-0 transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100"
+                      >
+                        →
+                      </span>
+                    </Link>
+                  );
+                })}
               </nav>
 
               <div className="relative border-t border-stone-300 bg-stone-100 px-5 py-5">
@@ -127,8 +137,14 @@ export function MainNav({ account }: { account: Account | null }) {
                     <Link href="/dashboard" className="text-sm font-medium text-ink-soft hover:text-ink">
                       Dashboard
                     </Link>
+                    <Link href="/cart" className="text-sm font-medium text-ink-soft hover:text-ink">
+                      Cart
+                    </Link>
                     <Link href="/dashboard/account" className="text-sm font-medium text-ink-soft hover:text-ink">
                       Account settings
+                    </Link>
+                    <Link href="/dashboard/favorites" className="text-sm font-medium text-ink-soft hover:text-ink">
+                      Favorites
                     </Link>
                     <Link href="/dashboard/assortments" className="text-sm font-medium text-ink-soft hover:text-ink">
                       Saved assortments

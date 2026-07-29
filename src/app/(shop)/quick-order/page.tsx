@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { getAllStyles, searchStyleIds } from "@/lib/data/styles";
 import { filterStyles, parseFilters } from "@/lib/catalogFilters";
+import { isSortKey, sortStyles } from "@/lib/catalogSort";
 import { getInventoryForStyles } from "@/lib/data/inventory";
 import { getCurrentAccount } from "@/lib/session";
 import { CatalogFilters } from "@/components/catalog/CatalogFilters";
@@ -18,7 +19,9 @@ export default async function QuickOrderPage({
   const styles = await getAllStyles();
   const filters = parseFilters(sp);
   const matchedIds = filters.q ? await searchStyleIds(filters.q) : undefined;
-  const results = filterStyles(styles, filters, matchedIds);
+  const sortParam = typeof sp.sort === "string" ? sp.sort : "newest";
+  const sort = isSortKey(sortParam) ? sortParam : "newest";
+  const results = sortStyles(filterStyles(styles, filters, matchedIds), sort);
   const [inventory, account] = await Promise.all([
     getInventoryForStyles(results.map((s) => s.id)),
     getCurrentAccount(),
@@ -41,7 +44,7 @@ export default async function QuickOrderPage({
       <div className="flex flex-col gap-8 lg:flex-row">
         <div className="print:hidden">
           <Suspense fallback={null}>
-            <CatalogFilters resultCount={results.length} />
+            <CatalogFilters resultCount={results.length} showViewToggle={false} />
           </Suspense>
         </div>
 

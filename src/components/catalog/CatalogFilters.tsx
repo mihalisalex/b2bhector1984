@@ -1,8 +1,9 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { COLOR_FAMILIES, PRICE_BANDS } from "@/lib/catalogFilters";
+import { SORT_OPTIONS } from "@/lib/catalogSort";
 import { cn } from "@/lib/cn";
 
 const SEASON_OPTIONS = [
@@ -36,11 +37,36 @@ const AVAILABILITY_OPTIONS = [
   { value: "prebook", label: "Pre-book" },
 ];
 
-export function CatalogFilters({ resultCount }: { resultCount: number }) {
+export function CatalogFilters({
+  resultCount,
+  showViewToggle = true,
+}: {
+  resultCount: number;
+  /** Grid/List view toggle only makes sense on the catalogue's card layout, not the quick-order linesheet. */
+  showViewToggle?: boolean;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState(searchParams.get("q") ?? "");
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  // Keep the input in sync if the URL changes from elsewhere (back/forward nav).
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing local input state from an external source (the URL), not derived from React state
+    setSearchValue(searchParams.get("q") ?? "");
+  }, [searchParams]);
+
+  const setParam = useCallback(
+    (key: string, value: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (value) params.set(key, value);
+      else params.delete(key);
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
 
   const toggle = useCallback(
     (key: string, value: string) => {
@@ -81,15 +107,13 @@ export function CatalogFilters({ resultCount }: { resultCount: number }) {
     [pathname, router, searchParams],
   );
 
-  const setQuery = useCallback(
-    (value: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (value) params.set("q", value);
-      else params.delete("q");
-      router.push(`${pathname}?${params.toString()}`, { scroll: false });
-    },
-    [pathname, router, searchParams],
-  );
+  // Debounced so every keystroke doesn't trigger a full navigation/re-render —
+  // the input feels instant, the URL (and server query) updates ~300ms after typing stops.
+  function handleSearchChange(value: string) {
+    setSearchValue(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setParam("q", value), 300);
+  }
 
   const clearAll = () => router.push(pathname, { scroll: false });
 
@@ -99,36 +123,71 @@ export function CatalogFilters({ resultCount }: { resultCount: number }) {
     checkedSeasons.length > 0
       ? CATEGORY_OPTIONS.filter((opt) => checkedSeasons.some((s) => SEASON_CATEGORIES[s]?.includes(opt.value)))
       : CATEGORY_OPTIONS;
-  const activeCount = Array.from(searchParams.keys()).filter((k) => k !== "q").length
-    ? searchParams.getAll("category").length +
-      searchParams.getAll("season").length +
-      searchParams.getAll("gender").length +
-      searchParams.getAll("availability").length +
-      searchParams.getAll("color").length +
-      searchParams.getAll("price").length
-    : 0;
+  const activeCount =
+    searchParams.getAll("category").length +
+    searchParams.getAll("season").length +
+    searchParams.getAll("gender").length +
+    searchParams.getAll("availability").length +
+    searchParams.getAll("color").length +
+    searchParams.getAll("price").length;
+
+  const view = searchParams.get("view") === "list" ? "list" : "grid";
+  const sort = searchParams.get("sort") ?? "newest";
 
   return (
     <div className="lg:w-64 lg:shrink-0">
-      {/* Always visible (not behind the Filters toggle) so mobile buyers can search
-          without opening the drawer or scrolling past the whole product list. */}
-      <div className="flex items-center gap-2">
-        <input
-          type="search"
-          defaultValue={searchParams.get("q") ?? ""}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search style name or number"
-          className="w-full border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal"
-        />
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          className="flex shrink-0 items-center gap-2 border border-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide lg:hidden"
-        >
-          Filters {activeCount > 0 && `(${activeCount})`}
-        </button>
+      {/* Sticky search + filters/sort bar — always visible on mobile so buyers never scroll
+          past the whole product list to change a filter or sort order. */}
+      <div className="sticky top-(--shell-header-h) z-30 -mx-4 flex flex-col gap-2 bg-stone-50/97 px-4 py-2 backdrop-blur sm:mx-0 sm:px-0 sm:py-0 lg:static lg:bg-transparent lg:backdrop-blur-none">
+        <div className="flex items-center gap-2">
+          <input
+            type="search"
+            value={searchValue}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            placeholder="Search style name or number"
+            aria-label="Search styles"
+            className="w-full border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal"
+          />
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            aria-expanded={open}
+            className="flex shrink-0 items-center gap-2 border border-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide lg:hidden"
+          >
+            Filters {activeCount > 0 && `(${activeCount})`}
+          </button>
+        </div>
+
+        <div className="scroll-thin -mx-4 flex gap-1.5 overflow-x-auto px-4 pb-0.5 lg:hidden" aria-label="Quick category filter">
+          {CATEGORY_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => toggle("category", opt.value)}
+              aria-pressed={isChecked("category", opt.value)}
+              className={cn(
+                "shrink-0 whitespace-nowrap border px-3 py-1.5 text-xs font-medium uppercase tracking-wide transition-colors",
+                isChecked("category", opt.value) ? "border-ink bg-ink text-white" : "border-stone-300 bg-white text-ink-soft",
+              )}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center justify-between gap-2 lg:hidden">
+          <span className="font-mono-tab text-xs text-ink-soft">{resultCount} styles</span>
+          <div className="flex items-center gap-2">
+            <SortSelect value={sort} onChange={(v) => setParam("sort", v)} compact />
+            {showViewToggle && <ViewToggle view={view} onChange={(v) => setParam("view", v)} />}
+          </div>
+        </div>
       </div>
-      <span className="mt-1.5 block font-mono-tab text-xs text-ink-soft lg:hidden">{resultCount} styles</span>
+
+      <div className="mt-3 hidden items-center justify-between gap-2 lg:flex">
+        <SortSelect value={sort} onChange={(v) => setParam("sort", v)} />
+        {showViewToggle && <ViewToggle view={view} onChange={(v) => setParam("view", v)} />}
+      </div>
 
       <div className={cn("mt-4 flex-col gap-6 lg:mt-6 lg:flex", open ? "flex" : "hidden")}>
         <FilterGroup title="Season">
@@ -174,6 +233,70 @@ export function CatalogFilters({ resultCount }: { resultCount: number }) {
         )}
       </div>
     </div>
+  );
+}
+
+function SortSelect({ value, onChange, compact }: { value: string; onChange: (v: string) => void; compact?: boolean }) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      aria-label="Sort by"
+      className={cn(
+        "border border-stone-300 bg-white text-ink-soft outline-none focus-visible:border-signal",
+        compact ? "px-2 py-1.5 text-[11px] uppercase tracking-wide" : "px-3 py-2 text-xs uppercase tracking-wide",
+      )}
+    >
+      {SORT_OPTIONS.map((o) => (
+        <option key={o.value} value={o.value}>{compact ? o.label : `Sort: ${o.label}`}</option>
+      ))}
+    </select>
+  );
+}
+
+function ViewToggle({ view, onChange }: { view: string; onChange: (v: "grid" | "list") => void }) {
+  return (
+    <div className="flex items-center border border-stone-300 text-xs font-semibold uppercase tracking-wide">
+      <button
+        type="button"
+        onClick={() => onChange("grid")}
+        aria-pressed={view === "grid"}
+        aria-label="Grid view"
+        className={cn("px-2.5 py-1.5", view === "grid" ? "bg-ink text-white" : "bg-white text-ink-soft hover:text-ink")}
+      >
+        <GridIcon />
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange("list")}
+        aria-pressed={view === "list"}
+        aria-label="List view"
+        className={cn("border-l border-stone-300 px-2.5 py-1.5", view === "list" ? "bg-ink text-white" : "bg-white text-ink-soft hover:text-ink")}
+      >
+        <ListIcon />
+      </button>
+    </div>
+  );
+}
+
+function GridIcon() {
+  return (
+    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="currentColor" aria-hidden>
+      <rect x="1" y="1" width="6" height="6" />
+      <rect x="9" y="1" width="6" height="6" />
+      <rect x="1" y="9" width="6" height="6" />
+      <rect x="9" y="9" width="6" height="6" />
+    </svg>
+  );
+}
+
+function ListIcon() {
+  return (
+    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="currentColor" aria-hidden>
+      <rect x="1" y="2" width="14" height="3" />
+      <rect x="1" y="7" width="14" height="3" />
+      <rect x="1" y="12" width="14" height="3" />
+    </svg>
   );
 }
 

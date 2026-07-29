@@ -4,6 +4,7 @@ import { Logo } from "@/components/layout/Logo";
 import { MainNav } from "@/components/layout/MainNav";
 import { CartBadge } from "@/components/layout/CartBadge";
 import { HWatermark } from "@/components/layout/HWatermark";
+import { SearchOverlay } from "@/components/layout/SearchOverlay";
 
 export function ShopHeader({ account }: { account: Account }) {
   return (
@@ -18,6 +19,7 @@ export function ShopHeader({ account }: { account: Account }) {
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
+          <SearchOverlay />
           <Link
             href="/dashboard/account"
             className="hidden items-center gap-2 border border-stone-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-ink transition-colors hover:border-ink sm:flex"

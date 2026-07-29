@@ -6,12 +6,16 @@ import { getInventoryForStyle, getInventoryForStyles, type StyleInventory } from
 import { listImagesForStyle } from "@/lib/data/styleImages";
 import { getCurrentAccount } from "@/lib/session";
 import { recordStyleView } from "@/lib/data/styleAnalytics";
+import { isFavorite } from "@/lib/data/favorites";
 import { formatEUR } from "@/lib/pricing";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductCard } from "@/components/product/ProductCard";
 import { SizeChart } from "@/components/product/SizeChart";
+import { PrimaryPurchasePanel } from "@/components/product/PrimaryPurchasePanel";
+import { TrackRecentlyViewed } from "@/components/product/TrackRecentlyViewed";
+import { RecentlyViewedStrip } from "@/components/product/RecentlyViewedStrip";
 import { MatrixOrderGrid } from "@/components/matrix/MatrixOrderGrid";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -36,10 +40,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   ]);
   const relatedInventory = await getInventoryForStyles(related.map((s) => s.id));
   const priceMultiplier = account?.priceMultiplier ?? 1;
+  const favorited = account ? await isFavorite(account.id, style.id) : false;
   void recordStyleView(style.id, account?.id ?? null);
 
   return (
     <div className="mx-auto max-w-[1600px] px-6 py-8 lg:px-10">
+      <TrackRecentlyViewed styleId={style.id} />
       <nav className="mb-6 flex items-center gap-1.5 text-xs text-ink-soft">
         <Link href="/catalogue" className="hover:text-ink">Catalogue</Link>
         <span>/</span>
@@ -92,7 +98,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             {style.name}
           </h1>
           <p className="mt-2 max-w-xl text-base text-ink-soft">{style.tagline}</p>
-          <p className="mt-4 max-w-xl text-sm leading-relaxed text-ink-soft">{style.description}</p>
+
+          <div className="mt-5">
+            <PrimaryPurchasePanel
+              style={style}
+              inventory={inventory}
+              priceMultiplier={priceMultiplier}
+              initialFavorited={favorited}
+            />
+          </div>
+
+          <p className="mt-6 max-w-xl text-sm leading-relaxed text-ink-soft">{style.description}</p>
 
           <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-3 border-y border-stone-300 py-5 sm:grid-cols-3">
             <Spec label="Materials" value={style.materials.join(", ")} wide />
@@ -123,10 +139,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </div>
       </div>
 
-      <div className="mt-10">
-        <h2 className="font-display mb-3 text-lg font-bold uppercase tracking-tight text-ink">
-          Build Your Order
+      <div className="mt-14 border-t border-stone-300 pt-8">
+        <h2 className="font-display mb-1 text-lg font-bold uppercase tracking-tight text-ink">
+          Build a Full Box Order
         </h2>
+        <p className="mb-4 max-w-2xl text-sm text-ink-soft">
+          Advanced ordering — mix quantities across every colorway and box size for this style in one pass, useful
+          for a full seasonal buy. For a single quick purchase, use Add to Cart above.
+        </p>
         <MatrixOrderGrid style={style} inventory={inventory} priceMultiplier={priceMultiplier} />
       </div>
 
@@ -147,6 +167,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </div>
         </div>
       )}
+
+      <div className="mt-14 border-t border-stone-300 pt-8">
+        <RecentlyViewedStrip excludeStyleId={style.id} />
+      </div>
     </div>
   );
 }
