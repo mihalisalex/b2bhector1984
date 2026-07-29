@@ -25,9 +25,13 @@ export function ProductGallery({
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [zoom, setZoom] = useState<{ x: number; y: number } | null>(null);
   const mainButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const wasOpenRef = useRef(false);
+  const touchStartXRef = useRef<number | null>(null);
+  /** Set when a touch resolves as a swipe, so the trailing click doesn't also open the lightbox. */
+  const swipedRef = useRef(false);
 
   const hasMultipleColorways = (colorways?.length ?? 0) > 1;
   // The product page always wraps this in a ColorwaySelectionProvider.
@@ -78,6 +82,33 @@ export function ProductGallery({
     }
   }, [lightboxOpen]);
 
+  // Zoom is per-photo — carrying a zoom (and its origin) across a photo change or a
+  // close/reopen would land the next image arbitrarily cropped.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting a view-only affordance when the thing it applies to changes
+    setZoom(null);
+  }, [activeIndex, lightboxOpen]);
+
+  function goTo(delta: number) {
+    setActiveIndex((i) => (i + delta + visibleImages.length) % visibleImages.length);
+  }
+
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartXRef.current = e.changedTouches[0]?.clientX ?? null;
+    swipedRef.current = false;
+  }
+
+  /** Horizontal swipe changes photo; anything under the threshold stays a tap. */
+  function handleTouchEnd(e: React.TouchEvent) {
+    const start = touchStartXRef.current;
+    touchStartXRef.current = null;
+    if (start == null || visibleImages.length < 2) return;
+    const dx = (e.changedTouches[0]?.clientX ?? start) - start;
+    if (Math.abs(dx) < 40) return;
+    swipedRef.current = true;
+    goTo(dx < 0 ? 1 : -1);
+  }
+
   if (!active) return null;
 
   const selectedColorwayName = hasMultipleColorways ? colorways!.find((c) => c.id === colorwayId)?.name : undefined;
@@ -88,8 +119,17 @@ export function ProductGallery({
       <button
         ref={mainButtonRef}
         type="button"
-        onClick={() => setLightboxOpen(true)}
-        className="relative block aspect-[4/3] w-full overflow-hidden bg-stone-200"
+        onClick={() => {
+          if (swipedRef.current) {
+            swipedRef.current = false;
+            return;
+          }
+          setLightboxOpen(true);
+        }}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        aria-label={`${styleName} — photo ${activeIndex + 1} of ${visibleImages.length}. Open full screen.`}
+        className="relative block aspect-[4/3] w-full touch-pan-y overflow-hidden bg-stone-200"
       >
         <Image
           key={active.id}
@@ -183,16 +223,50 @@ export function ProductGallery({
             </>
           )}
 
+          {/* Click-to-zoom: origin follows the click point so the detail you aimed at is
+              what fills the frame. Click again (or change photo) to zoom back out. */}
           <div
-            className="relative h-[80vh] w-full max-w-4xl"
-            onClick={(e) => e.stopPropagation()}
+            className="relative h-[80vh] w-full max-w-4xl overflow-hidden"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (swipedRef.current) {
+                swipedRef.current = false;
+                return;
+              }
+              if (zoom) {
+                setZoom(null);
+                return;
+              }
+              const rect = e.currentTarget.getBoundingClientRect();
+              setZoom({
+                x: ((e.clientX - rect.left) / rect.width) * 100,
+                y: ((e.clientY - rect.top) / rect.height) * 100,
+              });
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            role="button"
+            tabIndex={0}
+            aria-label={zoom ? "Zoom out" : "Zoom in"}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setZoom((z) => (z ? null : { x: 50, y: 50 }));
+              }
+            }}
           >
             <Image
               src={active.publicUrl}
               alt={active.altText || styleName}
               fill
               sizes="90vw"
-              className="object-contain"
+              className={cn(
+                // `transition` (not `transition-transform`): Tailwind v4 emits zoom as the
+                // standalone `scale` property, which transform-only transitions don't cover.
+                "object-contain transition duration-200",
+                zoom ? "scale-[2.2] cursor-zoom-out" : "cursor-zoom-in",
+              )}
+              style={zoom ? { transformOrigin: `${zoom.x}% ${zoom.y}%` } : undefined}
             />
           </div>
         </div>
