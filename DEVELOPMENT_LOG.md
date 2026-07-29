@@ -6,14 +6,16 @@ diffs; this file is the narrative index.
 
 ## Pending Actions (need your credentials/approval — everything else proceeds without you)
 
-- **Run `supabase/migrations/0021_saved_assortment_lines.sql`** — adds
-  colorway/box-type/qty columns to `saved_assortment_styles` so a saved assortment can be
-  loaded straight into the cart with the exact quantities it was saved with (previously
-  it only remembered which styles were grouped). Everything degrades gracefully until
-  it's run: saving/loading an assortment still works exactly as before (style ids only,
-  no direct "Load into cart"), verified live end-to-end pre-migration on this session's
-  test data (see the Bugs Fixed/Features entries below). No other pending item changed —
-  Resend API key and admin-login live verification are still open, see below.
+- ~~**Run `supabase/migrations/0021_saved_assortment_lines.sql`**~~ — **DONE, confirmed
+  run by you 2026-07-29, and verified live end-to-end same day**: saved a real cart line
+  (Hector boat loafer, Blue, 1 box/10 pairs) as a new assortment, confirmed the new
+  `colorway_id`/`box_type_id`/`qty` columns populated correctly (not null, unlike every
+  pre-migration row), confirmed "Load into cart" now appears on `/dashboard/assortments`
+  for that assortment specifically (the two older pre-migration assortments correctly
+  still show the "saved before exact quantities were tracked" fallback, no button), then
+  cleared the cart, clicked Load into cart, and confirmed it restored exactly 1 box/10
+  pairs of Blue — the same quantity it was saved with. Cleaned up the test assortment and
+  cart line afterward. Saved Assortments now fully supports exact-quantity round-tripping.
 - ~~**CRITICAL: run `supabase/migrations/0020_fix_adjust_inventory_overload.sql`**~~ —
   **DONE, confirmed run by you 2026-07-29, and verified live end-to-end same day**: placed
   a real test order (`ORD-81068`, PO `PO-MIGRATION-VERIFY-01`, 8 boxes/80 pairs,
