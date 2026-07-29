@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { getAllStyles, CATEGORY_LABEL, GENDER_LABEL, SEASON_LABEL, getStyleImageUrl } from "@/lib/data/styles";
+import { getAllStyles, CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styles";
+import { getSeasonSettings, toSeasonOptions } from "@/lib/data/seasonSettings";
 import type { Category, Season } from "@/lib/types";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
@@ -12,7 +13,6 @@ export const metadata = {
 };
 
 const CATEGORIES: Category[] = ["loafers", "wedding", "sneakers", "sandals", "boots", "formal", "anatomic"];
-const SEASONS: Season[] = ["summer", "winter"];
 const SEASON_CATEGORIES: Record<Season, Category[]> = {
   summer: ["loafers", "wedding", "sneakers", "sandals"],
   winter: ["boots", "sneakers", "formal", "anatomic"],
@@ -24,13 +24,15 @@ export default async function CollectionsPage({
   searchParams: Promise<{ category?: string; season?: string }>;
 }) {
   const { category, season } = await searchParams;
-  const activeSeason = SEASONS.includes(season as Season) ? (season as Season) : null;
+  const [styles, seasonSettings] = await Promise.all([getAllStyles(), getSeasonSettings()]);
+  const seasonOptions = toSeasonOptions(seasonSettings);
+  const enabledSeasons = seasonOptions.map((s) => s.value);
+  const activeSeason = enabledSeasons.includes(season as Season) ? (season as Season) : null;
   const visibleCategories = activeSeason ? SEASON_CATEGORIES[activeSeason] : CATEGORIES;
   const activeCategory =
     CATEGORIES.includes(category as Category) && visibleCategories.includes(category as Category)
       ? (category as Category)
       : null;
-  const styles = await getAllStyles();
   const results = styles.filter(
     (s) => (!activeCategory || s.category === activeCategory) && (!activeSeason || s.season === activeSeason),
   );
@@ -49,7 +51,7 @@ export default async function CollectionsPage({
 
         <div className="mt-6 flex flex-wrap gap-2">
           <CategoryPill href="/collections" active={!activeSeason} label="All seasons" />
-          {SEASONS.map((s) => {
+          {seasonOptions.map(({ value: s, label }) => {
             // Dropping category when it isn't part of the target season keeps the
             // category pills (and results) from silently going stale/empty.
             const keepCategory = activeCategory && SEASON_CATEGORIES[s].includes(activeCategory);
@@ -58,7 +60,7 @@ export default async function CollectionsPage({
                 key={s}
                 href={`/collections?season=${s}${keepCategory ? `&category=${activeCategory}` : ""}`}
                 active={activeSeason === s}
-                label={SEASON_LABEL[s]}
+                label={label}
               />
             );
           })}

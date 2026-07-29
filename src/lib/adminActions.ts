@@ -15,6 +15,7 @@ import {
 import { createSalesRep, updateSalesRep, deleteSalesRep } from "@/lib/data/salesReps";
 import { logAudit } from "@/lib/data/auditLog";
 import { updateHomepageHero, createHeroImageUploadTarget, finalizeHeroImageUpload } from "@/lib/data/siteContent";
+import { updateSeasonSettings } from "@/lib/data/seasonSettings";
 import {
   updateOrderStatus as updateOrderStatusInDb,
   updateOrderDetails as updateOrderDetailsInDb,
@@ -338,6 +339,25 @@ export async function updateHomepageHeroAction(formData: FormData) {
   });
   revalidatePath("/admin/content");
   revalidatePath("/");
+}
+
+export async function updateSeasonSettingsAction(formData: FormData) {
+  await requireAdmin();
+  await updateSeasonSettings({
+    summer: {
+      enabled: formData.get("summerEnabled") === "on",
+      label: String(formData.get("summerLabel") ?? "").trim() || "Summer",
+    },
+    winter: {
+      enabled: formData.get("winterEnabled") === "on",
+      label: String(formData.get("winterLabel") ?? "").trim() || "Winter",
+    },
+  });
+  revalidatePath("/admin/seasons");
+  revalidatePath("/");
+  revalidatePath("/catalogue");
+  revalidatePath("/collections");
+  revalidatePath("/quick-order");
 }
 
 export async function createHeroImageUploadUrlAction(fileName: string): Promise<UploadTarget> {

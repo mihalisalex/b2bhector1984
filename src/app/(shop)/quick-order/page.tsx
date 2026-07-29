@@ -4,6 +4,7 @@ import { filterStyles, parseFilters } from "@/lib/catalogFilters";
 import { isSortKey, sortStyles } from "@/lib/catalogSort";
 import { getInventoryForStyles } from "@/lib/data/inventory";
 import { getCurrentAccount } from "@/lib/session";
+import { getSeasonSettings, toSeasonOptions } from "@/lib/data/seasonSettings";
 import { CatalogFilters } from "@/components/catalog/CatalogFilters";
 import { LinesheetToolbar } from "@/components/catalog/LinesheetToolbar";
 import { OrderableLinesheet } from "@/components/catalog/OrderableLinesheet";
@@ -16,7 +17,8 @@ export default async function QuickOrderPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const sp = await searchParams;
-  const styles = await getAllStyles();
+  const [styles, seasonSettings] = await Promise.all([getAllStyles(), getSeasonSettings()]);
+  const seasonOptions = toSeasonOptions(seasonSettings);
   const filters = parseFilters(sp);
   const matchedIds = filters.q ? await searchStyleIds(filters.q) : undefined;
   const sortParam = typeof sp.sort === "string" ? sp.sort : "newest";
@@ -44,7 +46,7 @@ export default async function QuickOrderPage({
       <div className="flex flex-col gap-8 lg:flex-row">
         <div className="print:hidden">
           <Suspense fallback={null}>
-            <CatalogFilters resultCount={results.length} showViewToggle={false} />
+            <CatalogFilters resultCount={results.length} showViewToggle={false} seasonOptions={seasonOptions} />
           </Suspense>
         </div>
 

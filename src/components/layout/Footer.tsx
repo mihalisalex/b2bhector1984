@@ -18,7 +18,7 @@ export function Footer() {
             links={[
               { href: "/apply", label: "Apply for access" },
               { href: "/login", label: "Buyer login" },
-              { href: "/collections", label: "Collections" },
+              { href: "/catalogue", label: "Catalogue" },
             ]}
           />
           <FooterCol

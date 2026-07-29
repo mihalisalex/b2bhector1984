@@ -13,7 +13,7 @@ import { useFocusTrap } from "@/lib/useFocusTrap";
 const LINKS = [
   { href: "/", label: "Home" },
   { href: "/quick-order", label: "Quick Order" },
-  { href: "/collections", label: "Collections" },
+  { href: "/catalogue", label: "Catalogue" },
   { href: "/brand-story", label: "The Brand" },
   { href: "/faq", label: "FAQ" },
   { href: "/contact", label: "Contact" },
@@ -135,9 +135,6 @@ export function MainNav({ account }: { account: Account | null }) {
                     <Link href="/dashboard/account" className="group">
                       <p className="text-sm font-semibold text-ink group-hover:text-signal">{account.contactName}</p>
                       <p className="text-xs text-ink-soft">{account.businessName}</p>
-                    </Link>
-                    <Link href="/catalogue" className="text-sm font-medium text-ink-soft hover:text-ink">
-                      Catalogue
                     </Link>
                     <Link href="/dashboard" className="text-sm font-medium text-ink-soft hover:text-ink">
                       Dashboard

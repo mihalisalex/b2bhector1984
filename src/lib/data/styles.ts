@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { fromDbId, toNumber } from "@/lib/data/dbIds";
+import { getEnabledSeasons } from "@/lib/data/seasonSettings";
 import type { BoxTypeId, Colorway, ProductStatus, Style } from "@/lib/types";
 
 interface StyleRow {
@@ -244,9 +245,13 @@ async function fetchStyles(styleRows: StyleRow[]): Promise<Style[]> {
  * instead of re-querying the DB once per caller.
  */
 export const getAllStyles = cache(async (): Promise<Style[]> => {
-  const { data, error } = await supabaseAdmin.from("styles").select("*").order("id");
+  const [{ data, error }, enabledSeasons] = await Promise.all([
+    supabaseAdmin.from("styles").select("*").order("id"),
+    getEnabledSeasons(),
+  ]);
   if (error) throw new Error(`styles: ${error.message}`);
-  return fetchStyles(data ?? []);
+  const visible = (data ?? []).filter((row) => enabledSeasons.has(row.season));
+  return fetchStyles(visible);
 });
 
 export const getStyleBySlug = cache(async (slug: string): Promise<Style | undefined> => {

@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getAllStyles, CATEGORY_LABEL, SEASON_LABEL, getStyleImageUrl } from "@/lib/data/styles";
+import { getAllStyles, CATEGORY_LABEL, getStyleImageUrl } from "@/lib/data/styles";
 import { getHomepageHero } from "@/lib/data/siteContent";
+import { getSeasonSettings, toSeasonOptions } from "@/lib/data/seasonSettings";
 import type { Category, Season } from "@/lib/types";
 import { LinkButton } from "@/components/ui/Button";
 import { StylePlate } from "@/components/product/StylePlate";
@@ -12,7 +13,8 @@ const SEASON_CATEGORIES: Record<Season, Category[]> = {
 };
 
 export default async function HomePage() {
-  const [styles, hero] = await Promise.all([getAllStyles(), getHomepageHero()]);
+  const [styles, hero, seasonSettings] = await Promise.all([getAllStyles(), getHomepageHero(), getSeasonSettings()]);
+  const seasonOptions = toSeasonOptions(seasonSettings);
   const headingLines = hero.heading.split("\n");
 
   return (
@@ -96,7 +98,7 @@ export default async function HomePage() {
         </div>
 
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
-          {(Object.keys(SEASON_CATEGORIES) as Season[]).map((season, index) => {
+          {seasonOptions.map(({ value: season, label }, index) => {
             const seasonStyles = styles.filter((s) => s.season === season);
             const rep = seasonStyles[0];
             if (!rep) return null;
@@ -120,7 +122,7 @@ export default async function HomePage() {
                 />
                 <div className="absolute inset-x-0 bottom-0 p-6">
                   <h3 className="font-display text-2xl font-bold uppercase tracking-tight text-white group-hover:underline">
-                    {SEASON_LABEL[season]}
+                    {label}
                   </h3>
                   <p className="mt-1 text-xs uppercase tracking-wide text-stone-300/80">
                     {seasonStyles.length} styles · {SEASON_CATEGORIES[season].map((c) => CATEGORY_LABEL[c]).join(", ")}

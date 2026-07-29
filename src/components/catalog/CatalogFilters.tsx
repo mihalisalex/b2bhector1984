@@ -6,7 +6,7 @@ import { COLOR_FAMILIES, PRICE_BANDS } from "@/lib/catalogFilters";
 import { SORT_OPTIONS } from "@/lib/catalogSort";
 import { cn } from "@/lib/cn";
 
-const SEASON_OPTIONS = [
+const DEFAULT_SEASON_OPTIONS = [
   { value: "summer", label: "Summer" },
   { value: "winter", label: "Winter" },
 ];
@@ -40,10 +40,13 @@ const AVAILABILITY_OPTIONS = [
 export function CatalogFilters({
   resultCount,
   showViewToggle = true,
+  seasonOptions = DEFAULT_SEASON_OPTIONS,
 }: {
   resultCount: number;
   /** Grid/List view toggle only makes sense on the catalogue's card layout, not the quick-order linesheet. */
   showViewToggle?: boolean;
+  /** Enabled seasons with their admin-configured display labels; omit to fall back to the stock Summer/Winter pair. */
+  seasonOptions?: { value: string; label: string }[];
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -190,11 +193,13 @@ export function CatalogFilters({
       </div>
 
       <div className={cn("mt-4 flex-col gap-6 lg:mt-6 lg:flex", open ? "flex" : "hidden")}>
-        <FilterGroup title="Season">
-          {SEASON_OPTIONS.map((opt) => (
-            <Checkbox key={opt.value} label={opt.label} checked={isChecked("season", opt.value)} onChange={() => toggleSeason(opt.value)} />
-          ))}
-        </FilterGroup>
+        {seasonOptions.length > 0 && (
+          <FilterGroup title="Season">
+            {seasonOptions.map((opt) => (
+              <Checkbox key={opt.value} label={opt.label} checked={isChecked("season", opt.value)} onChange={() => toggleSeason(opt.value)} />
+            ))}
+          </FilterGroup>
+        )}
 
         <FilterGroup title="Category">
           {visibleCategoryOptions.map((opt) => (
