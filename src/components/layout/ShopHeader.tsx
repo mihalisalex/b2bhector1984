@@ -5,26 +5,25 @@ import { MainNav } from "@/components/layout/MainNav";
 import { CartBadge } from "@/components/layout/CartBadge";
 import { HWatermark } from "@/components/layout/HWatermark";
 import { SearchOverlay } from "@/components/layout/SearchOverlay";
+import { AccountIcon } from "@/components/layout/icons";
 
 export function ShopHeader({ account }: { account: Account }) {
   return (
     <header className="sticky top-0 z-40 overflow-hidden border-b border-stone-300 bg-stone-50/97 backdrop-blur print:hidden">
       <HWatermark className="-top-16 right-6 text-[13rem] text-ink/[0.1]" />
-      <div className="relative mx-auto flex h-(--shell-header-h) max-w-[1600px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-10">
-        <div className="flex items-center gap-4">
+      <div className="relative mx-auto grid h-(--shell-header-h) max-w-[1600px] grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 sm:px-6 lg:px-10">
+        <div className="flex items-center">
           <MainNav account={account} />
-          <Link href="/dashboard" aria-label="Hector 1984 wholesale home">
-            <Logo />
-          </Link>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
+        <Link href="/dashboard" aria-label="Hector 1984 wholesale home" className="flex items-center justify-center">
+          <Logo />
+        </Link>
+
+        <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
           <SearchOverlay />
-          <Link
-            href="/dashboard/account"
-            className="hidden items-center gap-2 border border-stone-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-ink transition-colors hover:border-ink sm:flex"
-          >
-            Account
+          <Link href="/dashboard/account" aria-label="Account" className="flex h-9 w-9 items-center justify-center text-ink transition-colors hover:text-signal">
+            <AccountIcon />
           </Link>
           <CartBadge />
         </div>

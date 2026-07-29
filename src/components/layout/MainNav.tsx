@@ -55,11 +55,11 @@ export function MainNav({ account }: { account: Account | null }) {
         onClick={() => setOpen(true)}
         aria-label="Open menu"
         aria-expanded={open}
-        className="flex h-9 w-9 shrink-0 flex-col items-center justify-center gap-[5px] border border-stone-300 hover:border-ink"
+        className="group flex h-9 w-9 shrink-0 flex-col items-center justify-center gap-[6px]"
       >
-        <span className="h-[1.5px] w-4 bg-ink" aria-hidden />
-        <span className="h-[1.5px] w-4 bg-ink" aria-hidden />
-        <span className="h-[1.5px] w-4 bg-ink" aria-hidden />
+        <span className="h-[1.5px] w-5 bg-ink transition-colors group-hover:bg-signal" aria-hidden />
+        <span className="h-[1.5px] w-5 bg-ink transition-colors group-hover:bg-signal" aria-hidden />
+        <span className="h-[1.5px] w-5 bg-ink transition-colors group-hover:bg-signal" aria-hidden />
       </button>
 
       {mounted &&

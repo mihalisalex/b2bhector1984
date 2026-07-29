@@ -2,16 +2,25 @@
 
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
+import { CartIcon } from "@/components/layout/icons";
 
 export function CartBadge() {
   const { itemCount } = useCart();
   return (
     <Link
       href="/cart"
-      className="relative flex items-center gap-2 border border-ink px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-ink transition-colors hover:bg-ink hover:text-white"
+      aria-label={`Cart, ${itemCount} pair${itemCount === 1 ? "" : "s"}`}
+      className="relative flex h-9 w-9 items-center justify-center text-ink transition-colors hover:text-signal"
     >
-      Cart
-      <span className="font-mono-tab min-w-[1.25rem] text-center">{itemCount}</span>
+      <CartIcon />
+      {itemCount > 0 && (
+        <span
+          aria-hidden
+          className="font-mono-tab absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-ink px-0.5 text-[10px] leading-none text-white"
+        >
+          {itemCount > 99 ? "99+" : itemCount}
+        </span>
+      )}
     </Link>
   );
 }

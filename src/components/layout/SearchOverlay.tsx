@@ -143,7 +143,7 @@ export function SearchOverlay() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Search products"
-        className="flex h-9 w-9 items-center justify-center border border-stone-300 text-ink hover:border-ink"
+        className="flex h-9 w-9 items-center justify-center text-ink transition-colors hover:text-signal"
       >
         <SearchIcon />
       </button>
@@ -306,7 +306,7 @@ export function SearchOverlay() {
 
 function SearchIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className={cn("h-4 w-4", className)} fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
+    <svg viewBox="0 0 24 24" className={cn("h-5 w-5", className)} fill="none" stroke="currentColor" strokeWidth={1.6} aria-hidden>
       <circle cx="11" cy="11" r="7" />
       <path strokeLinecap="round" d="m21 21-4.3-4.3" />
     </svg>
