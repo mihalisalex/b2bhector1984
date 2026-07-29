@@ -2,6 +2,7 @@ import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { getAllStyles } from "@/lib/data/styles";
 import { createBrand, getAllBrands } from "@/lib/data/brands";
+import { sanitizeProductDescription } from "@/lib/sanitizeHtml";
 import type { Category, Gender, Season } from "@/lib/types";
 
 const CATEGORIES: Category[] = ["loafers", "wedding", "sneakers", "sandals", "boots", "formal", "anatomic"];
@@ -92,7 +93,7 @@ export async function importProductRows(rows: ImportRow[]): Promise<ImportRowRes
         if (row.season) update.season = row.season;
         if (row.gender) update.gender = row.gender;
         if (row.tagline) update.tagline = row.tagline;
-        if (row.description) update.description = row.description;
+        if (row.description) update.description = sanitizeProductDescription(row.description);
         if (basePrice != null) update.base_price = basePrice;
         if (msrp != null) update.msrp = msrp;
         if (costPrice != null) update.cost_price = costPrice;
@@ -114,7 +115,7 @@ export async function importProductRows(rows: ImportRow[]): Promise<ImportRowRes
           gender: row.gender || "unisex",
           availability: "available",
           tagline: row.tagline || "",
-          description: row.description || "",
+          description: row.description ? sanitizeProductDescription(row.description) : "",
           materials: [],
           base_price: basePrice ?? 0,
           msrp: msrp ?? 0,

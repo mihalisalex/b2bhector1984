@@ -37,7 +37,7 @@ export function OrderLineRow({
             type="number"
             min={1}
             defaultValue={qty}
-            onChange={(e) => e.currentTarget.form?.requestSubmit()}
+            onBlur={(e) => e.currentTarget.form?.requestSubmit()}
             className="font-mono-tab w-16 border border-stone-300 bg-white px-2 py-1 text-right text-sm tabular-nums outline-none focus-visible:border-signal"
           />
         </form>

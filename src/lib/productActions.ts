@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
 import { logAudit } from "@/lib/data/auditLog";
 import { hasPermission } from "@/lib/data/permissions";
+import { sanitizeProductDescription } from "@/lib/sanitizeHtml";
 import {
   updateStyleGeneral,
   updateStylePricing,
@@ -123,7 +124,7 @@ export async function updateGeneralAction(styleId: string, _prev: FormState, for
   const input: GeneralInput = {
     name: String(formData.get("name") ?? "").trim(),
     tagline: String(formData.get("tagline") ?? "").trim(),
-    description: String(formData.get("description") ?? ""),
+    description: sanitizeProductDescription(String(formData.get("description") ?? "")),
     productType: String(formData.get("productType") ?? "Footwear").trim(),
     brandId: String(formData.get("brandId") ?? "hector-1984"),
     supplierId: String(formData.get("supplierId") ?? "").trim() || undefined,
@@ -845,6 +846,10 @@ export async function importProductRowsAction(rows: ImportRow[]): Promise<Import
 export async function setPermissionAction(role: AdminRole, permissionKey: ProductPermissionKey, formData: FormData) {
   const admin = await requirePermission("products.permissions");
   const allowed = formData.get("allowed") === "true";
+  // Refuse to let a non-super_admin revoke products.permissions from their
+  // own role — that would lock out every account in that role, including
+  // themselves, on their very next admin action.
+  if (!allowed && permissionKey === "products.permissions" && role === admin.adminRole) return;
   await runBestEffort("setPermissionAction", () => setPermission(role, permissionKey, allowed));
   await logAudit(admin.id, "permissions.updated", "role", role, `${permissionKey} -> ${allowed}`);
   revalidatePath("/admin/permissions");

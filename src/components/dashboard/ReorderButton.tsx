@@ -6,7 +6,7 @@ import { useCart } from "@/lib/cart-context";
 import type { BoxTypeId, Order } from "@/lib/types";
 
 export function ReorderButton({ order, className }: { order: Order; className?: string }) {
-  const { addLines } = useCart();
+  const { addLines, lines } = useCart();
   const router = useRouter();
   const [done, setDone] = useState(false);
 
@@ -14,7 +14,14 @@ export function ReorderButton({ order, className }: { order: Order; className?: 
     const byStyle = new Map<string, { colorwayId: string; boxTypeId: BoxTypeId; qty: number }[]>();
     for (const line of order.lines) {
       if (!byStyle.has(line.styleId)) byStyle.set(line.styleId, []);
-      byStyle.get(line.styleId)!.push({ colorwayId: line.colorwayId, boxTypeId: line.boxTypeId, qty: line.qty });
+      // Add to whatever's already in the cart for this exact colorway/box
+      // rather than overwriting it — addLines sets an absolute quantity, so a
+      // buyer who already has some of this combo in their cart from browsing
+      // would otherwise have it silently replaced by the reorder's quantity.
+      const existingQty = lines.find(
+        (l) => l.styleId === line.styleId && l.colorwayId === line.colorwayId && l.boxTypeId === line.boxTypeId,
+      )?.qty ?? 0;
+      byStyle.get(line.styleId)!.push({ colorwayId: line.colorwayId, boxTypeId: line.boxTypeId, qty: existingQty + line.qty });
     }
     for (const [styleId, entries] of byStyle.entries()) addLines(styleId, entries);
     setDone(true);

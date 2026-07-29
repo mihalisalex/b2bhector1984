@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { formatEUR } from "@/lib/pricing";
@@ -58,6 +58,18 @@ export function ProductsBrowser({
   const [bulkTag, setBulkTag] = useState("");
   const [isPending, startTransition] = useTransition();
   const showResult = useToastResult();
+
+  // Drop any selected id no longer in the current (filtered/paginated) list —
+  // otherwise a bulk action after changing filters/pages can silently act on
+  // off-screen rows the admin can no longer see.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing selection to the current external item list, not derived render state
+    setSelected((prev) => {
+      const visibleIds = new Set(items.map((i) => i.id));
+      const next = new Set([...prev].filter((id) => visibleIds.has(id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [items]);
 
   const allSelected = items.length > 0 && items.every((i) => selected.has(i.id));
 

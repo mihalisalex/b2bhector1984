@@ -76,12 +76,20 @@ export async function getApplicationById(id: string): Promise<Application | unde
   return row ? mapApplication(row) : undefined;
 }
 
-export async function updateApplicationStatus(id: string, status: ApplicationStatus): Promise<void> {
-  const { error } = await supabaseAdmin
+/**
+ * Only transitions an application still in "pending" — guards against two
+ * admins racing (e.g. one declines, a stale tab then tries to approve the
+ * same application after the fact). Returns whether it actually changed.
+ */
+export async function updateApplicationStatus(id: string, status: ApplicationStatus): Promise<{ changed: boolean }> {
+  const { data, error } = await supabaseAdmin
     .from("applications")
     .update({ status, reviewed_at: new Date().toISOString() })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("status", "pending")
+    .select("id");
   if (error) throw new Error(`applications: ${error.message}`);
+  return { changed: (data?.length ?? 0) > 0 };
 }
 
 export async function listApplications(status?: ApplicationStatus): Promise<Application[]> {

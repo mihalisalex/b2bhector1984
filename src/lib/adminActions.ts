@@ -123,6 +123,7 @@ export async function updateOrderDetailsAction(
   await logAudit(admin.id, "order.details_updated", "order", orderId);
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath("/admin");
+  revalidatePath(`/dashboard/orders/${orderId}`);
   return { success: "Order updated." };
 }
 
@@ -136,30 +137,37 @@ export async function updateOrderLineQtyAction(orderId: string, formData: FormDa
   await logAudit(admin.id, "order.line_qty_updated", "order", orderId, `line ${lineId} → qty ${Math.round(qty)}`);
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath("/admin");
+  revalidatePath(`/dashboard/orders/${orderId}`);
 }
 
 /** Bound to `.bind(null, orderId, lineId)` — a <form action> per line row's remove button. */
 export async function deleteOrderLineAction(orderId: string, lineId: string) {
   const admin = await requireAdmin();
-  await deleteOrderLineInDb(lineId);
+  const result = await deleteOrderLineInDb(lineId);
+  if (result.error) return; // last remaining line — refused, nothing to revalidate
   await logAudit(admin.id, "order.line_deleted", "order", orderId, `line ${lineId}`);
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath("/admin");
+  revalidatePath(`/dashboard/orders/${orderId}`);
 }
 
 export async function approveApplication(applicationId: string) {
   const admin = await requireAdmin();
-  await updateApplicationStatus(applicationId, "approved");
-  await logAudit(admin.id, "application.approved", "application", applicationId);
-  await notifyApplicationDecision(applicationId, "approved");
+  const { changed } = await updateApplicationStatus(applicationId, "approved");
+  if (changed) {
+    await logAudit(admin.id, "application.approved", "application", applicationId);
+    await notifyApplicationDecision(applicationId, "approved");
+  }
   revalidatePath("/admin/applications");
 }
 
 export async function declineApplication(applicationId: string) {
   const admin = await requireAdmin();
-  await updateApplicationStatus(applicationId, "declined");
-  await logAudit(admin.id, "application.declined", "application", applicationId);
-  await notifyApplicationDecision(applicationId, "declined");
+  const { changed } = await updateApplicationStatus(applicationId, "declined");
+  if (changed) {
+    await logAudit(admin.id, "application.declined", "application", applicationId);
+    await notifyApplicationDecision(applicationId, "declined");
+  }
   revalidatePath("/admin/applications");
 }
 
@@ -186,7 +194,8 @@ export async function bulkUpdateOrderStatus(orderIds: string[], status: OrderSta
 export async function bulkApproveApplications(applicationIds: string[]): Promise<FormState> {
   const admin = await requireAdmin();
   for (const applicationId of applicationIds) {
-    await updateApplicationStatus(applicationId, "approved");
+    const { changed } = await updateApplicationStatus(applicationId, "approved");
+    if (!changed) continue;
     await logAudit(admin.id, "application.approved", "application", applicationId);
     await notifyApplicationDecision(applicationId, "approved");
   }
@@ -232,7 +241,7 @@ export async function updateInventoryLevelAction(styleId: string, formData: Form
 export async function updateAccountPriceMultiplierAction(accountId: string, formData: FormData) {
   const admin = await requireAdmin();
   const priceMultiplier = Number(formData.get("priceMultiplier") ?? 1);
-  if (!Number.isFinite(priceMultiplier) || priceMultiplier <= 0) return;
+  if (!Number.isFinite(priceMultiplier) || priceMultiplier <= 0 || priceMultiplier > 5) return;
   await updateAccountPriceMultiplier(accountId, priceMultiplier);
   await logAudit(admin.id, "account.price_multiplier_updated", "account", accountId, String(priceMultiplier));
   revalidatePath("/admin/accounts");
@@ -254,7 +263,7 @@ export async function updateAccountCreditTermsAction(accountId: string, formData
 export async function updateAccountCreditLimitAction(accountId: string, formData: FormData) {
   const admin = await requireAdmin();
   const creditLimit = Number(formData.get("creditLimit") ?? 0);
-  if (!Number.isFinite(creditLimit) || creditLimit < 0) return;
+  if (!Number.isFinite(creditLimit) || creditLimit < 0 || creditLimit > 10_000_000) return;
   await updateAccountCreditLimit(accountId, creditLimit);
   await logAudit(admin.id, "account.credit_limit_updated", "account", accountId, String(creditLimit));
   revalidatePath("/admin/accounts");

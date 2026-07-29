@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { bulkUpdateOrderStatus } from "@/lib/adminActions";
 import { formatEUR, summarizeOrder } from "@/lib/pricing";
@@ -24,6 +24,18 @@ export function AdminOrdersTable({ orders }: { orders: AdminOrder[] }) {
   const [bulkStatus, setBulkStatus] = useState<OrderStatus>("confirmed");
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  // Drop any selected id that's no longer in the current (filtered/searched)
+  // order list — otherwise a bulk action after narrowing the filter can act
+  // on rows that are no longer visible on screen.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing selection to the current external order list, not derived render state
+    setSelected((prev) => {
+      const visibleIds = new Set(orders.map((o) => o.id));
+      const next = new Set([...prev].filter((id) => visibleIds.has(id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [orders]);
 
   const allSelected = orders.length > 0 && orders.every((o) => selected.has(o.id));
 

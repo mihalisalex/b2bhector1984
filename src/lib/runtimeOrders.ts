@@ -233,7 +233,25 @@ export async function updateOrderLineQty(lineId: string, qty: number): Promise<v
   if (error) throw new Error(`order_lines: ${error.message}`);
 }
 
-export async function deleteOrderLine(lineId: string): Promise<void> {
+/** Refuses to delete an order's last remaining line — an order needs at least one. */
+export async function deleteOrderLine(lineId: string): Promise<{ error?: string }> {
+  const { data: lineRow, error: lineError } = await supabaseAdmin
+    .from("order_lines")
+    .select("order_id")
+    .eq("id", lineId)
+    .limit(1);
+  if (lineError) throw new Error(`order_lines: ${lineError.message}`);
+  const orderId = lineRow?.[0]?.order_id;
+  if (!orderId) return {};
+
+  const { count, error: countError } = await supabaseAdmin
+    .from("order_lines")
+    .select("id", { count: "exact", head: true })
+    .eq("order_id", orderId);
+  if (countError) throw new Error(`order_lines: ${countError.message}`);
+  if ((count ?? 0) <= 1) return { error: "An order needs at least one line item." };
+
   const { error } = await supabaseAdmin.from("order_lines").delete().eq("id", lineId);
   if (error) throw new Error(`order_lines: ${error.message}`);
+  return {};
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { Brand, Supplier } from "@/lib/types";
 
@@ -43,6 +44,8 @@ export function ProductFilterBar({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [searchValue, setSearchValue] = useState(searchParams.get("q") ?? "");
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const setParam = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -52,13 +55,21 @@ export function ProductFilterBar({
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
+  // Debounced so every keystroke doesn't trigger a full product-list refetch —
+  // matches the same pattern already used on the buyer-facing catalogue filters.
+  function handleSearchChange(value: string) {
+    setSearchValue(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setParam("q", value), 300);
+  }
+
   return (
     <div className="mt-6 space-y-3">
       <div className="flex flex-wrap items-center gap-3">
         <input
           type="search"
-          defaultValue={searchParams.get("q") ?? ""}
-          onChange={(e) => setParam("q", e.target.value)}
+          value={searchValue}
+          onChange={(e) => handleSearchChange(e.target.value)}
           placeholder="Search name, SKU, or style number"
           className="w-full max-w-xs border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal"
           aria-label="Search products"

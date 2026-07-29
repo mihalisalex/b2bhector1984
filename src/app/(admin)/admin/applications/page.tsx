@@ -2,6 +2,8 @@ import { listApplications } from "@/lib/data/applications";
 import { AdminApplicationsList } from "@/components/admin/AdminApplicationsList";
 import { ApplicationsCsvExportButton } from "@/components/admin/ApplicationsCsvExportButton";
 
+export const metadata = { title: "Applications" };
+
 export default async function AdminApplicationsPage() {
   const applications = await listApplications();
 

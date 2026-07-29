@@ -33,7 +33,7 @@ export default async function AdminOrdersPage({
         <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink">
           Orders
         </h1>
-        <OrdersCsvExportButton orders={allOrders} />
+        <OrdersCsvExportButton orders={orders} />
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">

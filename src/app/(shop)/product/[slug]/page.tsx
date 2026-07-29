@@ -108,7 +108,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             />
           </div>
 
-          <p className="mt-6 max-w-xl text-sm leading-relaxed text-ink-soft">{style.description}</p>
+          {/* description is sanitized server-side on write (sanitizeProductDescription) to a
+              fixed tag allowlist matching exactly what the admin rich-text editor can produce. */}
+          <div
+            className="prose mt-6 max-w-xl text-sm leading-relaxed text-ink-soft [&_h2]:font-display [&_h2]:text-base [&_h2]:font-bold [&_h2]:uppercase [&_h2]:text-ink [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_a]:text-signal [&_a]:underline"
+            dangerouslySetInnerHTML={{ __html: style.description }}
+          />
 
           <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-3 border-y border-stone-300 py-5 sm:grid-cols-3">
             <Spec label="Materials" value={style.materials.join(", ")} wide />

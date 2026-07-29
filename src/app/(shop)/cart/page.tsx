@@ -81,7 +81,63 @@ export default function CartPage() {
                 </button>
               </div>
 
-              <div className="scroll-thin overflow-x-auto">
+              {/* Mobile/tablet: one stacked row per line, full-width controls — no
+                  horizontal scroll needed to reach the stepper or remove button. */}
+              <div className="flex flex-col divide-y divide-stone-100 lg:hidden">
+                {styleLines.map((l) => {
+                  const colorway = style.colorways.find((c) => c.id === l.colorwayId);
+                  const box = getBoxType(l.boxTypeId);
+                  return (
+                    <div key={`${l.colorwayId}-${l.boxTypeId}`} className="flex items-center justify-between gap-3 px-4 py-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-ink">{colorway?.name ?? l.colorwayId}</p>
+                        <p className="font-mono-tab text-xs text-ink-soft">
+                          {box.label} · {l.qty * box.totalPairs} pairs
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center border border-stone-300">
+                        <button
+                          type="button"
+                          aria-label="Decrease quantity"
+                          onClick={() => setLineQty(styleId, l.colorwayId, l.boxTypeId, Math.max(0, l.qty - 1))}
+                          className="flex h-9 w-9 items-center justify-center text-ink hover:bg-stone-100"
+                        >
+                          −
+                        </button>
+                        <input
+                          type="number"
+                          min={0}
+                          value={l.qty}
+                          onChange={(e) =>
+                            setLineQty(styleId, l.colorwayId, l.boxTypeId, Number(e.target.value) || 0)
+                          }
+                          aria-label={`${colorway?.name ?? "Colorway"} ${box.label} quantity`}
+                          className="font-mono-tab w-12 border-x border-stone-300 bg-white px-1 py-1 text-center text-sm outline-none focus-visible:border-signal"
+                        />
+                        <button
+                          type="button"
+                          aria-label="Increase quantity"
+                          onClick={() => setLineQty(styleId, l.colorwayId, l.boxTypeId, l.qty + 1)}
+                          className="flex h-9 w-9 items-center justify-center text-ink hover:bg-stone-100"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setLineQty(styleId, l.colorwayId, l.boxTypeId, 0)}
+                        aria-label={`Remove ${colorway?.name ?? "line"} from cart`}
+                        className="shrink-0 px-1 text-ink-soft hover:text-ember"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop: full table. */}
+              <div className="scroll-thin hidden overflow-x-auto lg:block">
                 <table className="w-full min-w-[480px] border-collapse text-sm">
                   <thead>
                     <tr className="border-b border-stone-200 text-left text-[11px] uppercase tracking-wide text-ink-soft">

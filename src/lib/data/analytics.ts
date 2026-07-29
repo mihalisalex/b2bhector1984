@@ -52,7 +52,16 @@ export async function getAnalyticsSummary(): Promise<AnalyticsSummary> {
   const revenueByStyle = new Map<string, number>();
   for (const order of orders) {
     for (const line of order.lines) {
-      const pairs = line.qty * getBoxType(line.boxTypeId).totalPairs;
+      // Skip rather than crash the whole dashboard on a stale/invalid box
+      // type from old data — this box-type enum is constrained today, but
+      // analytics shouldn't 500 over one bad historical row either way.
+      let totalPairs: number;
+      try {
+        totalPairs = getBoxType(line.boxTypeId).totalPairs;
+      } catch {
+        continue;
+      }
+      const pairs = line.qty * totalPairs;
       pairsByStyle.set(line.styleId, (pairsByStyle.get(line.styleId) ?? 0) + pairs);
       revenueByStyle.set(line.styleId, (revenueByStyle.get(line.styleId) ?? 0) + pairs * line.unitPrice);
     }
