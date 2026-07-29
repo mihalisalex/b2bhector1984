@@ -6,6 +6,14 @@ diffs; this file is the narrative index.
 
 ## Pending Actions (need your credentials/approval — everything else proceeds without you)
 
+- **Run `supabase/migrations/0021_saved_assortment_lines.sql`** — adds
+  colorway/box-type/qty columns to `saved_assortment_styles` so a saved assortment can be
+  loaded straight into the cart with the exact quantities it was saved with (previously
+  it only remembered which styles were grouped). Everything degrades gracefully until
+  it's run: saving/loading an assortment still works exactly as before (style ids only,
+  no direct "Load into cart"), verified live end-to-end pre-migration on this session's
+  test data (see the Bugs Fixed/Features entries below). No other pending item changed —
+  Resend API key and admin-login live verification are still open, see below.
 - ~~**CRITICAL: run `supabase/migrations/0020_fix_adjust_inventory_overload.sql`**~~ —
   **DONE, confirmed run by you 2026-07-29, and verified live end-to-end same day**: placed
   a real test order (`ORD-81068`, PO `PO-MIGRATION-VERIFY-01`, 8 boxes/80 pairs,
@@ -32,6 +40,72 @@ diffs; this file is the narrative index.
   until then, same as every other transactional email in this app.
 
 ## Completed
+
+- **2026-07-29** — Cleared the full "Remaining Work" backlog from the previous audit
+  pass in one session (user: "do them all... accept everything"):
+  - **Silent-failure pattern fixed across all 7 admin Product-editor tabs** (Variants,
+    Inventory stock cells, Media alt-text/featured/delete, Documents delete, Attributes,
+    Related, Pricing customer-group rows) plus the Visibility tab (same bug — a hardcoded
+    "Visibility saved." toast fired regardless of whether the save actually succeeded)
+    and the 4 admin Accounts row inputs (`PriceMultiplierInput`/`CreditLimitInput`/
+    `CreditTermsSelect`/`RepSelect`, which previously rejected out-of-range values with
+    zero feedback). Every mutation in `productActions.ts`/`adminActions.ts` that used to
+    call `runBestEffort` (log-and-swallow) now returns a real `FormState` via
+    `runOrError`, wired through `useActionState` + a visible toast — same pattern
+    `General`/`Pricing`(-main)/`SEO`/`Shipping` already used correctly. `npm run
+    typecheck`/`lint`/`build` clean; not live-browser-verified (admin login is blocked
+    for automation, see below) — verified by code review instead, same as the original
+    Phase 3 admin audit.
+  - **Saved Assortments now stores real line items.** New migration
+    `0021_saved_assortment_lines.sql` (pending your run — see Pending Actions) adds
+    colorway/box-type/qty columns to `saved_assortment_styles` (replacing the old
+    style-id-only rows, whose primary key couldn't even hold two colorways of the same
+    style). New `LoadAssortmentButton` (mirrors `ReorderButton`'s merge-with-existing-cart
+    behavior) appears on `/dashboard/assortments` once an assortment has line data;
+    assortments saved before the migration correctly show a "browse below" fallback note
+    instead of a broken button. Both data-layer functions
+    (`getAssortmentsForAccount`/`createSavedAssortment` in `src/lib/data/assortments.ts`)
+    degrade gracefully pre-migration via the same missing-schema-error pattern
+    `productActions.ts` established. **Verified live end-to-end pre-migration**: saved a
+    real cart line as a new assortment, confirmed the success toast, confirmed it showed
+    on `/dashboard/assortments` with the correct "saved before exact quantities were
+    tracked" fallback message and no "Load into cart" button (expected — migration hasn't
+    run yet), then deleted the test assortment and cart line.
+  - **Polish sweep**: pagination + search added to `/admin/accounts` (business/contact/
+    email), `/admin/suppliers` (name/contact/email), `/admin/sales-reps` (pagination
+    only), and `/admin/applications` (business/email/status) — all client-side, since
+    these are small reference tables already fetched in full; a new shared `ListPager`
+    component backs all four. `/admin/audit-log` got real **server-side** pagination
+    (`listAuditEntriesPage` in `auditLog.ts`, 50/page) plus a debounced action/target/
+    detail search — replacing the old flat 200-row cap that would've silently dropped
+    older entries as the log grows. **CSV formula-injection guard**: new `toCsv()` in
+    `src/lib/csv.ts` quotes cells and prefixes a leading apostrophe on any cell starting
+    with `=`/`+`/`-`/`@` (the standard mitigation — Excel/Sheets would otherwise execute
+    it as a formula on open); replaced the 4 previously-duplicated inline CSV-building
+    functions (`OrdersCsvExportButton`, `ApplicationsCsvExportButton`, `ProductsBrowser`,
+    and the buyer-facing `LinesheetToolbar`) with calls to the one shared, guarded
+    helper. **Product duplicate/clone**: new `duplicateStyle()` in `productAdmin.ts` +
+    `duplicateProductAction`, wired as a "Duplicate" button per row in
+    `ProductsBrowser` — clones the product's core fields and colorways into a new
+    `status: "draft"`/unfeatured product (never live until reviewed), slug/style-number
+    deduped with a `-copy`/`-COPY` suffix, then navigates straight to the new product's
+    editor. **Import wizard preview**: `validateImportRows` now matches each row's style
+    number against the live catalog and reports `action: "create" | "update"` (plus the
+    existing product's name when it'll be overwritten) — the preview step shows a new
+    "Action" column and an "N rows will overwrite existing products" warning banner
+    before the admin commits, instead of only discovering created-vs-updated counts
+    after the import already ran. **Stale HL-1001 slug fixed**: `/product/riviera-loafer`
+    → `/product/hector-boat-loafer` (the style's `name` had been corrected to "Hector
+    boat loafer" at some point but its `slug` was never updated to match) — updated the
+    live `styles.slug` column directly via a throwaway service-role script (data-only
+    change, no schema migration needed) and added a small `LEGACY_SLUG_REDIRECTS` map in
+    the product page so the old URL 301s instead of 404ing. Verified live: navigating to
+    the old slug correctly redirects and renders the product.
+  - `npm run typecheck`/`lint`/`build` all clean after every batch in this pass; buyer-
+    facing changes (Saved Assortments, the slug redirect, general storefront smoke pages)
+    verified live in the browser logged in as the seeded buyer — admin-only changes
+    (all of the above except the two buyer-facing items) verified by code review only,
+    per this project's standing constraint that admin login can't be automated.
 
 - **2026-07-29** — Product page purchase flow rebuilt. New `PrimaryPurchasePanel`
   (colorway/box selector, qty stepper + presets 1/3/5/10, live subtotal, Add to
