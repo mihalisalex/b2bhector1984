@@ -173,6 +173,7 @@ export async function decrementInventoryForOrder(lines: StockLine[]): Promise<{ 
       p_colorway_id: toDbId(line.styleId, line.colorwayId),
       p_box_type_id: line.boxTypeId,
       p_qty: line.qty,
+      p_warehouse_id: "main",
     });
     if (error) throw new Error(`adjust_inventory: ${error.message}`);
     if (!data) {
@@ -182,6 +183,7 @@ export async function decrementInventoryForOrder(lines: StockLine[]): Promise<{ 
           p_colorway_id: toDbId(done.styleId, done.colorwayId),
           p_box_type_id: done.boxTypeId,
           p_qty: -done.qty,
+          p_warehouse_id: "main",
         });
         await logInventoryMovement(done.styleId, toDbId(done.styleId, done.colorwayId), done.boxTypeId, "main", done.qty, "order_rollback", null);
       }

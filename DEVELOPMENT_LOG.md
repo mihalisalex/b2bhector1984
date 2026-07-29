@@ -6,6 +6,20 @@ diffs; this file is the narrative index.
 
 ## Pending Actions (need your credentials/approval — everything else proceeds without you)
 
+- **2026-07-29 — 🔴 CRITICAL, RUN THIS FIRST: `supabase/migrations/0020_fix_adjust_inventory_overload.sql`.**
+  **Checkout is currently broken in production** — every real order submission
+  fails with an uncaught server error. Root cause: migration 0014 added a second
+  `adjust_inventory(...)` function with a 5th `p_warehouse_id` parameter, intending
+  it to transparently replace the original 4-parameter version from migration
+  0008. `create or replace function` only replaces a function with the *identical*
+  argument signature, so Postgres kept both — every checkout call (which passes
+  4 args) now matches both overloads ambiguously and errors with "Could not
+  choose the best candidate function." Reproduced live via a real checkout
+  attempt in this audit. The fix migration drops the stale 4-arg overload,
+  leaving only the warehouse-aware version (the application code has also been
+  updated to pass `p_warehouse_id: "main"` explicitly rather than relying on
+  its default). **Run this in the Supabase SQL Editor immediately** — until you
+  do, no buyer can place an order on the live site.
 - **2026-07-29** — **Run `supabase/migrations/0019_password_reset_tokens.sql`** in the
   Supabase SQL Editor (after 0001-0018) to make the new "Forgot password?" flow actually
   work — until then it degrades gracefully (generic success message / friendly "invalid
