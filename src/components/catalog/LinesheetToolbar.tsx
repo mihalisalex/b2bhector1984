@@ -3,6 +3,7 @@
 import type { Style } from "@/lib/types";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { getUnitPrice } from "@/lib/pricing";
+import { toCsv } from "@/lib/csv";
 
 export function LinesheetToolbar({ styles, priceMultiplier = 1 }: { styles: Style[]; priceMultiplier?: number }) {
   function exportCsv() {
@@ -18,9 +19,7 @@ export function LinesheetToolbar({ styles, priceMultiplier = 1 }: { styles: Styl
         getUnitPrice(s, "net60", priceMultiplier).toFixed(2),
       ];
     });
-    const csv = [header, ...rows]
-      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
+    const csv = toCsv([header, ...rows]);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

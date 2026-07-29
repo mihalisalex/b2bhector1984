@@ -1,10 +1,14 @@
 "use client";
 
+import { useActionState, useEffect } from "react";
 import { updateAccountCreditTermsAction } from "@/lib/adminActions";
+import { useToastResult } from "@/components/ui/ToastProvider";
 import { TERMS_LABEL } from "@/lib/pricing";
+import type { FormState } from "@/lib/actions";
 import type { CreditTerms } from "@/lib/types";
 
 const OPTIONS: CreditTerms[] = ["prepay", "net30", "net60"];
+const initialState: FormState = {};
 
 export function CreditTermsSelect({
   accountId,
@@ -15,8 +19,16 @@ export function CreditTermsSelect({
   creditTerms: CreditTerms;
   businessName: string;
 }) {
+  const [state, formAction] = useActionState(updateAccountCreditTermsAction.bind(null, accountId), initialState);
+  const showResult = useToastResult();
+
+  useEffect(() => {
+    if (state.error) showResult(state);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
+
   return (
-    <form action={updateAccountCreditTermsAction.bind(null, accountId)} className="inline-flex">
+    <form action={formAction} className="inline-flex">
       <select
         name="creditTerms"
         defaultValue={creditTerms}

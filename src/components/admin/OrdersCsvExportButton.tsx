@@ -2,6 +2,7 @@
 
 import { formatEUR, summarizeOrder } from "@/lib/pricing";
 import { formatDate } from "@/lib/format";
+import { toCsv } from "@/lib/csv";
 import type { AdminOrder } from "@/lib/runtimeOrders";
 
 export function OrdersCsvExportButton({ orders }: { orders: AdminOrder[] }) {
@@ -11,9 +12,7 @@ export function OrdersCsvExportButton({ orders }: { orders: AdminOrder[] }) {
       const { total } = summarizeOrder(o);
       return [o.id, o.businessName, formatDate(o.placedAt), o.terms.toUpperCase(), o.status, formatEUR(total)];
     });
-    const csv = [header, ...rows]
-      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
+    const csv = toCsv([header, ...rows]);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

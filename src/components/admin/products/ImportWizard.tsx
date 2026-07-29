@@ -5,7 +5,7 @@ import Link from "next/link";
 import { XMLParser } from "fast-xml-parser";
 import { parseCsv, rowsToObjects } from "@/lib/csv";
 import { validateImportRowsAction, importProductRowsAction } from "@/lib/productActions";
-import type { ImportRow, ImportRowResult } from "@/lib/data/productImport";
+import type { ImportRow, ImportRowPreview, ImportRowResult } from "@/lib/data/productImport";
 
 const TARGET_FIELDS: { value: keyof ImportRow | "ignore"; label: string }[] = [
   { value: "ignore", label: "— Ignore this column —" },
@@ -64,7 +64,7 @@ export function ImportWizard() {
   const [columns, setColumns] = useState<string[]>([]);
   const [mapping, setMapping] = useState<Record<string, keyof ImportRow | "ignore">>({});
   const [fileError, setFileError] = useState<string | null>(null);
-  const [validation, setValidation] = useState<{ row: number; styleNumber: string; errors: string[] }[]>([]);
+  const [validation, setValidation] = useState<ImportRowPreview[]>([]);
   const [results, setResults] = useState<ImportRowResult[]>([]);
   const [isPending, startTransition] = useTransition();
 
@@ -115,6 +115,8 @@ export function ImportWizard() {
   }
 
   const errorCount = validation.filter((v) => v.errors.length > 0).length;
+  const updateCount = validation.filter((v) => v.errors.length === 0 && v.action === "update").length;
+  const createCount = validation.length - errorCount - updateCount;
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -168,24 +170,34 @@ export function ImportWizard() {
       {step === "preview" && (
         <div>
           <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">
-            Preview — {validation.length - errorCount} valid, {errorCount} with errors
+            Preview — {createCount} to create, {updateCount} to update, {errorCount} with errors
           </h3>
+          {updateCount > 0 && (
+            <p className="mt-1 text-xs text-ember">
+              {updateCount} row{updateCount === 1 ? "" : "s"} matched an existing style number and will overwrite that
+              product&rsquo;s fields — check the &ldquo;Action&rdquo; column below before importing.
+            </p>
+          )}
           <div className="scroll-thin mt-3 max-h-96 overflow-auto border border-stone-300 bg-white">
-            <table className="w-full min-w-[600px] border-collapse text-sm">
+            <table className="w-full min-w-[680px] border-collapse text-sm">
               <thead>
                 <tr className="border-b border-stone-300 bg-stone-100 text-left text-[11px] uppercase tracking-wide text-ink-soft">
                   <th className="px-3 py-2">Row</th>
                   <th className="px-3 py-2">Style #</th>
                   <th className="px-3 py-2">Name</th>
+                  <th className="px-3 py-2">Action</th>
                   <th className="px-3 py-2">Errors</th>
                 </tr>
               </thead>
               <tbody>
                 {validation.map((v, i) => (
-                  <tr key={v.row} className={`border-b border-stone-200 last:border-b-0 ${v.errors.length > 0 ? "bg-ember-100" : ""}`}>
+                  <tr key={v.row} className={`border-b border-stone-200 last:border-b-0 ${v.errors.length > 0 ? "bg-ember-100" : v.action === "update" ? "bg-court-100" : ""}`}>
                     <td className="px-3 py-1.5 text-ink-soft">{v.row}</td>
                     <td className="px-3 py-1.5 text-ink">{v.styleNumber || "—"}</td>
                     <td className="px-3 py-1.5 text-ink-soft">{mappedRows[i]?.name || "—"}</td>
+                    <td className="px-3 py-1.5 text-ink-soft">
+                      {v.errors.length > 0 ? "—" : v.action === "update" ? `Update "${v.existingName}"` : "Create new"}
+                    </td>
                     <td className="px-3 py-1.5 text-ember">{v.errors.join("; ")}</td>
                   </tr>
                 ))}

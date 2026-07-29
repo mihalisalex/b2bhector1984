@@ -1,9 +1,12 @@
 "use client";
 
-import { useTransition } from "react";
+import { useActionState, useEffect } from "react";
 import { updateVisibilityAction } from "@/lib/productActions";
 import { useToastResult } from "@/components/ui/ToastProvider";
+import type { FormState } from "@/lib/actions";
 import type { ProductStatus, Style } from "@/lib/types";
+
+const initialState: FormState = {};
 
 const STATUS_OPTIONS: { value: ProductStatus; label: string; description: string }[] = [
   { value: "active", label: "Published", description: "Visible in the catalog and orderable." },
@@ -18,15 +21,16 @@ function toLocalInput(iso?: string): string {
 }
 
 export function VisibilityTab({ style, canEdit }: { style: Style; canEdit: boolean }) {
-  const [isPending, startTransition] = useTransition();
+  const [state, formAction, isPending] = useActionState(updateVisibilityAction.bind(null, style.id), initialState);
   const showResult = useToastResult();
-  const action = updateVisibilityAction.bind(null, style.id);
+
+  useEffect(() => {
+    if (state.error || state.success) showResult(state);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
 
   return (
-    <form
-      action={(formData) => startTransition(async () => { await action(formData); showResult({ success: "Visibility saved." }); })}
-      className="max-w-xl space-y-6 pb-20"
-    >
+    <form action={formAction} className="max-w-xl space-y-6 pb-20">
       <div className="space-y-2">
         {STATUS_OPTIONS.map((opt) => (
           <label key={opt.value} className="flex cursor-pointer items-start gap-3 border border-stone-300 bg-white px-4 py-3">

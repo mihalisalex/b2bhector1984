@@ -1,7 +1,12 @@
 "use client";
 
+import { useActionState, useEffect } from "react";
 import { updateAccountRepAction } from "@/lib/adminActions";
+import { useToastResult } from "@/components/ui/ToastProvider";
+import type { FormState } from "@/lib/actions";
 import type { AdminSalesRep } from "@/lib/data/salesReps";
+
+const initialState: FormState = {};
 
 export function RepSelect({
   accountId,
@@ -14,8 +19,16 @@ export function RepSelect({
   reps: AdminSalesRep[];
   businessName: string;
 }) {
+  const [state, formAction] = useActionState(updateAccountRepAction.bind(null, accountId), initialState);
+  const showResult = useToastResult();
+
+  useEffect(() => {
+    if (state.error) showResult(state);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
+
   return (
-    <form action={updateAccountRepAction.bind(null, accountId)} className="inline-flex">
+    <form action={formAction} className="inline-flex">
       <select
         name="repId"
         defaultValue={repId ?? ""}

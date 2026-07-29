@@ -99,8 +99,13 @@ export function PricingTab({ style, canEdit }: { style: Style; canEdit: boolean 
 }
 
 function CustomerGroupPricing({ style, canEdit }: { style: Style; canEdit: boolean }) {
-  const addAction = addCustomerGroupPriceAction.bind(null, style.id);
-  const deleteAction = deleteCustomerGroupPriceAction.bind(null, style.id);
+  const [addState, addAction, isAdding] = useActionState(addCustomerGroupPriceAction.bind(null, style.id), initialState);
+  const showResult = useToastResult();
+
+  useEffect(() => {
+    if (addState.error || addState.success) showResult(addState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addState]);
 
   return (
     <div className="border-t border-stone-300 pt-5">
@@ -111,16 +116,7 @@ function CustomerGroupPricing({ style, canEdit }: { style: Style; canEdit: boole
       </p>
       <div className="mt-3 space-y-2">
         {style.customerGroupPrices.map((g) => (
-          <div key={g.id} className="flex items-center gap-3 border border-stone-300 bg-white px-3 py-2 text-sm">
-            <span className="flex-1 text-ink">{g.groupName}</span>
-            <span className="font-mono-tab text-ink">{formatEUR(g.price)}</span>
-            {canEdit && (
-              <form action={deleteAction}>
-                <input type="hidden" name="id" value={g.id} />
-                <button type="submit" className="text-xs font-medium text-ember hover:underline">Remove</button>
-              </form>
-            )}
-          </div>
+          <GroupPriceRow key={g.id} styleId={style.id} groupPriceId={g.id} groupName={g.groupName} price={g.price} canEdit={canEdit} />
         ))}
         {style.customerGroupPrices.length === 0 && <p className="text-sm text-ink-soft">No group overrides yet.</p>}
       </div>
@@ -134,9 +130,44 @@ function CustomerGroupPricing({ style, canEdit }: { style: Style; canEdit: boole
             <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Price</label>
             <input name="price" type="number" step="0.01" required className="w-28 border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal" />
           </div>
-          <button type="submit" className="border border-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-white">
-            Add
+          <button type="submit" disabled={isAdding} className="border border-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-white disabled:opacity-50">
+            {isAdding ? "Adding…" : "Add"}
           </button>
+        </form>
+      )}
+    </div>
+  );
+}
+
+function GroupPriceRow({
+  styleId,
+  groupPriceId,
+  groupName,
+  price,
+  canEdit,
+}: {
+  styleId: string;
+  groupPriceId: string;
+  groupName: string;
+  price: number;
+  canEdit: boolean;
+}) {
+  const [deleteState, deleteAction, isDeleting] = useActionState(deleteCustomerGroupPriceAction.bind(null, styleId), initialState);
+  const showResult = useToastResult();
+
+  useEffect(() => {
+    if (deleteState.error) showResult(deleteState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deleteState]);
+
+  return (
+    <div className="flex items-center gap-3 border border-stone-300 bg-white px-3 py-2 text-sm">
+      <span className="flex-1 text-ink">{groupName}</span>
+      <span className="font-mono-tab text-ink">{formatEUR(price)}</span>
+      {canEdit && (
+        <form action={deleteAction}>
+          <input type="hidden" name="id" value={groupPriceId} />
+          <button type="submit" disabled={isDeleting} className="text-xs font-medium text-ember hover:underline disabled:opacity-50">Remove</button>
         </form>
       )}
     </div>

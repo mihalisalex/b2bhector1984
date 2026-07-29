@@ -1,5 +1,5 @@
 import { getAllSalesReps } from "@/lib/data/salesReps";
-import { SalesRepRow } from "@/components/admin/SalesRepRow";
+import { SalesRepsTable } from "@/components/admin/SalesRepsTable";
 import { NewSalesRepForm } from "@/components/admin/NewSalesRepForm";
 
 export const metadata = { title: "Sales Reps", robots: { index: false, follow: false } };
@@ -18,21 +18,7 @@ export default async function AdminSalesRepsPage() {
           No sales reps yet.
         </div>
       ) : (
-        <div className="scroll-thin mt-6 overflow-x-auto border border-stone-300 bg-white">
-          <table className="w-full min-w-[640px] border-collapse text-sm">
-            <thead>
-              <tr className="border-b border-stone-300 bg-stone-100 text-left text-[11px] uppercase tracking-wide text-ink-soft">
-                <th className="px-3 py-2.5 font-semibold">Details</th>
-                <th className="px-3 py-2.5 text-right font-semibold">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reps.map((rep) => (
-                <SalesRepRow key={rep.id} rep={rep} />
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <SalesRepsTable reps={reps} />
       )}
 
       <NewSalesRepForm />

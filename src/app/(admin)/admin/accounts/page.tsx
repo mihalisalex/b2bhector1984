@@ -1,9 +1,6 @@
 import { getAllAccounts } from "@/lib/data/accounts";
 import { getAllSalesReps } from "@/lib/data/salesReps";
-import { PriceMultiplierInput } from "@/components/admin/PriceMultiplierInput";
-import { CreditTermsSelect } from "@/components/admin/CreditTermsSelect";
-import { CreditLimitInput } from "@/components/admin/CreditLimitInput";
-import { RepSelect } from "@/components/admin/RepSelect";
+import { AccountsTable } from "@/components/admin/AccountsTable";
 
 export const metadata = { title: "Accounts", robots: { index: false, follow: false } };
 
@@ -25,58 +22,7 @@ export default async function AdminAccountsPage() {
           No active buyer accounts yet.
         </div>
       ) : (
-        <div className="scroll-thin mt-6 overflow-x-auto border border-stone-300 bg-white">
-          <table className="w-full min-w-[880px] border-collapse text-sm">
-            <thead>
-              <tr className="border-b border-stone-300 bg-stone-100 text-left text-[11px] uppercase tracking-wide text-ink-soft">
-                <th className="px-4 py-2.5 font-semibold">Business</th>
-                <th className="px-4 py-2.5 font-semibold">Terms</th>
-                <th className="px-4 py-2.5 font-semibold">Credit limit</th>
-                <th className="px-4 py-2.5 font-semibold">Rep</th>
-                <th className="px-4 py-2.5 text-right font-semibold">Price multiplier</th>
-              </tr>
-            </thead>
-            <tbody>
-              {accounts.map((account) => (
-                <tr key={account.id} className="border-b border-stone-200 last:border-b-0">
-                  <td className="px-4 py-2.5">
-                    <p className="font-medium text-ink">{account.businessName}</p>
-                    <p className="text-xs text-ink-soft">{account.contactName} · {account.email}</p>
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <CreditTermsSelect
-                      accountId={account.id}
-                      creditTerms={account.creditTerms}
-                      businessName={account.businessName}
-                    />
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <CreditLimitInput
-                      accountId={account.id}
-                      creditLimit={account.creditLimit}
-                      businessName={account.businessName}
-                    />
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <RepSelect
-                      accountId={account.id}
-                      repId={account.repId}
-                      reps={reps}
-                      businessName={account.businessName}
-                    />
-                  </td>
-                  <td className="px-4 py-2.5 text-right">
-                    <PriceMultiplierInput
-                      accountId={account.id}
-                      priceMultiplier={account.priceMultiplier}
-                      businessName={account.businessName}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <AccountsTable accounts={accounts} reps={reps} />
       )}
     </div>
   );

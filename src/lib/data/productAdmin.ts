@@ -548,6 +548,64 @@ export async function createStyle(input: CreateStyleInput): Promise<void> {
   if (error) throw new Error(`styles: ${error.message}`);
 }
 
+/** Clones a product's core fields and colorways into a new draft product — a common PIM
+ * expectation this module was missing. The clone always lands as `status: "draft"` /
+ * unfeatured so it never appears live until the admin reviews and publishes it. */
+export async function duplicateStyle(styleId: string): Promise<{ id: string } | { error: string }> {
+  const { data: original, error: fetchError } = await supabaseAdmin.from("styles").select("*").eq("id", styleId).single();
+  if (fetchError || !original) return { error: "Product not found." };
+
+  const { data: colorwayRows, error: colorwayError } = await supabaseAdmin
+    .from("colorways")
+    .select("*")
+    .eq("style_id", styleId);
+  if (colorwayError) return { error: `colorways: ${colorwayError.message}` };
+
+  const newId = `st-${crypto.randomUUID().slice(0, 8)}`;
+  let slug = `${original.slug}-copy`;
+  let styleNumber = `${original.style_number}-COPY`;
+  for (let attempt = 2; attempt <= 20; attempt++) {
+    const { count } = await supabaseAdmin
+      .from("styles")
+      .select("id", { count: "exact", head: true })
+      .or(`slug.eq.${slug},style_number.eq.${styleNumber}`);
+    if (!count) break;
+    slug = `${original.slug}-copy-${attempt}`;
+    styleNumber = `${original.style_number}-COPY-${attempt}`;
+  }
+
+  const { id: _id, slug: _slug, style_number: _styleNumber, created_at: _createdAt, ...rest } = original;
+  void _id;
+  void _slug;
+  void _styleNumber;
+  void _createdAt;
+
+  const { error: insertError } = await supabaseAdmin.from("styles").insert({
+    ...rest,
+    id: newId,
+    slug,
+    style_number: styleNumber,
+    name: `${original.name} (Copy)`,
+    status: "draft",
+    featured: false,
+    publish_at: null,
+  });
+  if (insertError) return { error: `styles: ${insertError.message}` };
+
+  if (colorwayRows && colorwayRows.length > 0) {
+    const newColorways = colorwayRows.map((c, i) => {
+      const { id: _cid, style_id: _sid, ...colorwayRest } = c;
+      void _cid;
+      void _sid;
+      return { ...colorwayRest, id: toDbId(newId, `c${i + 1}`), style_id: newId };
+    });
+    const { error: colorwayInsertError } = await supabaseAdmin.from("colorways").insert(newColorways);
+    if (colorwayInsertError) return { error: `colorways: ${colorwayInsertError.message}` };
+  }
+
+  return { id: newId };
+}
+
 export async function archiveStyle(styleId: string): Promise<void> {
   const { error } = await supabaseAdmin.from("styles").update({ status: "archived" }).eq("id", styleId);
   if (error) throw new Error(`styles: ${error.message}`);

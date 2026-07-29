@@ -3,12 +3,15 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { formatEUR } from "@/lib/pricing";
 import { formatDate } from "@/lib/format";
+import { toCsv } from "@/lib/csv";
 import { StylePlate } from "@/components/product/StylePlate";
 import { useToastResult } from "@/components/ui/ToastProvider";
 import {
   archiveProductAction,
+  duplicateProductAction,
   bulkAdjustPriceAction,
   bulkArchiveAction,
   bulkAddTagAction,
@@ -58,6 +61,7 @@ export function ProductsBrowser({
   const [bulkTag, setBulkTag] = useState("");
   const [isPending, startTransition] = useTransition();
   const showResult = useToastResult();
+  const router = useRouter();
 
   // Drop any selected id no longer in the current (filtered/paginated) list —
   // otherwise a bulk action after changing filters/pages can silently act on
@@ -124,7 +128,7 @@ export function ProductsBrowser({
       p.styleNumber, p.name, p.category, p.brandName, p.supplierName ?? "", p.basePrice, p.salePrice ?? "", p.costPrice,
       p.marginPct, p.onHand, p.reserved, p.derivedStatus, p.featured ? "Yes" : "No", formatDate(p.createdAt), formatDate(p.createdAt),
     ]);
-    const csv = [header, ...rows].map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const csv = toCsv([header, ...rows]);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -317,6 +321,17 @@ export function ProductsBrowser({
                       <Link href={`/admin/products/${p.id}`} className="text-xs font-medium text-ink-soft hover:text-ink">
                         Edit
                       </Link>
+                      <button
+                        type="button"
+                        onClick={() => startTransition(async () => {
+                          const result = await duplicateProductAction(p.id);
+                          if (result.error) { showResult({ error: result.error }); return; }
+                          router.push(`/admin/products/${result.id}`);
+                        })}
+                        className="text-xs font-medium text-ink-soft hover:text-ink"
+                      >
+                        Duplicate
+                      </button>
                       <button
                         type="button"
                         onClick={() => startTransition(async () => { await archiveProductAction(p.id); showResult({ success: `Archived ${p.name}.` }); })}

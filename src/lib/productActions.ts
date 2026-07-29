@@ -23,6 +23,7 @@ import {
   updateColorway,
   deleteColorway,
   createStyle,
+  duplicateStyle,
   archiveStyle,
   deleteStyle,
   listProductsForAdmin,
@@ -51,7 +52,7 @@ import { createSupplier, updateSupplier, deleteSupplier, type SupplierInput } fr
 import { createCollection } from "@/lib/data/collections";
 import { createWarehouse } from "@/lib/data/warehouses";
 import { setPermission } from "@/lib/data/permissions";
-import { importProductRows, validateImportRows, type ImportRow, type ImportRowResult } from "@/lib/data/productImport";
+import { importProductRows, validateImportRows, type ImportRow, type ImportRowPreview, type ImportRowResult } from "@/lib/data/productImport";
 import type { FormState } from "@/lib/actions";
 import type { AdminRole, BoxTypeId, DocumentKind, ProductPermissionKey, ProductStatus, RelationType } from "@/lib/types";
 
@@ -173,23 +174,27 @@ export async function updatePricingAction(styleId: string, _prev: FormState, for
   return { success: "Pricing saved." };
 }
 
-export async function addCustomerGroupPriceAction(styleId: string, formData: FormData) {
+export async function addCustomerGroupPriceAction(styleId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("products.pricing");
   const groupName = String(formData.get("groupName") ?? "").trim();
   const price = Number(formData.get("price"));
-  if (!groupName || !Number.isFinite(price)) return;
-  await runBestEffort("addCustomerGroupPriceAction", () => setCustomerGroupPrice(styleId, groupName, price));
+  if (!groupName || !Number.isFinite(price)) return { error: "Group name and a valid price are required." };
+  const failure = await runOrError(() => setCustomerGroupPrice(styleId, groupName, price));
+  if (failure) return failure;
   await logAudit(admin.id, "product.price_changed", "style", styleId, `group ${groupName} -> ${price}`);
   revalidateProduct(styleId);
+  return { success: "Group price added." };
 }
 
-export async function deleteCustomerGroupPriceAction(styleId: string, formData: FormData) {
+export async function deleteCustomerGroupPriceAction(styleId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("products.pricing");
   const id = String(formData.get("id") ?? "");
-  if (!id) return;
-  await runBestEffort("deleteCustomerGroupPriceAction", () => deleteCustomerGroupPrice(id));
+  if (!id) return { error: "Missing group price." };
+  const failure = await runOrError(() => deleteCustomerGroupPrice(id));
+  if (failure) return failure;
   await logAudit(admin.id, "product.price_changed", "style", styleId, "removed group price");
   revalidateProduct(styleId);
+  return { success: "Group price removed." };
 }
 
 // ---------------------------------------------------------------------------
@@ -216,28 +221,32 @@ export async function updateInventoryMetaAction(styleId: string, _prev: FormStat
 }
 
 /** Bound to `.bind(null, styleId)` — per colorway/box-type/warehouse stock cell. */
-export async function updateProductInventoryLevelAction(styleId: string, formData: FormData) {
+export async function updateProductInventoryLevelAction(styleId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("products.inventory");
   const colorwayId = String(formData.get("colorwayId") ?? "");
   const boxTypeId = String(formData.get("boxTypeId") ?? "") as BoxTypeId;
   const warehouseId = String(formData.get("warehouseId") ?? "main");
   const onHand = Number(formData.get("onHand") ?? 0);
-  if (!colorwayId || !boxTypeId || !Number.isFinite(onHand)) return;
-  await runBestEffort("updateProductInventoryLevelAction", () => setInventoryLevel(styleId, colorwayId, boxTypeId, Math.round(onHand), warehouseId, admin.id));
+  if (!colorwayId || !boxTypeId || !Number.isFinite(onHand)) return { error: "Invalid stock value." };
+  const failure = await runOrError(() => setInventoryLevel(styleId, colorwayId, boxTypeId, Math.round(onHand), warehouseId, admin.id));
+  if (failure) return failure;
   await logAudit(admin.id, "product.inventory_changed", "style", styleId, `${colorwayId}/${boxTypeId}@${warehouseId} -> ${Math.round(onHand)}`);
   revalidateProduct(styleId);
+  return { success: "Stock updated." };
 }
 
-export async function updateReservedStockAction(styleId: string, formData: FormData) {
+export async function updateReservedStockAction(styleId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("products.inventory");
   const colorwayId = String(formData.get("colorwayId") ?? "");
   const boxTypeId = String(formData.get("boxTypeId") ?? "") as BoxTypeId;
   const warehouseId = String(formData.get("warehouseId") ?? "main");
   const reserved = Number(formData.get("reserved") ?? 0);
-  if (!colorwayId || !boxTypeId || !Number.isFinite(reserved)) return;
-  await runBestEffort("updateReservedStockAction", () => setReservedStock(styleId, colorwayId, boxTypeId, Math.round(reserved), warehouseId));
+  if (!colorwayId || !boxTypeId || !Number.isFinite(reserved)) return { error: "Invalid reserved value." };
+  const failure = await runOrError(() => setReservedStock(styleId, colorwayId, boxTypeId, Math.round(reserved), warehouseId));
+  if (failure) return failure;
   await logAudit(admin.id, "product.inventory_changed", "style", styleId, `reserved ${colorwayId}/${boxTypeId} -> ${Math.round(reserved)}`);
   revalidateProduct(styleId);
+  return { success: "Reserved stock updated." };
 }
 
 export async function createWarehouseAction(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -309,60 +318,70 @@ export async function updateShippingAction(styleId: string, _prev: FormState, fo
 // Visibility
 // ---------------------------------------------------------------------------
 
-export async function updateVisibilityAction(styleId: string, formData: FormData) {
+export async function updateVisibilityAction(styleId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("products.edit");
   const status = String(formData.get("status") ?? "active") as ProductStatus;
   const featured = formData.get("featured") === "on";
   const publishAt = String(formData.get("publishAt") ?? "").trim() || undefined;
-  await runBestEffort("updateVisibilityAction", () => updateStyleVisibility(styleId, status, featured, publishAt));
+  const failure = await runOrError(() => updateStyleVisibility(styleId, status, featured, publishAt));
+  if (failure) return failure;
   await logAudit(admin.id, "product.updated", "style", styleId, `status -> ${status}${featured ? " (featured)" : ""}`);
   revalidateProduct(styleId);
+  return { success: "Visibility saved." };
 }
 
 // ---------------------------------------------------------------------------
 // Attributes
 // ---------------------------------------------------------------------------
 
-export async function addStyleAttributeAction(styleId: string, formData: FormData) {
+export async function addStyleAttributeAction(styleId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("products.edit");
   const key = String(formData.get("key") ?? "").trim();
   const value = String(formData.get("value") ?? "").trim();
-  if (!key || !value) return;
-  await runBestEffort("addStyleAttributeAction", () => addStyleAttribute(styleId, key, value));
+  if (!key || !value) return { error: "Both attribute and value are required." };
+  const failure = await runOrError(() => addStyleAttribute(styleId, key, value));
+  if (failure) return failure;
   await logAudit(admin.id, "product.updated", "style", styleId, `attribute ${key}`);
   revalidateProduct(styleId);
+  return { success: "Attribute added." };
 }
 
-export async function deleteStyleAttributeAction(styleId: string, formData: FormData) {
+export async function deleteStyleAttributeAction(styleId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("products.edit");
   const id = String(formData.get("id") ?? "");
-  if (!id) return;
-  await runBestEffort("deleteStyleAttributeAction", () => deleteStyleAttribute(id));
+  if (!id) return { error: "Missing attribute." };
+  const failure = await runOrError(() => deleteStyleAttribute(id));
+  if (failure) return failure;
   await logAudit(admin.id, "product.updated", "style", styleId, "removed attribute");
   revalidateProduct(styleId);
+  return { success: "Attribute removed." };
 }
 
 // ---------------------------------------------------------------------------
 // Related products
 // ---------------------------------------------------------------------------
 
-export async function addStyleRelationAction(styleId: string, formData: FormData) {
+export async function addStyleRelationAction(styleId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("products.edit");
   const relatedStyleId = String(formData.get("relatedStyleId") ?? "");
   const relationType = String(formData.get("relationType") ?? "related") as RelationType;
-  if (!relatedStyleId || relatedStyleId === styleId) return;
-  await runBestEffort("addStyleRelationAction", () => addStyleRelation(styleId, relatedStyleId, relationType));
+  if (!relatedStyleId || relatedStyleId === styleId) return { error: "Choose a different product to relate." };
+  const failure = await runOrError(() => addStyleRelation(styleId, relatedStyleId, relationType));
+  if (failure) return failure;
   await logAudit(admin.id, "product.updated", "style", styleId, `related -> ${relatedStyleId} (${relationType})`);
   revalidateProduct(styleId);
+  return { success: "Related product added." };
 }
 
-export async function deleteStyleRelationAction(styleId: string, formData: FormData) {
+export async function deleteStyleRelationAction(styleId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("products.edit");
   const id = String(formData.get("id") ?? "");
-  if (!id) return;
-  await runBestEffort("deleteStyleRelationAction", () => deleteStyleRelation(id));
+  if (!id) return { error: "Missing relation." };
+  const failure = await runOrError(() => deleteStyleRelation(id));
+  if (failure) return failure;
   await logAudit(admin.id, "product.updated", "style", styleId, "removed relation");
   revalidateProduct(styleId);
+  return { success: "Relation removed." };
 }
 
 // ---------------------------------------------------------------------------
@@ -407,11 +426,13 @@ export async function addColorwayAction(styleId: string, _prev: FormState, formD
   return { success: "Variant added." };
 }
 
-export async function updateColorwayAction(styleId: string, colorwayLocalId: string, formData: FormData) {
+export async function updateColorwayAction(styleId: string, colorwayLocalId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("products.edit");
-  await runBestEffort("updateColorwayAction", () => updateColorway(styleId, colorwayLocalId, colorwayInputFromForm(formData)));
+  const failure = await runOrError(() => updateColorway(styleId, colorwayLocalId, colorwayInputFromForm(formData)));
+  if (failure) return failure;
   await logAudit(admin.id, "product.variant_modified", "style", styleId, `edited variant ${colorwayLocalId}`);
   revalidateProduct(styleId);
+  return { success: "Variant saved." };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- signature required by useActionState
@@ -457,23 +478,27 @@ export async function finalizeProductImageUploadAction(styleId: string, path: st
   return {};
 }
 
-export async function setPrimaryProductImageAction(formData: FormData) {
+export async function setPrimaryProductImageAction(_prev: FormState, formData: FormData): Promise<FormState> {
   await requirePermission("products.edit");
   const styleId = String(formData.get("styleId") ?? "");
   const imageId = String(formData.get("imageId") ?? "");
-  if (!styleId || !imageId) return;
-  await runBestEffort("setPrimaryProductImageAction", () => setPrimaryImage(styleId, imageId));
+  if (!styleId || !imageId) return { error: "Missing image." };
+  const failure = await runOrError(() => setPrimaryImage(styleId, imageId));
+  if (failure) return failure;
   revalidateProduct(styleId);
+  return { success: "Featured photo updated." };
 }
 
-export async function updateImageAltTextAction(formData: FormData) {
+export async function updateImageAltTextAction(_prev: FormState, formData: FormData): Promise<FormState> {
   await requirePermission("products.edit");
   const styleId = String(formData.get("styleId") ?? "");
   const imageId = String(formData.get("imageId") ?? "");
   const altText = String(formData.get("altText") ?? "");
-  if (!imageId) return;
-  await runBestEffort("updateImageAltTextAction", () => updateImageAltText(imageId, altText));
+  if (!imageId) return { error: "Missing image." };
+  const failure = await runOrError(() => updateImageAltText(imageId, altText));
+  if (failure) return failure;
   revalidateProduct(styleId);
+  return { success: "Alt text saved." };
 }
 
 export async function reorderProductImagesAction(styleId: string, orderedImageIds: string[]) {
@@ -482,14 +507,16 @@ export async function reorderProductImagesAction(styleId: string, orderedImageId
   revalidateProduct(styleId);
 }
 
-export async function deleteProductImageAction(formData: FormData) {
+export async function deleteProductImageAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("products.edit");
   const styleId = String(formData.get("styleId") ?? "");
   const imageId = String(formData.get("imageId") ?? "");
-  if (!imageId) return;
-  await runBestEffort("deleteProductImageAction", () => deleteStyleImage(imageId));
+  if (!imageId) return { error: "Missing image." };
+  const failure = await runOrError(() => deleteStyleImage(imageId));
+  if (failure) return failure;
   await logAudit(admin.id, "product.updated", "style", styleId, "removed image");
   revalidateProduct(styleId);
+  return { success: "Photo removed." };
 }
 
 // ---------------------------------------------------------------------------
@@ -522,14 +549,16 @@ export async function finalizeDocumentUploadAction(
   return {};
 }
 
-export async function deleteDocumentAction(formData: FormData) {
+export async function deleteDocumentAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("products.edit");
   const styleId = String(formData.get("styleId") ?? "");
   const documentId = String(formData.get("documentId") ?? "");
-  if (!documentId) return;
-  await runBestEffort("deleteDocumentAction", () => deleteStyleDocument(documentId));
+  if (!documentId) return { error: "Missing document." };
+  const failure = await runOrError(() => deleteStyleDocument(documentId));
+  if (failure) return failure;
   await logAudit(admin.id, "product.updated", "style", styleId, "removed document");
   revalidateProduct(styleId);
+  return { success: "Document removed." };
 }
 
 // ---------------------------------------------------------------------------
@@ -568,6 +597,20 @@ export async function createProductAction(_prev: FormState, formData: FormData):
   await logAudit(admin.id, "product.created", "style", id, name);
   revalidatePath("/admin/products");
   redirect(`/admin/products/${id}`);
+}
+
+export async function duplicateProductAction(styleId: string): Promise<{ id?: string; error?: string }> {
+  const admin = await requirePermission("products.create");
+  let result: { id: string } | { error: string };
+  try {
+    result = await duplicateStyle(styleId);
+  } catch (err) {
+    return { error: friendlyDbError(err) };
+  }
+  if ("error" in result) return { error: result.error };
+  await logAudit(admin.id, "product.created", "style", result.id, `duplicated from ${styleId}`);
+  revalidatePath("/admin/products");
+  return { id: result.id };
 }
 
 export async function archiveProductAction(styleId: string) {
@@ -824,7 +867,7 @@ export async function createCollectionAction(_prev: FormState, formData: FormDat
 // Import / export
 // ---------------------------------------------------------------------------
 
-export async function validateImportRowsAction(rows: ImportRow[]) {
+export async function validateImportRowsAction(rows: ImportRow[]): Promise<ImportRowPreview[]> {
   await requirePermission("products.import_export");
   return validateImportRows(rows);
 }

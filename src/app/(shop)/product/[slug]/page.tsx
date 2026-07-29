@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { CATEGORY_LABEL, GENDER_LABEL, getRelatedStyles, getStyleBySlug, getStyleImageUrl } from "@/lib/data/styles";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
@@ -18,6 +18,13 @@ import { TrackRecentlyViewed } from "@/components/product/TrackRecentlyViewed";
 import { RecentlyViewedStrip } from "@/components/product/RecentlyViewedStrip";
 import { MatrixOrderGrid } from "@/components/matrix/MatrixOrderGrid";
 
+/** Old slugs from before a product's name/slug was corrected — kept so existing
+ * bookmarks/backlinks 301 instead of 404ing. Add an entry here (never rename the DB
+ * `slug` column and just delete the old mapping) whenever a live slug changes. */
+const LEGACY_SLUG_REDIRECTS: Record<string, string> = {
+  "riviera-loafer": "hector-boat-loafer", // HL-1001, corrected 2026-07-29 — was stale from an earlier product rename
+};
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const style = await getStyleBySlug(slug);
@@ -30,6 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  if (LEGACY_SLUG_REDIRECTS[slug]) redirect(`/product/${LEGACY_SLUG_REDIRECTS[slug]}`);
   const style = await getStyleBySlug(slug);
   if (!style) notFound();
   const [inventory, images, related, account] = await Promise.all([

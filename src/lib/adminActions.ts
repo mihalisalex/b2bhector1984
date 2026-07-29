@@ -238,44 +238,48 @@ export async function updateInventoryLevelAction(styleId: string, formData: Form
 }
 
 /** Bound to `.bind(null, accountId)` — a <form action> per account row on /admin/accounts. */
-export async function updateAccountPriceMultiplierAction(accountId: string, formData: FormData) {
+export async function updateAccountPriceMultiplierAction(accountId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requireAdmin();
   const priceMultiplier = Number(formData.get("priceMultiplier") ?? 1);
-  if (!Number.isFinite(priceMultiplier) || priceMultiplier <= 0 || priceMultiplier > 5) return;
+  if (!Number.isFinite(priceMultiplier) || priceMultiplier <= 0 || priceMultiplier > 5) return { error: "Price multiplier must be between 0.01 and 5." };
   await updateAccountPriceMultiplier(accountId, priceMultiplier);
   await logAudit(admin.id, "account.price_multiplier_updated", "account", accountId, String(priceMultiplier));
   revalidatePath("/admin/accounts");
+  return { success: "Price multiplier saved." };
 }
 
 const ACCOUNT_TERMS: CreditTerms[] = ["prepay", "net30", "net60"];
 
 /** Bound to `.bind(null, accountId)` — a <form action> per account row's terms select. */
-export async function updateAccountCreditTermsAction(accountId: string, formData: FormData) {
+export async function updateAccountCreditTermsAction(accountId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requireAdmin();
   const terms = String(formData.get("creditTerms") ?? "");
-  if (!ACCOUNT_TERMS.includes(terms as CreditTerms)) return;
+  if (!ACCOUNT_TERMS.includes(terms as CreditTerms)) return { error: "Invalid credit terms." };
   await updateAccountCreditTerms(accountId, terms as CreditTerms);
   await logAudit(admin.id, "account.credit_terms_updated", "account", accountId, terms);
   revalidatePath("/admin/accounts");
+  return { success: "Credit terms saved." };
 }
 
 /** Bound to `.bind(null, accountId)` — a <form action> per account row's credit-limit input. */
-export async function updateAccountCreditLimitAction(accountId: string, formData: FormData) {
+export async function updateAccountCreditLimitAction(accountId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requireAdmin();
   const creditLimit = Number(formData.get("creditLimit") ?? 0);
-  if (!Number.isFinite(creditLimit) || creditLimit < 0 || creditLimit > 10_000_000) return;
+  if (!Number.isFinite(creditLimit) || creditLimit < 0 || creditLimit > 10_000_000) return { error: "Credit limit must be between €0 and €10,000,000." };
   await updateAccountCreditLimit(accountId, creditLimit);
   await logAudit(admin.id, "account.credit_limit_updated", "account", accountId, String(creditLimit));
   revalidatePath("/admin/accounts");
+  return { success: "Credit limit saved." };
 }
 
 /** Bound to `.bind(null, accountId)` — a <form action> per account row's rep select. */
-export async function updateAccountRepAction(accountId: string, formData: FormData) {
+export async function updateAccountRepAction(accountId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requireAdmin();
   const repId = String(formData.get("repId") ?? "").trim();
   await updateAccountRep(accountId, repId || null);
   await logAudit(admin.id, "account.rep_updated", "account", accountId, repId || "unassigned");
   revalidatePath("/admin/accounts");
+  return { success: "Sales rep saved." };
 }
 
 /** Bound to `.bind(null, repId)` — a <form action> per sales-rep row on /admin/sales-reps. */

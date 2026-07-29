@@ -33,12 +33,18 @@ export function VariantsTab({ style, canEdit }: { style: Style; canEdit: boolean
 function VariantRow({ styleId, colorway, canEdit }: { styleId: string; colorway: Colorway; canEdit: boolean }) {
   const [expanded, setExpanded] = useState(false);
   const [deleteState, deleteAction, isDeleting] = useActionState(deleteColorwayAction.bind(null, styleId, colorway.id), initialState);
+  const [updateState, updateAction, isUpdating] = useActionState(updateColorwayAction.bind(null, styleId, colorway.id), initialState);
   const showResult = useToastResult();
 
   useEffect(() => {
     if (deleteState.error) showResult(deleteState);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deleteState]);
+
+  useEffect(() => {
+    if (updateState.error || updateState.success) showResult(updateState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updateState]);
 
   return (
     <div className="border border-stone-300 bg-white">
@@ -59,7 +65,7 @@ function VariantRow({ styleId, colorway, canEdit }: { styleId: string; colorway:
       </div>
 
       {expanded && (
-        <form action={updateColorwayAction.bind(null, styleId, colorway.id)} className="space-y-3 border-t border-stone-300 bg-stone-50 px-4 py-4">
+        <form action={updateAction} className="space-y-3 border-t border-stone-300 bg-stone-50 px-4 py-4">
           <div className="grid grid-cols-3 gap-3">
             <Mini label="Name" name="name" defaultValue={colorway.name} disabled={!canEdit} />
             <Mini label="SKU suffix" name="skuSuffix" defaultValue={colorway.skuSuffix} disabled={!canEdit} />
@@ -89,8 +95,8 @@ function VariantRow({ styleId, colorway, canEdit }: { styleId: string; colorway:
             </select>
             {canEdit && (
               <div className="flex items-center gap-3">
-                <button type="submit" className="border border-ink bg-ink px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85">
-                  Save variant
+                <button type="submit" disabled={isUpdating} className="border border-ink bg-ink px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85 disabled:opacity-50">
+                  {isUpdating ? "Saving…" : "Save variant"}
                 </button>
                 <button
                   type="button"

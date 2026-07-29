@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { approveApplication, declineApplication, bulkApproveApplications } from "@/lib/adminActions";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/cn";
+import { ListPager } from "@/components/admin/ListPager";
 import type { Application } from "@/lib/types";
+
+const PAGE_SIZE = 20;
 
 const STATUS_STYLE: Record<string, string> = {
   pending: "border-court/40 bg-court-100 text-ink",
@@ -17,9 +20,23 @@ export function AdminApplicationsList({ applications }: { applications: Applicat
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
 
   const pending = applications.filter((a) => a.status === "pending");
   const allSelected = pending.length > 0 && pending.every((a) => selected.has(a.id));
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return applications;
+    return applications.filter(
+      (a) => a.businessName.toLowerCase().includes(q) || a.email.toLowerCase().includes(q) || a.status.toLowerCase().includes(q),
+    );
+  }, [applications, query]);
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const page_ = Math.min(page, pageCount);
+  const pageRows = filtered.slice((page_ - 1) * PAGE_SIZE, page_ * PAGE_SIZE);
 
   function toggleAll() {
     setSelected(allSelected ? new Set() : new Set(pending.map((a) => a.id)));
@@ -69,8 +86,25 @@ export function AdminApplicationsList({ applications }: { applications: Applicat
         </div>
       )}
 
+      <input
+        value={query}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setPage(1);
+        }}
+        placeholder="Search business, email, or status…"
+        aria-label="Search applications"
+        className="mb-3 w-full max-w-sm border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal"
+      />
+
+      {filtered.length === 0 ? (
+        <div className="border border-dashed border-stone-300 bg-stone-100 px-6 py-16 text-center text-sm text-ink-soft">
+          No applications match &ldquo;{query}&rdquo;.
+        </div>
+      ) : (
+        <>
       <div className="flex flex-col gap-3">
-        {applications.map((app) => (
+        {pageRows.map((app) => (
           <div key={app.id} className="flex flex-wrap items-center justify-between gap-4 border border-stone-300 bg-white p-4">
             <div className="flex items-start gap-3">
               {app.status === "pending" && (
@@ -120,6 +154,9 @@ export function AdminApplicationsList({ applications }: { applications: Applicat
           </div>
         ))}
       </div>
+      <ListPager page={page_} pageCount={pageCount} total={filtered.length} pageSize={PAGE_SIZE} onChange={setPage} />
+        </>
+      )}
     </div>
   );
 }

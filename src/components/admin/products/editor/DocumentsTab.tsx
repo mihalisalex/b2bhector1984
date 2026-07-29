@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { ImageUploadForm } from "@/components/admin/ImageUploadForm";
+import { useToastResult } from "@/components/ui/ToastProvider";
 import { createDocumentUploadUrlAction, finalizeDocumentUploadAction, deleteDocumentAction } from "@/lib/productActions";
+import type { FormState } from "@/lib/actions";
 import type { DocumentKind, Style } from "@/lib/types";
+
+const initialState: FormState = {};
 
 const DOC_KINDS: { value: DocumentKind; label: string }[] = [
   { value: "manual", label: "Manual" },
@@ -39,19 +43,7 @@ export function DocumentsTab({ style, canEdit }: { style: Style; canEdit: boolea
 
       <div className="space-y-2">
         {documents.map((doc) => (
-          <div key={doc.id} className="flex items-center justify-between gap-3 border border-stone-300 bg-white px-3 py-2 text-sm">
-            <span className="w-36 shrink-0 text-xs font-semibold uppercase tracking-wide text-ink-soft">{DOC_LABEL[doc.kind]}</span>
-            <a href={doc.publicUrl} target="_blank" rel="noreferrer" className="flex-1 truncate text-signal hover:underline">
-              {doc.label || doc.storagePath.split("/").pop()}
-            </a>
-            {canEdit && (
-              <form action={deleteDocumentAction}>
-                <input type="hidden" name="styleId" value={style.id} />
-                <input type="hidden" name="documentId" value={doc.id} />
-                <button type="submit" className="text-xs font-medium text-ember hover:underline">Remove</button>
-              </form>
-            )}
-          </div>
+          <DocumentRow key={doc.id} styleId={style.id} documentId={doc.id} kindLabel={DOC_LABEL[doc.kind]} label={doc.label || doc.storagePath.split("/").pop() || ""} publicUrl={doc.publicUrl} canEdit={canEdit} />
         ))}
         {documents.length === 0 && <p className="text-sm text-ink-soft">No documents uploaded yet.</p>}
       </div>
@@ -77,6 +69,46 @@ export function DocumentsTab({ style, canEdit }: { style: Style; canEdit: boolea
             buttonLabel="Upload document"
           />
         </div>
+      )}
+    </div>
+  );
+}
+
+function DocumentRow({
+  styleId,
+  documentId,
+  kindLabel,
+  label,
+  publicUrl,
+  canEdit,
+}: {
+  styleId: string;
+  documentId: string;
+  kindLabel: string;
+  label: string;
+  publicUrl: string;
+  canEdit: boolean;
+}) {
+  const [deleteState, deleteAction, isDeleting] = useActionState(deleteDocumentAction, initialState);
+  const showResult = useToastResult();
+
+  useEffect(() => {
+    if (deleteState.error) showResult(deleteState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deleteState]);
+
+  return (
+    <div className="flex items-center justify-between gap-3 border border-stone-300 bg-white px-3 py-2 text-sm">
+      <span className="w-36 shrink-0 text-xs font-semibold uppercase tracking-wide text-ink-soft">{kindLabel}</span>
+      <a href={publicUrl} target="_blank" rel="noreferrer" className="flex-1 truncate text-signal hover:underline">
+        {label}
+      </a>
+      {canEdit && (
+        <form action={deleteAction}>
+          <input type="hidden" name="styleId" value={styleId} />
+          <input type="hidden" name="documentId" value={documentId} />
+          <button type="submit" disabled={isDeleting} className="text-xs font-medium text-ember hover:underline disabled:opacity-50">Remove</button>
+        </form>
       )}
     </div>
   );

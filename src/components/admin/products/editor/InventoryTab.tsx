@@ -75,46 +75,19 @@ export function InventoryTab({
               {style.colorways.map((colorway) => (
                 <tr key={colorway.id} className="border-b border-stone-200 last:border-b-0">
                   <td className="px-4 py-2 text-ink">{colorway.name}</td>
-                  {offeredBoxTypes.map((box) => {
-                    const row = stockFor(colorway.id, box.id);
-                    return (
-                      <td key={box.id} className="px-3 py-2 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <form action={updateProductInventoryLevelAction.bind(null, style.id)} className="inline-flex">
-                            <input type="hidden" name="colorwayId" value={colorway.id} />
-                            <input type="hidden" name="boxTypeId" value={box.id} />
-                            <input type="hidden" name="warehouseId" value={warehouseId} />
-                            <input
-                              name="onHand"
-                              type="number"
-                              min={0}
-                              disabled={!canEdit}
-                              defaultValue={row?.onHand ?? 0}
-                              onBlur={(e) => e.currentTarget.form?.requestSubmit()}
-                              aria-label={`${colorway.name} ${box.label} on hand`}
-                              className="font-mono-tab w-14 border border-stone-300 bg-white px-1.5 py-1 text-right text-sm outline-none focus-visible:border-signal disabled:bg-stone-100"
-                            />
-                          </form>
-                          <span className="text-ink-soft">/</span>
-                          <form action={updateReservedStockAction.bind(null, style.id)} className="inline-flex">
-                            <input type="hidden" name="colorwayId" value={colorway.id} />
-                            <input type="hidden" name="boxTypeId" value={box.id} />
-                            <input type="hidden" name="warehouseId" value={warehouseId} />
-                            <input
-                              name="reserved"
-                              type="number"
-                              min={0}
-                              disabled={!canEdit}
-                              defaultValue={row?.reserved ?? 0}
-                              onBlur={(e) => e.currentTarget.form?.requestSubmit()}
-                              aria-label={`${colorway.name} ${box.label} reserved`}
-                              className="font-mono-tab w-14 border border-stone-300 bg-white px-1.5 py-1 text-right text-sm outline-none focus-visible:border-signal disabled:bg-stone-100"
-                            />
-                          </form>
-                        </div>
-                      </td>
-                    );
-                  })}
+                  {offeredBoxTypes.map((box) => (
+                    <StockCell
+                      key={box.id}
+                      styleId={style.id}
+                      colorwayId={colorway.id}
+                      boxTypeId={box.id}
+                      boxLabel={box.label}
+                      colorwayName={colorway.name}
+                      warehouseId={warehouseId}
+                      row={stockFor(colorway.id, box.id)}
+                      canEdit={canEdit}
+                    />
+                  ))}
                 </tr>
               ))}
             </tbody>
@@ -208,5 +181,77 @@ export function InventoryTab({
         </div>
       </section>
     </div>
+  );
+}
+
+function StockCell({
+  styleId,
+  colorwayId,
+  boxTypeId,
+  boxLabel,
+  colorwayName,
+  warehouseId,
+  row,
+  canEdit,
+}: {
+  styleId: string;
+  colorwayId: string;
+  boxTypeId: string;
+  boxLabel: string;
+  colorwayName: string;
+  warehouseId: string;
+  row: WarehouseStockRow | undefined;
+  canEdit: boolean;
+}) {
+  const [onHandState, onHandAction] = useActionState(updateProductInventoryLevelAction.bind(null, styleId), initialState);
+  const [reservedState, reservedAction] = useActionState(updateReservedStockAction.bind(null, styleId), initialState);
+  const showResult = useToastResult();
+
+  useEffect(() => {
+    if (onHandState.error) showResult(onHandState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onHandState]);
+
+  useEffect(() => {
+    if (reservedState.error) showResult(reservedState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reservedState]);
+
+  return (
+    <td className="px-3 py-2 text-right">
+      <div className="flex items-center justify-end gap-1.5">
+        <form action={onHandAction} className="inline-flex">
+          <input type="hidden" name="colorwayId" value={colorwayId} />
+          <input type="hidden" name="boxTypeId" value={boxTypeId} />
+          <input type="hidden" name="warehouseId" value={warehouseId} />
+          <input
+            name="onHand"
+            type="number"
+            min={0}
+            disabled={!canEdit}
+            defaultValue={row?.onHand ?? 0}
+            onBlur={(e) => e.currentTarget.form?.requestSubmit()}
+            aria-label={`${colorwayName} ${boxLabel} on hand`}
+            className="font-mono-tab w-14 border border-stone-300 bg-white px-1.5 py-1 text-right text-sm outline-none focus-visible:border-signal disabled:bg-stone-100"
+          />
+        </form>
+        <span className="text-ink-soft">/</span>
+        <form action={reservedAction} className="inline-flex">
+          <input type="hidden" name="colorwayId" value={colorwayId} />
+          <input type="hidden" name="boxTypeId" value={boxTypeId} />
+          <input type="hidden" name="warehouseId" value={warehouseId} />
+          <input
+            name="reserved"
+            type="number"
+            min={0}
+            disabled={!canEdit}
+            defaultValue={row?.reserved ?? 0}
+            onBlur={(e) => e.currentTarget.form?.requestSubmit()}
+            aria-label={`${colorwayName} ${boxLabel} reserved`}
+            className="font-mono-tab w-14 border border-stone-300 bg-white px-1.5 py-1 text-right text-sm outline-none focus-visible:border-signal disabled:bg-stone-100"
+          />
+        </form>
+      </div>
+    </td>
   );
 }

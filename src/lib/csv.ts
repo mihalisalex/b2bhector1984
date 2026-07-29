@@ -45,3 +45,18 @@ export function rowsToObjects(rows: string[][]): Record<string, string>[] {
   const [header, ...body] = rows;
   return body.map((r) => Object.fromEntries(header.map((h, i) => [h.trim(), (r[i] ?? "").trim()])));
 }
+
+const CSV_FORMULA_PREFIX = /^[=+\-@\t\r]/;
+
+/** Quotes a cell, doubles embedded quotes, and neutralizes formula-injection payloads
+ * (a cell starting with =/+/-/@ that Excel/Sheets can execute as a formula on open) by
+ * prefixing a leading apostrophe — the standard mitigation for CSV export. */
+function csvCell(value: unknown): string {
+  const s = String(value ?? "");
+  const safe = CSV_FORMULA_PREFIX.test(s) ? `'${s}` : s;
+  return `"${safe.replace(/"/g, '""')}"`;
+}
+
+export function toCsv(rows: (string | number)[][]): string {
+  return rows.map((row) => row.map(csvCell).join(",")).join("\n");
+}

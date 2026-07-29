@@ -44,9 +44,32 @@ function validateRow(row: ImportRow): string[] {
   return errors;
 }
 
-/** Validates every row without writing anything — used for the import wizard's preview step. */
-export function validateImportRows(rows: ImportRow[]): { row: number; styleNumber: string; errors: string[] }[] {
-  return rows.map((row, i) => ({ row: i + 1, styleNumber: row.styleNumber, errors: validateRow(row) }));
+export interface ImportRowPreview {
+  row: number;
+  styleNumber: string;
+  errors: string[];
+  action: "create" | "update";
+  /** Set when `action` is "update" — the name of the existing product this row will overwrite. */
+  existingName?: string;
+}
+
+/** Validates every row and, by matching style numbers against the live catalog, previews
+ * whether each will create a new product or overwrite an existing one — without writing
+ * anything. Used for the import wizard's preview step, so a style-number typo colliding
+ * with an existing SKU is visible before commit, not discovered after. */
+export async function validateImportRows(rows: ImportRow[]): Promise<ImportRowPreview[]> {
+  const existing = await getAllStyles();
+  const byStyleNumber = new Map(existing.map((s) => [s.styleNumber, s]));
+  return rows.map((row, i) => {
+    const match = byStyleNumber.get(row.styleNumber?.trim() ?? "");
+    return {
+      row: i + 1,
+      styleNumber: row.styleNumber,
+      errors: validateRow(row),
+      action: match ? "update" : "create",
+      existingName: match?.name,
+    };
+  });
 }
 
 /**

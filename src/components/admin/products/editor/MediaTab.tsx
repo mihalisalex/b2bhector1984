@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import Image from "next/image";
 import { ImageUploadForm } from "@/components/admin/ImageUploadForm";
+import { useToastResult } from "@/components/ui/ToastProvider";
 import {
   createProductImageUploadUrlAction,
   finalizeProductImageUploadAction,
@@ -13,11 +14,15 @@ import {
   finalizeDocumentUploadAction,
   deleteDocumentAction,
 } from "@/lib/productActions";
+import type { FormState } from "@/lib/actions";
 import type { Style } from "@/lib/types";
 import type { StyleImage } from "@/lib/data/styleImages";
 
+const initialState: FormState = {};
+
 export function MediaTab({ style, images, canEdit }: { style: Style; images: StyleImage[]; canEdit: boolean }) {
   const videoAndSpins = style.documents.filter((d) => d.kind === "video" || d.kind === "image_360");
+  const showResult = useToastResult();
 
   return (
     <div className="max-w-4xl space-y-8 pb-20">
@@ -48,19 +53,7 @@ export function MediaTab({ style, images, canEdit }: { style: Style; images: Sty
         {canEdit && <VideoUploadForm styleId={style.id} />}
         <div className="mt-3 space-y-2">
           {videoAndSpins.map((doc) => (
-            <div key={doc.id} className="flex items-center justify-between gap-3 border border-stone-300 bg-white px-3 py-2 text-sm">
-              <span className="text-ink-soft">{doc.kind === "video" ? "Video" : "360° set"} — </span>
-              <a href={doc.publicUrl} target="_blank" rel="noreferrer" className="flex-1 truncate text-signal hover:underline">
-                {doc.label || doc.storagePath.split("/").pop()}
-              </a>
-              {canEdit && (
-                <form action={deleteDocumentAction}>
-                  <input type="hidden" name="styleId" value={style.id} />
-                  <input type="hidden" name="documentId" value={doc.id} />
-                  <button type="submit" className="text-xs font-medium text-ember hover:underline">Remove</button>
-                </form>
-              )}
-            </div>
+            <DocumentRow key={doc.id} styleId={style.id} documentId={doc.id} label={doc.label || doc.storagePath.split("/").pop() || ""} publicUrl={doc.publicUrl} prefix={doc.kind === "video" ? "Video" : "360° set"} canEdit={canEdit} showResult={showResult} />
           ))}
           {videoAndSpins.length === 0 && <p className="text-sm text-ink-soft">None uploaded yet.</p>}
         </div>
@@ -87,6 +80,24 @@ function ImageCard({
   const [alt, setAlt] = useState(image.altText);
   void isFirst;
   void isLast;
+  const showResult = useToastResult();
+
+  const [altState, altAction] = useActionState(updateImageAltTextAction, initialState);
+  const [primaryState, primaryAction, isSettingPrimary] = useActionState(setPrimaryProductImageAction, initialState);
+  const [deleteState, deleteAction, isDeleting] = useActionState(deleteProductImageAction, initialState);
+
+  useEffect(() => {
+    if (altState.error) showResult(altState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [altState]);
+  useEffect(() => {
+    if (primaryState.error) showResult(primaryState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [primaryState]);
+  useEffect(() => {
+    if (deleteState.error) showResult(deleteState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deleteState]);
 
   return (
     <div className="border border-stone-300 bg-white">
@@ -97,7 +108,7 @@ function ImageCard({
         )}
       </div>
       <div className="space-y-2 p-2.5">
-        <form action={updateImageAltTextAction} onBlur={(e) => e.currentTarget.requestSubmit()}>
+        <form action={altAction} onBlur={(e) => e.currentTarget.requestSubmit()}>
           <input type="hidden" name="styleId" value={styleId} />
           <input type="hidden" name="imageId" value={image.id} />
           <input
@@ -113,20 +124,20 @@ function ImageCard({
         {canEdit && (
           <div className="flex items-center justify-between gap-2">
             {!image.isPrimary ? (
-              <form action={setPrimaryProductImageAction}>
+              <form action={primaryAction}>
                 <input type="hidden" name="styleId" value={styleId} />
                 <input type="hidden" name="imageId" value={image.id} />
-                <button type="submit" className="text-[11px] font-semibold uppercase tracking-wide text-signal hover:underline">
+                <button type="submit" disabled={isSettingPrimary} className="text-[11px] font-semibold uppercase tracking-wide text-signal hover:underline disabled:opacity-50">
                   Set featured
                 </button>
               </form>
             ) : (
               <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-soft">—</span>
             )}
-            <form action={deleteProductImageAction}>
+            <form action={deleteAction}>
               <input type="hidden" name="styleId" value={styleId} />
               <input type="hidden" name="imageId" value={image.id} />
-              <button type="submit" className="text-[11px] font-semibold uppercase tracking-wide text-ember hover:underline">
+              <button type="submit" disabled={isDeleting} className="text-[11px] font-semibold uppercase tracking-wide text-ember hover:underline disabled:opacity-50">
                 Delete
               </button>
             </form>
@@ -145,5 +156,46 @@ function VideoUploadForm({ styleId }: { styleId: string }) {
       finalizeUpload={(path) => finalizeDocumentUploadAction(styleId, path, path.match(/\.(mp4|mov|webm)$/i) ? "video" : "image_360", "")}
       buttonLabel="Upload video / 360° file"
     />
+  );
+}
+
+function DocumentRow({
+  styleId,
+  documentId,
+  label,
+  publicUrl,
+  prefix,
+  canEdit,
+  showResult,
+}: {
+  styleId: string;
+  documentId: string;
+  label: string;
+  publicUrl: string;
+  prefix: string;
+  canEdit: boolean;
+  showResult: (result: FormState | null | undefined) => void;
+}) {
+  const [deleteState, deleteAction, isDeleting] = useActionState(deleteDocumentAction, initialState);
+
+  useEffect(() => {
+    if (deleteState.error) showResult(deleteState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deleteState]);
+
+  return (
+    <div className="flex items-center justify-between gap-3 border border-stone-300 bg-white px-3 py-2 text-sm">
+      <span className="text-ink-soft">{prefix} — </span>
+      <a href={publicUrl} target="_blank" rel="noreferrer" className="flex-1 truncate text-signal hover:underline">
+        {label}
+      </a>
+      {canEdit && (
+        <form action={deleteAction}>
+          <input type="hidden" name="styleId" value={styleId} />
+          <input type="hidden" name="documentId" value={documentId} />
+          <button type="submit" disabled={isDeleting} className="text-xs font-medium text-ember hover:underline disabled:opacity-50">Remove</button>
+        </form>
+      )}
+    </div>
   );
 }
