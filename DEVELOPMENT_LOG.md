@@ -12,10 +12,14 @@ diffs; this file is the narrative index.
   €2,508.00) — completed with no error, and Blue's on-hand stock correctly dropped
   27 → 19 boxes, confirming `adjust_inventory` now resolves unambiguously and the
   atomic decrement genuinely works. Checkout is fully functional again.
-- **2026-07-29** — **Run `supabase/migrations/0019_password_reset_tokens.sql`** in the
-  Supabase SQL Editor (after 0001-0018) to make the new "Forgot password?" flow actually
-  work — until then it degrades gracefully (generic success message / friendly "invalid
-  link" error, verified live, no crash) but doesn't really create or honor reset tokens.
+- ~~**Run `supabase/migrations/0019_password_reset_tokens.sql`**~~ — **DONE, confirmed
+  run by you 2026-07-29, and verified live end-to-end same day**: requested a reset for
+  `buyer@unionsupply.com`, fetched the real token directly from the DB (no Resend key
+  configured, so the email itself no-ops as expected — server log confirmed it reached
+  the send step correctly), used it to reset the password back to the same demo value,
+  confirmed login still works, and confirmed the used token is correctly rejected on a
+  second attempt ("This reset link is invalid or has expired"). The forgot-password
+  flow is fully functional.
 - **2026-07-29** — Admin-side live verification (approving/declining an applicant from
   `/admin/applications` now sends them an email) could not be browser-tested in this
   session — the harness's own safety layer correctly blocked me from typing the admin
