@@ -45,7 +45,7 @@ import {
   textToHtml,
 } from "@/lib/emailTemplates";
 import { SITE_URL } from "@/lib/siteUrl";
-import type { Application, BoxTypeId, CreditTerms, Order, OrderLine } from "@/lib/types";
+import type { Application, BoxTypeId, CreditTerms, Order, OrderLine, SavedAssortmentLine } from "@/lib/types";
 
 const APPLICATION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
@@ -434,11 +434,11 @@ export async function saveAssortment(_prev: FormState, formData: FormData): Prom
   if (!account) redirect("/login");
 
   const name = String(formData.get("name") ?? "").trim();
-  const styleIds = JSON.parse(String(formData.get("styleIds") ?? "[]")) as string[];
+  const lines = JSON.parse(String(formData.get("lines") ?? "[]")) as SavedAssortmentLine[];
   if (!name) return { error: "Give this assortment a name." };
-  if (styleIds.length === 0) return { error: "Add at least one style before saving." };
+  if (lines.length === 0) return { error: "Add at least one style before saving." };
 
-  await createSavedAssortment(account.id, name, styleIds);
+  await createSavedAssortment(account.id, name, lines);
   revalidatePath("/dashboard/assortments");
   return { success: "Assortment saved." };
 }

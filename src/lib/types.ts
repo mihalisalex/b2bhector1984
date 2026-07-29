@@ -346,9 +346,19 @@ export interface Application {
   submittedAt: string;
 }
 
+export interface SavedAssortmentLine {
+  styleId: string;
+  colorwayId?: string;
+  boxTypeId?: BoxTypeId;
+  qty: number;
+}
+
 export interface SavedAssortment {
   id: string;
   name: string;
   createdAt: string;
+  /** Unique style ids across `lines` — kept for gallery display call sites. */
   styleIds: string[];
+  /** Empty colorway/box on a line means it was saved before line-item storage (migration 0021) — not directly loadable into the cart. */
+  lines: SavedAssortmentLine[];
 }

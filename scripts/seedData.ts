@@ -647,12 +647,14 @@ export const ASSORTMENTS: Record<string, SavedAssortment[]> = {
       name: "Fall Reorder Wall",
       createdAt: "2026-06-15",
       styleIds: ["st-01", "st-13", "st-05"],
+      lines: [],
     },
     {
       id: "asrt-2",
       name: "New Door Opener Kit",
       createdAt: "2026-07-01",
       styleIds: ["st-07", "st-08", "st-04"],
+      lines: [],
     },
   ],
   "acct-002": [
@@ -661,6 +663,7 @@ export const ASSORTMENTS: Record<string, SavedAssortment[]> = {
       name: "Flagship Store Reset",
       createdAt: "2026-05-20",
       styleIds: ["st-11", "st-13", "st-09", "st-01"],
+      lines: [],
     },
   ],
   "acct-003": [],

@@ -216,7 +216,7 @@ export default function CartPage() {
       </div>
 
       <div className="mt-8 flex flex-col items-end gap-3 border-t border-stone-300 pt-6">
-        <SaveAssortmentButton styleIds={styleIds} />
+        <SaveAssortmentButton lines={lines} />
         <div className="flex items-baseline gap-3">
           <span className="text-sm font-semibold uppercase tracking-wide text-ink-soft">Cart total (net-60)</span>
           <span className="font-mono-tab text-2xl font-bold text-ink">{formatEUR(cartTotal)}</span>

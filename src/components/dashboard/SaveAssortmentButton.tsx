@@ -3,10 +3,11 @@
 import { useActionState, useState } from "react";
 import { saveAssortment, type FormState } from "@/lib/actions";
 import { Button } from "@/components/ui/Button";
+import type { CartLine } from "@/lib/cart-context";
 
 const initialState: FormState = {};
 
-export function SaveAssortmentButton({ styleIds }: { styleIds: string[] }) {
+export function SaveAssortmentButton({ lines }: { lines: CartLine[] }) {
   const [open, setOpen] = useState(false);
   const [state, formAction, pending] = useActionState(saveAssortment, initialState);
 
@@ -28,7 +29,7 @@ export function SaveAssortmentButton({ styleIds }: { styleIds: string[] }) {
 
   return (
     <form action={formAction} className="flex flex-col gap-2 border border-stone-300 bg-white p-3 sm:w-72">
-      <input type="hidden" name="styleIds" value={JSON.stringify(styleIds)} />
+      <input type="hidden" name="lines" value={JSON.stringify(lines)} />
       <label className="flex flex-col gap-1">
         <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Assortment name</span>
         <input

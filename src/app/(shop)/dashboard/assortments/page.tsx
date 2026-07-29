@@ -7,6 +7,7 @@ import { deleteAssortment } from "@/lib/actions";
 import { formatDate } from "@/lib/format";
 import { StylePlate } from "@/components/product/StylePlate";
 import { AvailabilityBadge } from "@/components/ui/Badge";
+import { LoadAssortmentButton } from "@/components/dashboard/LoadAssortmentButton";
 
 export const metadata = { title: "Saved Assortments", robots: { index: false, follow: false } };
 
@@ -41,8 +42,9 @@ export default async function AssortmentsPage() {
             <section key={a.id}>
               <div className="flex items-baseline justify-between">
                 <h2 className="font-display text-lg font-bold uppercase tracking-tight text-ink">{a.name}</h2>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                   <span className="text-xs text-ink-soft">Saved {formatDate(a.createdAt)}</span>
+                  <LoadAssortmentButton lines={a.lines} />
                   <form action={deleteAssortment}>
                     <input type="hidden" name="assortmentId" value={a.id} />
                     <button type="submit" className="text-xs font-medium text-ember hover:underline">
@@ -51,6 +53,12 @@ export default async function AssortmentsPage() {
                   </form>
                 </div>
               </div>
+              {a.lines.every((l) => !l.colorwayId) && (
+                <p className="mt-1 text-xs text-ink-soft">
+                  Saved before exact quantities were tracked — browse the styles below to reorder, rather than a
+                  direct cart load.
+                </p>
+              )}
               <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                 {a.styleIds.map((id) => {
                   const style = styleById.get(id);
