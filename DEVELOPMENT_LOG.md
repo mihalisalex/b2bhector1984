@@ -6,10 +6,9 @@ diffs; this file is the narrative index.
 
 ## Pending Actions (need your credentials/approval — everything else proceeds without you)
 
-1. **Run `supabase/migrations/0018_favorites.sql`** in the Supabase SQL Editor (same
-   process as 0013-0017 — paste, run, in order after 0017). Until then, the
-   heart/favorite toggle on product pages and cards will show a friendly error
-   instead of saving — everything else on the site is unaffected.
+_Nothing outstanding — migration 0018 (favorites) confirmed run and verified live
+2026-07-29 (favoriting persists, shows on /dashboard/favorites). Will add new entries
+here as they come up._
 
 ## Completed
 
