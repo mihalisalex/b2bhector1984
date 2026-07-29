@@ -6,20 +6,12 @@ diffs; this file is the narrative index.
 
 ## Pending Actions (need your credentials/approval — everything else proceeds without you)
 
-- **2026-07-29 — 🔴 CRITICAL, RUN THIS FIRST: `supabase/migrations/0020_fix_adjust_inventory_overload.sql`.**
-  **Checkout is currently broken in production** — every real order submission
-  fails with an uncaught server error. Root cause: migration 0014 added a second
-  `adjust_inventory(...)` function with a 5th `p_warehouse_id` parameter, intending
-  it to transparently replace the original 4-parameter version from migration
-  0008. `create or replace function` only replaces a function with the *identical*
-  argument signature, so Postgres kept both — every checkout call (which passes
-  4 args) now matches both overloads ambiguously and errors with "Could not
-  choose the best candidate function." Reproduced live via a real checkout
-  attempt in this audit. The fix migration drops the stale 4-arg overload,
-  leaving only the warehouse-aware version (the application code has also been
-  updated to pass `p_warehouse_id: "main"` explicitly rather than relying on
-  its default). **Run this in the Supabase SQL Editor immediately** — until you
-  do, no buyer can place an order on the live site.
+- ~~**CRITICAL: run `supabase/migrations/0020_fix_adjust_inventory_overload.sql`**~~ —
+  **DONE, confirmed run by you 2026-07-29, and verified live end-to-end same day**: placed
+  a real test order (`ORD-81068`, PO `PO-MIGRATION-VERIFY-01`, 8 boxes/80 pairs,
+  €2,508.00) — completed with no error, and Blue's on-hand stock correctly dropped
+  27 → 19 boxes, confirming `adjust_inventory` now resolves unambiguously and the
+  atomic decrement genuinely works. Checkout is fully functional again.
 - **2026-07-29** — **Run `supabase/migrations/0019_password_reset_tokens.sql`** in the
   Supabase SQL Editor (after 0001-0018) to make the new "Forgot password?" flow actually
   work — until then it degrades gracefully (generic success message / friendly "invalid
@@ -484,12 +476,17 @@ not just a code change):
   from an earlier rename, cosmetically odd in the URL but not broken (not touched this
   pass — renaming a live slug risks breaking bookmarks/backlinks without a redirect).
 
-**Pending Actions Requiring Your Credentials**: see the "Pending Actions" section at
-the top of this file (migrations 0019 and 0020, admin-login live verification, Resend
-API key).
+**Pending Actions Requiring Your Credentials**: migration 0019 (password reset),
+admin-login live verification, Resend API key — see "Pending Actions" at the top of
+this file. Migration 0020 (checkout hotfix) is done and verified — see there too.
 
-**Test residue**: submitting the real Apply form live (to verify it end-to-end) created
-one real test application — "Riverside Boot Co" / Jordan Rivera, status "pending" — in
-the live `applications` table. Left in place (harmless demo data, same "verify live"
-philosophy as the checkout test order documented earlier in this log); safe to approve,
-decline, or delete from `/admin/applications` whenever convenient.
+**Test residue**:
+- Submitting the real Apply form live created one real test application — "Riverside
+  Boot Co" / Jordan Rivera, status "pending" — in the live `applications` table. Left
+  in place (harmless demo data); safe to approve, decline, or delete from
+  `/admin/applications` whenever convenient.
+- Verifying the migration-0020 checkout fix placed one real order — `ORD-81068`, PO
+  `PO-MIGRATION-VERIFY-01`, 8 boxes of Hector boat loafer (Blue, 10-pair), €2,508.00 —
+  and correctly decremented live inventory (Blue 27 → 19 boxes available). This is real
+  data now, same as every other test order in this log's history; safe to leave, or
+  edit/cancel from `/admin/orders/ORD-81068` if you'd rather not keep it.
