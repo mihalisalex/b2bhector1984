@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { bodySans, displaySerif, mono } from "@/lib/fonts";
 import { CookieConsentBanner } from "@/components/layout/CookieConsentBanner";
+import { SITE_URL } from "@/lib/siteUrl";
 import "./globals.css";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://hector1984.com";
 const SITE_NAME = "Hector 1984 Wholesale";
 const DESCRIPTION =
   "Full-grain leather footwear, wholesaled the way serious retailers expect. Apply for a Hector 1984 wholesale account — matrix ordering, terms-based pricing, net terms.";

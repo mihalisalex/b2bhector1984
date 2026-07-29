@@ -6,9 +6,20 @@ diffs; this file is the narrative index.
 
 ## Pending Actions (need your credentials/approval — everything else proceeds without you)
 
-_Nothing outstanding — migration 0018 (favorites) confirmed run and verified live
-2026-07-29 (favoriting persists, shows on /dashboard/favorites). Will add new entries
-here as they come up._
+- **2026-07-29** — **Run `supabase/migrations/0019_password_reset_tokens.sql`** in the
+  Supabase SQL Editor (after 0001-0018) to make the new "Forgot password?" flow actually
+  work — until then it degrades gracefully (generic success message / friendly "invalid
+  link" error, verified live, no crash) but doesn't really create or honor reset tokens.
+- **2026-07-29** — Admin-side live verification (approving/declining an applicant from
+  `/admin/applications` now sends them an email) could not be browser-tested in this
+  session — the harness's own safety layer correctly blocked me from typing the admin
+  password into the login form via automation, and I didn't try to work around it. The
+  code path is typecheck/lint/build-clean and mirrors the already-verified
+  `notifyOrderStatusChange` pattern exactly, but if you want it live-verified, either do
+  it yourself or explicitly authorize an automated admin login for a future session.
+- Real email sending still needs a `RESEND_API_KEY` (unchanged from earlier phases) —
+  the new password-reset and application-decision emails no-op with a console warning
+  until then, same as every other transactional email in this app.
 
 ## Completed
 
@@ -214,3 +225,89 @@ entries above (Optimizations/Refactors/Bugs Fixed) for exactly what changed.
 Committed as a batch once verified. Continuing to the next highest-impact
 improvement per Autonomous Development Mode — see Completed above this line
 for what comes next.
+
+### Phase 3: Page-by-page production audit — IN PROGRESS (started 2026-07-29)
+User asked for an exhaustive, page-by-page functional/UX/a11y/perf review across the
+whole site — verify every button/form/link/filter/table/modal, think like a PM about
+missing marketplace features, fix real issues before moving to the next page. This is
+a large, multi-session effort (~29 distinct page experiences); each page gets a live
+browser check (desktop + mobile, console/network, every interactive element) plus a
+code read, not just a code read. Working in buyer-journey order: marketing/public →
+core shop → buyer dashboard → admin.
+
+**Pages Completed** (this session): Home (`/`), Login (`/login`), Apply + Apply Pending
+(`/apply`, `/apply/pending`).
+
+**Issues Found**
+- Homepage: LCP candidate image (the summer season-teaser photo) had no `priority`
+  hint — Next flagged it directly in dev console.
+- `/login`: no self-service password recovery existed at all — a returning buyer who
+  forgot their password had no path except contacting their rep (not even linked from
+  the login page).
+- Already-authenticated visitors could still load `/login` and `/apply` and see the
+  full form again instead of being redirected to their dashboard/admin.
+- `submitApplication` had no server-side email format validation — relied solely on
+  the client-side `type="email"` HTML attribute, which is trivially bypassed.
+- **Real crash bug shipped and caught by live testing, not lint/typecheck**: the new
+  `resetPassword` action didn't catch a DB error the way its sibling
+  `requestPasswordReset` did — hitting `/reset-password/<token>` before migration 0019
+  runs (or with any bad token before then) threw an uncaught error into Next's generic
+  "This page couldn't load" screen instead of the intended friendly message. Caught
+  live, fixed immediately, re-verified.
+- The `/apply/pending` page has always promised "we'll email you once a decision is
+  made," but `approveApplication`/`declineApplication`/`bulkApproveApplications` never
+  actually sent that email — a genuine broken promise to every applicant.
+
+**Issues Fixed**
+- `StylePlate` gained a `priority` prop; the homepage's first season-teaser card now
+  passes it. Verified live via DOM inspection (the `loading="lazy"` attribute is now
+  correctly absent from that image).
+- `resetPassword` now wraps its token lookup in try/catch, matching
+  `requestPasswordReset`'s pattern — verified live, no more crash.
+- `submitApplication` now validates email format server-side (same regex already used
+  by `updateAccountContact`), not just client-side.
+
+**Features Added**
+- **Full self-service password reset flow**: new migration
+  `0019_password_reset_tokens.sql` (pending your run — see Pending Actions), new
+  `src/lib/data/passwordReset.ts`, `requestPasswordReset`/`resetPassword` actions in
+  `actions.ts`, new pages `/forgot-password` and `/reset-password/[token]`, new
+  `ForgotPasswordForm`/`ResetPasswordForm` components, "Forgot password?" link added to
+  `LoginForm`. Always returns the same generic message regardless of whether the email
+  matches an account (no account-enumeration leak). Verified live end-to-end for the
+  degrade-gracefully path (pre-migration); real token creation/redemption needs
+  migration 0019 run first.
+- **Application-decision emails**: approving or declining a wholesale application now
+  actually emails the applicant (reusing the existing `sendEmail`/Resend integration —
+  same no-ops-without-a-key behavior as every other transactional email here). New
+  `buildApplicationApprovedEmailBody`/`buildApplicationDeclinedEmailBody` templates.
+- Already-logged-in visitors to `/login` or `/apply` are now redirected to their
+  dashboard/admin instead of seeing the form again.
+
+**Performance Improvements**
+- Homepage LCP image priority fix (above).
+
+**UX Improvements**
+- "Forgot password?" link on the login form (previously absent entirely).
+- No more pointless "sign in again" form shown to already-authenticated users on
+  `/login`/`/apply`.
+
+**Remaining Work**
+- 26 more page groups queued: Brand Story/Collections/Contact/FAQ, legal pages,
+  Catalogue, Product detail, Quick Order/Linesheet, Cart, Checkout, buyer Dashboard +
+  Account/Assortments/Favorites/Order detail, and the full admin module (orders,
+  products, accounts, sales reps, suppliers, applications, analytics, audit log,
+  content, permissions). Continuing in the same order (buyer-facing first, admin last).
+- A duplicated-logic cleanup landed as a side effect of this pass: `SITE_URL` was
+  defined identically in three places (`layout.tsx`, `robots.ts`, `sitemap.ts`) —
+  consolidated into `src/lib/siteUrl.ts`, now also used by the new reset-password email
+  link.
+
+**Pending Actions Requiring Your Credentials**: see the "Pending Actions" section at
+the top of this file (migration 0019, admin-login live verification, Resend API key).
+
+**Test residue**: submitting the real Apply form live (to verify it end-to-end) created
+one real test application — "Riverside Boot Co" / Jordan Rivera, status "pending" — in
+the live `applications` table. Left in place (harmless demo data, same "verify live"
+philosophy as the checkout test order documented earlier in this log); safe to approve,
+decline, or delete from `/admin/applications` whenever convenient.

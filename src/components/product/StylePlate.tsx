@@ -13,6 +13,7 @@ export function StylePlate({
   alt = "",
   className,
   dense = false,
+  priority = false,
 }: {
   swatch: [string, string?];
   styleNumber?: string;
@@ -21,11 +22,20 @@ export function StylePlate({
   alt?: string;
   className?: string;
   dense?: boolean;
+  /** Set for an above-the-fold instance (e.g. a hero/teaser card) so next/image skips lazy-loading it. */
+  priority?: boolean;
 }) {
   if (imageUrl) {
     return (
       <div className={cn("relative overflow-hidden bg-stone-200", className)}>
-        <Image src={imageUrl} alt={alt} fill sizes="(min-width: 1024px) 440px, 100vw" className="object-cover" />
+        <Image
+          src={imageUrl}
+          alt={alt}
+          fill
+          sizes="(min-width: 1024px) 440px, 100vw"
+          className="object-cover"
+          priority={priority}
+        />
         {styleNumber && (
           <span className="font-mono-tab absolute bottom-2 right-2 bg-ink/80 px-1.5 py-0.5 text-[10px] tracking-wide text-white">
             {styleNumber}

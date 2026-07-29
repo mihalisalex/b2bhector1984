@@ -96,7 +96,7 @@ export default async function HomePage() {
         </div>
 
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
-          {(Object.keys(SEASON_CATEGORIES) as Season[]).map((season) => {
+          {(Object.keys(SEASON_CATEGORIES) as Season[]).map((season, index) => {
             const seasonStyles = styles.filter((s) => s.season === season);
             const rep = seasonStyles[0];
             if (!rep) return null;
@@ -110,6 +110,7 @@ export default async function HomePage() {
                   swatch={rep.colorways[0].swatch}
                   imageUrl={getStyleImageUrl(rep)}
                   alt={rep.name}
+                  priority={index === 0}
                   className="h-full w-full transition-transform duration-500 ease-out group-hover:scale-[1.04]"
                 />
                 <div

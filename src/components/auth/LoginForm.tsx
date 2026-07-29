@@ -49,7 +49,12 @@ export function LoginForm() {
           <form action={formAction} className="mt-8 flex flex-col gap-4">
             {next && <input type="hidden" name="next" value={next} />}
             <Field label="Email" name="email" type="email" defaultValue="buyer@unionsupply.com" required />
-            <Field label="Password" name="password" type="password" defaultValue="wholesale84" required />
+            <div>
+              <Field label="Password" name="password" type="password" defaultValue="wholesale84" required />
+              <Link href="/forgot-password" className="mt-1.5 inline-block text-xs text-signal underline underline-offset-2">
+                Forgot password?
+              </Link>
+            </div>
 
             {state.error && (
               <p role="alert" className="border border-ember/40 bg-ember-100 px-3 py-2 text-sm text-ember">

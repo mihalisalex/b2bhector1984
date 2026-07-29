@@ -1,12 +1,11 @@
 import type { MetadataRoute } from "next";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://hector1984.com";
+import { SITE_URL } from "@/lib/siteUrl";
 
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
-      allow: ["/", "/brand-story", "/collections", "/apply", "/login"],
+      allow: ["/", "/brand-story", "/collections", "/apply", "/login", "/forgot-password"],
       disallow: [
         "/dashboard",
         "/cart",
@@ -17,6 +16,7 @@ export default function robots(): MetadataRoute.Robots {
         "/quick-order",
         "/apply/pending",
         "/admin",
+        "/reset-password",
       ],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,

@@ -25,6 +25,11 @@ import {
 } from "@/lib/data/accounts";
 import { insertApplication, updateApplicationStatus } from "@/lib/data/applications";
 import { getStylesByIds } from "@/lib/data/styles";
+import {
+  createPasswordResetToken,
+  getValidPasswordResetAccountId,
+  markPasswordResetTokenUsed,
+} from "@/lib/data/passwordReset";
 import { z } from "zod";
 import { hashPassword, verifyPassword } from "@/lib/passwords";
 import { formatEUR, getOrderMinimumError, getUnitPrice, summarizeOrder, validateMatrix } from "@/lib/pricing";
@@ -32,7 +37,14 @@ import { createSavedAssortment, deleteSavedAssortment as deleteSavedAssortmentDa
 import { addFavorite, removeFavorite } from "@/lib/data/favorites";
 import { decrementInventoryForOrder } from "@/lib/data/inventory";
 import { sendEmail } from "@/lib/email";
-import { buildOrderConfirmationEmailBody, orderConfirmationEmailSubject, textToHtml } from "@/lib/emailTemplates";
+import {
+  buildOrderConfirmationEmailBody,
+  buildPasswordResetEmailBody,
+  orderConfirmationEmailSubject,
+  PASSWORD_RESET_EMAIL_SUBJECT,
+  textToHtml,
+} from "@/lib/emailTemplates";
+import { SITE_URL } from "@/lib/siteUrl";
 import type { Application, BoxTypeId, CreditTerms, Order, OrderLine } from "@/lib/types";
 
 const APPLICATION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
@@ -63,6 +75,60 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   redirect(next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard");
 }
 
+/**
+ * Always returns the same generic success message whether or not the email
+ * matches an account — avoids leaking which emails have wholesale accounts.
+ */
+export async function requestPasswordReset(_prev: FormState, formData: FormData): Promise<FormState> {
+  const email = String(formData.get("email") ?? "").trim();
+  const genericSuccess: FormState = {
+    success: "If an account exists for that email, we've sent a link to reset your password.",
+  };
+  if (!email) return { error: "Enter the email address on your wholesale account." };
+
+  try {
+    const account = await getAccountByEmail(email);
+    if (account && account.status === "active") {
+      const token = await createPasswordResetToken(account.id);
+      const resetUrl = `${SITE_URL}/reset-password/${token}`;
+      await sendEmail({
+        to: account.email,
+        subject: PASSWORD_RESET_EMAIL_SUBJECT,
+        html: textToHtml(buildPasswordResetEmailBody(resetUrl, account.contactName)),
+      });
+    }
+  } catch (err) {
+    console.error("[requestPasswordReset] failed:", err);
+  }
+  return genericSuccess;
+}
+
+export interface ResetPasswordState extends FormState {
+  done?: boolean;
+}
+
+export async function resetPassword(_prev: ResetPasswordState, formData: FormData): Promise<ResetPasswordState> {
+  const token = String(formData.get("token") ?? "");
+  const password = String(formData.get("password") ?? "");
+  const confirmPassword = String(formData.get("confirmPassword") ?? "");
+
+  if (password.length < 8) return { error: "Password must be at least 8 characters." };
+  if (password !== confirmPassword) return { error: "Passwords don't match." };
+
+  const invalidTokenError = { error: "This reset link is invalid or has expired. Request a new one." };
+  try {
+    const accountId = await getValidPasswordResetAccountId(token);
+    if (!accountId) return invalidTokenError;
+
+    await updateAccountPasswordData(accountId, await hashPassword(password));
+    await markPasswordResetTokenUsed(token);
+    return { done: true, success: "Password updated. You can now sign in." };
+  } catch (err) {
+    console.error("[resetPassword] failed:", err);
+    return invalidTokenError;
+  }
+}
+
 export async function logout() {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE)?.value;
@@ -90,6 +156,9 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
     if (!String(formData.get(field) ?? "").trim()) {
       return { error: "Every field marked required needs a value before we can route this to review." };
     }
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(formData.get("email") ?? "").trim())) {
+    return { error: "Enter a valid email address." };
   }
 
   const application: Omit<Application, "id" | "status" | "submittedAt"> = {

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
-import { updateApplicationStatus } from "@/lib/data/applications";
+import { getApplicationById, updateApplicationStatus } from "@/lib/data/applications";
 import { updateAvailableBoxTypes } from "@/lib/data/styles";
 import { setInventoryLevel } from "@/lib/data/inventory";
 import {
@@ -23,7 +23,16 @@ import {
   getOrderByIdAdmin,
 } from "@/lib/runtimeOrders";
 import { sendEmail } from "@/lib/email";
-import { buildOrderStatusEmailBody, orderStatusEmailSubject, textToHtml } from "@/lib/emailTemplates";
+import {
+  APPLICATION_APPROVED_EMAIL_SUBJECT,
+  APPLICATION_DECLINED_EMAIL_SUBJECT,
+  buildApplicationApprovedEmailBody,
+  buildApplicationDeclinedEmailBody,
+  buildOrderStatusEmailBody,
+  orderStatusEmailSubject,
+  textToHtml,
+} from "@/lib/emailTemplates";
+import { SITE_URL } from "@/lib/siteUrl";
 import type { FormState } from "@/lib/actions";
 import type { BoxTypeId, CreditTerms, OrderStatus } from "@/lib/types";
 
@@ -42,6 +51,25 @@ async function notifyOrderStatusChange(orderId: string, status: OrderStatus) {
     subject: orderStatusEmailSubject({ id: order.id, status }),
     html: textToHtml(buildOrderStatusEmailBody({ id: order.id, poNumber: order.poNumber, status }, order.contactName)),
   });
+}
+
+/** Best-effort — `sendEmail` never throws, so this can't fail the status update that triggered it. */
+async function notifyApplicationDecision(applicationId: string, decision: "approved" | "declined") {
+  const application = await getApplicationById(applicationId);
+  if (!application) return;
+  if (decision === "approved") {
+    await sendEmail({
+      to: application.email,
+      subject: APPLICATION_APPROVED_EMAIL_SUBJECT,
+      html: textToHtml(buildApplicationApprovedEmailBody(application.contactName, `${SITE_URL}/apply/pending`)),
+    });
+  } else {
+    await sendEmail({
+      to: application.email,
+      subject: APPLICATION_DECLINED_EMAIL_SUBJECT,
+      html: textToHtml(buildApplicationDeclinedEmailBody(application.contactName)),
+    });
+  }
 }
 
 const ORDER_STATUSES: OrderStatus[] = ["submitted", "confirmed", "in_production", "shipped", "delivered"];
@@ -123,6 +151,7 @@ export async function approveApplication(applicationId: string) {
   const admin = await requireAdmin();
   await updateApplicationStatus(applicationId, "approved");
   await logAudit(admin.id, "application.approved", "application", applicationId);
+  await notifyApplicationDecision(applicationId, "approved");
   revalidatePath("/admin/applications");
 }
 
@@ -130,6 +159,7 @@ export async function declineApplication(applicationId: string) {
   const admin = await requireAdmin();
   await updateApplicationStatus(applicationId, "declined");
   await logAudit(admin.id, "application.declined", "application", applicationId);
+  await notifyApplicationDecision(applicationId, "declined");
   revalidatePath("/admin/applications");
 }
 
@@ -158,6 +188,7 @@ export async function bulkApproveApplications(applicationIds: string[]): Promise
   for (const applicationId of applicationIds) {
     await updateApplicationStatus(applicationId, "approved");
     await logAudit(admin.id, "application.approved", "application", applicationId);
+    await notifyApplicationDecision(applicationId, "approved");
   }
   revalidatePath("/admin/applications");
   return { success: `Approved ${applicationIds.length} applications.` };
