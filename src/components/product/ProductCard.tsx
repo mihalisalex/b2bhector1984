@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styles";
-import { formatEUR, getEffectiveBasePrice, getUnitPrice } from "@/lib/pricing";
+import { formatEUR, getUnitPrice, isOnSale } from "@/lib/pricing";
 import type { Style } from "@/lib/types";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
@@ -21,7 +21,7 @@ export function ProductCard({
 }) {
   const soldOut = totalOnHand === 0;
   const lowStock = typeof totalOnHand === "number" && totalOnHand > 0 && totalOnHand <= 10;
-  const onSale = getEffectiveBasePrice(style) < style.basePrice;
+  const onSale = isOnSale(style);
 
   return (
     <Link

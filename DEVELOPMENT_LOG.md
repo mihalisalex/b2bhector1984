@@ -72,6 +72,13 @@ diffs; this file is the narrative index.
 
 ## Refactors
 
+- **2026-07-29** — Consolidated the "is this style currently on sale?" check
+  (`getEffectiveBasePrice(style) < style.basePrice`), which had been copy-
+  pasted inline in four places while building the storefront overhaul
+  (`ProductCard`, `ProductListRow`, `PrimaryPurchasePanel`,
+  `OrderableLinesheet` ×2), into one exported `isOnSale(style)` helper in
+  `pricing.ts`. Same behavior, one place to change if the sale-detection
+  logic ever needs to (e.g.) account for timezone handling differently.
 - **2026-07-29** — Hardened error handling on the two new server-action call
   sites that could have thrown an unhandled rejection into a client component:
   `SearchOverlay`'s debounced search call now has a try/catch (was previously

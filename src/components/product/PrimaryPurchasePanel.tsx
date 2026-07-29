@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
-import { formatEUR, getEffectiveBasePrice, getUnitPrice } from "@/lib/pricing";
+import { formatEUR, getUnitPrice, isOnSale } from "@/lib/pricing";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
 import { ShareButton } from "@/components/product/ShareButton";
 import type { BoxTypeId, Style } from "@/lib/types";
@@ -62,7 +62,7 @@ export function PrimaryPurchasePanel({
   const lowStock = onHand > 0 && onHand <= 4;
 
   const unitPrice = getUnitPrice(style, "net60", priceMultiplier);
-  const onSale = getEffectiveBasePrice(style) < style.basePrice;
+  const onSale = isOnSale(style);
   const listPrice = style.basePrice * priceMultiplier;
   const pairsPerBox = box.totalPairs;
   const subtotal = useMemo(() => unitPrice * pairsPerBox * addQty, [unitPrice, pairsPerBox, addQty]);

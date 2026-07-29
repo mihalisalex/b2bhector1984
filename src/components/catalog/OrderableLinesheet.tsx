@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useCart, type CartLine } from "@/lib/cart-context";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
-import { formatEUR, getEffectiveBasePrice, getUnitPrice, validateMatrix } from "@/lib/pricing";
+import { formatEUR, getUnitPrice, isOnSale, validateMatrix } from "@/lib/pricing";
 import { CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styleLabels";
 import type { StyleInventory } from "@/lib/data/inventory";
 import type { BoxTypeId, Style } from "@/lib/types";
@@ -139,7 +139,7 @@ export function OrderableLinesheet({
                     <span className="font-mono-tab text-sm font-semibold text-ink">
                       {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
                     </span>
-                    {getEffectiveBasePrice(style) < style.basePrice && (
+                    {isOnSale(style) && (
                       <span className="bg-ember px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">Sale</span>
                     )}
                   </div>
@@ -242,7 +242,7 @@ export function OrderableLinesheet({
                   {i === 0 ? (
                     <td className="font-mono-tab px-3 py-2.5 text-right align-top tabular-nums text-ink" rowSpan={style.colorways.length}>
                       {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
-                      {getEffectiveBasePrice(style) < style.basePrice && (
+                      {isOnSale(style) && (
                         <span className="ml-1.5 bg-ember px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">Sale</span>
                       )}
                     </td>

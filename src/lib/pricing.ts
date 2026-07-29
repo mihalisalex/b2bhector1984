@@ -30,6 +30,13 @@ export function getEffectiveBasePrice(style: Style, now: Date = new Date()): num
   return style.salePrice;
 }
 
+/** Whether a scheduled sale is currently active — the one check every "Sale" badge across
+ * the storefront (cards, list rows, the product page, the quick-order linesheet) should use,
+ * rather than each re-deriving `getEffectiveBasePrice(style) < style.basePrice` inline. */
+export function isOnSale(style: Style, now: Date = new Date()): boolean {
+  return getEffectiveBasePrice(style, now) < style.basePrice;
+}
+
 /**
  * Final per-pair wholesale price for a style at the given payment terms.
  * `priceMultiplier` is an optional per-account negotiated-pricing lever
