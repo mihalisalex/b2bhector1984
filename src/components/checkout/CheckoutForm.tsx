@@ -61,7 +61,7 @@ export function CheckoutForm({ account }: { account: Account }) {
   }
 
   return (
-    <form action={formAction} className="mt-6 grid grid-cols-1 gap-10 lg:grid-cols-[1fr_400px]">
+    <form action={formAction} className="mt-6 grid grid-cols-1 gap-10 pb-24 lg:grid-cols-[1fr_400px] lg:pb-0">
       <div className="flex flex-col gap-8">
         <Section title="Purchase Order">
           <label className="flex flex-col gap-1.5">
@@ -140,7 +140,7 @@ export function CheckoutForm({ account }: { account: Account }) {
         )}
       </div>
 
-      <div className="h-fit border border-stone-300 bg-white p-5">
+      <div className="h-fit border border-stone-300 bg-white p-5 lg:sticky lg:top-[calc(var(--shell-header-h)+1.5rem)]">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Order Summary</h2>
         <div className="mt-3 flex flex-col gap-2.5 border-b border-stone-200 pb-4">
           {styleGroups.map((g) => (
@@ -182,6 +182,21 @@ export function CheckoutForm({ account }: { account: Account }) {
           in{" "}
           <Link href="/dashboard" className="underline">order history</Link> immediately.
         </p>
+      </div>
+
+      {/* Sticky mobile submit bar — the total + submit stay reachable while filling out
+          PO/ship-to/terms above, instead of only appearing after scrolling past the whole form. */}
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-300 bg-white/97 px-4 py-3 backdrop-blur lg:hidden" style={{ boxShadow: "0 -8px 24px rgba(26,29,34,0.12)" }}>
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="font-mono-tab truncate text-lg font-bold text-ink">{formatEUR(cartTotal)}</p>
+            <p className="truncate text-[10px] text-ink-soft">{totalPairs} pairs</p>
+          </div>
+          <Button type="submit" disabled={pending || !!minimumError} className="shrink-0">
+            {pending ? "Requesting…" : "Submit Order"}
+          </Button>
+        </div>
+        {minimumError && <p className="mt-1.5 text-[11px] font-medium text-ember">{minimumError}</p>}
       </div>
     </form>
   );

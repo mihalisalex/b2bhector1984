@@ -22,6 +22,13 @@ diffs; this file is the narrative index.
   `MatrixOrderGrid` (multi-colorway/box-type box builder) is kept, relabeled
   "Build a Full Box Order," and repositioned as an explicitly secondary/advanced
   section below the fold — nothing removed, just reordered and re-labeled.
+- **2026-07-29** — Checkout got the same treatment as cart/product: a sticky
+  mobile bottom bar (total + Submit Order) so the order total and submit
+  action are reachable while filling out PO/ship-to/terms above, instead of
+  only appearing after scrolling past the entire form; the desktop Order
+  Summary sidebar is now sticky too. Verified live on both a 390px and
+  1280px viewport — no duplicate-button regression this time (checked
+  specifically, given the identical bug found earlier in the cart page).
 - **2026-07-29** — Mobile polish + perceived performance: sticky one-tap category
   chips on the catalogue's mobile filter bar (no need to open the full filter
   drawer to switch category), a real localStorage-backed Recently Viewed strip
