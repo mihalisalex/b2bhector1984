@@ -43,7 +43,12 @@ export function OrderableLinesheet({
     for (const style of styles) map[style.id] = buildInitialQtyForStyle(style, lines);
     return map;
   });
+  const [dirty, setDirty] = useState<Set<string>>(new Set());
   const [confirmed, setConfirmed] = useState(false);
+
+  function cellKey(styleId: string, colorwayId: string, boxTypeId: BoxTypeId) {
+    return `${styleId}:${colorwayId}:${boxTypeId}`;
+  }
 
   // Seed state for any style that enters the view after a filter change,
   // without touching in-progress edits on styles already present.
@@ -67,6 +72,35 @@ export function OrderableLinesheet({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [styles]);
 
+  // Keep every untouched cell in sync with the live cart — covers the cart's
+  // own hydrate-from-localStorage completing after this component's initial
+  // mount/seed, and any other cart change (e.g. the product page) made while
+  // this table stays mounted. Cells the user has actually edited (`dirty`)
+  // keep their in-progress value.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setQty((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      for (const style of styles) {
+        const seeded = buildInitialQtyForStyle(style, lines);
+        for (const colorway of style.colorways) {
+          for (const box of getAvailableBoxTypes(style)) {
+            const key = cellKey(style.id, colorway.id, box.id);
+            if (dirty.has(key)) continue;
+            const seededVal = seeded[colorway.id]?.[box.id] ?? 0;
+            if ((prev[style.id]?.[colorway.id]?.[box.id] ?? 0) !== seededVal) {
+              next[style.id] = { ...next[style.id], [colorway.id]: { ...next[style.id]?.[colorway.id], [box.id]: seededVal } };
+              changed = true;
+            }
+          }
+        }
+      }
+      return changed ? next : prev;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lines, styles]);
+
   function setCell(styleId: string, colorwayId: string, boxTypeId: BoxTypeId, value: number) {
     setConfirmed(false);
     const onHand = inventory[styleId]?.[colorwayId]?.[boxTypeId] ?? 0;
@@ -77,6 +111,7 @@ export function OrderableLinesheet({
         [colorwayId]: { ...prev[styleId]?.[colorwayId], [boxTypeId]: Math.min(onHand, Math.max(0, Math.floor(value) || 0)) },
       },
     }));
+    setDirty((prev) => new Set(prev).add(cellKey(styleId, colorwayId, boxTypeId)));
   }
 
   function step(styleId: string, colorwayId: string, boxTypeId: BoxTypeId, delta: number) {
@@ -99,12 +134,20 @@ export function OrderableLinesheet({
     for (const style of styles) {
       const styleQty = qty[style.id];
       if (!styleQty) continue;
+      // Untouched cells submit whatever's *currently* in the cart (not this
+      // table's local snapshot) so adding from here can never silently wipe
+      // out a line added elsewhere for a colorway/box this table's user
+      // never actually edited.
       const entries = style.colorways.flatMap((c) =>
-        getAvailableBoxTypes(style).map((box) => ({
-          colorwayId: c.id,
-          boxTypeId: box.id,
-          qty: styleQty[c.id]?.[box.id] ?? 0,
-        })),
+        getAvailableBoxTypes(style).map((box) => {
+          if (dirty.has(cellKey(style.id, c.id, box.id))) {
+            return { colorwayId: c.id, boxTypeId: box.id, qty: styleQty[c.id]?.[box.id] ?? 0 };
+          }
+          const liveQty = lines.find(
+            (l) => l.styleId === style.id && l.colorwayId === c.id && l.boxTypeId === box.id,
+          )?.qty ?? 0;
+          return { colorwayId: c.id, boxTypeId: box.id, qty: liveQty };
+        }),
       );
       if (entries.some((e) => e.qty > 0)) addLines(style.id, entries);
     }

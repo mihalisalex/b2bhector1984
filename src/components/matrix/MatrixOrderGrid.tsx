@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import { getAvailableBoxTypes, getSizeBreakdown, getTotalPairs } from "@/lib/data/boxTypes";
 import { formatEUR, validateMatrix } from "@/lib/pricing";
@@ -40,12 +40,44 @@ export function MatrixOrderGrid({
   const { addLines, lines } = useCart();
   const boxTypes = getAvailableBoxTypes(style);
   const [qty, setQty] = useState<BoxQtyMap>(() => buildInitialQty(style, boxTypes, lines));
+  const [dirty, setDirty] = useState<Set<string>>(new Set());
   const [confirmed, setConfirmed] = useState(false);
+
+  // Keep every untouched cell in sync with the live cart — covers the
+  // cart's own hydrate-from-localStorage completing after this component's
+  // initial mount/seed, and any cart change made via the primary purchase
+  // panel above while this grid stays mounted. Cells the user has actually
+  // edited (`dirty`) keep their in-progress value.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setQty((prev) => {
+      const seeded = buildInitialQty(style, boxTypes, lines);
+      const next = { ...prev };
+      let changed = false;
+      for (const c of style.colorways) {
+        for (const box of boxTypes) {
+          const key = `${c.id}:${box.id}`;
+          if (dirty.has(key)) continue;
+          const seededVal = seeded[c.id]?.[box.id] ?? 0;
+          if ((prev[c.id]?.[box.id] ?? 0) !== seededVal) {
+            next[c.id] = { ...next[c.id], [box.id]: seededVal };
+            changed = true;
+          }
+        }
+      }
+      return changed ? next : prev;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lines]);
 
   const validation = useMemo(
     () => validateMatrix(style, qty, "net60", priceMultiplier),
     [style, qty, priceMultiplier],
   );
+
+  function cellKey(colorwayId: string, boxTypeId: BoxTypeId) {
+    return `${colorwayId}:${boxTypeId}`;
+  }
 
   function setCell(colorwayId: string, boxTypeId: BoxTypeId, value: number) {
     setConfirmed(false);
@@ -54,6 +86,7 @@ export function MatrixOrderGrid({
       ...prev,
       [colorwayId]: { ...prev[colorwayId], [boxTypeId]: Math.min(onHand, Math.max(0, Math.floor(value) || 0)) },
     }));
+    setDirty((prev) => new Set(prev).add(cellKey(colorwayId, boxTypeId)));
   }
 
   function step(colorwayId: string, boxTypeId: BoxTypeId, delta: number) {
@@ -63,13 +96,26 @@ export function MatrixOrderGrid({
 
   function handleReset() {
     setQty(buildInitialQty(style, boxTypes, []));
+    setDirty(new Set());
     setConfirmed(false);
   }
 
   function handleAddToCart() {
     if (validation.totalBoxes === 0) return;
+    // Cells the user never touched pass through whatever's *currently* in the
+    // cart (not this grid's stale mount-time snapshot) — otherwise adding
+    // from this grid can silently wipe out a line added via the primary
+    // purchase panel (or another tab) after this grid first rendered.
     const entries = style.colorways.flatMap((c) =>
-      boxTypes.map((box) => ({ colorwayId: c.id, boxTypeId: box.id, qty: qty[c.id]?.[box.id] ?? 0 })),
+      boxTypes.map((box) => {
+        if (dirty.has(cellKey(c.id, box.id))) {
+          return { colorwayId: c.id, boxTypeId: box.id, qty: qty[c.id]?.[box.id] ?? 0 };
+        }
+        const liveQty = lines.find(
+          (l) => l.styleId === style.id && l.colorwayId === c.id && l.boxTypeId === box.id,
+        )?.qty ?? 0;
+        return { colorwayId: c.id, boxTypeId: box.id, qty: liveQty };
+      }),
     );
     addLines(style.id, entries);
     setConfirmed(true);

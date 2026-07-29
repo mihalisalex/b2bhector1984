@@ -236,7 +236,9 @@ code read, not just a code read. Working in buyer-journey order: marketing/publi
 core shop → buyer dashboard → admin.
 
 **Pages Completed** (this session): Home (`/`), Login (`/login`), Apply + Apply Pending
-(`/apply`, `/apply/pending`).
+(`/apply`, `/apply/pending`), Brand Story, Collections, Contact, FAQ, Privacy, Terms,
+Cookies, Catalogue (`/catalogue`), Product detail (`/product/[slug]`), Quick Order
+(`/quick-order`) + the `/linesheet` redirect stub.
 
 **Issues Found**
 - Homepage: LCP candidate image (the summer season-teaser photo) had no `priority`
@@ -257,6 +259,26 @@ core shop → buyer dashboard → admin.
 - The `/apply/pending` page has always promised "we'll email you once a decision is
   made," but `approveApplication`/`declineApplication`/`bulkApproveApplications` never
   actually sent that email — a genuine broken promise to every applicant.
+- **Serious, silent data-loss bug on the product page**: `MatrixOrderGrid` ("Build a
+  Full Box Order") seeds its local quantity state from the cart once at mount, then
+  submits *every* colorway×box combo (including ones the user never touched) as an
+  absolute value on "Add to Cart." Since `CartContext.addLines` treats an incoming
+  qty of 0 as "remove this line," using the matrix after already adding a *different*
+  colorway/box for the same style via the `PrimaryPurchasePanel` above it silently
+  deleted that earlier line the moment the matrix's "Add to Cart" was clicked — with
+  no warning, no confirmation, nothing. Reproduced live: added Tan Brown via the
+  panel, then added Merlot via the matrix — Tan Brown vanished from the cart.
+- **Same root cause, worse in practice, on Quick Order**: `OrderableLinesheet`'s local
+  quantity table also seeds once from the cart at mount, but reproducibly failed to
+  reflect *any* existing cart quantities at all on a fresh page load (confirmed with
+  hard reloads) — a style with 2 Blue / 1 Tan Brown / 1 Merlot box already in the cart
+  showed every cell blank on `/quick-order`. Combined with "Add All to Cart" submitting
+  every cell for any style with a nonzero cell, editing even one unrelated cell for
+  that style and clicking "Add All to Cart" would have silently zeroed out the real
+  Blue/Tan Brown/Merlot lines.
+- `/cart` had no `<title>` (showed the generic site default) and no `robots: noindex`
+  meta tag, unlike every other gated page — because the page is a Client Component and
+  Next.js doesn't allow a `metadata` export there.
 
 **Issues Fixed**
 - `StylePlate` gained a `priority` prop; the homepage's first season-teaser card now
@@ -266,6 +288,18 @@ core shop → buyer dashboard → admin.
   `requestPasswordReset`'s pattern — verified live, no more crash.
 - `submitApplication` now validates email format server-side (same regex already used
   by `updateAccountContact`), not just client-side.
+- Both `MatrixOrderGrid` and `OrderableLinesheet` now track which cells the user has
+  actually edited (`dirty`). Untouched cells continuously re-sync to the live cart via
+  a `useEffect` keyed on `lines` (fixes the stale-seed/blank-on-load bug), and at
+  submit time untouched cells pass through the *current* cart quantity instead of the
+  stale local snapshot (fixes the silent-deletion bug) — touched cells still submit
+  exactly what the user entered, including a deliberate 0 to remove a line. Verified
+  live end-to-end: added Tan Brown via the primary panel, then Merlot via the matrix —
+  cart correctly ended up with all three colorways (Blue/Tan Brown/Merlot), confirmed
+  again on the actual `/cart` page.
+- New `src/app/(shop)/cart/layout.tsx` (metadata-only, renders `{children}`) gives
+  `/cart` a real title and `noindex` — the minimal fix for a Client Component page,
+  which can't export `metadata` directly.
 
 **Features Added**
 - **Full self-service password reset flow**: new migration
@@ -291,17 +325,22 @@ core shop → buyer dashboard → admin.
 - "Forgot password?" link on the login form (previously absent entirely).
 - No more pointless "sign in again" form shown to already-authenticated users on
   `/login`/`/apply`.
+- Catalogue/Quick Order filters, sort, search, grid/list toggle, and favoriting all
+  spot-checked live and confirmed working correctly (no changes needed there).
 
 **Remaining Work**
-- 26 more page groups queued: Brand Story/Collections/Contact/FAQ, legal pages,
-  Catalogue, Product detail, Quick Order/Linesheet, Cart, Checkout, buyer Dashboard +
-  Account/Assortments/Favorites/Order detail, and the full admin module (orders,
-  products, accounts, sales reps, suppliers, applications, analytics, audit log,
-  content, permissions). Continuing in the same order (buyer-facing first, admin last).
+- 18 more page groups queued: Cart, Checkout, buyer Dashboard + Account/Assortments/
+  Favorites/Order detail, and the full admin module (orders, products, accounts, sales
+  reps, suppliers, applications, analytics, audit log, content, permissions).
+  Continuing in the same order (buyer-facing first, admin last).
 - A duplicated-logic cleanup landed as a side effect of this pass: `SITE_URL` was
   defined identically in three places (`layout.tsx`, `robots.ts`, `sitemap.ts`) —
   consolidated into `src/lib/siteUrl.ts`, now also used by the new reset-password email
   link.
+- Worth a future look, not urgent: `getStyleBySlug`'s slug for HL-1001 is
+  `riviera-loafer` while the style's actual name is "Hector boat loafer" — a stale slug
+  from an earlier rename, cosmetically odd in the URL but not broken (not touched this
+  pass — renaming a live slug risks breaking bookmarks/backlinks without a redirect).
 
 **Pending Actions Requiring Your Credentials**: see the "Pending Actions" section at
 the top of this file (migration 0019, admin-login live verification, Resend API key).
