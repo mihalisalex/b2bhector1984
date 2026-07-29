@@ -64,7 +64,22 @@ diffs; this file is the narrative index.
 
 ## Optimizations
 
+- **2026-07-29** — Continuous review pass after the storefront UX overhaul:
+  extended the sale-price "Sale" badge to the quick-order linesheet (both the
+  mobile card view and desktop table), which the catalogue/list-row redesign
+  had covered but the linesheet hadn't — now every buying surface shows an
+  active promotion consistently, not just the catalogue.
+
 ## Refactors
+
+- **2026-07-29** — Hardened error handling on the two new server-action call
+  sites that could have thrown an unhandled rejection into a client component:
+  `SearchOverlay`'s debounced search call now has a try/catch (was previously
+  unguarded — a DB hiccup would have left the overlay stuck on "Searching…"
+  forever with a silent console error), and `searchStylesAction` itself now
+  catches internally and returns an empty result set, matching this app's
+  existing degrade-gracefully convention (see `searchStyleIds`) instead of
+  relying solely on the caller to handle it.
 
 ## Bugs Fixed
 

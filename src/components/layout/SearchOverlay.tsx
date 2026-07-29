@@ -84,10 +84,16 @@ export function SearchOverlay() {
     }
     setLoading(true);
     debounceRef.current = setTimeout(async () => {
-      const r = await searchStylesAction(value);
-      setResults(r);
-      setSearched(true);
-      setLoading(false);
+      try {
+        const r = await searchStylesAction(value);
+        setResults(r);
+      } catch (err) {
+        console.error("Search failed:", err);
+        setResults([]);
+      } finally {
+        setSearched(true);
+        setLoading(false);
+      }
     }, 200);
   }
 
