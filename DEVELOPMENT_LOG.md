@@ -67,6 +67,26 @@ diffs; this file is the narrative index.
 
 ## Completed
 
+- **2026-07-30** — **Catalogue Quick Add — order without opening a product page.** Wholesale
+  buyers build orders across many styles at once; making each one a two-page detour was the
+  single biggest source of friction in the catalogue. Cards now carry an inline Quick Add:
+  colorway swatches (out-of-stock ones disabled, not hidden), box-size picker, quantity
+  stepper, and an Add button showing the real line total. Stock comes from the page's
+  existing inventory fetch, so nothing can be added that isn't there. Verified live: opened
+  the panel, added a box, confirmed the correct cart line was written.
+  - **Fixed a real a11y/HTML defect while doing it**: the whole card was a single `<Link>`
+    with a `<button>` (favorite) nested inside — invalid HTML, and unusable by keyboard or
+    screen reader. The card root is now a plain container; image and title are each their own
+    link, with the image link hidden from assistive tech so the card exposes one destination
+    instead of two identical ones. This is what unblocked Quick Add.
+  - Cards also now show the style number (SKU), which the brief called for and buyers use to
+    reorder.
+- **2026-07-30** — **Product gallery: swipe + click-to-zoom.** Horizontal swipe on the main
+  image and in the lightbox (40px threshold so a tap still opens full screen; a guard stops
+  a swipe's trailing click from also opening it), plus click-to-zoom with the transform
+  origin following the click point, reset per photo. Caught in verification that Tailwind v4
+  emits zoom as the standalone `scale` property, which `transition-transform` doesn't
+  animate — switched to `transition`.
 - **2026-07-30** — **"Complete your minimum" — the cart now closes the gap instead of
   just reporting it.** The 40-pair order minimum is the one hard gate on every order in
   this business, and the app previously only ever *announced* the shortfall (cart,

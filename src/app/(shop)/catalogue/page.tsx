@@ -109,6 +109,7 @@ export default async function CatalogPage({
               totalOnHand={totalOnHand(style.id, inventory)}
               priceMultiplier={priceMultiplier}
               favorited={account ? favoriteIds.has(style.id) : undefined}
+              inventory={account ? inventory[style.id] : undefined}
             />
           ))}
         </div>
