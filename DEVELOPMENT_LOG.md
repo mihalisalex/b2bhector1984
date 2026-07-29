@@ -6,6 +6,30 @@ diffs; this file is the narrative index.
 
 ## Pending Actions (need your credentials/approval — everything else proceeds without you)
 
+- **Decisions needed on the enterprise-UX brief (2026-07-30).** The brief is a generic
+  ecommerce checklist; several items don't map onto this domain, and building them would
+  mean inventing data or contradicting settled decisions. Flagging rather than faking —
+  see [[feedback-hector1984-no-fake-visual-approximations]]. Say the word on any of these
+  and I'll build it:
+  - **Customer reviews** (rating distribution, verified-purchase badges, helpful votes,
+    review search). No reviews table, no reviews, and no buyers to write them — a review
+    UI here would be an empty shell or fabricated content. Also genuinely uncommon in B2B
+    wholesale. Needs: a decision that you want it, plus a migration + real review capture
+    (probably post-delivery email). **Not built.**
+  - **Size / material / finish / capacity variants.** This domain's variant grain is
+    colorway × box size, and a box is a *fixed* EU 40–45 pre-pack — there is no size to
+    choose. Already implemented as swatches + box selector. **No change needed.**
+  - **Quantity-break pricing.** Per-style price ladders were deliberately removed
+    2026-07-28 in favour of the terms-based discount model. Re-adding contradicts that.
+    **Not built** — tell me if the pricing model has changed.
+  - **Estimated delivery dates / lead times.** `Colorway.leadTimeDays` exists but is
+    unpopulated, and "ships in 3–5 days" is a business commitment I shouldn't invent.
+    Needs: real lead-time values (or a rule) from you. Pre-book ship windows *are* shown,
+    since those are real data.
+  - **Product video / 360° imagery.** `style_documents` already supports `video` and
+    `image_360` kinds and the Downloads section renders whatever is uploaded — but nothing
+    has been uploaded. Needs: assets from you, no code work.
+
 - ~~**Run `supabase/migrations/0021_saved_assortment_lines.sql`**~~ — **DONE, confirmed
   run by you 2026-07-29, and verified live end-to-end same day**: saved a real cart line
   (Hector boat loafer, Blue, 1 box/10 pairs) as a new assortment, confirmed the new
@@ -43,6 +67,44 @@ diffs; this file is the narrative index.
 
 ## Completed
 
+- **2026-07-30** — **"Complete your minimum" — the cart now closes the gap instead of
+  just reporting it.** The 40-pair order minimum is the one hard gate on every order in
+  this business, and the app previously only ever *announced* the shortfall (cart,
+  checkout, and server-side in `placeOrder`) while leaving the buyer to go hunt the
+  catalogue and do pair arithmetic in their head. New `CompleteMinimum` section on the
+  cart lists real in-stock boxes ranked to land on — or just over — the remaining pairs,
+  added one tap each, re-ranking after every add so repeated clicks converge.
+  - Ranking (`src/lib/orderMinimum.ts`, pure//testable): anything that clears the minimum
+    beats anything that doesn't; among those the *smallest overshoot* wins (don't push a
+    buyer into 20 surplus pairs when 2 would do); among boxes that fall short the biggest
+    box wins (most progress per click); ties break cheaper-first. Capped to one suggestion
+    per style so it reads as a spread of the range, not four colorways of one shoe.
+  - **`/cart` converted from a fully-client route to a server component** (`CartView` holds
+    the former client body). Inventory is `server-only`, so suggestions are computed
+    server-side against real stock and handed down — meaning the feature structurally
+    *cannot* recommend a box that isn't there, and it costs no extra client round-trip.
+    Restricted to available-now styles: offering a pre-book style that ships next season
+    would be a misleading answer to "what closes my gap".
+  - Verified live end-to-end: 1 box/10 pairs → three "Add box" clicks → 42 pairs, the
+    suggestions section self-removed, and Checkout went from disabled to enabled. Ranking
+    behaved correctly throughout — 12-pair boxes offered at a 30-pair gap, switching to an
+    8-pair box at a 6-pair gap. Test cart cleared afterward.
+- **2026-07-30** — **Product page: order-minimum awareness + details restructure.**
+  - The buy box now projects the cart total *after* this add against the 40-pair minimum
+    ("Takes your order to 10 pairs — 30 short of the 40-pair minimum, which you can mix
+    across any styles"). Previously the minimum was invisible here, so a buyer could add a
+    single box and only hit the wall two screens later.
+  - Description / specs / size chart / rep note were a flat stacked wall below the buy box.
+    Replaced with `ProductDetails` — five native `<details>` sections (Description,
+    Specifications, Size run & box breakdown, Ordering/shipping/returns, Downloads).
+    **Deliberately zero-JS**: `<details>` gives keyboard support, screen-reader semantics
+    and Ctrl-F for free, and this is long-tail content most buyers never open — paying for
+    hydration to render all of it eagerly would be backwards. Surfaces real fields that
+    were previously unused on the storefront (brand, GTIN/MPN, dimensions, VAT rate,
+    shipping class, custom attributes, uploaded documents).
+  - New `TrustStrip` under the buy box — every line is a real policy or real account data
+    (pre-pack size run, actual terms ladder, live stock, and the buyer's *actual assigned
+    rep* with mailto/phone), not generic trust badges.
 - **2026-07-29** — Cleared the full "Remaining Work" backlog from the previous audit
   pass in one session (user: "do them all... accept everything"):
   - **Silent-failure pattern fixed across all 7 admin Product-editor tabs** (Variants,

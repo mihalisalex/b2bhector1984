@@ -5,7 +5,7 @@ import { useCart } from "@/lib/cart-context";
 import { useColorwaySelection } from "@/lib/colorway-selection-context";
 import { pickDefaultBoxType } from "@/lib/productSelectionDefaults";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
-import { formatEUR, getUnitPrice, isOnSale } from "@/lib/pricing";
+import { formatEUR, getUnitPrice, isOnSale, MIN_ORDER_PAIRS } from "@/lib/pricing";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
 import { ShareButton } from "@/components/product/ShareButton";
 import type { BoxTypeId, Style } from "@/lib/types";
@@ -23,7 +23,7 @@ export function PrimaryPurchasePanel({
   priceMultiplier?: number;
   initialFavorited: boolean;
 }) {
-  const { addLines, lines } = useCart();
+  const { addLines, lines, itemCount } = useCart();
   const boxTypes = getAvailableBoxTypes(style);
 
   const { colorwayId, setColorwayId } = useColorwaySelection();
@@ -61,6 +61,14 @@ export function PrimaryPurchasePanel({
   const listPrice = style.basePrice * priceMultiplier;
   const pairsPerBox = box.totalPairs;
   const subtotal = useMemo(() => unitPrice * pairsPerBox * addQty, [unitPrice, pairsPerBox, addQty]);
+
+  // The 40-pair order minimum is enforced in the cart, at checkout, and server-side in
+  // placeOrder — but until now it was invisible here, so a buyer could add a single box and
+  // only discover the wall two screens later. `itemCount` is cart-wide pairs; the minimum is
+  // mixable across styles, so this projects the total *after* this add rather than per-style.
+  const pendingPairs = addQty * pairsPerBox;
+  const pairsAfterAdd = itemCount + pendingPairs;
+  const pairsShort = Math.max(0, MIN_ORDER_PAIRS - pairsAfterAdd);
 
   // Re-clamp the pending add-qty whenever the selected colorway/box combo changes stock.
   useEffect(() => {
@@ -225,6 +233,18 @@ export function PrimaryPurchasePanel({
               </span>
               <span className="font-mono-tab text-xl font-bold text-ink">{formatEUR(subtotal)}</span>
             </div>
+            {!outOfStock && (
+              <p className={cn("mb-3 text-[11px] leading-snug", pairsShort > 0 ? "text-ink-soft" : "text-positive")}>
+                {pairsShort > 0 ? (
+                  <>
+                    Takes your order to <span className="font-semibold text-ink">{pairsAfterAdd} pairs</span> —{" "}
+                    {pairsShort} short of the {MIN_ORDER_PAIRS}-pair minimum, which you can mix across any styles.
+                  </>
+                ) : (
+                  <>Meets the {MIN_ORDER_PAIRS}-pair order minimum ({pairsAfterAdd} pairs in cart after adding).</>
+                )}
+              </p>
+            )}
             <div className="flex gap-2">
               <button
                 type="button"
