@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCart } from "@/lib/cart-context";
+import { useColorwaySelection } from "@/lib/colorway-selection-context";
+import { pickDefaultBoxType } from "@/lib/productSelectionDefaults";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { formatEUR, getUnitPrice, isOnSale } from "@/lib/pricing";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
@@ -9,21 +11,6 @@ import { ShareButton } from "@/components/product/ShareButton";
 import type { BoxTypeId, Style } from "@/lib/types";
 import type { StyleInventory } from "@/lib/data/inventory";
 import { cn } from "@/lib/cn";
-
-const QTY_PRESETS = [1, 3, 5, 10];
-
-function pickDefaultColorway(style: Style, inventory: StyleInventory): string {
-  const inStock = style.colorways.find((c) =>
-    Object.values(inventory[c.id] ?? {}).some((n) => (n ?? 0) > 0),
-  );
-  return (inStock ?? style.colorways[0]).id;
-}
-
-function pickDefaultBoxType(style: Style, inventory: StyleInventory, colorwayId: string): BoxTypeId {
-  const boxTypes = getAvailableBoxTypes(style);
-  const inStock = boxTypes.find((b) => (inventory[colorwayId]?.[b.id] ?? 0) > 0);
-  return (inStock ?? boxTypes[0]).id;
-}
 
 export function PrimaryPurchasePanel({
   style,
@@ -39,12 +26,20 @@ export function PrimaryPurchasePanel({
   const { addLines, lines } = useCart();
   const boxTypes = getAvailableBoxTypes(style);
 
-  const [colorwayId, setColorwayId] = useState(() => pickDefaultColorway(style, inventory));
+  const { colorwayId, setColorwayId } = useColorwaySelection();
   const [boxTypeId, setBoxTypeId] = useState<BoxTypeId>(() => pickDefaultBoxType(style, inventory, colorwayId));
   const [addQty, setAddQty] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
   const [ctaVisible, setCtaVisible] = useState(true);
   const ctaRef = useRef<HTMLDivElement>(null);
+
+  // Re-pick the best-stocked box type whenever the shared colorway selection changes
+  // (a swatch click here, but the colorway can now also be driven from elsewhere).
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting the box-type choice for a newly-selected colorway, not derived render state
+    setBoxTypeId(pickDefaultBoxType(style, inventory, colorwayId));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only the colorway change should trigger this, not every style/inventory identity change
+  }, [colorwayId]);
 
   useEffect(() => {
     const el = ctaRef.current;
@@ -117,28 +112,35 @@ export function PrimaryPurchasePanel({
               <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-soft">
                 Colorway — <span className="text-ink">{selectedColorway.name}</span>
               </p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 {style.colorways.map((c) => {
                   const anyStock = Object.values(inventory[c.id] ?? {}).some((n) => (n ?? 0) > 0);
+                  const selected = c.id === colorwayId;
                   return (
                     <button
                       key={c.id}
                       type="button"
-                      onClick={() => {
-                        setColorwayId(c.id);
-                        setBoxTypeId(pickDefaultBoxType(style, inventory, c.id));
-                      }}
+                      onClick={() => setColorwayId(c.id)}
                       title={c.name}
                       aria-label={c.name}
-                      aria-pressed={c.id === colorwayId}
-                      className={cn(
-                        "flex h-9 w-12 overflow-hidden border-2 transition-all",
-                        c.id === colorwayId ? "border-ink" : "border-stone-300 hover:border-cinder-300",
-                        !anyStock && "opacity-40",
-                      )}
+                      aria-pressed={selected}
+                      className="group flex w-14 flex-col items-center gap-1.5"
                     >
-                      <span className="h-full w-1/2" style={{ background: c.swatch[0] }} />
-                      <span className="h-full w-1/2" style={{ background: c.swatch[1] ?? c.swatch[0] }} />
+                      <span
+                        className={cn(
+                          "block h-11 w-11 overflow-hidden rounded-full ring-offset-2 transition-all",
+                          selected ? "ring-2 ring-ink" : "ring-1 ring-stone-300 group-hover:ring-cinder-300",
+                          !anyStock && "opacity-40",
+                        )}
+                      >
+                        <span className="flex h-full w-full">
+                          <span className="h-full w-1/2" style={{ background: c.swatch[0] }} />
+                          <span className="h-full w-1/2" style={{ background: c.swatch[1] ?? c.swatch[0] }} />
+                        </span>
+                      </span>
+                      <span className={cn("truncate text-[10px] leading-tight", selected ? "font-semibold text-ink" : "text-ink-soft")}>
+                        {c.name}
+                      </span>
                     </button>
                   );
                 })}
@@ -181,54 +183,37 @@ export function PrimaryPurchasePanel({
           {/* Quantity stepper */}
           <div>
             <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Boxes to add</p>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center border border-stone-300">
-                <button
-                  type="button"
-                  onClick={() => step(-1)}
-                  disabled={addQty <= 1}
-                  aria-label="Decrease quantity"
-                  className="flex h-12 w-12 items-center justify-center text-lg text-ink hover:bg-stone-100 disabled:opacity-30"
-                >
-                  −
-                </button>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  min={1}
-                  max={Math.max(1, remaining)}
-                  value={addQty}
-                  disabled={outOfStock}
-                  onChange={(e) => setAddQty(Math.min(Math.max(1, remaining), Math.max(1, Math.floor(Number(e.target.value)) || 1)))}
-                  onFocus={(e) => e.target.select()}
-                  aria-label="Quantity of boxes"
-                  className="font-mono-tab h-12 w-16 border-x border-stone-300 bg-transparent text-center text-lg font-semibold tabular-nums text-ink outline-none disabled:text-ink-soft"
-                />
-                <button
-                  type="button"
-                  onClick={() => step(1)}
-                  disabled={addQty >= remaining}
-                  aria-label="Increase quantity"
-                  className="flex h-12 w-12 items-center justify-center text-lg text-ink hover:bg-stone-100 disabled:opacity-30"
-                >
-                  +
-                </button>
-              </div>
-              <div className="flex gap-1.5">
-                {QTY_PRESETS.filter((p) => p <= Math.max(1, remaining)).map((p) => (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => setAddQty(p)}
-                    className={cn(
-                      "h-9 min-w-[2.25rem] border px-2 text-xs font-semibold text-ink transition-colors",
-                      addQty === p ? "border-ink bg-ink text-white" : "border-stone-300 hover:border-ink",
-                    )}
-                  >
-                    {p}
-                  </button>
-                ))}
-              </div>
+            <div className="flex items-center border border-stone-300">
+              <button
+                type="button"
+                onClick={() => step(-1)}
+                disabled={addQty <= 1}
+                aria-label="Decrease quantity"
+                className="flex h-12 w-12 items-center justify-center text-lg text-ink hover:bg-stone-100 disabled:opacity-30"
+              >
+                −
+              </button>
+              <input
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={Math.max(1, remaining)}
+                value={addQty}
+                disabled={outOfStock}
+                onChange={(e) => setAddQty(Math.min(Math.max(1, remaining), Math.max(1, Math.floor(Number(e.target.value)) || 1)))}
+                onFocus={(e) => e.target.select()}
+                aria-label="Quantity of boxes"
+                className="font-mono-tab h-12 w-16 border-x border-stone-300 bg-transparent text-center text-lg font-semibold tabular-nums text-ink outline-none disabled:text-ink-soft"
+              />
+              <button
+                type="button"
+                onClick={() => step(1)}
+                disabled={addQty >= remaining}
+                aria-label="Increase quantity"
+                className="flex h-12 w-12 items-center justify-center text-lg text-ink hover:bg-stone-100 disabled:opacity-30"
+              >
+                +
+              </button>
             </div>
           </div>
 

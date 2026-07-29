@@ -40,6 +40,7 @@ import {
   setPrimaryImage,
   deleteStyleImage,
   updateImageAltText,
+  updateImageColorway,
   reorderStyleImages,
 } from "@/lib/data/styleImages";
 import {
@@ -499,6 +500,18 @@ export async function updateImageAltTextAction(_prev: FormState, formData: FormD
   if (failure) return failure;
   revalidateProduct(styleId);
   return { success: "Alt text saved." };
+}
+
+export async function updateImageColorwayAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requirePermission("products.edit");
+  const styleId = String(formData.get("styleId") ?? "");
+  const imageId = String(formData.get("imageId") ?? "");
+  const colorwayId = String(formData.get("colorwayId") ?? "").trim();
+  if (!imageId) return { error: "Missing image." };
+  const failure = await runOrError(() => updateImageColorway(styleId, imageId, colorwayId || null));
+  if (failure) return failure;
+  revalidateProduct(styleId);
+  return { success: "Colorway saved." };
 }
 
 export async function reorderProductImagesAction(styleId: string, orderedImageIds: string[]) {

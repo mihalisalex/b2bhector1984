@@ -9,13 +9,14 @@ import {
   finalizeProductImageUploadAction,
   setPrimaryProductImageAction,
   updateImageAltTextAction,
+  updateImageColorwayAction,
   deleteProductImageAction,
   createDocumentUploadUrlAction,
   finalizeDocumentUploadAction,
   deleteDocumentAction,
 } from "@/lib/productActions";
 import type { FormState } from "@/lib/actions";
-import type { Style } from "@/lib/types";
+import type { Colorway, Style } from "@/lib/types";
 import type { StyleImage } from "@/lib/data/styleImages";
 
 const initialState: FormState = {};
@@ -31,7 +32,8 @@ export function MediaTab({ style, images, canEdit }: { style: Style; images: Sty
         <p className="mt-1 text-xs text-ink-soft">
           Drag-and-drop isn&rsquo;t implemented — file picker uploads straight to storage via a signed URL (same
           pipeline as every upload in this app). Sizing/format optimization is handled by next/image at render time,
-          not a separate transform pipeline.
+          not a separate transform pipeline. Tag a photo to a colorway below so it&rsquo;s the one shown when a buyer
+          selects that colorway on the product page — leave it &ldquo;All colorways&rdquo; for a generic shot.
         </p>
         {canEdit && (
           <ImageUploadForm
@@ -42,7 +44,7 @@ export function MediaTab({ style, images, canEdit }: { style: Style; images: Sty
         )}
         <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
           {images.map((image, index) => (
-            <ImageCard key={image.id} image={image} styleId={style.id} canEdit={canEdit} index={index} isFirst={index === 0} isLast={index === images.length - 1} />
+            <ImageCard key={image.id} image={image} styleId={style.id} colorways={style.colorways} canEdit={canEdit} index={index} isFirst={index === 0} isLast={index === images.length - 1} />
           ))}
           {images.length === 0 && <p className="text-sm text-ink-soft">No photos uploaded yet — the catalog shows a generated plate instead.</p>}
         </div>
@@ -65,6 +67,7 @@ export function MediaTab({ style, images, canEdit }: { style: Style; images: Sty
 function ImageCard({
   image,
   styleId,
+  colorways,
   canEdit,
   index,
   isFirst,
@@ -72,6 +75,7 @@ function ImageCard({
 }: {
   image: StyleImage;
   styleId: string;
+  colorways: Colorway[];
   canEdit: boolean;
   index: number;
   isFirst: boolean;
@@ -83,6 +87,7 @@ function ImageCard({
   const showResult = useToastResult();
 
   const [altState, altAction] = useActionState(updateImageAltTextAction, initialState);
+  const [colorwayState, colorwayAction] = useActionState(updateImageColorwayAction, initialState);
   const [primaryState, primaryAction, isSettingPrimary] = useActionState(setPrimaryProductImageAction, initialState);
   const [deleteState, deleteAction, isDeleting] = useActionState(deleteProductImageAction, initialState);
 
@@ -90,6 +95,10 @@ function ImageCard({
     if (altState.error) showResult(altState);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [altState]);
+  useEffect(() => {
+    if (colorwayState.error) showResult(colorwayState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [colorwayState]);
   useEffect(() => {
     if (primaryState.error) showResult(primaryState);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -121,6 +130,25 @@ function ImageCard({
             className="w-full border border-stone-300 bg-white px-2 py-1 text-xs outline-none focus-visible:border-signal disabled:bg-stone-100"
           />
         </form>
+        {colorways.length > 1 && (
+          <form action={colorwayAction}>
+            <input type="hidden" name="styleId" value={styleId} />
+            <input type="hidden" name="imageId" value={image.id} />
+            <select
+              name="colorwayId"
+              defaultValue={image.colorwayId ?? ""}
+              disabled={!canEdit}
+              onChange={(e) => e.currentTarget.form?.requestSubmit()}
+              aria-label={`Colorway shown in photo ${index + 1}`}
+              className="w-full border border-stone-300 bg-white px-2 py-1 text-xs outline-none focus-visible:border-signal disabled:bg-stone-100"
+            >
+              <option value="">All colorways</option>
+              {colorways.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </form>
+        )}
         {canEdit && (
           <div className="flex items-center justify-between gap-2">
             {!image.isPrimary ? (

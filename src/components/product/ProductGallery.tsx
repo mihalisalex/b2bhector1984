@@ -1,38 +1,70 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/cn";
+import { useColorwaySelection } from "@/lib/colorway-selection-context";
 import type { StyleImage } from "@/lib/data/styleImages";
+import type { Colorway } from "@/lib/types";
 
 export function ProductGallery({
   images,
   styleName,
   styleNumber,
+  colorways,
   className,
 }: {
   images: StyleImage[];
   styleName: string;
   styleNumber?: string;
+  /** When an uploaded photo is tagged to a specific colorway (admin's Media tab), selecting
+   * that colorway elsewhere on the page swaps the gallery to that real photo. Untagged
+   * photos are treated as generic and stay visible regardless of the selection. */
+  colorways?: Colorway[];
   className?: string;
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const active = images[activeIndex];
   const mainButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const wasOpenRef = useRef(false);
+
+  const hasMultipleColorways = (colorways?.length ?? 0) > 1;
+  // The product page always wraps this in a ColorwaySelectionProvider.
+  const { colorwayId } = useColorwaySelection();
+
+  // Only hide photos tagged to a *different* colorway — untagged (generic) photos always
+  // show, so a style with no per-colorway photography behaves exactly as before. Falls
+  // back to the full set if a colorway has neither a dedicated nor a generic photo,
+  // rather than rendering an empty gallery.
+  const visibleImages = useMemo(() => {
+    if (!hasMultipleColorways) return images;
+    const filtered = images.filter((img) => !img.colorwayId || img.colorwayId === colorwayId);
+    return filtered.length > 0 ? filtered : images;
+  }, [images, colorwayId, hasMultipleColorways]);
+
+  // When the selection changes, jump to a photo actually tagged to that colorway if one
+  // exists, rather than leaving the buyer on whatever index they were previously viewing.
+  useEffect(() => {
+    if (!hasMultipleColorways) return;
+    const taggedIndex = visibleImages.findIndex((img) => img.colorwayId === colorwayId);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- responding to the shared colorway selection changing, not derived render state
+    setActiveIndex(taggedIndex >= 0 ? taggedIndex : 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only the colorway selection itself should retrigger this jump
+  }, [colorwayId]);
+
+  const active = visibleImages[Math.min(activeIndex, visibleImages.length - 1)];
 
   useEffect(() => {
     if (!lightboxOpen) return;
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") setLightboxOpen(false);
-      if (e.key === "ArrowRight") setActiveIndex((i) => (i + 1) % images.length);
-      if (e.key === "ArrowLeft") setActiveIndex((i) => (i - 1 + images.length) % images.length);
+      if (e.key === "ArrowRight") setActiveIndex((i) => (i + 1) % visibleImages.length);
+      if (e.key === "ArrowLeft") setActiveIndex((i) => (i - 1 + visibleImages.length) % visibleImages.length);
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [lightboxOpen, images.length]);
+  }, [lightboxOpen, visibleImages.length]);
 
   // Move focus into the dialog on open, and back to the trigger on close —
   // guarded so this doesn't fire on initial mount (lightboxOpen starts false).
@@ -48,6 +80,9 @@ export function ProductGallery({
 
   if (!active) return null;
 
+  const selectedColorwayName = hasMultipleColorways ? colorways!.find((c) => c.id === colorwayId)?.name : undefined;
+  const showingTaggedPhoto = active.colorwayId === colorwayId;
+
   return (
     <div className={className}>
       <button
@@ -57,6 +92,7 @@ export function ProductGallery({
         className="relative block aspect-[4/3] w-full overflow-hidden bg-stone-200"
       >
         <Image
+          key={active.id}
           src={active.publicUrl}
           alt={active.altText || styleName}
           fill
@@ -70,10 +106,16 @@ export function ProductGallery({
           </span>
         )}
       </button>
+      {hasMultipleColorways && !showingTaggedPhoto && (
+        <p className="mt-1.5 text-[11px] text-ink-soft">
+          No dedicated photo uploaded yet for <span className="font-medium text-ink">{selectedColorwayName}</span> —
+          showing another available photo.
+        </p>
+      )}
 
-      {images.length > 1 && (
+      {visibleImages.length > 1 && (
         <div className="mt-2 grid grid-cols-5 gap-2">
-          {images.map((img, i) => (
+          {visibleImages.map((img, i) => (
             <button
               key={img.id}
               type="button"
@@ -82,7 +124,7 @@ export function ProductGallery({
                 "relative aspect-square overflow-hidden bg-stone-200 outline-offset-2",
                 i === activeIndex ? "ring-2 ring-ink" : "opacity-70 hover:opacity-100",
               )}
-              aria-label={`Show photo ${i + 1} of ${images.length}`}
+              aria-label={`Show photo ${i + 1} of ${visibleImages.length}`}
             >
               <Image
                 src={img.publicUrl}
@@ -101,7 +143,7 @@ export function ProductGallery({
           className="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 p-6"
           role="dialog"
           aria-modal="true"
-          aria-label={`${styleName} photo ${activeIndex + 1} of ${images.length}`}
+          aria-label={`${styleName} photo ${activeIndex + 1} of ${visibleImages.length}`}
           onClick={() => setLightboxOpen(false)}
         >
           <button
@@ -114,13 +156,13 @@ export function ProductGallery({
             &times;
           </button>
 
-          {images.length > 1 && (
+          {visibleImages.length > 1 && (
             <>
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setActiveIndex((i) => (i - 1 + images.length) % images.length);
+                  setActiveIndex((i) => (i - 1 + visibleImages.length) % visibleImages.length);
                 }}
                 className="absolute left-4 top-1/2 -translate-y-1/2 px-3 py-6 text-3xl text-white/80 hover:text-white"
                 aria-label="Previous photo"
@@ -131,7 +173,7 @@ export function ProductGallery({
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setActiveIndex((i) => (i + 1) % images.length);
+                  setActiveIndex((i) => (i + 1) % visibleImages.length);
                 }}
                 className="absolute right-4 top-1/2 -translate-y-1/2 px-3 py-6 text-3xl text-white/80 hover:text-white"
                 aria-label="Next photo"

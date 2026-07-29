@@ -1,6 +1,7 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { assertAllowedExtension, IMAGE_EXTENSIONS } from "@/lib/uploadValidation";
+import { fromDbId, toDbId } from "@/lib/data/dbIds";
 
 const BUCKET = "style-images";
 
@@ -12,6 +13,9 @@ export interface StyleImage {
   isPrimary: boolean;
   sortOrder: number;
   publicUrl: string;
+  /** Which colorway this photo actually shows — unset means it's a generic/style-level
+   * photo shown regardless of the buyer's colorway selection. */
+  colorwayId?: string;
 }
 
 interface StyleImageRow {
@@ -21,6 +25,7 @@ interface StyleImageRow {
   alt_text: string;
   is_primary: boolean;
   sort_order: number;
+  colorway_id: string | null;
 }
 
 function mapImage(row: StyleImageRow): StyleImage {
@@ -32,6 +37,9 @@ function mapImage(row: StyleImageRow): StyleImage {
     isPrimary: row.is_primary,
     sortOrder: row.sort_order,
     publicUrl: supabaseAdmin.storage.from(BUCKET).getPublicUrl(row.storage_path).data.publicUrl,
+    // colorways are stored as "${styleId}-${localId}" (see dbIds.ts); the app layer
+    // (Colorway.id, the ColorwaySelectionProvider's colorwayId) uses the short local id.
+    colorwayId: row.colorway_id ? fromDbId(row.style_id, row.colorway_id) : undefined,
   };
 }
 
@@ -84,6 +92,16 @@ export async function setPrimaryImage(styleId: string, imageId: string): Promise
 
 export async function updateImageAltText(imageId: string, altText: string): Promise<void> {
   const { error } = await supabaseAdmin.from("style_images").update({ alt_text: altText }).eq("id", imageId);
+  if (error) throw new Error(`style_images: ${error.message}`);
+}
+
+/** `colorwayId` (the app-level short local id, e.g. "c1") of `null` clears the tag (photo
+ * becomes generic/style-level again). */
+export async function updateImageColorway(styleId: string, imageId: string, colorwayId: string | null): Promise<void> {
+  const { error } = await supabaseAdmin
+    .from("style_images")
+    .update({ colorway_id: colorwayId ? toDbId(styleId, colorwayId) : null })
+    .eq("id", imageId);
   if (error) throw new Error(`style_images: ${error.message}`);
 }
 
