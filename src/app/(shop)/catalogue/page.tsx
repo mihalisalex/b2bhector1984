@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { getAllStyles, searchStyleIds } from "@/lib/data/styles";
+import { getStorefrontStyles, searchStyleIds } from "@/lib/data/styles";
 import { filterStyles, parseFilters } from "@/lib/catalogFilters";
 import { isSortKey, pairsSoldByStyle, sortStyles } from "@/lib/catalogSort";
 import { getInventoryForStyles, totalOnHandForStyle } from "@/lib/data/inventory";
@@ -31,7 +31,7 @@ export default async function CatalogPage({
   // "in stock now" filter has to be evaluated before we know what's left, and Quick Add
   // needs per-colorway stock for whatever survives anyway.
   const [styles, seasonSettings, account, { data: orderLineRows }] = await Promise.all([
-    getAllStyles(),
+    getStorefrontStyles(),
     getSeasonSettings(),
     getCurrentAccount(),
     sort === "best_selling"

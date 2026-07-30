@@ -1,6 +1,6 @@
 "use server";
 
-import { getAllStyles, getStyleImageUrl, searchStyleIds } from "@/lib/data/styles";
+import { getStorefrontStyles, getStyleImageUrl, searchStyleIds } from "@/lib/data/styles";
 import { getUnitPrice } from "@/lib/pricing";
 import { getCurrentAccount } from "@/lib/session";
 
@@ -25,7 +25,7 @@ export async function searchStylesAction(query: string): Promise<SearchResult[]>
 
   try {
     const [styles, account, matchedIds] = await Promise.all([
-      getAllStyles(),
+      getStorefrontStyles(),
       getCurrentAccount(),
       searchStyleIds(trimmed),
     ]);

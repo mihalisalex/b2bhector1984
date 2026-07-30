@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getAllStyles, CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styles";
+import { getStorefrontStyles, CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styles";
 import { getSeasonSettings, toSeasonOptions } from "@/lib/data/seasonSettings";
 import type { Category, Season } from "@/lib/types";
 import { AvailabilityBadge } from "@/components/ui/Badge";
@@ -24,7 +24,7 @@ export default async function CollectionsPage({
   searchParams: Promise<{ category?: string; season?: string }>;
 }) {
   const { category, season } = await searchParams;
-  const [styles, seasonSettings] = await Promise.all([getAllStyles(), getSeasonSettings()]);
+  const [styles, seasonSettings] = await Promise.all([getStorefrontStyles(), getSeasonSettings()]);
   const seasonOptions = toSeasonOptions(seasonSettings);
   const enabledSeasons = seasonOptions.map((s) => s.value);
   const activeSeason = enabledSeasons.includes(season as Season) ? (season as Season) : null;

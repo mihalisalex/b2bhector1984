@@ -679,6 +679,34 @@ export async function bulkArchiveAction(styleIds: string[]): Promise<FormState> 
   return { success: `Archived ${styleIds.length} products.` };
 }
 
+/**
+ * `deleteStyle` returns a per-item `{ error }` (e.g. "has order history") rather than
+ * throwing, so a bulk delete has to keep going and report a partial result instead of
+ * aborting the whole batch on the first failure.
+ */
+export async function bulkDeleteAction(styleIds: string[]): Promise<FormState> {
+  const admin = await requirePermission("products.bulk");
+  let deleted = 0;
+  let firstError: string | undefined;
+  for (const styleId of styleIds) {
+    try {
+      const result = await deleteStyle(styleId);
+      if (result.error) {
+        firstError ??= result.error;
+        continue;
+      }
+      await logAudit(admin.id, "product.deleted", "style", styleId);
+      deleted++;
+    } catch (err) {
+      firstError ??= friendlyDbError(err);
+    }
+  }
+  revalidatePath("/admin/products");
+  if (deleted === 0) return { error: firstError ?? "Nothing was deleted." };
+  if (firstError) return { error: `Deleted ${deleted} of ${styleIds.length} — ${firstError}` };
+  return { success: `Deleted ${deleted} product${deleted === 1 ? "" : "s"}.` };
+}
+
 export async function bulkAdjustPriceAction(styleIds: string[], mode: "set" | "increase_pct" | "decrease_pct", value: number): Promise<FormState> {
   const admin = await requirePermission("products.bulk");
   const rows = (await listProductsForAdmin({ pageSize: 100000 })).items.filter((r) => styleIds.includes(r.id));

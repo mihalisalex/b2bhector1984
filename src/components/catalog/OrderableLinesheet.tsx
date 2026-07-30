@@ -1,33 +1,24 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
-import { useCart, type CartLine } from "@/lib/cart-context";
+import { useCart } from "@/lib/cart-context";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { formatEUR, getUnitPrice, isOnSale, validateMatrix } from "@/lib/pricing";
 import { CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styleLabels";
 import type { StyleInventory } from "@/lib/data/inventory";
 import type { BoxTypeId, Style } from "@/lib/types";
 import { AvailabilityBadge } from "@/components/ui/Badge";
+import { LinkButton } from "@/components/ui/Button";
 import { StylePlate } from "@/components/product/StylePlate";
 import { cn } from "@/lib/cn";
 
-/** colorwayId -> boxTypeId -> qty (boxes) */
-type StyleQtyMap = Record<string, Partial<Record<BoxTypeId, number>>>;
-/** styleId -> StyleQtyMap */
-type AllQtyMap = Record<string, StyleQtyMap>;
-
-function buildInitialQtyForStyle(style: Style, cartLines: CartLine[]): StyleQtyMap {
-  const map: StyleQtyMap = {};
-  for (const colorway of style.colorways) map[colorway.id] = {};
-  for (const line of cartLines) {
-    if (line.styleId !== style.id) continue;
-    map[line.colorwayId] = map[line.colorwayId] || {};
-    map[line.colorwayId]![line.boxTypeId] = line.qty;
-  }
-  return map;
-}
-
+/**
+ * Every +/- writes straight to the cart via `setLineQty` — there is no local staging
+ * state, no "dirty cell" tracking, and no "Add all to cart" button to commit it. Each
+ * stepper's value IS the live cart quantity for that style/colorway/box line, read
+ * straight off `lines`, so this table can never drift from what's actually in the cart.
+ */
 export function OrderableLinesheet({
   styles,
   inventory,
@@ -37,122 +28,40 @@ export function OrderableLinesheet({
   inventory: Record<string, StyleInventory>;
   priceMultiplier?: number;
 }) {
-  const { lines, addLines } = useCart();
-  const [qty, setQty] = useState<AllQtyMap>(() => {
-    const map: AllQtyMap = {};
-    for (const style of styles) map[style.id] = buildInitialQtyForStyle(style, lines);
-    return map;
-  });
-  const [dirty, setDirty] = useState<Set<string>>(new Set());
-  const [confirmed, setConfirmed] = useState(false);
+  const { lines, setLineQty } = useCart();
 
-  function cellKey(styleId: string, colorwayId: string, boxTypeId: BoxTypeId) {
-    return `${styleId}:${colorwayId}:${boxTypeId}`;
+  function qtyFor(styleId: string, colorwayId: string, boxTypeId: BoxTypeId): number {
+    return lines.find((l) => l.styleId === styleId && l.colorwayId === colorwayId && l.boxTypeId === boxTypeId)?.qty ?? 0;
   }
 
-  // Seed state for any style that enters the view after a filter change,
-  // without touching in-progress edits on styles already present.
-  useEffect(() => {
-    // Syncing new styles into local qty state when the filtered list changes,
-    // without resetting in-progress edits on styles already present.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setQty((prev) => {
-      let changed = false;
-      const next = { ...prev };
-      for (const style of styles) {
-        if (!next[style.id]) {
-          next[style.id] = buildInitialQtyForStyle(style, lines);
-          changed = true;
-        }
-      }
-      return changed ? next : prev;
-    });
-    // Intentionally excludes `lines`: this effect should only re-seed on a
-    // styles/filter change, not re-run every time cart lines change elsewhere.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [styles]);
-
-  // Keep every untouched cell in sync with the live cart — covers the cart's
-  // own hydrate-from-localStorage completing after this component's initial
-  // mount/seed, and any other cart change (e.g. the product page) made while
-  // this table stays mounted. Cells the user has actually edited (`dirty`)
-  // keep their in-progress value.
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setQty((prev) => {
-      const next = { ...prev };
-      let changed = false;
-      for (const style of styles) {
-        const seeded = buildInitialQtyForStyle(style, lines);
-        for (const colorway of style.colorways) {
-          for (const box of getAvailableBoxTypes(style)) {
-            const key = cellKey(style.id, colorway.id, box.id);
-            if (dirty.has(key)) continue;
-            const seededVal = seeded[colorway.id]?.[box.id] ?? 0;
-            if ((prev[style.id]?.[colorway.id]?.[box.id] ?? 0) !== seededVal) {
-              next[style.id] = { ...next[style.id], [colorway.id]: { ...next[style.id]?.[colorway.id], [box.id]: seededVal } };
-              changed = true;
-            }
-          }
-        }
-      }
-      return changed ? next : prev;
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lines, styles]);
-
-  function setCell(styleId: string, colorwayId: string, boxTypeId: BoxTypeId, value: number) {
-    setConfirmed(false);
+  function setQty(styleId: string, colorwayId: string, boxTypeId: BoxTypeId, value: number) {
     const onHand = inventory[styleId]?.[colorwayId]?.[boxTypeId] ?? 0;
-    setQty((prev) => ({
-      ...prev,
-      [styleId]: {
-        ...prev[styleId],
-        [colorwayId]: { ...prev[styleId]?.[colorwayId], [boxTypeId]: Math.min(onHand, Math.max(0, Math.floor(value) || 0)) },
-      },
-    }));
-    setDirty((prev) => new Set(prev).add(cellKey(styleId, colorwayId, boxTypeId)));
+    setLineQty(styleId, colorwayId, boxTypeId, Math.min(onHand, Math.max(0, Math.floor(value) || 0)));
   }
 
   function step(styleId: string, colorwayId: string, boxTypeId: BoxTypeId, delta: number) {
-    const current = qty[styleId]?.[colorwayId]?.[boxTypeId] ?? 0;
-    setCell(styleId, colorwayId, boxTypeId, current + delta);
+    setQty(styleId, colorwayId, boxTypeId, qtyFor(styleId, colorwayId, boxTypeId) + delta);
   }
+
+  // Live "what's in the cart" summary, scoped to the styles currently shown in this table.
+  const qtyByStyle = useMemo(() => {
+    const map: Record<string, Record<string, Partial<Record<BoxTypeId, number>>>> = {};
+    for (const line of lines) {
+      map[line.styleId] = map[line.styleId] || {};
+      map[line.styleId][line.colorwayId] = { ...map[line.styleId][line.colorwayId], [line.boxTypeId]: line.qty };
+    }
+    return map;
+  }, [lines]);
 
   const validations = useMemo(
     () =>
       styles
-        .map((style) => ({ style, ...validateMatrix(style, qty[style.id] ?? {}, "net60", priceMultiplier) }))
+        .map((style) => ({ style, ...validateMatrix(style, qtyByStyle[style.id] ?? {}, "net60", priceMultiplier) }))
         .filter((v) => v.totalBoxes > 0),
-    [styles, qty, priceMultiplier],
+    [styles, qtyByStyle, priceMultiplier],
   );
 
   const grandTotal = validations.reduce((sum, v) => sum + v.subtotal, 0);
-
-  function handleAddAllToCart() {
-    if (validations.length === 0) return;
-    for (const style of styles) {
-      const styleQty = qty[style.id];
-      if (!styleQty) continue;
-      // Untouched cells submit whatever's *currently* in the cart (not this
-      // table's local snapshot) so adding from here can never silently wipe
-      // out a line added elsewhere for a colorway/box this table's user
-      // never actually edited.
-      const entries = style.colorways.flatMap((c) =>
-        getAvailableBoxTypes(style).map((box) => {
-          if (dirty.has(cellKey(style.id, c.id, box.id))) {
-            return { colorwayId: c.id, boxTypeId: box.id, qty: styleQty[c.id]?.[box.id] ?? 0 };
-          }
-          const liveQty = lines.find(
-            (l) => l.styleId === style.id && l.colorwayId === c.id && l.boxTypeId === box.id,
-          )?.qty ?? 0;
-          return { colorwayId: c.id, boxTypeId: box.id, qty: liveQty };
-        }),
-      );
-      if (entries.some((e) => e.qty > 0)) addLines(style.id, entries);
-    }
-    setConfirmed(true);
-  }
 
   return (
     <div>
@@ -204,8 +113,8 @@ export function OrderableLinesheet({
                         <div key={box.id} className="flex flex-col items-center gap-1">
                           <span className="text-[10px] font-semibold uppercase tracking-wide text-ink-soft">{box.label}</span>
                           <Stepper
-                            value={qty[style.id]?.[colorway.id]?.[box.id] ?? 0}
-                            onChange={(v) => setCell(style.id, colorway.id, box.id, v)}
+                            value={qtyFor(style.id, colorway.id, box.id)}
+                            onChange={(v) => setQty(style.id, colorway.id, box.id, v)}
                             onStep={(d) => step(style.id, colorway.id, box.id, d)}
                             label={`${box.label} for ${style.name} ${colorway.name}`}
                             max={inventory[style.id]?.[colorway.id]?.[box.id] ?? 0}
@@ -295,8 +204,8 @@ export function OrderableLinesheet({
                     <td key={boxTypeId} className="px-2 py-1.5 text-center">
                       {boxTypes.some((b) => b.id === boxTypeId) ? (
                         <Stepper
-                          value={qty[style.id]?.[colorway.id]?.[boxTypeId] ?? 0}
-                          onChange={(v) => setCell(style.id, colorway.id, boxTypeId, v)}
+                          value={qtyFor(style.id, colorway.id, boxTypeId)}
+                          onChange={(v) => setQty(style.id, colorway.id, boxTypeId, v)}
                           onStep={(d) => step(style.id, colorway.id, boxTypeId, d)}
                           label={`${boxTypeId} for ${style.name} ${colorway.name}`}
                           max={inventory[style.id]?.[colorway.id]?.[boxTypeId] ?? 0}
@@ -315,7 +224,7 @@ export function OrderableLinesheet({
 
       {validations.length > 0 && (
         <div className="mt-6 border border-stone-300 bg-stone-100 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Order summary by style</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">In your cart from this list</p>
           <div className="mt-2 flex flex-col gap-1.5">
             {validations.map((v) => (
               <div key={v.style.id} className="flex items-center justify-between text-sm">
@@ -333,21 +242,10 @@ export function OrderableLinesheet({
       )}
 
       <div className="mt-4 flex items-center justify-between gap-4 border-t border-stone-300 pt-4">
-        <div className="flex items-center gap-4">
-          <span className="text-sm font-semibold tabular-nums text-ink">Total: {formatEUR(grandTotal)}</span>
-          {confirmed && validations.length === 0 && <span className="text-xs text-positive">Added to cart.</span>}
-        </div>
-        <button
-          type="button"
-          onClick={handleAddAllToCart}
-          disabled={validations.length === 0}
-          className={cn(
-            "bg-ink px-6 py-3 text-xs font-semibold uppercase tracking-wide text-white transition-colors hover:bg-ink/85",
-            validations.length === 0 && "cursor-not-allowed bg-cinder-300 text-white/70",
-          )}
-        >
-          Add All to Cart
-        </button>
+        <span className="text-sm font-semibold tabular-nums text-ink">Total: {formatEUR(grandTotal)}</span>
+        <LinkButton href="/cart" size="md" className={validations.length === 0 ? "pointer-events-none opacity-40" : ""}>
+          Go to Cart
+        </LinkButton>
       </div>
     </div>
   );

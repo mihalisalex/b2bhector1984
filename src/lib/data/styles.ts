@@ -261,6 +261,29 @@ export const getStyleBySlug = cache(async (slug: string): Promise<Style | undefi
   return style;
 });
 
+/**
+ * `getAllStyles`, filtered down to what a buyer should ever see or be able to add to
+ * cart: `status === "active"` (drafts/archived/private are admin-only) AND at least one
+ * colorway (box-only ordering has nothing to sell without one).
+ *
+ * Use this from every storefront listing/lookup surface — catalogue, quick-order, cart,
+ * homepage, collections, favorites, assortments, both root layouts' `CatalogProvider`
+ * seed, `getRelatedStyles` below. Admin surfaces (`/admin/products`, order detail's
+ * historical style lookups, CSV/XML import duplicate checks, analytics) must keep calling
+ * `getAllStyles`/`getStyleById` directly — they need to see drafts and to resolve styles
+ * that orders reference even after the style is archived or deleted.
+ *
+ * This is the fix for a real crash: a freshly created product has zero colorways until
+ * an admin adds one on the Variants tab, and every storefront card/row/gallery does an
+ * unguarded `style.colorways[0].swatch` — so the moment a new draft leaked into
+ * `getAllStyles()`'s unfiltered result, the entire catalogue (and anywhere else that
+ * style rendered) threw and 500'd for every buyer, not just admins previewing it.
+ */
+export const getStorefrontStyles = cache(async (): Promise<Style[]> => {
+  const styles = await getAllStyles();
+  return styles.filter((s) => (s.status ?? "active") === "active" && s.colorways.length > 0);
+});
+
 /** Batch-fetch by id in one query — use this instead of looping `getStyleById` per id. */
 export async function getStylesByIds(ids: string[]): Promise<Style[]> {
   if (ids.length === 0) return [];
@@ -293,7 +316,7 @@ export const getStyleById = cache(async (id: string): Promise<Style | undefined>
 
 /** Same-category picks first, topped up with same-season picks if there aren't enough. */
 export async function getRelatedStyles(style: Style, limit = 4): Promise<Style[]> {
-  const all = await getAllStyles();
+  const all = await getStorefrontStyles();
   const sameCategory = all.filter((s) => s.id !== style.id && s.category === style.category);
   if (sameCategory.length >= limit) return sameCategory.slice(0, limit);
 

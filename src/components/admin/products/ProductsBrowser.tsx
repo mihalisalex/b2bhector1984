@@ -11,9 +11,11 @@ import { StylePlate } from "@/components/product/StylePlate";
 import { useToastResult } from "@/components/ui/ToastProvider";
 import {
   archiveProductAction,
+  deleteProductAction,
   duplicateProductAction,
   bulkAdjustPriceAction,
   bulkArchiveAction,
+  bulkDeleteAction,
   bulkAddTagAction,
   bulkSetBrandAction,
   bulkSetSupplierAction,
@@ -38,7 +40,7 @@ const STATUS_CLASS: Record<ProductStatus | "out_of_stock", string> = {
   out_of_stock: "bg-ember-100 text-ember",
 };
 
-type BulkMode = "status" | "archive" | "price" | "brand" | "supplier" | "tag";
+type BulkMode = "status" | "archive" | "delete" | "price" | "brand" | "supplier" | "tag";
 
 export function ProductsBrowser({
   items,
@@ -92,6 +94,10 @@ export function ProductsBrowser({
 
   function applyBulk() {
     const ids = Array.from(selected);
+    if (bulkMode === "delete" && !confirm(
+      `Permanently delete ${ids.length} product${ids.length === 1 ? "" : "s"}? This can't be undone — their photos, ` +
+      `documents, and variant data go with them. Past orders keep their line items but will show the product as deleted.`,
+    )) return;
     startTransition(async () => {
       let result;
       switch (bulkMode) {
@@ -100,6 +106,9 @@ export function ProductsBrowser({
           break;
         case "archive":
           result = await bulkArchiveAction(ids);
+          break;
+        case "delete":
+          result = await bulkDeleteAction(ids);
           break;
         case "price":
           result = await bulkAdjustPriceAction(ids, bulkPriceMode, Number(bulkPriceValue) || 0);
@@ -163,6 +172,7 @@ export function ProductsBrowser({
           >
             <option value="status">Set status</option>
             <option value="archive">Archive</option>
+            <option value="delete">Delete</option>
             <option value="price">Adjust price</option>
             <option value="brand">Set brand</option>
             <option value="supplier">Set supplier</option>
@@ -217,9 +227,11 @@ export function ProductsBrowser({
             type="button"
             onClick={applyBulk}
             disabled={isPending}
-            className="bg-ink px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85 disabled:opacity-50"
+            className={`px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-white disabled:opacity-50 ${
+              bulkMode === "delete" ? "bg-ember hover:bg-ember/85" : "bg-ink hover:bg-ink/85"
+            }`}
           >
-            {isPending ? "Applying…" : `Apply to ${selected.size}`}
+            {isPending ? "Applying…" : bulkMode === "delete" ? `Delete ${selected.size}` : `Apply to ${selected.size}`}
           </button>
         </div>
       )}
@@ -335,9 +347,19 @@ export function ProductsBrowser({
                       <button
                         type="button"
                         onClick={() => startTransition(async () => { await archiveProductAction(p.id); showResult({ success: `Archived ${p.name}.` }); })}
-                        className="text-xs font-medium text-ember hover:underline"
+                        className="text-xs font-medium text-ink-soft hover:text-ink"
                       >
                         Archive
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!confirm(`Permanently delete "${p.name}"? This can't be undone.`)) return;
+                          startTransition(async () => showResult(await deleteProductAction(p.id)));
+                        }}
+                        className="text-xs font-medium text-ember hover:underline"
+                      >
+                        Delete
                       </button>
                     </div>
                   </td>

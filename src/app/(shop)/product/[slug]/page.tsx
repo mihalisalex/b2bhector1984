@@ -39,7 +39,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const { slug } = await params;
   if (LEGACY_SLUG_REDIRECTS[slug]) redirect(`/product/${LEGACY_SLUG_REDIRECTS[slug]}`);
   const style = await getStyleBySlug(slug);
-  if (!style) notFound();
+  // A draft/archived product, or one with no colorways yet (every card/gallery below
+  // assumes colorways[0] exists), should 404 rather than crash the page for anyone who
+  // hits the URL — including via a stale cart/search/bookmark link.
+  if (!style || (style.status ?? "active") !== "active" || style.colorways.length === 0) notFound();
   const [inventory, images, related, account] = await Promise.all([
     getInventoryForStyle(style.id),
     listImagesForStyle(style.id),

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
-import { getAllStyles } from "@/lib/data/styles";
+import { getStorefrontStyles } from "@/lib/data/styles";
 import { CatalogProvider } from "@/lib/catalog-context";
 import { CartProvider } from "@/lib/cart-context";
 import { ShopHeader } from "@/components/layout/ShopHeader";
@@ -10,7 +10,7 @@ export default async function ShopLayout({ children }: { children: React.ReactNo
   const account = await getCurrentAccount();
   if (!account) redirect("/login");
 
-  const styles = await getAllStyles();
+  const styles = await getStorefrontStyles();
 
   return (
     <CatalogProvider styles={styles}>

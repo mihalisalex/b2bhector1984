@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
 import { getAssortmentsForAccount } from "@/lib/data/assortments";
-import { getAllStyles, getStyleImageUrl } from "@/lib/data/styles";
+import { getStorefrontStyles, getStyleImageUrl } from "@/lib/data/styles";
 import { deleteAssortment } from "@/lib/actions";
 import { formatDate } from "@/lib/format";
 import { StylePlate } from "@/components/product/StylePlate";
@@ -16,7 +16,7 @@ export default async function AssortmentsPage() {
   if (!account) redirect("/login");
   const [assortments, styles] = await Promise.all([
     getAssortmentsForAccount(account.id),
-    getAllStyles(),
+    getStorefrontStyles(),
   ]);
   const styleById = new Map(styles.map((s) => [s.id, s]));
 

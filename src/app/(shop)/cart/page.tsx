@@ -1,4 +1,4 @@
-import { getAllStyles } from "@/lib/data/styles";
+import { getStorefrontStyles } from "@/lib/data/styles";
 import { getStyleImageUrl } from "@/lib/data/styleLabels";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { getInventoryForStyles } from "@/lib/data/inventory";
@@ -20,7 +20,7 @@ export const metadata = { title: "Cart", robots: { index: false, follow: false }
  * misleading answer to "what closes my gap".
  */
 export default async function CartPage() {
-  const [styles, account] = await Promise.all([getAllStyles(), getCurrentAccount()]);
+  const [styles, account] = await Promise.all([getStorefrontStyles(), getCurrentAccount()]);
   const priceMultiplier = account?.priceMultiplier ?? 1;
   const sellable = styles.filter((s) => s.availability === "available");
   const inventory = await getInventoryForStyles(sellable.map((s) => s.id));

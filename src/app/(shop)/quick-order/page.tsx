@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getAllStyles, searchStyleIds } from "@/lib/data/styles";
+import { getStorefrontStyles, searchStyleIds } from "@/lib/data/styles";
 import { filterStyles, parseFilters } from "@/lib/catalogFilters";
 import { isSortKey, sortStyles } from "@/lib/catalogSort";
 import { getInventoryForStyles, totalOnHandForStyle } from "@/lib/data/inventory";
@@ -22,7 +22,7 @@ export default async function QuickOrderPage({
   const sort = isSortKey(sortParam) ? sortParam : "newest";
 
   const [styles, seasonSettings, account] = await Promise.all([
-    getAllStyles(),
+    getStorefrontStyles(),
     getSeasonSettings(),
     getCurrentAccount(),
   ]);
@@ -43,8 +43,8 @@ export default async function QuickOrderPage({
         <div>
           <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink">Quick Order</h1>
           <p className="mt-1 max-w-xl text-sm text-ink-soft">
-            The full collection at list price — find a style and press + or − to build boxes directly in
-            the table below. Payment terms (and any discount) are set at checkout.
+            The full collection at list price — press + or − on any box size to add it straight to your
+            cart. Payment terms (and any discount) are set at checkout.
           </p>
         </div>
         <LinesheetToolbar styles={results} priceMultiplier={priceMultiplier} />

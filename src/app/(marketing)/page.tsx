@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getAllStyles, CATEGORY_LABEL, getStyleImageUrl } from "@/lib/data/styles";
+import { getStorefrontStyles, CATEGORY_LABEL, getStyleImageUrl } from "@/lib/data/styles";
 import { getHomepageHero } from "@/lib/data/siteContent";
 import { getSeasonSettings, toSeasonOptions } from "@/lib/data/seasonSettings";
 import type { Category, Season } from "@/lib/types";
@@ -13,7 +13,7 @@ const SEASON_CATEGORIES: Record<Season, Category[]> = {
 };
 
 export default async function HomePage() {
-  const [styles, hero, seasonSettings] = await Promise.all([getAllStyles(), getHomepageHero(), getSeasonSettings()]);
+  const [styles, hero, seasonSettings] = await Promise.all([getStorefrontStyles(), getHomepageHero(), getSeasonSettings()]);
   const seasonOptions = toSeasonOptions(seasonSettings);
   const headingLines = hero.heading.split("\n");
 

@@ -6,6 +6,29 @@ diffs; this file is the narrative index.
 
 ## Pending Actions (need your credentials/approval — everything else proceeds without you)
 
+- **⚠️ 15 of your 16 real products are currently `status = 'archived'`, not visible
+  anywhere on the storefront (2026-07-30).** Found while diagnosing the catalogue-crash
+  bug below — this is real data state, not something I changed. Only `Hector boat loafer`
+  is `active`; the other 15 are archived, which is almost certainly a side effect of
+  hitting the "can't delete — has order history" wall repeatedly and archiving as the
+  only available alternative each time. **I have not touched their status** — restoring
+  them is your call to make once you've looked. If you want them all back to `active`,
+  say so and I'll flip them in one script (or you can do it per-product from
+  `/admin/products` — filter by Archived, bulk-select, "Set status" → Active, using the
+  bulk toolbar this same pass added).
+- **Run `supabase/migrations/0023_order_lines_drop_style_fk.sql`** — removes the one
+  foreign key in the whole schema that blocks deleting a product with order history
+  (`order_lines.style_id`/`colorway_id`, the only two style-referencing columns without
+  `on delete cascade` — every other table, colorways included, already cascades).
+  Verified the exact failure live before writing this: attempted deleting `st-01` and a
+  real colorway, both rejected with `violates foreign key constraint
+  "order_lines_style_id_fkey"` / `"order_lines_colorway_id_fkey"` — confirming both the
+  bug and the exact constraint names this migration drops. Until this runs, "Delete" in
+  the admin Products list will still correctly refuse (with the existing friendly error)
+  for anything ever ordered — nothing breaks either way, this just unlocks the capability
+  you asked for. No app code depends on the migration having run; `deleteStyle()` already
+  handles both the pre- and post-migration state without modification.
+
 - **Decisions needed on the enterprise-UX brief (2026-07-30).** The brief is a generic
   ecommerce checklist; several items don't map onto this domain, and building them would
   mean inventing data or contradicting settled decisions. Flagging rather than faking —
@@ -67,6 +90,66 @@ diffs; this file is the narrative index.
 
 ## Completed
 
+- **2026-07-30** — **Quick Order: every +/- writes straight to the cart — no "Add All to
+  Cart" button.** User asked directly for this. Previously the table kept a local staged
+  quantity map (with "dirty cell" tracking so untouched cells mirrored the live cart
+  without clobbering lines added elsewhere) and required a separate bottom-of-page commit
+  button. Rewrote `OrderableLinesheet` to drop the staging layer entirely: each stepper
+  reads its value straight from the live cart (`lines.find(...)`) and writes with
+  `setLineQty` on every click — the stepper *is* the cart line, not a draft of it. This
+  deleted the two sync-on-mount/sync-on-cart-change `useEffect`s, the `dirty` Set, and
+  `handleAddAllToCart`'s careful "only submit cells this table's user actually touched"
+  logic, since there's no longer a draft/live distinction to reconcile.
+  - The bottom bar changed from a commit button to a live summary + "Go to Cart" link
+    (disabled when the visible table's cart contribution is empty). Renamed the summary
+    header from "Order summary by style" to "In your cart from this list" since it's now
+    a pure reflection, not a pre-submit preview.
+  - Verified live: clicking + writes the line to `localStorage` immediately (checked the
+    raw cart value), clicking − back to 0 removes the line, and the total/summary/"Go to
+    Cart" state all track it in real time.
+- **2026-07-30 — Real bug fixed: uploading a new product crashed the entire storefront
+  for every buyer, not just in admin preview.** User reported it directly: "when I
+  uploaded a product, the whole catalogue crashed, then when I deleted it, it
+  uncrashed." Root-caused and reproduced before fixing:
+  - A freshly created product (`createStyle` in `productAdmin.ts`) has **zero colorways**
+    until an admin adds one on the Variants tab, and starts life as `status: 'draft'`.
+  - `getAllStyles()` had **no status filter at all** — every storefront surface
+    (catalogue, quick-order, homepage, collections, cart, search, both root layouts'
+    `CatalogProvider` seed) got the draft back as part of the full list.
+  - Nearly every buyer-facing card/row/gallery does an **unguarded
+    `style.colorways[0].swatch`** (only the admin Products list already had a `?.`
+    guard, notably) — so the instant that zero-colorway draft appeared anywhere in a
+    rendered list, the whole page threw and 500'd for every visitor, admin or not.
+    Deleting it removed the only bad row, which is why that "fixed" it.
+  - **Fix has two layers.** (1) New `getStorefrontStyles()` in `styles.ts` — wraps
+    `getAllStyles()` filtered to `status === "active"` AND `colorways.length > 0` — now
+    used by every genuinely buyer-facing call site (9 files: both layouts, homepage,
+    collections, catalogue, quick-order, cart, dashboard/assortments, dashboard/favorites,
+    header search). Admin-side callers (`/admin/products/[id]`, analytics, product
+    import's duplicate check, order detail's historical style lookup) **deliberately
+    still call `getAllStyles()`/`getStyleById()` directly** — they must keep seeing
+    drafts/archived styles, and order history must keep resolving a style's name even
+    after it's later archived or fully deleted. (2) The product detail page now treats a
+    non-active or zero-colorway style as `notFound()` rather than rendering — belt and
+    suspenders against the same crash via a stale bookmark/cart/search link even if a
+    published product somehow loses all its colorways later.
+  - Reproduced the exact bug live before fixing (inserted a real draft style with zero
+    colorways via a throwaway service-role script, confirmed it — verified the fix
+    stopped it from appearing anywhere, then deleted the test row).
+- **2026-07-30 — Admin: delete products from the list, and delete even with order
+  history.** Two asks in one message. **(1)** Delete was previously reachable only from a
+  single product's own edit page — the admin Products list (`ProductsBrowser.tsx`) had
+  Edit/Duplicate/Archive per row and Status/Archive/Price/Brand/Supplier/Tag as bulk
+  actions, but no Delete anywhere. Added a per-row "Delete" (red, `confirm()`-guarded,
+  matching this codebase's existing destructive-action pattern from `OrderLineRow.tsx`)
+  and a bulk "Delete" mode (new `bulkDeleteAction`, same permission gate as every other
+  bulk action here — `products.bulk` — reports a partial result like "Deleted 3 of 5 — ✕"
+  rather than aborting the whole batch on the first failure, since `deleteStyle` returns
+  a per-item error instead of throwing). **(2)** While wiring this, found the schema
+  reason delete was blocked for anything ever ordered — see the migration in Pending
+  Actions above. **Also found while investigating (1)+(2) together — flagged at the top
+  of Pending Actions, not silently fixed**: 15 of the 16 real seeded products are
+  currently archived, almost certainly from hitting the delete-blocked wall repeatedly.
 - **2026-07-30** — **Product page: desktop now IS the mobile design, not a separate
   layout.** User asked directly: "make the product view to be in the desktop mode same as
   mobile." Confirmed via AskUserQuestion that desktop should be the same single-column

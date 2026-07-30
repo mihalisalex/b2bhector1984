@@ -1,5 +1,5 @@
 import { getCurrentAccount } from "@/lib/session";
-import { getAllStyles } from "@/lib/data/styles";
+import { getStorefrontStyles } from "@/lib/data/styles";
 import { CatalogProvider } from "@/lib/catalog-context";
 import { CartProvider } from "@/lib/cart-context";
 import { MarketingHeader } from "@/components/layout/MarketingHeader";
@@ -21,7 +21,7 @@ export default async function MarketingLayout({ children }: { children: React.Re
   // an account to scope it to; anonymous visitors have no cart to show.
   if (!account) return content;
 
-  const styles = await getAllStyles();
+  const styles = await getStorefrontStyles();
   return (
     <CatalogProvider styles={styles}>
       <CartProvider accountId={account.id} priceMultiplier={account.priceMultiplier}>

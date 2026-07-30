@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
 import { getFavoriteStyleIds } from "@/lib/data/favorites";
-import { getAllStyles } from "@/lib/data/styles";
+import { getStorefrontStyles } from "@/lib/data/styles";
 import { getInventoryForStyles, type StyleInventory } from "@/lib/data/inventory";
 import { ProductCard } from "@/components/product/ProductCard";
 import { LinkButton } from "@/components/ui/Button";
@@ -21,7 +21,7 @@ export default async function FavoritesPage() {
   const account = await getCurrentAccount();
   if (!account) redirect("/login");
 
-  const [favoriteIds, allStyles] = await Promise.all([getFavoriteStyleIds(account.id), getAllStyles()]);
+  const [favoriteIds, allStyles] = await Promise.all([getFavoriteStyleIds(account.id), getStorefrontStyles()]);
   const favorites = allStyles.filter((s) => favoriteIds.has(s.id));
   const inventory = await getInventoryForStyles(favorites.map((s) => s.id));
 
