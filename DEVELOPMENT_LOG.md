@@ -16,18 +16,14 @@ diffs; this file is the narrative index.
   say so and I'll flip them in one script (or you can do it per-product from
   `/admin/products` — filter by Archived, bulk-select, "Set status" → Active, using the
   bulk toolbar this same pass added).
-- **Run `supabase/migrations/0023_order_lines_drop_style_fk.sql`** — removes the one
-  foreign key in the whole schema that blocks deleting a product with order history
-  (`order_lines.style_id`/`colorway_id`, the only two style-referencing columns without
-  `on delete cascade` — every other table, colorways included, already cascades).
-  Verified the exact failure live before writing this: attempted deleting `st-01` and a
-  real colorway, both rejected with `violates foreign key constraint
-  "order_lines_style_id_fkey"` / `"order_lines_colorway_id_fkey"` — confirming both the
-  bug and the exact constraint names this migration drops. Until this runs, "Delete" in
-  the admin Products list will still correctly refuse (with the existing friendly error)
-  for anything ever ordered — nothing breaks either way, this just unlocks the capability
-  you asked for. No app code depends on the migration having run; `deleteStyle()` already
-  handles both the pre- and post-migration state without modification.
+- ~~**Run `supabase/migrations/0023_order_lines_drop_style_fk.sql`**~~ — **DONE, confirmed
+  run by you 2026-07-30, and verified live end-to-end same day**: created a fully isolated
+  temporary style + colorway + order + order_line (no real data touched), attempted to
+  delete the temporary style while it had order history, and the delete **succeeded**
+  where the same operation had thrown `violates foreign key constraint
+  "order_lines_style_id_fkey"` before the migration ran. Cleaned up every temporary row
+  afterward and confirmed zero leftovers. Deleting a product with order history now
+  genuinely works from the admin Products list.
 
 - **Decisions needed on the enterprise-UX brief (2026-07-30).** The brief is a generic
   ecommerce checklist; several items don't map onto this domain, and building them would
