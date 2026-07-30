@@ -55,7 +55,7 @@ export function ProductCard({
   const hasMultipleColorways = style.colorways.length > 1;
 
   const [activeColorwayId, setActiveColorwayId] = useState(() =>
-    inventory ? pickDefaultColorway(style, inventory) : style.colorways[0].id,
+    inventory ? pickDefaultColorway(style, inventory, images) : style.colorways[0].id,
   );
   const activeColorway = style.colorways.find((c) => c.id === activeColorwayId) ?? style.colorways[0];
   const taggedImage = images.find((img) => img.colorwayId === activeColorwayId);

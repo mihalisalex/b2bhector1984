@@ -76,7 +76,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <span className="text-ink">{style.name}</span>
         </nav>
 
-        <ColorwaySelectionProvider initialColorwayId={pickDefaultColorway(style, inventory)}>
+        <ColorwaySelectionProvider initialColorwayId={pickDefaultColorway(style, inventory, images)}>
           <div>
             {images.length > 0 ? (
               <ProductGallery images={images} styleName={style.name} styleNumber={style.styleNumber} colorways={style.colorways} />
