@@ -5,7 +5,7 @@ import { useCart } from "@/lib/cart-context";
 import { useColorwaySelection } from "@/lib/colorway-selection-context";
 import { pickDefaultBoxType } from "@/lib/productSelectionDefaults";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
-import { formatEUR, getUnitPrice, isOnSale, MIN_ORDER_PAIRS } from "@/lib/pricing";
+import { formatEUR, getUnitPrice, MIN_ORDER_PAIRS } from "@/lib/pricing";
 import { ColorwayPicker } from "@/components/product/ColorwayPicker";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
 import { ShareButton } from "@/components/product/ShareButton";
@@ -75,8 +75,6 @@ export function PrimaryPurchasePanel({
   const lowStock = onHand > 0 && onHand <= 4;
 
   const unitPrice = getUnitPrice(style, "net60", priceMultiplier);
-  const onSale = isOnSale(style);
-  const listPrice = style.basePrice * priceMultiplier;
   const pairsPerBox = box.totalPairs;
   const subtotal = useMemo(() => unitPrice * pairsPerBox * addQty, [unitPrice, pairsPerBox, addQty]);
 
@@ -108,47 +106,18 @@ export function PrimaryPurchasePanel({
   }
 
   const selectedColorway = style.colorways.find((c) => c.id === colorwayId) ?? style.colorways[0];
-  // On mobile the bar is the only Add-to-cart, so it stays up for the whole decision and
-  // only steps aside once the buyer moves on to browsing the category.
+  // The bar is the only Add-to-cart at every size, so it stays up for the whole decision
+  // and only steps aside once the buyer moves on to browsing the category.
   const barVisible = !reachedBrowsing;
 
   return (
     <>
-      <div className="lg:sticky lg:top-[calc(var(--shell-header-h)+1.5rem)] border border-stone-300 bg-white">
-        {/* Price — the anchor of the panel on desktop. Hidden on mobile, where the sticky
-            bar already carries name + price and repeating them here just adds noise. */}
-        <div className="hidden px-5 pt-5 sm:px-6 sm:pt-6 lg:block">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-soft">
-              Wholesale
-            </span>
-            {onSale && (
-              <span className="bg-ember px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
-                Sale
-              </span>
-            )}
-          </div>
-          <div className="mt-1.5 flex items-baseline gap-2.5">
-            <span className="text-[2.25rem] font-semibold leading-none tracking-tight tabular-nums text-ink">
-              {formatEUR(unitPrice)}
-            </span>
-            <span className="text-xs text-ink-soft">per pair</span>
-            {onSale && (
-              <span className="text-sm tabular-nums text-ink-soft line-through">{formatEUR(listPrice)}</span>
-            )}
-          </div>
-          <p className="mt-2 text-[11px] leading-relaxed text-ink-soft">
-            Prepay 10% off · Net 30 5% off · Net 60 at list — chosen at checkout
-          </p>
-        </div>
-
-        <Divider className="mt-5 hidden lg:block" />
-
+      {/* Everything a buyer needs to buy (price, colour, quantity, CTA) lives in the
+          sticky bar below at every screen size — this card is the supplementary detail
+          the bar can't carry: exact box size, stock, subtotal, order-minimum progress,
+          favorite/share. Not sticky, matching how it behaves on a phone. */}
+      <div className="border border-stone-300 bg-white">
         <div className="space-y-5 px-5 py-5 sm:px-6">
-          {/* Desktop only: on mobile this lives directly under the gallery, where the
-              buyer can actually see the photo change. */}
-          <ColorwayPicker style={style} inventory={inventory} className="hidden lg:block" />
-
           <div>
             <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">
               Box size
@@ -197,15 +166,6 @@ export function PrimaryPurchasePanel({
             </p>
           </div>
 
-          <Stepper
-            qty={addQty}
-            max={remaining}
-            disabled={outOfStock}
-            onStep={step}
-            onSet={(n) => setAddQty(n)}
-            className="hidden lg:flex"
-          />
-
           <div>
             <div className="flex items-baseline justify-between">
               <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">
@@ -227,18 +187,7 @@ export function PrimaryPurchasePanel({
               </p>
             )}
 
-            {/* Desktop-only: on mobile the sticky bar is the single Add-to-cart, so a
-                second one here would compete with it. */}
-            <button
-              type="button"
-              onClick={handleAddToCart}
-              disabled={remaining <= 0}
-              className="mt-4 hidden w-full bg-ink px-6 py-4 text-sm font-semibold uppercase tracking-[0.1em] text-white transition-all duration-150 hover:bg-ink/85 active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-cinder-300 disabled:text-white/70 lg:block"
-            >
-              {outOfStock ? "Out of stock" : justAdded ? "Added to cart ✓" : "Add to cart"}
-            </button>
-
-            <div className="mt-2.5 flex items-center gap-2">
+            <div className="mt-4 flex items-center gap-2">
               <FavoriteButton styleId={style.id} initialFavorited={initialFavorited} />
               <ShareButton title={style.name} />
             </div>
@@ -255,131 +204,98 @@ export function PrimaryPurchasePanel({
         </div>
       </div>
 
-      {/* Mobile sticky purchase bar — carries everything needed to buy (name, price,
-          colour, quantity, CTA) so the buyer never scrolls back up. It releases once the
+      {/* Sticky purchase bar — the single Add-to-cart at every screen size, carrying
+          everything needed to buy (box size, price, colour, quantity, CTA) so the buyer
+          never scrolls back up. Full-width band so it reads as a fixture of the page
+          regardless of viewport, but its content is capped/centered to match the column
+          above on wide screens rather than sprawling across a monitor. Releases once the
           related-products section comes into view, handing the screen over to browsing. */}
       <div
         className={cn(
-          "fixed inset-x-0 bottom-0 z-30 bg-white/97 px-4 pb-3 pt-3 backdrop-blur-md transition-transform duration-300 ease-out lg:hidden",
+          "fixed inset-x-0 bottom-0 z-30 bg-white/97 px-4 pb-3 pt-3 backdrop-blur-md transition-transform duration-300 ease-out",
           barVisible ? "translate-y-0" : "translate-y-full",
         )}
         style={{ boxShadow: "0 -10px 30px rgba(26,29,34,0.12)" }}
         aria-hidden={!barVisible}
       >
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            {/* Box size sits where the product name used to — the name is redundant with
-                the page title just above, but which box you're about to buy isn't. */}
-            <p className="truncate text-[10px] font-semibold uppercase tracking-[0.1em] text-ink-soft">
-              {box.totalPairs}-Pair Box
-            </p>
-            <p className="mt-1 flex items-baseline gap-1.5">
-              <span className="text-[17px] font-semibold tabular-nums text-ink">
-                {formatEUR(unitPrice)}
-              </span>
-              <span className="text-[11px] text-ink-soft">/ pair · {selectedColorway.name}</span>
-            </p>
+        <div className="mx-auto max-w-[600px]">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              {/* Box size sits where the product name used to — the name is redundant with
+                  the page title just above, but which box you're about to buy isn't. */}
+              <p className="truncate text-[10px] font-semibold uppercase tracking-[0.1em] text-ink-soft">
+                {box.totalPairs}-Pair Box
+              </p>
+              <p className="mt-1 flex items-baseline gap-1.5">
+                <span className="text-[17px] font-semibold tabular-nums text-ink">
+                  {formatEUR(unitPrice)}
+                </span>
+                <span className="text-[11px] text-ink-soft">/ pair · {selectedColorway.name}</span>
+              </p>
+            </div>
+            <ColorwayPicker style={style} inventory={inventory} className="-mr-1 shrink-0" />
           </div>
-          <ColorwayPicker style={style} inventory={inventory} compact className="-mr-1 shrink-0" />
-        </div>
 
-        <div className="mt-2.5 flex items-stretch gap-2">
-          <Stepper qty={addQty} max={remaining} disabled={outOfStock} onStep={step} compact />
-          <button
-            type="button"
-            onClick={handleAddToCart}
-            disabled={remaining <= 0}
-            className="flex-1 bg-ink px-3 text-xs font-semibold uppercase tracking-[0.08em] text-white transition-transform active:scale-[0.99] disabled:bg-cinder-300 disabled:text-white/70"
-          >
-            {outOfStock
-              ? "Sold out"
-              : justAdded
-                ? "Added to cart ✓"
-                : `Add ${box.totalPairs}-pair box${addQty > 1 ? "es" : ""} · ${formatEUR(subtotal)}`}
-          </button>
+          <div className="mt-2.5 flex items-stretch gap-2">
+            <Stepper qty={addQty} max={remaining} disabled={outOfStock} onStep={step} />
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={remaining <= 0}
+              className="flex-1 bg-ink px-3 text-xs font-semibold uppercase tracking-[0.08em] text-white transition-transform active:scale-[0.99] disabled:bg-cinder-300 disabled:text-white/70"
+            >
+              {outOfStock
+                ? "Sold out"
+                : justAdded
+                  ? "Added to cart ✓"
+                  : `Add ${box.totalPairs}-pair box${addQty > 1 ? "es" : ""} · ${formatEUR(subtotal)}`}
+            </button>
+          </div>
         </div>
       </div>
-      {/* Reserves space so the fixed bar doesn't cover page content/footer on mobile */}
-      {barVisible && <div className="h-[108px] lg:hidden" aria-hidden />}
+      {/* Reserves space so the fixed bar doesn't cover page content/footer */}
+      {barVisible && <div className="h-[108px]" aria-hidden />}
     </>
   );
 }
 
-function Divider({ className }: { className?: string }) {
-  // Background, not a border: globals.css has an unlayered `* { border-color }` rule that
-  // overrides every Tailwind border-color utility, so borders can't be tuned per-surface.
-  return <div className={cn("h-px bg-stone-200", className)} aria-hidden />;
-}
-
 /**
- * Quantity stepper. Both glyphs are drawn as SVG on an identical 16x16 grid — the previous
- * version paired a Unicode minus with an ASCII plus, which render at visibly different
- * weights and sizes in the body face and made the control look broken.
+ * Quantity stepper for the purchase bar — the only place quantity is adjusted now that
+ * desktop matches mobile (tap +/-, no typed-number entry; a phone never had one either).
+ * Both glyphs are drawn as SVG on an identical 16x16 grid — pairing a Unicode minus with
+ * an ASCII plus renders at visibly different weights and made the control look broken.
  */
 function Stepper({
   qty,
   max,
   disabled,
   onStep,
-  onSet,
-  compact,
-  className,
 }: {
   qty: number;
   max: number;
   disabled?: boolean;
   onStep: (delta: number) => void;
-  onSet?: (n: number) => void;
-  compact?: boolean;
-  className?: string;
 }) {
-  const size = compact ? "h-11 w-10" : "h-14 w-14";
   return (
-    <div className={cn("flex items-center bg-stone-100", compact ? "shrink-0" : "w-full", className)}>
+    <div className="flex shrink-0 items-center bg-stone-100">
       <button
         type="button"
         onClick={() => onStep(-1)}
         disabled={disabled || qty <= 1}
         aria-label="Decrease quantity"
-        className={cn(
-          "flex shrink-0 items-center justify-center text-ink transition-colors hover:bg-stone-200 disabled:opacity-30 disabled:hover:bg-transparent",
-          size,
-        )}
+        className="flex h-11 w-10 items-center justify-center text-ink transition-colors hover:bg-stone-200 disabled:opacity-30 disabled:hover:bg-transparent"
       >
         <StepIcon kind="minus" />
       </button>
-      {onSet && !compact ? (
-        <input
-          type="number"
-          inputMode="numeric"
-          min={1}
-          max={Math.max(1, max)}
-          value={qty}
-          disabled={disabled}
-          onChange={(e) => onSet(Math.min(Math.max(1, max), Math.max(1, Math.floor(Number(e.target.value)) || 1)))}
-          onFocus={(e) => e.target.select()}
-          aria-label="Number of boxes"
-          className="font-mono-tab h-14 flex-1 bg-transparent text-center text-xl font-bold tabular-nums text-ink outline-none disabled:text-ink-soft"
-        />
-      ) : (
-        <span
-          className={cn(
-            "font-mono-tab flex items-center justify-center text-base font-bold tabular-nums text-ink",
-            compact ? "h-11 w-9" : "h-14 flex-1 text-xl",
-          )}
-        >
-          {qty}
-        </span>
-      )}
+      <span className="font-mono-tab flex h-11 w-9 items-center justify-center text-base font-bold tabular-nums text-ink">
+        {qty}
+      </span>
       <button
         type="button"
         onClick={() => onStep(1)}
         disabled={disabled || qty >= max}
         aria-label="Increase quantity"
-        className={cn(
-          "flex shrink-0 items-center justify-center text-ink transition-colors hover:bg-stone-200 disabled:opacity-30 disabled:hover:bg-transparent",
-          size,
-        )}
+        className="flex h-11 w-10 items-center justify-center text-ink transition-colors hover:bg-stone-200 disabled:opacity-30 disabled:hover:bg-transparent"
       >
         <StepIcon kind="plus" />
       </button>

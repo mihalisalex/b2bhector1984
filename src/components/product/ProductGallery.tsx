@@ -116,10 +116,12 @@ export function ProductGallery({
 
   return (
     <div className={className}>
-      {/* Full-bleed on mobile — breaking out of the page's own side padding is what makes
-          the photo read as large rather than inset in a box. Reverts at lg, where the grid
-          column already gives it room; thumbnails/caption below stay padded so they align
-          with the page's text instead of also running edge to edge. */}
+      {/* Full-bleed below lg — breaking out of the page's own side padding is what makes
+          the photo read as large rather than inset in a box. Reverts at lg, where the
+          product page has already capped/centered its own column, so there's nothing left
+          to break out of; thumbnails/caption below stay padded so they align with the
+          page's text instead of also running edge to edge. The 3:4 aspect ratio itself is
+          unconditional — the product view is the same layout at every screen size. */}
       <div className="-mx-6 lg:mx-0">
         <button
           ref={mainButtonRef}
@@ -134,7 +136,7 @@ export function ProductGallery({
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
           aria-label={`${styleName} — photo ${activeIndex + 1} of ${visibleImages.length}. Open full screen.`}
-          className="relative block aspect-[3/4] w-full touch-pan-y overflow-hidden bg-stone-100 lg:aspect-[4/3]"
+          className="relative block aspect-[3/4] w-full touch-pan-y overflow-hidden bg-stone-100"
         >
           <Image
             key={active.id}

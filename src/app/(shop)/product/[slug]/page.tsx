@@ -54,25 +54,31 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   return (
     <div className="mx-auto max-w-[1600px] px-6 pb-8 pt-4 lg:px-10 lg:pt-8">
       <TrackRecentlyViewed styleId={style.id} />
-      <nav className="mb-4 flex items-center gap-1.5 text-[11px] uppercase tracking-[0.06em] text-ink-soft lg:mb-6 lg:text-xs lg:tracking-normal lg:normal-case">
-        <Link href="/catalogue" className="hover:text-ink">Catalogue</Link>
-        <span>/</span>
-        <Link href={`/catalogue?category=${style.category}`} className="hover:text-ink">
-          {CATEGORY_LABEL[style.category]}
-        </Link>
-        <span>/</span>
-        <span className="text-ink">{style.name}</span>
-      </nav>
 
-      <ColorwaySelectionProvider initialColorwayId={pickDefaultColorway(style, inventory)}>
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,440px)_1fr]">
+      {/* The product view is intentionally the SAME single-column layout at every size —
+          no separate desktop two-column arrangement. At lg+ it's simply centered and
+          capped to a comfortable width rather than stretched edge to edge, since a phone
+          layout blown up to a wide monitor unchanged would look broken, not premium. */}
+      <div className="lg:mx-auto lg:max-w-[600px]">
+        <nav className="mb-4 flex items-center gap-1.5 text-[11px] uppercase tracking-[0.06em] text-ink-soft">
+          <Link href="/catalogue" className="hover:text-ink">Catalogue</Link>
+          <span>/</span>
+          <Link href={`/catalogue?category=${style.category}`} className="hover:text-ink">
+            {CATEGORY_LABEL[style.category]}
+          </Link>
+          <span>/</span>
+          <span className="text-ink">{style.name}</span>
+        </nav>
+
+        <ColorwaySelectionProvider initialColorwayId={pickDefaultColorway(style, inventory)}>
           <div>
             {images.length > 0 ? (
               <ProductGallery images={images} styleName={style.name} styleNumber={style.styleNumber} colorways={style.colorways} />
             ) : (
-              // Full-bleed on mobile: breaking out of the page's own horizontal padding is
+              // Full-bleed below lg: breaking out of the page's own horizontal padding is
               // what makes the photo feel large rather than inset in a box. Reverts at lg,
-              // where the grid column already gives it room.
+              // where the column above has already capped/centered the width, so there's
+              // nothing left to break out of.
               <div className="-mx-6 lg:mx-0">
                 <StylePlate
                   swatch={style.colorways[0].swatch}
@@ -83,10 +89,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 />
               </div>
             )}
-          </div>
 
-          <div>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2">
               <AvailabilityBadge availability={style.availability} shipWindow={style.shipWindow} />
               <span className="font-mono-tab text-[11px] uppercase tracking-[0.14em] text-ink-soft">
                 {style.styleNumber}
@@ -96,10 +100,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               </span>
             </div>
 
-            <h1 className="font-display mt-4 text-[2.25rem] font-bold uppercase leading-[0.95] tracking-[-0.02em] text-ink sm:text-[2.75rem]">
+            <h1 className="font-display mt-4 text-[2.25rem] font-bold uppercase leading-[0.95] tracking-[-0.02em] text-ink">
               {style.name}
             </h1>
-            <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-ink-soft">{style.tagline}</p>
+            <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">{style.tagline}</p>
 
             <div className="mt-6">
               <PrimaryPurchasePanel
@@ -112,10 +116,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
             <TrustStrip rep={account?.rep} />
           </div>
-        </div>
-      </ColorwaySelectionProvider>
+        </ColorwaySelectionProvider>
 
-      <ProductDetails style={style} />
+        <ProductDetails style={style} />
+      </div>
 
       {/* Watched by the mobile buy bar: once this scrolls into view the buyer has moved
           from deciding on this style to browsing the category, and the bar releases. */}

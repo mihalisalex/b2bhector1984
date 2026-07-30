@@ -67,6 +67,46 @@ diffs; this file is the narrative index.
 
 ## Completed
 
+- **2026-07-30** — **Product page: desktop now IS the mobile design, not a separate
+  layout.** User asked directly: "make the product view to be in the desktop mode same as
+  mobile." Confirmed via AskUserQuestion that desktop should be the same single-column
+  layout, centered and capped to a comfortable width rather than stretched edge-to-edge on
+  a monitor (not full-bleed-to-viewport, not the old two-column arrangement restyled).
+  - **Removed the two-column grid entirely.** `grid-cols-1 lg:grid-cols-[440px_1fr]` →
+    `grid-cols-1` unconditionally. Breadcrumb, gallery, title, buy panel, and
+    `ProductDetails` now live inside one `lg:mx-auto lg:max-w-[600px]` wrapper — full width
+    below `lg` (matching the phone experience exactly), centered at 600px from `lg` up.
+    "You May Also Like" / "Recently Viewed" deliberately stay outside that wrapper at full
+    page width — they're catalog-browsing grids that already scale 2→4 columns across
+    breakpoints, not part of the buy decision this ask was about.
+  - **The sticky purchase bar is now the only Add-to-cart at every screen size**, not a
+    mobile-only fallback. Its `lg:hidden` is gone; its inner content is wrapped in
+    `mx-auto max-w-[600px]` so it aligns with the column above rather than sprawling across
+    a wide monitor while the band itself still spans full viewport width (a normal, good
+    pattern for a sticky footer regardless of the content column width).
+  - **Deleted the desktop-only buy-box pieces that duplicated the bar**: the price
+    header (with its Sale-badge/strikethrough list-price treatment), the in-panel
+    full-size `ColorwayPicker`, the number-typeable `Stepper` variant, and the second
+    "Add to cart" button. What remains as a plain (no longer `lg:sticky`) card below the
+    bar-driven summary is box size, stock, subtotal, and the order-minimum projection —
+    exactly what already showed on mobile below its own bar.
+  - **Real trade-off, flagged rather than silently dropped**: the desktop-only Sale badge
+    and crossed-out list price are gone — mobile never had them, so true parity means they
+    don't survive the merge. Say the word if you want that reintroduced into the unified
+    bar; it wasn't rebuilt speculatively.
+  - **Cleaned up the now-dead code this produced** rather than leaving unreachable
+    branches: simplified `Stepper` to the one shape actually used anywhere (removed
+    `onSet`/`compact`/`className`, the typed-number-input branch, and the unused
+    `Divider` helper); simplified `ColorwayPicker` to just the compact swatch-row shape,
+    since the only remaining caller is the bar.
+  - Removed the aspect-ratio split too (`aspect-[3/4] lg:aspect-[4/3]` → `aspect-[3/4]`
+    unconditionally) — verified live: gallery renders 600×800 (exact 3:4) at 1280px
+    viewport, was 4:3 before this pass and had been missed in an earlier edit.
+  - Verified live end-to-end at both breakpoints: desktop swatch tap changes the gallery
+    photo (confirmed via the actual image URLs before/after), desktop Add-to-cart writes
+    the correct cart line (right colorway id), and the bar's release-on-scroll behavior
+    (hide at the related-styles section, return scrolling back up) is identical on desktop
+    and mobile. `npm run build`, typecheck, and lint all clean.
 - **2026-07-30** — **Price typography demonoed site-wide**, following up on scoping it to
   just the product page last pass — user asked to carry it everywhere, desktop included.
   Every `formatEUR(...)` display across the app now renders in the body sans (Geist) with

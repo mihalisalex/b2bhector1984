@@ -6,83 +6,54 @@ import type { Style } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
 /**
- * Colorway swatches, driven by the shared `ColorwaySelectionProvider` so every instance
- * on the page stays in sync with the gallery.
- *
- * Rendered twice by design: directly under the gallery on mobile, and inside the buy box
- * on desktop. On a phone the buy box sits a full screen below the image, so tapping a
- * swatch there changed a photo the buyer couldn't see — the selector has to be adjacent
- * to the thing it changes.
+ * Colorway swatches for the sticky purchase bar, driven by the shared
+ * `ColorwaySelectionProvider` so a tap here updates the gallery photo above it.
  */
 export function ColorwayPicker({
   style,
   inventory,
   className,
-  compact,
 }: {
   style: Style;
   inventory: StyleInventory;
   className?: string;
-  /** Bare swatch row with no label header — for the sticky purchase bar. */
-  compact?: boolean;
 }) {
   const { colorwayId, setColorwayId } = useColorwaySelection();
   if (style.colorways.length < 2) return null;
 
-  const selected = style.colorways.find((c) => c.id === colorwayId) ?? style.colorways[0];
-
   return (
-    <div className={className}>
-      {!compact && (
-        <div className="mb-2.5 flex items-baseline justify-between gap-3">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">Colorway</span>
-          <span className="text-sm font-medium text-ink">{selected.name}</span>
-        </div>
-      )}
-      <div className={cn("flex flex-wrap", compact ? "gap-1" : "gap-2.5")}>
-        {style.colorways.map((c) => {
-          const stocked = Object.values(inventory[c.id] ?? {}).some((n) => (n ?? 0) > 0);
-          const isSelected = c.id === colorwayId;
-          return (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => setColorwayId(c.id)}
-              aria-label={stocked ? c.name : `${c.name}, out of stock`}
-              aria-pressed={isSelected}
-              title={c.name}
+    <div className={cn("flex flex-wrap gap-1", className)}>
+      {style.colorways.map((c) => {
+        const stocked = Object.values(inventory[c.id] ?? {}).some((n) => (n ?? 0) > 0);
+        const isSelected = c.id === colorwayId;
+        return (
+          <button
+            key={c.id}
+            type="button"
+            onClick={() => setColorwayId(c.id)}
+            aria-label={stocked ? c.name : `${c.name}, out of stock`}
+            aria-pressed={isSelected}
+            title={c.name}
+            className="relative flex h-9 w-9 items-center justify-center transition-transform duration-150 active:scale-95"
+          >
+            <span
               className={cn(
-                // Generous hit area: 48px target, comfortable one-handed on a phone.
-                "relative flex items-center justify-center transition-transform duration-150 active:scale-95",
-                compact ? "h-9 w-9" : "h-12 w-12",
+                "flex h-6 w-6 overflow-hidden rounded-full transition-all duration-200",
+                isSelected
+                  ? "ring-2 ring-ink ring-offset-2 ring-offset-white"
+                  : "ring-1 ring-cinder-300/60 hover:ring-ink/40",
+                !stocked && "opacity-35",
               )}
             >
-              <span
-                className={cn(
-                  "flex overflow-hidden rounded-full transition-all duration-200",
-                  compact ? "h-6 w-6" : "h-10 w-10",
-                  isSelected
-                    ? "ring-2 ring-ink ring-offset-2 ring-offset-white"
-                    : "ring-1 ring-cinder-300/60 hover:ring-ink/40",
-                  !stocked && "opacity-35",
-                )}
-              >
-                <span aria-hidden className="h-full w-1/2" style={{ background: c.swatch[0] }} />
-                <span aria-hidden className="h-full w-1/2" style={{ background: c.swatch[1] ?? c.swatch[0] }} />
-              </span>
-              {!stocked && (
-                <span
-                  aria-hidden
-                  className={cn(
-                    "pointer-events-none absolute h-[1px] rotate-45 bg-ink/70",
-                    compact ? "w-6" : "w-9",
-                  )}
-                />
-              )}
-            </button>
-          );
-        })}
-      </div>
+              <span aria-hidden className="h-full w-1/2" style={{ background: c.swatch[0] }} />
+              <span aria-hidden className="h-full w-1/2" style={{ background: c.swatch[1] ?? c.swatch[0] }} />
+            </span>
+            {!stocked && (
+              <span aria-hidden className="pointer-events-none absolute h-[1px] w-6 rotate-45 bg-ink/70" />
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }
