@@ -4,6 +4,7 @@ import { getStorefrontStyles, searchStyleIds } from "@/lib/data/styles";
 import { filterStyles, parseFilters } from "@/lib/catalogFilters";
 import { isSortKey, pairsSoldByStyle, sortStyles } from "@/lib/catalogSort";
 import { getInventoryForStyles, totalOnHandForStyle } from "@/lib/data/inventory";
+import { listImagesForStyles } from "@/lib/data/styleImages";
 import { getFavoriteStyleIds } from "@/lib/data/favorites";
 import { getCurrentAccount } from "@/lib/session";
 import { supabaseAdmin } from "@/lib/supabase/server";
@@ -49,6 +50,8 @@ export default async function CatalogPage({
   const favoriteIds = account ? await getFavoriteStyleIds(account.id) : new Set<string>();
   const priceMultiplier = account?.priceMultiplier ?? 1;
   const results = sortStyles(filtered, sort, orderLineRows ? pairsSoldByStyle(orderLineRows) : undefined);
+  // Only for what's actually rendered this request — cheaper than batching the whole catalogue.
+  const imagesByStyle = view === "grid" ? await listImagesForStyles(results.map((s) => s.id)) : {};
 
   return (
     <div className="mx-auto max-w-[1600px] px-6 py-8 lg:px-10">
@@ -117,7 +120,9 @@ export default async function CatalogPage({
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        // Two big columns at every width, not a responsive 1→2→3 ramp — tall 3:4 photos
+        // that read as "premium fashion editorial" rather than a dense product grid.
+        <div className="grid grid-cols-2 gap-3 sm:gap-5">
           {results.map((style) => (
             <ProductCard
               key={style.id}
@@ -126,6 +131,7 @@ export default async function CatalogPage({
               priceMultiplier={priceMultiplier}
               favorited={account ? favoriteIds.has(style.id) : undefined}
               inventory={account ? inventory[style.id] : undefined}
+              images={imagesByStyle[style.id] ?? []}
             />
           ))}
         </div>

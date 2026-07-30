@@ -23,7 +23,9 @@ export default async function CartPage() {
   const [styles, account] = await Promise.all([getStorefrontStyles(), getCurrentAccount()]);
   const priceMultiplier = account?.priceMultiplier ?? 1;
   const sellable = styles.filter((s) => s.availability === "available");
-  const inventory = await getInventoryForStyles(sellable.map((s) => s.id));
+  // Every style, not just `sellable` — a cart line can reference a pre-book style too,
+  // and the qty stepper below needs real stock for whatever's actually in the cart.
+  const inventory = await getInventoryForStyles(styles.map((s) => s.id));
 
   const inStockOptions: BoxOption[] = [];
   for (const style of sellable) {
@@ -52,5 +54,5 @@ export default async function CartPage() {
     }
   }
 
-  return <CartView inStockOptions={inStockOptions} />;
+  return <CartView inStockOptions={inStockOptions} inventory={inventory} />;
 }

@@ -178,6 +178,7 @@ export async function listProductsForAdmin(params: ProductListParams): Promise<P
 
 export interface GeneralInput {
   name: string;
+  styleNumber: string;
   tagline: string;
   description: string;
   productType: string;
@@ -196,6 +197,7 @@ export async function updateStyleGeneral(styleId: string, input: GeneralInput): 
     .from("styles")
     .update({
       name: input.name,
+      style_number: input.styleNumber,
       tagline: input.tagline,
       description: input.description,
       product_type: input.productType,

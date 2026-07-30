@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { CATEGORY_LABEL, GENDER_LABEL, getRelatedStyles, getStyleBySlug, getStyleImageUrl } from "@/lib/data/styles";
 import { getInventoryForStyle, getInventoryForStyles, totalOnHandForStyle } from "@/lib/data/inventory";
-import { listImagesForStyle } from "@/lib/data/styleImages";
+import { listImagesForStyle, listImagesForStyles } from "@/lib/data/styleImages";
 import { getCurrentAccount } from "@/lib/session";
 import { recordStyleView } from "@/lib/data/styleAnalytics";
 import { isFavorite } from "@/lib/data/favorites";
@@ -49,7 +49,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     getRelatedStyles(style),
     getCurrentAccount(),
   ]);
-  const relatedInventory = await getInventoryForStyles(related.map((s) => s.id));
+  const [relatedInventory, relatedImages] = await Promise.all([
+    getInventoryForStyles(related.map((s) => s.id)),
+    listImagesForStyles(related.map((s) => s.id)),
+  ]);
   const priceMultiplier = account?.priceMultiplier ?? 1;
   const favorited = account ? await isFavorite(account.id, style.id) : false;
   void recordStyleView(style.id, account?.id ?? null);
@@ -140,6 +143,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 style={r}
                 totalOnHand={totalOnHandForStyle(r.id, relatedInventory)}
                 priceMultiplier={priceMultiplier}
+                images={relatedImages[r.id] ?? []}
               />
             ))}
           </div>

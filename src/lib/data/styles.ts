@@ -226,7 +226,11 @@ async function fetchStyles(styleRows: StyleRow[]): Promise<Style[]> {
 
   const [{ data: colorwayRows, error: colorwayError }, { data: imageRows, error: imageError }] =
     await Promise.all([
-      supabaseAdmin.from("colorways").select("*").in("style_id", styleIds),
+      // Explicit order: Postgres/PostgREST don't guarantee row order without one, and
+      // callers rely on colorways[0] being the deterministic "default" colorway (product
+      // page, catalogue cards) — that must always be the same one, not whatever the
+      // query planner happens to return first.
+      supabaseAdmin.from("colorways").select("*").in("style_id", styleIds).order("sort_order"),
       supabaseAdmin
         .from("style_images")
         .select("style_id, storage_path")

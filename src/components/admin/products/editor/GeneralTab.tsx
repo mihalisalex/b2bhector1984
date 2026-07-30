@@ -39,8 +39,10 @@ export function GeneralTab({
 
       <div className="grid grid-cols-2 gap-4">
         <TextField label="Product name" name="name" defaultValue={style.name} required disabled={!canEdit} />
-        <TextField label="Product type" name="productType" defaultValue={style.productType} disabled={!canEdit} />
+        <TextField label="Style number (SKU)" name="styleNumber" defaultValue={style.styleNumber} required disabled={!canEdit} />
       </div>
+
+      <TextField label="Product type" name="productType" defaultValue={style.productType} disabled={!canEdit} />
 
       <TextField label="Short description" name="tagline" defaultValue={style.tagline} disabled={!canEdit} />
 

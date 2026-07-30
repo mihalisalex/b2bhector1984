@@ -81,6 +81,65 @@ diffs; this file is the narrative index.
 
 ## Completed
 
+- **2026-07-30 — Catalogue redesigned: two big 3:4 columns, clickable colours that swap
+  the photo, on mobile and desktop both.** User sent a reference screenshot (a competitor
+  site) and asked for this layout explicitly, then clarified "and mobile also not only
+  pc" mid-turn.
+  - Grid changed from a responsive `1 → 2 → 3` column ramp to a flat `grid-cols-2` at
+    every width — verified live at both 375px and 1280px, matching the reference exactly
+    (two big columns regardless of screen size, not a wider multi-column layout past some
+    breakpoint).
+  - `ProductCard` converted to a client component (it already embedded `QuickAdd`/
+    `FavoriteButton` as client children, so this wasn't a new boundary) so it can hold its
+    own `activeColorwayId` state — clicking a colour swatch swaps the card's photo to that
+    colorway's real tagged image, the same interaction already built for the product
+    page's gallery, now also on the catalogue card. Falls back to the style's default
+    photo when a colorway has no dedicated tagged photo — same honest behavior as the
+    product gallery, no faked per-colorway image.
+  - New `listImagesForStyles()` batch fetch in `styleImages.ts` (one query for the whole
+    grid instead of one per card) backs catalogue, favorites, and the product page's
+    "You May Also Like" section — all three `ProductCard` call sites now pass real image
+    data, not just the catalogue page.
+  - **Caught and fixed a real, if previously-latent, ordering bug while verifying this**:
+    the `colorways` query had no `ORDER BY`, so `style.colorways[0]` (used everywhere as
+    "the default colorway" — catalogue cards, product page, cart) wasn't guaranteed
+    stable across requests. Confirmed a card's default photo visibly differed between two
+    screenshots of the same reload; ran 8 repeated fresh fetches afterward and got a
+    stable result, so in practice this was likely a dev-server Fast-Refresh timing
+    artifact rather than an observed production failure — but the missing explicit order
+    was real and worth closing regardless, since nothing guaranteed it wouldn't surface
+    for real. Added `.order("sort_order")` (the column already existed for exactly this).
+  - Also swapped a locally-duplicated "total on hand" reduce in the favorites page for the
+    shared `totalOnHandForStyle` helper while touching that file.
+- **2026-07-30 — Two more bugs reported directly, both fixed and verified.**
+  - **"I can't change the SKU."** Real gap, not a UI glitch: the admin product editor's
+    General tab had no field for `style_number` at all — `updateStyleGeneral`/
+    `GeneralInput` never touched that column, and the editor header only ever displayed
+    it as plain text. Added "Style number (SKU)" as an editable, required field next to
+    Product name, threaded through `GeneralInput`, `updateStyleGeneral`, and
+    `updateGeneralAction` (plus the three bulk actions — set brand/supplier/add tag — that
+    reconstruct a full `GeneralInput` from a `ProductRow` to change one field, all missed
+    without this). `style_number` has a real DB unique constraint, so a duplicate now
+    surfaces a specific "style numbers must be unique" message instead of a raw Postgres
+    error (added the same treatment for slug conflicts while in there). Verified by
+    typecheck/lint and full code trace, not a live browser test — admin login can't be
+    automated on this project.
+  - **"I set a box to 2, put 2 in cart, pressed + and it let me go to 3 — and proceed."**
+    Confirmed live: the cart page's own +/- stepper had **no stock clamp at all** — the
+    increase button and the manual quantity input both accepted anything, no `max`, no
+    `disabled`. Separately verified the server-side `adjust_inventory` RPC was never
+    actually broken (attempted a real over-decrement live: rejected, stock unchanged) —
+    so this was purely a client-side gap, not a checkout integrity hole, but a real one:
+    a buyer had no feedback that they'd gone over stock until (at best) a late rejection.
+    Fixed: `/cart` now fetches inventory for every style in the cart (not just
+    available-now ones, since a cart line can be a pre-book style too) and `CartView`
+    clamps both the button and the typed input against real on-hand, shows "Only N
+    available" per line, and — as a second layer — blocks "Proceed to Checkout" itself if
+    any line is still over stock for any reason (a stale pre-fix cart, stock dropping
+    after the line was added). Verified live end-to-end: set a real line's stock to 2,
+    confirmed the `+` button disabled at qty 2, confirmed typing "99" into the quantity
+    field snapped back to 2. Restored the real stock value and cleared the test cart
+    afterward.
 - **2026-07-30** — **Quick Order: every +/- writes straight to the cart — no "Add All to
   Cart" button.** User asked directly for this. Previously the table kept a local staged
   quantity map (with "dirty cell" tracking so untouched cells mirrored the live cart

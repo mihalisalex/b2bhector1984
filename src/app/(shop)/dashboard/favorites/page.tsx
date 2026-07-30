@@ -3,19 +3,12 @@ import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
 import { getFavoriteStyleIds } from "@/lib/data/favorites";
 import { getStorefrontStyles } from "@/lib/data/styles";
-import { getInventoryForStyles, type StyleInventory } from "@/lib/data/inventory";
+import { getInventoryForStyles, totalOnHandForStyle } from "@/lib/data/inventory";
+import { listImagesForStyles } from "@/lib/data/styleImages";
 import { ProductCard } from "@/components/product/ProductCard";
 import { LinkButton } from "@/components/ui/Button";
 
 export const metadata = { title: "Favorites", robots: { index: false, follow: false } };
-
-function totalOnHand(styleId: string, inventory: Record<string, StyleInventory>): number {
-  const byColorway = inventory[styleId] ?? {};
-  return Object.values(byColorway).reduce(
-    (sum, byBox) => sum + Object.values(byBox).reduce((s: number, n) => s + (n ?? 0), 0),
-    0,
-  );
-}
 
 export default async function FavoritesPage() {
   const account = await getCurrentAccount();
@@ -23,7 +16,10 @@ export default async function FavoritesPage() {
 
   const [favoriteIds, allStyles] = await Promise.all([getFavoriteStyleIds(account.id), getStorefrontStyles()]);
   const favorites = allStyles.filter((s) => favoriteIds.has(s.id));
-  const inventory = await getInventoryForStyles(favorites.map((s) => s.id));
+  const [inventory, imagesByStyle] = await Promise.all([
+    getInventoryForStyles(favorites.map((s) => s.id)),
+    listImagesForStyles(favorites.map((s) => s.id)),
+  ]);
 
   return (
     <div className="mx-auto max-w-[1400px] px-6 py-8 lg:px-10">
@@ -47,9 +43,10 @@ export default async function FavoritesPage() {
             <ProductCard
               key={style.id}
               style={style}
-              totalOnHand={totalOnHand(style.id, inventory)}
+              totalOnHand={totalOnHandForStyle(style.id, inventory)}
               priceMultiplier={account.priceMultiplier}
               favorited
+              images={imagesByStyle[style.id] ?? []}
             />
           ))}
         </div>

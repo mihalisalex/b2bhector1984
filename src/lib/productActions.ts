@@ -95,6 +95,12 @@ function friendlyDbError(err: unknown): string {
   if (isMissingSchemaError(message)) {
     return "Can't save this yet — the Product Management schema migrations (supabase/migrations/0013-0017) haven't been run against this database. Run them in the Supabase SQL Editor, then try again.";
   }
+  if (message.includes("duplicate key value") && message.includes("style_number")) {
+    return "That style number is already used by another product — style numbers must be unique.";
+  }
+  if (message.includes("duplicate key value") && message.includes("slug")) {
+    return "That URL slug is already used by another product — try a more specific one.";
+  }
   return message;
 }
 
@@ -125,6 +131,7 @@ export async function updateGeneralAction(styleId: string, _prev: FormState, for
   const admin = await requirePermission("products.edit");
   const input: GeneralInput = {
     name: String(formData.get("name") ?? "").trim(),
+    styleNumber: String(formData.get("styleNumber") ?? "").trim(),
     tagline: String(formData.get("tagline") ?? "").trim(),
     description: sanitizeProductDescription(String(formData.get("description") ?? "")),
     productType: String(formData.get("productType") ?? "Footwear").trim(),
@@ -138,6 +145,7 @@ export async function updateGeneralAction(styleId: string, _prev: FormState, for
     collectionIds: formData.getAll("collectionIds").map(String),
   };
   if (!input.name) return { error: "Product name is required." };
+  if (!input.styleNumber) return { error: "Style number is required." };
   const failure = await runOrError(() => updateStyleGeneral(styleId, input));
   if (failure) return failure;
   await logAudit(admin.id, "product.updated", "style", styleId, "general");
@@ -741,6 +749,7 @@ export async function bulkSetBrandAction(styleIds: string[], brandId: string): P
     for (const row of rows) {
       await updateStyleGeneral(row.id, {
         name: row.name,
+        styleNumber: row.styleNumber,
         tagline: row.tagline,
         description: row.description,
         productType: row.productType,
@@ -769,6 +778,7 @@ export async function bulkSetSupplierAction(styleIds: string[], supplierId: stri
     for (const row of rows) {
       await updateStyleGeneral(row.id, {
         name: row.name,
+        styleNumber: row.styleNumber,
         tagline: row.tagline,
         description: row.description,
         productType: row.productType,
@@ -800,6 +810,7 @@ export async function bulkAddTagAction(styleIds: string[], tag: string): Promise
       const tags = Array.from(new Set([...row.tags, trimmed]));
       await updateStyleGeneral(row.id, {
         name: row.name,
+        styleNumber: row.styleNumber,
         tagline: row.tagline,
         description: row.description,
         productType: row.productType,

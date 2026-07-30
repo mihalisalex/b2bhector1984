@@ -53,6 +53,23 @@ export async function listImagesForStyle(styleId: string): Promise<StyleImage[]>
   return (data ?? []).map(mapImage);
 }
 
+/** Batch variant for catalogue grids — one query instead of one per card. */
+export async function listImagesForStyles(styleIds: string[]): Promise<Record<string, StyleImage[]>> {
+  if (styleIds.length === 0) return {};
+  const { data, error } = await supabaseAdmin
+    .from("style_images")
+    .select("*")
+    .in("style_id", styleIds)
+    .order("sort_order");
+  if (error) throw new Error(`style_images: ${error.message}`);
+  const byStyle: Record<string, StyleImage[]> = {};
+  for (const row of data ?? []) {
+    const image = mapImage(row);
+    (byStyle[image.styleId] ??= []).push(image);
+  }
+  return byStyle;
+}
+
 /** Mints a signed Storage upload slot — the browser PUTs the file bytes directly
  * to Supabase using this, never through the Next.js server (see supabase/browser.ts). */
 export async function createStyleImageUploadTarget(

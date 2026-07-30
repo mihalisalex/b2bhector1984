@@ -8,6 +8,7 @@ import { getBoxType } from "@/lib/data/boxTypes";
 import { getStyleImageUrl } from "@/lib/data/styleLabels";
 import { formatEUR, getOrderMinimumError, validateMatrix } from "@/lib/pricing";
 import type { BoxTypeId } from "@/lib/types";
+import type { StyleInventory } from "@/lib/data/inventory";
 import type { BoxOption } from "@/lib/orderMinimum";
 import { LinkButton } from "@/components/ui/Button";
 import { StylePlate } from "@/components/product/StylePlate";
@@ -15,9 +16,27 @@ import { SaveAssortmentButton } from "@/components/dashboard/SaveAssortmentButto
 import { CompleteMinimum } from "@/components/cart/CompleteMinimum";
 import { cn } from "@/lib/cn";
 
-export function CartView({ inStockOptions }: { inStockOptions: BoxOption[] }) {
+export function CartView({
+  inStockOptions,
+  inventory,
+}: {
+  inStockOptions: BoxOption[];
+  /** Real per-colorway/box stock — the +/- steppers below clamp against this so a buyer
+   * can never queue up more than what's actually available (previously unclamped: you
+   * could push a line past on-hand and it wouldn't get caught until placeOrder, if then). */
+  inventory: Record<string, StyleInventory>;
+}) {
   const { lines, setLineQty, removeStyle, cartTotal, priceMultiplier } = useCart();
   const { getStyleById } = useCatalog();
+
+  function onHandFor(styleId: string, colorwayId: string, boxTypeId: BoxTypeId): number {
+    return inventory[styleId]?.[colorwayId]?.[boxTypeId] ?? 0;
+  }
+
+  function clamp(styleId: string, colorwayId: string, boxTypeId: BoxTypeId, value: number): number {
+    const max = onHandFor(styleId, colorwayId, boxTypeId);
+    return Math.min(max, Math.max(0, Math.floor(value) || 0));
+  }
 
   const styleIds = useMemo(() => Array.from(new Set(lines.map((l) => l.styleId))), [lines]);
   const grandTotalPairs = useMemo(
@@ -25,6 +44,11 @@ export function CartView({ inStockOptions }: { inStockOptions: BoxOption[] }) {
     [lines],
   );
   const minimumError = getOrderMinimumError(grandTotalPairs);
+  // Belt-and-suspenders alongside the disabled "+" button: also gate the actual
+  // checkout hand-off, so a line that's over stock for any reason (a stale cart from
+  // before this fix, stock dropping after the line was added) can't slip through.
+  const overStockLine = lines.find((l) => l.qty > onHandFor(l.styleId, l.colorwayId, l.boxTypeId));
+  const blockedReason = minimumError || (overStockLine ? "One or more lines exceed available stock — reduce quantity to check out." : undefined);
 
   if (lines.length === 0) {
     return (
@@ -89,12 +113,17 @@ export function CartView({ inStockOptions }: { inStockOptions: BoxOption[] }) {
                 {styleLines.map((l) => {
                   const colorway = style.colorways.find((c) => c.id === l.colorwayId);
                   const box = getBoxType(l.boxTypeId);
+                  const onHand = onHandFor(styleId, l.colorwayId, l.boxTypeId);
+                  const overStock = l.qty > onHand;
                   return (
                     <div key={`${l.colorwayId}-${l.boxTypeId}`} className="flex items-center justify-between gap-3 px-4 py-3">
                       <div className="min-w-0 flex-1">
                         <p className="text-ink">{colorway?.name ?? l.colorwayId}</p>
                         <p className="font-mono-tab text-xs text-ink-soft">
                           {box.label} · {l.qty * box.totalPairs} pairs
+                        </p>
+                        <p className={cn("text-[11px]", overStock ? "font-medium text-ember" : "text-ink-soft")}>
+                          {overStock ? `Only ${onHand} available — reduce quantity` : `${onHand} available`}
                         </p>
                       </div>
                       <div className="flex shrink-0 items-center border border-stone-300">
@@ -109,10 +138,9 @@ export function CartView({ inStockOptions }: { inStockOptions: BoxOption[] }) {
                         <input
                           type="number"
                           min={0}
+                          max={onHand}
                           value={l.qty}
-                          onChange={(e) =>
-                            setLineQty(styleId, l.colorwayId, l.boxTypeId, Number(e.target.value) || 0)
-                          }
+                          onChange={(e) => setLineQty(styleId, l.colorwayId, l.boxTypeId, clamp(styleId, l.colorwayId, l.boxTypeId, Number(e.target.value)))}
                           aria-label={`${colorway?.name ?? "Colorway"} ${box.label} quantity`}
                           className="font-mono-tab w-12 border-x border-stone-300 bg-white px-1 py-1 text-center text-sm outline-none focus-visible:border-signal"
                         />
@@ -120,7 +148,8 @@ export function CartView({ inStockOptions }: { inStockOptions: BoxOption[] }) {
                           type="button"
                           aria-label="Increase quantity"
                           onClick={() => setLineQty(styleId, l.colorwayId, l.boxTypeId, l.qty + 1)}
-                          className="flex h-9 w-9 items-center justify-center text-ink hover:bg-stone-100"
+                          disabled={l.qty >= onHand}
+                          className="flex h-9 w-9 items-center justify-center text-ink hover:bg-stone-100 disabled:opacity-30 disabled:hover:bg-transparent"
                         >
                           +
                         </button>
@@ -154,6 +183,8 @@ export function CartView({ inStockOptions }: { inStockOptions: BoxOption[] }) {
                     {styleLines.map((l) => {
                       const colorway = style.colorways.find((c) => c.id === l.colorwayId);
                       const box = getBoxType(l.boxTypeId);
+                      const onHand = onHandFor(styleId, l.colorwayId, l.boxTypeId);
+                      const overStock = l.qty > onHand;
                       return (
                         <tr key={`${l.colorwayId}-${l.boxTypeId}`} className="border-b border-stone-100 last:border-b-0">
                           <td className="px-4 py-2 text-ink">{colorway?.name ?? l.colorwayId}</td>
@@ -171,9 +202,10 @@ export function CartView({ inStockOptions }: { inStockOptions: BoxOption[] }) {
                               <input
                                 type="number"
                                 min={0}
+                                max={onHand}
                                 value={l.qty}
                                 onChange={(e) =>
-                                  setLineQty(styleId, l.colorwayId, l.boxTypeId, Number(e.target.value) || 0)
+                                  setLineQty(styleId, l.colorwayId, l.boxTypeId, clamp(styleId, l.colorwayId, l.boxTypeId, Number(e.target.value)))
                                 }
                                 aria-label={`${colorway?.name ?? "Colorway"} ${box.label} quantity`}
                                 className="font-mono-tab w-12 border-x border-stone-300 bg-white px-1 py-1 text-center text-sm outline-none focus-visible:border-signal"
@@ -182,11 +214,15 @@ export function CartView({ inStockOptions }: { inStockOptions: BoxOption[] }) {
                                 type="button"
                                 aria-label="Increase quantity"
                                 onClick={() => setLineQty(styleId, l.colorwayId, l.boxTypeId, l.qty + 1)}
-                                className="flex h-9 w-9 items-center justify-center text-ink hover:bg-stone-100"
+                                disabled={l.qty >= onHand}
+                                className="flex h-9 w-9 items-center justify-center text-ink hover:bg-stone-100 disabled:opacity-30 disabled:hover:bg-transparent"
                               >
                                 +
                               </button>
                             </div>
+                            <p className={cn("mt-1 text-[11px]", overStock ? "font-medium text-ember" : "text-ink-soft")}>
+                              {overStock ? `Only ${onHand} available` : `${onHand} available`}
+                            </p>
                           </td>
                           <td className="font-mono-tab px-4 py-2 text-right text-ink-soft">{l.qty * box.totalPairs}</td>
                           <td className="px-2 py-2 text-right">
@@ -229,14 +265,14 @@ export function CartView({ inStockOptions }: { inStockOptions: BoxOption[] }) {
         <p className="text-right text-xs font-medium text-positive">
           Prepay in full at checkout to save {formatEUR(cartTotal * 0.1)} (10% off)
         </p>
-        {minimumError && (
-          <p className="max-w-sm text-right text-xs font-medium text-ember">{minimumError}</p>
+        {blockedReason && (
+          <p className="max-w-sm text-right text-xs font-medium text-ember">{blockedReason}</p>
         )}
         <div className="hidden lg:block">
           <LinkButton
-            href={minimumError ? "#" : "/checkout"}
+            href={blockedReason ? "#" : "/checkout"}
             size="lg"
-            className={minimumError ? "pointer-events-none opacity-40" : ""}
+            className={blockedReason ? "pointer-events-none opacity-40" : ""}
           >
             Proceed to Checkout
           </LinkButton>
@@ -251,13 +287,13 @@ export function CartView({ inStockOptions }: { inStockOptions: BoxOption[] }) {
             <p className="truncate text-[10px] text-ink-soft">{grandTotalPairs} pairs</p>
           </div>
           <LinkButton
-            href={minimumError ? "#" : "/checkout"}
-            className={cn("shrink-0", minimumError ? "pointer-events-none opacity-40" : "")}
+            href={blockedReason ? "#" : "/checkout"}
+            className={cn("shrink-0", blockedReason ? "pointer-events-none opacity-40" : "")}
           >
             Checkout
           </LinkButton>
         </div>
-        {minimumError && <p className="mt-1.5 text-[11px] font-medium text-ember">{minimumError}</p>}
+        {blockedReason && <p className="mt-1.5 text-[11px] font-medium text-ember">{blockedReason}</p>}
       </div>
     </div>
   );

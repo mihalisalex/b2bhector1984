@@ -1,8 +1,12 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styles";
+import { CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styleLabels";
 import { formatEUR, getUnitPrice, isOnSale } from "@/lib/pricing";
 import type { Style } from "@/lib/types";
 import type { StyleInventory } from "@/lib/data/inventory";
+import type { StyleImage } from "@/lib/data/styleImages";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
@@ -11,10 +15,14 @@ import { cn } from "@/lib/cn";
 
 /**
  * Card root is a plain container, not a single wrapping `<Link>`: the card carries real
- * controls (favorite, quick add) and buttons nested inside an anchor are invalid HTML and
- * unusable with a keyboard or screen reader. The image and the title are each their own
- * link to the product; the image one is hidden from assistive tech so the card exposes a
- * single accessible destination rather than two identical ones.
+ * controls (favorite, colour swatches, quick add) and buttons nested inside an anchor are
+ * invalid HTML and unusable with a keyboard or screen reader. The image and the title are
+ * each their own link to the product; the image one is hidden from assistive tech so the
+ * card exposes a single accessible destination rather than two identical ones.
+ *
+ * Client component (not just for `QuickAdd`/`FavoriteButton`): the colour swatches below
+ * swap which photo is shown, same as pressing a colour on the product page, so this needs
+ * its own local `activeColorwayId` state.
  */
 export function ProductCard({
   style,
@@ -22,6 +30,7 @@ export function ProductCard({
   priceMultiplier = 1,
   favorited,
   inventory,
+  images = [],
 }: {
   style: Style;
   totalOnHand?: number;
@@ -30,25 +39,31 @@ export function ProductCard({
   favorited?: boolean;
   /** Per-colorway/box stock. Omit to hide Quick Add (e.g. marketing surfaces with no cart). */
   inventory?: StyleInventory;
+  /** Real per-colorway tagged photos. A colorway with none just keeps showing the
+   * style's default photo when selected — same honest fallback as the product gallery. */
+  images?: StyleImage[];
 }) {
   const soldOut = totalOnHand === 0;
   const lowStock = typeof totalOnHand === "number" && totalOnHand > 0 && totalOnHand <= 10;
   const onSale = isOnSale(style);
+  const hasMultipleColorways = style.colorways.length > 1;
+
+  const [activeColorwayId, setActiveColorwayId] = useState(style.colorways[0].id);
+  const activeColorway = style.colorways.find((c) => c.id === activeColorwayId) ?? style.colorways[0];
+  const taggedImage = images.find((img) => img.colorwayId === activeColorwayId);
+  const imageUrl = taggedImage?.publicUrl ?? getStyleImageUrl(style);
 
   return (
     <div className="group flex flex-col border border-stone-300 bg-white transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(26,29,34,0.12)]">
       <div className="relative overflow-hidden">
         <Link href={`/product/${style.slug}`} tabIndex={-1} aria-hidden className="block">
           <StylePlate
-            swatch={style.colorways[0].swatch}
+            key={imageUrl}
+            swatch={activeColorway.swatch}
             styleNumber={style.styleNumber}
-            imageUrl={getStyleImageUrl(style)}
+            imageUrl={imageUrl}
             alt={style.name}
-            className={cn(
-              "aspect-[4/3] w-full transition-transform duration-500 ease-out group-hover:scale-[1.04]",
-              soldOut && "grayscale",
-            )}
-            dense
+            className={cn("aspect-[3/4] w-full transition-transform duration-500 ease-out group-hover:scale-[1.02]", soldOut && "grayscale")}
           />
         </Link>
         <div className="absolute right-2 top-2 flex flex-col items-end gap-1.5">
@@ -78,23 +93,8 @@ export function ProductCard({
           </Link>
         </h3>
         <p className="text-xs text-ink-soft">
-          <span className="font-mono-tab">{style.styleNumber}</span> · {GENDER_LABEL[style.gender]} ·{" "}
-          {style.colorways.length} colorways
+          <span className="font-mono-tab">{style.styleNumber}</span> · {GENDER_LABEL[style.gender]}
         </p>
-
-        <div className="mt-1 flex items-center gap-1.5">
-          {style.colorways.slice(0, 4).map((c) => (
-            <span
-              key={c.id}
-              role="img"
-              aria-label={c.name}
-              className="flex h-4 w-6 overflow-hidden border border-stone-300"
-            >
-              <span aria-hidden className="h-full w-1/2" style={{ background: c.swatch[0] }} />
-              <span aria-hidden className="h-full w-1/2" style={{ background: c.swatch[1] ?? c.swatch[0] }} />
-            </span>
-          ))}
-        </div>
 
         <div className="mt-auto border-t border-stone-200 pt-3">
           <p className="text-[11px] uppercase tracking-wide text-ink-soft">Wholesale</p>
@@ -109,6 +109,46 @@ export function ProductCard({
             )}
           </p>
         </div>
+
+        {hasMultipleColorways && (
+          <div>
+            <p className="mb-1.5 text-[11px] uppercase tracking-wide text-ink-soft">
+              Colours — <span className="text-ink">{activeColorway.name}</span>
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {style.colorways.map((c) => {
+                const stocked = inventory ? Object.values(inventory[c.id] ?? {}).some((n) => (n ?? 0) > 0) : true;
+                const selected = c.id === activeColorwayId;
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setActiveColorwayId(c.id);
+                    }}
+                    aria-label={stocked ? c.name : `${c.name}, out of stock`}
+                    aria-pressed={selected}
+                    title={c.name}
+                    className="relative flex h-8 w-8 items-center justify-center"
+                  >
+                    <span
+                      className={cn(
+                        "flex h-6 w-6 overflow-hidden rounded-full transition-all duration-150",
+                        selected ? "ring-2 ring-ink ring-offset-1" : "ring-1 ring-stone-300 hover:ring-cinder-300",
+                        !stocked && "opacity-35",
+                      )}
+                    >
+                      <span aria-hidden className="h-full w-1/2" style={{ background: c.swatch[0] }} />
+                      <span aria-hidden className="h-full w-1/2" style={{ background: c.swatch[1] ?? c.swatch[0] }} />
+                    </span>
+                    {!stocked && <span aria-hidden className="pointer-events-none absolute h-[1px] w-5 rotate-45 bg-ink/70" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {inventory && <QuickAdd style={style} inventory={inventory} priceMultiplier={priceMultiplier} />}
       </div>
