@@ -23,16 +23,18 @@ export const metadata: Metadata = {
     "independent retailer wholesale account",
   ],
   robots: { index: true, follow: true },
+  // Deliberately no `title`/`url` here: those are per-page and come from
+  // `pageMetadata()` (src/lib/seo.ts). Hardcoding them at the root made every share
+  // card read "Hector 1984 — Wholesale" and link to the site root. Likewise no
+  // root-level `alternates.canonical` — Next resolves it against `metadataBase`, so a
+  // single value would canonicalise every route to the homepage.
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
-    title: "Hector 1984 — Wholesale",
     description: DESCRIPTION,
-    url: "/",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Hector 1984 — Wholesale",
     description: DESCRIPTION,
   },
 };

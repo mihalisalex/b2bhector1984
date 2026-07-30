@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { LinkButton } from "@/components/ui/Button";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Contact",
   description:
     "Get in touch with Hector 1984 Wholesale — general inquiries, new wholesale accounts, and existing buyer support.",
-};
+  path: "/contact",
+});
 
 export default function ContactPage() {
   return (

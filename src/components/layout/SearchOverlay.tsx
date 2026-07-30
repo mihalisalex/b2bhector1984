@@ -156,7 +156,15 @@ export function SearchOverlay() {
               open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0",
             )}
             onClick={() => setOpen(false)}
-            aria-hidden={!open}
+            // `inert`, not just `aria-hidden`. The closed overlay is hidden only
+            // visually (opacity-0 + pointer-events-none), which stops the mouse but not
+            // the keyboard: its search input, close button and four category buttons
+            // stayed in the tab order, so tabbing through the header landed on invisible
+            // controls with no visible focus (WCAG 2.4.3/2.4.7). `aria-hidden` alone
+            // can't fix that — it hides from screen readers while leaving elements
+            // focusable, which is itself an ARIA violation. `inert` removes the subtree
+            // from both the tab order and the accessibility tree.
+            inert={!open}
           >
             <div
               ref={dialogRef}

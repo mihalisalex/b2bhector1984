@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { LinkButton } from "@/components/ui/Button";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "FAQ",
   description:
     "Answers to common questions about Hector 1984 wholesale — box-only ordering, terms-based pricing, accounts, and shipping.",
-};
+  path: "/faq",
+});
 
 interface Faq {
   q: string;
