@@ -67,6 +67,21 @@ diffs; this file is the narrative index.
 
 ## Completed
 
+- **2026-07-30** — **Mobile product page now follows the reference pattern properly: the
+  sticky bar is the single purchase surface.** Follow-up to the bar below, after you asked
+  to "make it the same almost". Previously the bar coexisted with a full in-page buy box,
+  so mobile had two Add-to-cart buttons and two sets of swatches. Now, on mobile only:
+  - The bar is the **only** Add-to-cart and the **only** colour picker, and it stays up for
+    the whole decision (no longer hides while the in-page button is on screen) until the
+    related styles take over.
+  - Removed from mobile as duplicates: the under-gallery swatch block, the panel's price
+    header, its quantity stepper, and its CTA. What remains below the gallery is the part
+    the bar can't carry — box size, stock, subtotal and the order-minimum projection.
+  - Desktop is deliberately unchanged and still has the full buy box (verified: one CTA,
+    price header, stepper all present; bar `display:none`).
+  - **Deleted the `ctaVisible` IntersectionObserver entirely** — it existed only to decide
+    when the bar should appear, which is now purely "has the buyer reached the related
+    styles". One less observer and one less ref on every product view.
 - **2026-07-30** — **Mobile sticky purchase bar, modelled on the Massimo Dutti pattern you
   sent.** The bar is now the primary mobile buying surface rather than a fallback: product
   name + per-pair price + selected colour on the left, colour swatches on the right, and a

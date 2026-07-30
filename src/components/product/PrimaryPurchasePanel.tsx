@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import { useColorwaySelection } from "@/lib/colorway-selection-context";
 import { pickDefaultBoxType } from "@/lib/productSelectionDefaults";
@@ -37,9 +37,7 @@ export function PrimaryPurchasePanel({
   const [boxTypeId, setBoxTypeId] = useState<BoxTypeId>(() => pickDefaultBoxType(style, inventory, colorwayId));
   const [addQty, setAddQty] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
-  const [ctaVisible, setCtaVisible] = useState(true);
   const [reachedBrowsing, setReachedBrowsing] = useState(false);
-  const ctaRef = useRef<HTMLDivElement>(null);
 
   // Re-pick the best-stocked box type whenever the shared colorway selection changes
   // (a swatch click here, but the colorway can now also be driven from elsewhere).
@@ -48,14 +46,6 @@ export function PrimaryPurchasePanel({
     setBoxTypeId(pickDefaultBoxType(style, inventory, colorwayId));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only the colorway change should trigger this, not every style/inventory identity change
   }, [colorwayId]);
-
-  useEffect(() => {
-    const el = ctaRef.current;
-    if (!el || typeof IntersectionObserver === "undefined") return;
-    const observer = new IntersectionObserver(([entry]) => setCtaVisible(entry.isIntersecting), { threshold: 0.01 });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
 
   // Release the sticky bar once the buyer reaches the related-styles section: past that
   // point they've moved from deciding on this style to browsing the category, and a
@@ -118,13 +108,16 @@ export function PrimaryPurchasePanel({
   }
 
   const selectedColorway = style.colorways.find((c) => c.id === colorwayId) ?? style.colorways[0];
-  const barVisible = !ctaVisible && !reachedBrowsing;
+  // On mobile the bar is the only Add-to-cart, so it stays up for the whole decision and
+  // only steps aside once the buyer moves on to browsing the category.
+  const barVisible = !reachedBrowsing;
 
   return (
     <>
       <div className="lg:sticky lg:top-[calc(var(--shell-header-h)+1.5rem)] border border-stone-300 bg-white">
-        {/* Price — the anchor of the panel, so it gets the largest type and the most air. */}
-        <div className="px-5 pt-5 sm:px-6 sm:pt-6">
+        {/* Price — the anchor of the panel on desktop. Hidden on mobile, where the sticky
+            bar already carries name + price and repeating them here just adds noise. */}
+        <div className="hidden px-5 pt-5 sm:px-6 sm:pt-6 lg:block">
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-soft">
               Wholesale
@@ -149,7 +142,7 @@ export function PrimaryPurchasePanel({
           </p>
         </div>
 
-        <Divider className="mt-5" />
+        <Divider className="mt-5 hidden lg:block" />
 
         <div className="space-y-5 px-5 py-5 sm:px-6">
           {/* Desktop only: on mobile this lives directly under the gallery, where the
@@ -206,9 +199,10 @@ export function PrimaryPurchasePanel({
             disabled={outOfStock}
             onStep={step}
             onSet={(n) => setAddQty(n)}
+            className="hidden lg:flex"
           />
 
-          <div ref={ctaRef}>
+          <div>
             <div className="flex items-baseline justify-between">
               <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">
                 {addQty * pairsPerBox} pairs
@@ -229,11 +223,13 @@ export function PrimaryPurchasePanel({
               </p>
             )}
 
+            {/* Desktop-only: on mobile the sticky bar is the single Add-to-cart, so a
+                second one here would compete with it. */}
             <button
               type="button"
               onClick={handleAddToCart}
               disabled={remaining <= 0}
-              className="mt-4 w-full bg-ink px-6 py-4 text-sm font-semibold uppercase tracking-[0.1em] text-white transition-all duration-150 hover:bg-ink/85 active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-cinder-300 disabled:text-white/70"
+              className="mt-4 hidden w-full bg-ink px-6 py-4 text-sm font-semibold uppercase tracking-[0.1em] text-white transition-all duration-150 hover:bg-ink/85 active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-cinder-300 disabled:text-white/70 lg:block"
             >
               {outOfStock ? "Out of stock" : justAdded ? "Added to cart ✓" : "Add to cart"}
             </button>
@@ -319,6 +315,7 @@ function Stepper({
   onStep,
   onSet,
   compact,
+  className,
 }: {
   qty: number;
   max: number;
@@ -326,10 +323,11 @@ function Stepper({
   onStep: (delta: number) => void;
   onSet?: (n: number) => void;
   compact?: boolean;
+  className?: string;
 }) {
   const size = compact ? "h-11 w-10" : "h-14 w-14";
   return (
-    <div className={cn("flex items-center bg-stone-100", compact ? "shrink-0" : "w-full")}>
+    <div className={cn("flex items-center bg-stone-100", compact ? "shrink-0" : "w-full", className)}>
       <button
         type="button"
         onClick={() => onStep(-1)}

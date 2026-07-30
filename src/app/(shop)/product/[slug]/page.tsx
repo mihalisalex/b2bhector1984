@@ -13,7 +13,6 @@ import { StylePlate } from "@/components/product/StylePlate";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductDetails } from "@/components/product/ProductDetails";
-import { ColorwayPicker } from "@/components/product/ColorwayPicker";
 import { PrimaryPurchasePanel, BUY_BAR_RELEASE_ID } from "@/components/product/PrimaryPurchasePanel";
 import { TrackRecentlyViewed } from "@/components/product/TrackRecentlyViewed";
 import { RecentlyViewedStrip } from "@/components/product/RecentlyViewedStrip";
@@ -79,10 +78,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 className="aspect-[4/3] w-full"
               />
             )}
-
-            {/* Mobile: the swatches belong next to the photo they change. On desktop the
-                buy box is already beside the gallery, so it hosts them there instead. */}
-            <ColorwayPicker style={style} inventory={inventory} className="mt-5 lg:hidden" />
           </div>
 
           <div>
