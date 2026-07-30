@@ -67,6 +67,27 @@ diffs; this file is the narrative index.
 
 ## Completed
 
+- **2026-07-30** — **Mobile sticky purchase bar, modelled on the Massimo Dutti pattern you
+  sent.** The bar is now the primary mobile buying surface rather than a fallback: product
+  name + per-pair price + selected colour on the left, colour swatches on the right, and a
+  full row beneath with the −/+ box stepper and a CTA that names what you're buying
+  (`ADD 10-PAIR BOX · €330.00`). Tapping a swatch in the bar changes the gallery photo
+  above it — verified live.
+  - **It releases when you reach the rest of the category**, as in the reference: a
+    sentinel above the related-styles section is observed with `rootMargin: 0 0 -70% 0`.
+    **Two real bugs found while building this**, both only visible by testing scroll
+    positions rather than reading the code:
+    1. A bare sentinel intersects the moment it clips the *bottom* viewport edge, which
+       happens *before* the in-page CTA scrolls away — so the bar never appeared at all.
+       Shrinking the observer root to its top 30% fixes it.
+    2. The bar then popped back once the sentinel scrolled clear off the top, because
+       `isIntersecting` returns false both below *and* above the band. Now also treats
+       `boundingClientRect.top < 0` as released.
+  - Verified across a continuous scroll down and back up: visible at rest → hidden while
+    the in-page CTA is on screen → visible again through the details → released at the
+    related styles → returns on the way back up.
+  - `ColorwayPicker` gained a `compact` variant (24px swatches, no label header) for the
+    bar; desktop is untouched (bar is `display:none` at `lg`).
 - **2026-07-30** — **Product page: buy-box redesign + two real defects you reported.**
   - **Mobile colorway/photo disconnect (real defect).** The swatches lived inside the buy
     box, which on a phone sits a full screen below the gallery — so tapping a colour

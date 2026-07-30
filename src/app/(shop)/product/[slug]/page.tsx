@@ -14,7 +14,7 @@ import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductDetails } from "@/components/product/ProductDetails";
 import { ColorwayPicker } from "@/components/product/ColorwayPicker";
-import { PrimaryPurchasePanel } from "@/components/product/PrimaryPurchasePanel";
+import { PrimaryPurchasePanel, BUY_BAR_RELEASE_ID } from "@/components/product/PrimaryPurchasePanel";
 import { TrackRecentlyViewed } from "@/components/product/TrackRecentlyViewed";
 import { RecentlyViewedStrip } from "@/components/product/RecentlyViewedStrip";
 import type { SalesRep } from "@/lib/types";
@@ -116,6 +116,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </ColorwaySelectionProvider>
 
       <ProductDetails style={style} />
+
+      {/* Watched by the mobile buy bar: once this scrolls into view the buyer has moved
+          from deciding on this style to browsing the category, and the bar releases. */}
+      <div id={BUY_BAR_RELEASE_ID} aria-hidden className="h-px" />
 
       {related.length > 0 && (
         <div className="mt-14 border-t border-stone-300 pt-8">

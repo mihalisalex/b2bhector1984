@@ -13,6 +13,12 @@ import type { BoxTypeId, Style } from "@/lib/types";
 import type { StyleInventory } from "@/lib/data/inventory";
 import { cn } from "@/lib/cn";
 
+/**
+ * Id of the sentinel the product page renders just above its related-styles section.
+ * The mobile buy bar watches it to know when to release.
+ */
+export const BUY_BAR_RELEASE_ID = "product-buybar-release";
+
 export function PrimaryPurchasePanel({
   style,
   inventory,
@@ -32,6 +38,7 @@ export function PrimaryPurchasePanel({
   const [addQty, setAddQty] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
   const [ctaVisible, setCtaVisible] = useState(true);
+  const [reachedBrowsing, setReachedBrowsing] = useState(false);
   const ctaRef = useRef<HTMLDivElement>(null);
 
   // Re-pick the best-stocked box type whenever the shared colorway selection changes
@@ -46,6 +53,26 @@ export function PrimaryPurchasePanel({
     const el = ctaRef.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
     const observer = new IntersectionObserver(([entry]) => setCtaVisible(entry.isIntersecting), { threshold: 0.01 });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // Release the sticky bar once the buyer reaches the related-styles section: past that
+  // point they've moved from deciding on this style to browsing the category, and a
+  // permanent bar just eats screen. The sentinel is rendered by the product page.
+  useEffect(() => {
+    const el = document.getElementById(BUY_BAR_RELEASE_ID);
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    // Shrink the root to its top 30%: a bare sentinel would intersect the moment it
+    // clipped the bottom edge, which happens *before* the in-page CTA has scrolled away —
+    // the bar would then never appear at all. This fires only once the related styles have
+    // genuinely taken over the screen.
+    // `top < 0` keeps it released once the sentinel has scrolled clear off the top —
+    // otherwise the bar would pop back the moment it left the band on the way down.
+    const observer = new IntersectionObserver(
+      ([entry]) => setReachedBrowsing(entry.isIntersecting || entry.boundingClientRect.top < 0),
+      { rootMargin: "0px 0px -70% 0px" },
+    );
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
@@ -91,6 +118,7 @@ export function PrimaryPurchasePanel({
   }
 
   const selectedColorway = style.colorways.find((c) => c.id === colorwayId) ?? style.colorways[0];
+  const barVisible = !ctaVisible && !reachedBrowsing;
 
   return (
     <>
@@ -227,37 +255,48 @@ export function PrimaryPurchasePanel({
         </div>
       </div>
 
-      {/* Mobile sticky bar — appears once the in-page CTA scrolls away. */}
+      {/* Mobile sticky purchase bar — carries everything needed to buy (name, price,
+          colour, quantity, CTA) so the buyer never scrolls back up. It releases once the
+          related-products section comes into view, handing the screen over to browsing. */}
       <div
         className={cn(
-          "fixed inset-x-0 bottom-0 z-30 bg-white/95 px-4 pb-3 pt-2.5 backdrop-blur-md transition-transform duration-200 lg:hidden",
-          ctaVisible ? "translate-y-full" : "translate-y-0",
+          "fixed inset-x-0 bottom-0 z-30 bg-white/97 px-4 pb-3 pt-3 backdrop-blur-md transition-transform duration-300 ease-out lg:hidden",
+          barVisible ? "translate-y-0" : "translate-y-full",
         )}
-        style={{ boxShadow: "0 -10px 30px rgba(26,29,34,0.14)" }}
-        aria-hidden={ctaVisible}
+        style={{ boxShadow: "0 -10px 30px rgba(26,29,34,0.12)" }}
+        aria-hidden={!barVisible}
       >
-        <div className="flex items-center gap-3">
-          <Stepper qty={addQty} max={remaining} disabled={outOfStock} onStep={step} compact />
+        <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="font-mono-tab truncate text-base font-bold leading-tight tabular-nums text-ink">
-              {formatEUR(subtotal)}
-            </p>
-            <p className="truncate text-[10px] leading-tight text-ink-soft">
-              {selectedColorway.name} · {box.totalPairs} pairs
+            <p className="truncate text-[13px] font-medium leading-tight text-ink">{style.name}</p>
+            <p className="mt-1 flex items-baseline gap-1.5">
+              <span className="font-mono-tab text-sm font-bold tabular-nums text-ink">
+                {formatEUR(unitPrice)}
+              </span>
+              <span className="text-[11px] text-ink-soft">/ pair · {selectedColorway.name}</span>
             </p>
           </div>
+          <ColorwayPicker style={style} inventory={inventory} compact className="-mr-1 shrink-0" />
+        </div>
+
+        <div className="mt-2.5 flex items-stretch gap-2">
+          <Stepper qty={addQty} max={remaining} disabled={outOfStock} onStep={step} compact />
           <button
             type="button"
             onClick={handleAddToCart}
             disabled={remaining <= 0}
-            className="shrink-0 bg-ink px-5 py-3.5 text-xs font-semibold uppercase tracking-[0.1em] text-white transition-transform active:scale-[0.98] disabled:bg-cinder-300"
+            className="flex-1 bg-ink px-3 text-xs font-semibold uppercase tracking-[0.08em] text-white transition-transform active:scale-[0.99] disabled:bg-cinder-300 disabled:text-white/70"
           >
-            {outOfStock ? "Sold out" : justAdded ? "Added ✓" : "Add"}
+            {outOfStock
+              ? "Sold out"
+              : justAdded
+                ? "Added to cart ✓"
+                : `Add ${box.totalPairs}-pair box${addQty > 1 ? "es" : ""} · ${formatEUR(subtotal)}`}
           </button>
         </div>
       </div>
       {/* Reserves space so the fixed bar doesn't cover page content/footer on mobile */}
-      {!ctaVisible && <div className="h-[78px] lg:hidden" aria-hidden />}
+      {barVisible && <div className="h-[108px] lg:hidden" aria-hidden />}
     </>
   );
 }

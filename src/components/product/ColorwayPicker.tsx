@@ -18,10 +18,13 @@ export function ColorwayPicker({
   style,
   inventory,
   className,
+  compact,
 }: {
   style: Style;
   inventory: StyleInventory;
   className?: string;
+  /** Bare swatch row with no label header — for the sticky purchase bar. */
+  compact?: boolean;
 }) {
   const { colorwayId, setColorwayId } = useColorwaySelection();
   if (style.colorways.length < 2) return null;
@@ -30,11 +33,13 @@ export function ColorwayPicker({
 
   return (
     <div className={className}>
-      <div className="mb-2.5 flex items-baseline justify-between gap-3">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">Colorway</span>
-        <span className="text-sm font-medium text-ink">{selected.name}</span>
-      </div>
-      <div className="flex flex-wrap gap-2.5">
+      {!compact && (
+        <div className="mb-2.5 flex items-baseline justify-between gap-3">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">Colorway</span>
+          <span className="text-sm font-medium text-ink">{selected.name}</span>
+        </div>
+      )}
+      <div className={cn("flex flex-wrap", compact ? "gap-1" : "gap-2.5")}>
         {style.colorways.map((c) => {
           const stocked = Object.values(inventory[c.id] ?? {}).some((n) => (n ?? 0) > 0);
           const isSelected = c.id === colorwayId;
@@ -48,12 +53,14 @@ export function ColorwayPicker({
               title={c.name}
               className={cn(
                 // Generous hit area: 48px target, comfortable one-handed on a phone.
-                "relative flex h-12 w-12 items-center justify-center transition-transform duration-150 active:scale-95",
+                "relative flex items-center justify-center transition-transform duration-150 active:scale-95",
+                compact ? "h-9 w-9" : "h-12 w-12",
               )}
             >
               <span
                 className={cn(
-                  "flex h-10 w-10 overflow-hidden rounded-full transition-all duration-200",
+                  "flex overflow-hidden rounded-full transition-all duration-200",
+                  compact ? "h-6 w-6" : "h-10 w-10",
                   isSelected
                     ? "ring-2 ring-ink ring-offset-2 ring-offset-white"
                     : "ring-1 ring-cinder-300/60 hover:ring-ink/40",
@@ -66,7 +73,10 @@ export function ColorwayPicker({
               {!stocked && (
                 <span
                   aria-hidden
-                  className="pointer-events-none absolute h-[1px] w-9 rotate-45 bg-ink/70"
+                  className={cn(
+                    "pointer-events-none absolute h-[1px] rotate-45 bg-ink/70",
+                    compact ? "w-6" : "w-9",
+                  )}
                 />
               )}
             </button>
