@@ -1,12 +1,14 @@
 import { formatEUR } from "@/lib/pricing";
 import { formatDate } from "@/lib/format";
+import { cn } from "@/lib/cn";
 import type { StyleAnalytics } from "@/lib/data/styleAnalytics";
 
-function StatTile({ label, value }: { label: string; value: string }) {
+/** `isPrice` drops the monospace treatment — that font is for utilitarian counts/ids, not a currency figure. */
+function StatTile({ label, value, isPrice }: { label: string; value: string; isPrice?: boolean }) {
   return (
     <div className="border border-stone-300 bg-white px-4 py-3">
       <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{label}</p>
-      <p className="font-mono-tab mt-1 text-xl text-ink">{value}</p>
+      <p className={cn("mt-1 text-xl tabular-nums text-ink", !isPrice && "font-mono-tab")}>{value}</p>
     </div>
   );
 }
@@ -19,8 +21,8 @@ export function AnalyticsTab({ analytics }: { analytics: StyleAnalytics }) {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatTile label="Views" value={String(analytics.views)} />
         <StatTile label="Orders" value={String(analytics.orders)} />
-        <StatTile label="Revenue" value={formatEUR(analytics.revenue)} />
-        <StatTile label="Profit" value={formatEUR(analytics.profit)} />
+        <StatTile label="Revenue" value={formatEUR(analytics.revenue)} isPrice />
+        <StatTile label="Profit" value={formatEUR(analytics.profit)} isPrice />
         <StatTile label="Conversion rate" value={`${analytics.conversionRatePct}%`} />
         <StatTile label="Inventory turnover" value={`${analytics.inventoryTurnover}x`} />
         <StatTile label="Returns" value="Not tracked" />
@@ -48,7 +50,7 @@ export function AnalyticsTab({ analytics }: { analytics: StyleAnalytics }) {
             <div key={c.accountId} className="flex items-center justify-between px-4 py-2.5 text-sm">
               <span className="text-ink">{c.businessName}</span>
               <span className="text-ink-soft">{c.pairs} pairs</span>
-              <span className="font-mono-tab text-ink">{formatEUR(c.revenue)}</span>
+              <span className="tabular-nums text-ink">{formatEUR(c.revenue)}</span>
             </div>
           ))}
           {analytics.topCustomers.length === 0 && <p className="px-4 py-4 text-sm text-ink-soft">No orders yet.</p>}
@@ -63,7 +65,7 @@ export function AnalyticsTab({ analytics }: { analytics: StyleAnalytics }) {
               <span className="font-mono-tab text-ink-soft">{p.orderId}</span>
               <span className="text-ink">{p.businessName}</span>
               <span className="text-ink-soft">{formatDate(p.placedAt)}</span>
-              <span className="font-mono-tab text-ink">{formatEUR(p.revenue)}</span>
+              <span className="tabular-nums text-ink">{formatEUR(p.revenue)}</span>
             </div>
           ))}
           {analytics.recentPurchases.length === 0 && <p className="px-4 py-4 text-sm text-ink-soft">No orders yet.</p>}

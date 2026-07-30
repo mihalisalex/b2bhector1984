@@ -42,8 +42,8 @@ export function OrderLineRow({
           />
         </form>
       </td>
-      <td className="font-mono-tab px-3 py-2 text-right tabular-nums text-ink-soft">{formatEUR(unitPrice)}</td>
-      <td className="font-mono-tab px-4 py-2 text-right font-semibold tabular-nums text-ink">{formatEUR(lineTotal)}</td>
+      <td className="px-3 py-2 text-right tabular-nums text-ink-soft">{formatEUR(unitPrice)}</td>
+      <td className="px-4 py-2 text-right font-semibold tabular-nums text-ink">{formatEUR(lineTotal)}</td>
       <td className="px-3 py-2 text-right">
         <form
           action={deleteOrderLineAction.bind(null, orderId, lineId)}

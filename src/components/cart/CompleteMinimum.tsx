@@ -94,9 +94,9 @@ export function CompleteMinimum({
                   <p className="truncate text-xs text-ink-soft">
                     {option.colorwayName} · {option.boxLabel}
                   </p>
-                  <p className="font-mono-tab mt-0.5 text-xs text-ink">
+                  <p className="mt-0.5 text-xs tabular-nums text-ink">
                     {formatEUR(option.unitPrice * option.pairs)}
-                    <span className="text-ink-soft"> · {option.pairs} pairs</span>
+                    <span className="font-mono-tab text-ink-soft"> · {option.pairs} pairs</span>
                   </p>
                 </div>
               </div>

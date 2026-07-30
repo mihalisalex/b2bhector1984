@@ -55,13 +55,13 @@ export function ProductListRow({
       <div className="flex shrink-0 flex-col items-end gap-2 text-right">
         {favorited !== undefined && <FavoriteButton styleId={style.id} initialFavorited={favorited} variant="icon" />}
         <div>
-          <p className="font-mono-tab text-[11px] uppercase tracking-wide text-ink-soft">Wholesale</p>
+          <p className="text-[11px] uppercase tracking-wide text-ink-soft">Wholesale</p>
           <p className="flex items-baseline justify-end gap-1.5">
-            <span className="font-mono-tab text-lg font-semibold tabular-nums text-ink">
+            <span className="text-lg font-semibold tabular-nums text-ink">
               {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
             </span>
             {onSale && (
-              <span className="font-mono-tab text-xs text-ink-soft line-through">
+              <span className="text-xs tabular-nums text-ink-soft line-through">
                 {formatEUR(style.basePrice * priceMultiplier)}
               </span>
             )}

@@ -67,6 +67,35 @@ diffs; this file is the narrative index.
 
 ## Completed
 
+- **2026-07-30** — **Price typography demonoed site-wide**, following up on scoping it to
+  just the product page last pass — user asked to carry it everywhere, desktop included.
+  Every `formatEUR(...)` display across the app now renders in the body sans (Geist) with
+  `tabular-nums` for alignment, instead of `font-mono-tab` (Geist Mono). Touched ~20 files:
+  catalogue cards/list rows/Quick Add, quick-order linesheet, cart (desktop table + both
+  mobile summaries), checkout (summary + mobile bar), header search results, dashboard
+  (stat tiles, order history), buyer order detail, and the admin side (orders list/detail,
+  analytics, the Products module's browser/pricing/analytics tabs).
+  - **The line was drawn at "is this actually a price," not "is this a number."** Style
+    numbers, order ids, SKUs, box labels, quantities, stock counts, and margin/conversion
+    percentages all stay in Geist Mono — that convention (mono for utilitarian identifiers
+    and counts, sans for currency) is unchanged and, if anything, now applied more
+    consistently than before, since a few labels near a price (e.g. the "Wholesale" eyebrow
+    on cards) had picked up the mono treatment by proximity rather than by being numeric.
+  - **Where a price and a count shared one text node** (e.g. cart's "€X · Y pairs" caption
+    lines), split them into two spans rather than changing both or neither, so each keeps
+    its correct font.
+  - Four shared components (`StatCard` in `/admin`, `Stat` on both dashboard pages,
+    `StatTile` in the Products Analytics tab) render both prices and counts through the
+    same prop, so each gained an `isPrice` boolean to opt out of the monospace default
+    per-instance rather than forking the component.
+  - **Deliberately left one spot unchanged**: `VariantsTab.tsx`'s colorway caption mixes a
+    SKU and an optional price override in a single 11px text node ("SKU · €X") — splitting
+    it would need restructuring for a rarely-populated admin-only aside, not worth it this
+    pass.
+  - Verified live end-to-end (not just grepped) across catalogue, quick-order, cart
+    (desktop + mobile sticky bar), checkout, and dashboard: every price resolves to Geist,
+    every id/SKU/count next to it still resolves to Geist Mono. `npm run build`, typecheck,
+    and lint all clean.
 - **2026-07-30** — **Product page: five targeted refinements from live feedback ("looks
   10 years old", specific annotated screenshot).**
   - **Title removed from the sticky bar** — it duplicated the H1 just above the fold. The

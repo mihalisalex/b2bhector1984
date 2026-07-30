@@ -29,7 +29,7 @@ export default async function AdminAnalyticsPage() {
                     style={{ width: `${Math.max(2, (m.total / maxMonthly) * 100)}%` }}
                   />
                 </div>
-                <span className="w-24 shrink-0 text-right font-mono-tab text-xs font-semibold text-ink">
+                <span className="w-24 shrink-0 text-right text-xs font-semibold tabular-nums text-ink">
                   {formatEUR(m.total)}
                 </span>
               </div>
@@ -62,7 +62,7 @@ export default async function AdminAnalyticsPage() {
                   />
                 </div>
                 <span className="w-20 shrink-0 text-right font-mono-tab text-xs text-ink-soft">{s.pairs} pairs</span>
-                <span className="w-24 shrink-0 text-right font-mono-tab text-xs font-semibold text-ink">
+                <span className="w-24 shrink-0 text-right text-xs font-semibold tabular-nums text-ink">
                   {formatEUR(s.revenue)}
                 </span>
               </div>

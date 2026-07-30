@@ -5,6 +5,7 @@ import { getOrdersForAccount } from "@/lib/runtimeOrders";
 import { getAssortmentsForAccount } from "@/lib/data/assortments";
 import { formatEUR, summarizeOrder, TERMS_LABEL } from "@/lib/pricing";
 import { formatDate, telHref } from "@/lib/format";
+import { cn } from "@/lib/cn";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { ReorderButton } from "@/components/dashboard/ReorderButton";
 import { LinkButton } from "@/components/ui/Button";
@@ -39,8 +40,8 @@ export default async function DashboardPage() {
           <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Account</h2>
           <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
             <Stat label="Terms" value={TERMS_LABEL[account.creditTerms]} />
-            <Stat label="Credit limit" value={formatEUR(account.creditLimit)} />
-            <Stat label="YTD ordered" value={formatEUR(ytdTotal)} />
+            <Stat label="Credit limit" value={formatEUR(account.creditLimit)} isPrice />
+            <Stat label="YTD ordered" value={formatEUR(ytdTotal)} isPrice />
           </div>
           <p className="mt-4 border-t border-stone-200 pt-3 text-xs text-ink-soft">
             Wholesale price is set by payment terms at checkout — pay in full for 10% off, net-30 for 5% off,
@@ -93,7 +94,7 @@ export default async function DashboardPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="font-mono-tab text-sm font-semibold text-ink">{formatEUR(total)}</span>
+                      <span className="text-sm font-semibold tabular-nums text-ink">{formatEUR(total)}</span>
                       <ReorderButton order={order} />
                       <Link href={`/dashboard/orders/${order.id}`} className="text-xs font-medium text-ink-soft hover:text-ink">
                         Details
@@ -131,11 +132,24 @@ export default async function DashboardPage() {
   );
 }
 
-function Stat({ label, value, node }: { label: string; value?: string; node?: React.ReactNode }) {
+/** `isPrice` drops the monospace treatment — that font is for utilitarian ids/counts, not a currency figure. */
+function Stat({
+  label,
+  value,
+  node,
+  isPrice,
+}: {
+  label: string;
+  value?: string;
+  node?: React.ReactNode;
+  isPrice?: boolean;
+}) {
   return (
     <div>
       <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-soft">{label}</p>
-      <div className="font-mono-tab mt-1 text-sm font-semibold text-ink">{node ?? value}</div>
+      <div className={cn("mt-1 text-sm font-semibold tabular-nums text-ink", !isPrice && "font-mono-tab")}>
+        {node ?? value}
+      </div>
     </div>
   );
 }

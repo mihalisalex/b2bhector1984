@@ -279,7 +279,7 @@ export function SearchOverlay() {
                             <span className="block truncate text-sm font-semibold text-ink">{r.name}</span>
                             <span className="font-mono-tab block text-[11px] text-ink-soft">{r.styleNumber}</span>
                           </span>
-                          <span className="font-mono-tab shrink-0 text-sm font-semibold text-ink">{formatEUR(r.price)}</span>
+                          <span className="shrink-0 text-sm font-semibold tabular-nums text-ink">{formatEUR(r.price)}</span>
                         </button>
                       </li>
                     ))}

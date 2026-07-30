@@ -1,5 +1,6 @@
 import { listAllOrders } from "@/lib/runtimeOrders";
 import { formatEUR, summarizeOrder } from "@/lib/pricing";
+import { cn } from "@/lib/cn";
 import { AdminOrderFilters } from "@/components/admin/AdminOrderFilters";
 import { AdminOrdersTable } from "@/components/admin/AdminOrdersTable";
 import { OrdersCsvExportButton } from "@/components/admin/OrdersCsvExportButton";
@@ -38,7 +39,7 @@ export default async function AdminOrdersPage({
 
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatCard label="Total orders" value={String(allOrders.length)} />
-        <StatCard label="Total revenue" value={formatEUR(totalRevenue)} />
+        <StatCard label="Total revenue" value={formatEUR(totalRevenue)} isPrice />
         <StatCard label="Awaiting action" value={String(awaitingAction)} highlight={awaitingAction > 0} />
         <StatCard label="Active buyers" value={String(activeBuyers)} />
       </div>
@@ -58,11 +59,30 @@ export default async function AdminOrdersPage({
   );
 }
 
-function StatCard({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+/** `isPrice` drops the monospace treatment — that font is for utilitarian counts/ids, not a currency figure. */
+function StatCard({
+  label,
+  value,
+  highlight,
+  isPrice,
+}: {
+  label: string;
+  value: string;
+  highlight?: boolean;
+  isPrice?: boolean;
+}) {
   return (
     <div className="border border-stone-300 bg-white p-4">
       <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-soft">{label}</p>
-      <p className={`font-mono-tab mt-1.5 text-xl font-bold ${highlight ? "text-ember" : "text-ink"}`}>{value}</p>
+      <p
+        className={cn(
+          "mt-1.5 text-xl font-bold tabular-nums",
+          !isPrice && "font-mono-tab",
+          highlight ? "text-ember" : "text-ink",
+        )}
+      >
+        {value}
+      </p>
     </div>
   );
 }

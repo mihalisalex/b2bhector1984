@@ -97,13 +97,13 @@ export function ProductCard({
         </div>
 
         <div className="mt-auto border-t border-stone-200 pt-3">
-          <p className="font-mono-tab text-[11px] uppercase tracking-wide text-ink-soft">Wholesale</p>
+          <p className="text-[11px] uppercase tracking-wide text-ink-soft">Wholesale</p>
           <p className="flex items-baseline gap-2">
-            <span className="font-mono-tab text-lg font-semibold tabular-nums text-ink">
+            <span className="text-lg font-semibold tabular-nums text-ink">
               {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
             </span>
             {onSale && (
-              <span className="font-mono-tab text-xs text-ink-soft line-through">
+              <span className="text-xs tabular-nums text-ink-soft line-through">
                 {formatEUR(style.basePrice * priceMultiplier)}
               </span>
             )}

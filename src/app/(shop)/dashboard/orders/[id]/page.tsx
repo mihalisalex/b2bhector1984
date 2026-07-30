@@ -118,8 +118,8 @@ export default async function OrderDetailPage({
                   <td className="px-3 py-2 text-ink-soft">{colorway?.name ?? line.colorwayId}</td>
                   <td className="font-mono-tab px-3 py-2 text-ink-soft">{box.label}</td>
                   <td className="font-mono-tab px-3 py-2 text-right tabular-nums text-ink">{line.qty}</td>
-                  <td className="font-mono-tab px-3 py-2 text-right tabular-nums text-ink-soft">{formatEUR(line.unitPrice)}</td>
-                  <td className="font-mono-tab px-4 py-2 text-right font-semibold tabular-nums text-ink">
+                  <td className="px-3 py-2 text-right tabular-nums text-ink-soft">{formatEUR(line.unitPrice)}</td>
+                  <td className="px-4 py-2 text-right font-semibold tabular-nums text-ink">
                     {formatEUR(lineTotal)}
                   </td>
                 </tr>
@@ -134,7 +134,7 @@ export default async function OrderDetailPage({
               <td colSpan={2} className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-ink-soft">
                 Order Total
               </td>
-              <td className="font-mono-tab px-4 py-3 text-right text-base font-bold tabular-nums text-ink">
+              <td className="px-4 py-3 text-right text-base font-semibold tabular-nums text-ink">
                 {formatEUR(total)}
               </td>
             </tr>

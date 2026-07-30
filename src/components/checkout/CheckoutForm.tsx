@@ -148,13 +148,13 @@ export function CheckoutForm({ account }: { account: Account }) {
               <span className="text-ink-soft">
                 {g.style.name} <span className="font-mono-tab text-xs">×{g.totalPairs}</span>
               </span>
-              <span className="font-mono-tab text-ink">{formatEUR(g.subtotal)}</span>
+              <span className="tabular-nums text-ink">{formatEUR(g.subtotal)}</span>
             </div>
           ))}
         </div>
         <div className="mt-4 flex items-center justify-between">
           <span className="text-sm font-semibold uppercase tracking-wide text-ink-soft">Total</span>
-          <span className="font-mono-tab text-xl font-bold text-ink">{formatEUR(cartTotal)}</span>
+          <span className="text-xl font-semibold tabular-nums text-ink">{formatEUR(cartTotal)}</span>
         </div>
         <p className="mt-1 text-right text-[11px] text-ink-soft">
           {TERMS_DISCOUNT[terms] > 0
@@ -189,7 +189,7 @@ export function CheckoutForm({ account }: { account: Account }) {
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-300 bg-white/97 px-4 py-3 backdrop-blur lg:hidden" style={{ boxShadow: "0 -8px 24px rgba(26,29,34,0.12)" }}>
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
-            <p className="font-mono-tab truncate text-lg font-bold text-ink">{formatEUR(cartTotal)}</p>
+            <p className="truncate text-lg font-semibold tabular-nums text-ink">{formatEUR(cartTotal)}</p>
             <p className="truncate text-[10px] text-ink-soft">{totalPairs} pairs</p>
           </div>
           <Button type="submit" disabled={pending || !!minimumError} className="shrink-0">

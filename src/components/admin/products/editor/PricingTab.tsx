@@ -163,7 +163,7 @@ function GroupPriceRow({
   return (
     <div className="flex items-center gap-3 border border-stone-300 bg-white px-3 py-2 text-sm">
       <span className="flex-1 text-ink">{groupName}</span>
-      <span className="font-mono-tab text-ink">{formatEUR(price)}</span>
+      <span className="tabular-nums text-ink">{formatEUR(price)}</span>
       {canEdit && (
         <form action={deleteAction}>
           <input type="hidden" name="id" value={groupPriceId} />

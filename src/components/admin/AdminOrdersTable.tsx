@@ -131,7 +131,7 @@ export function AdminOrdersTable({ orders }: { orders: AdminOrder[] }) {
                 <td className="px-3 py-2.5 text-ink-soft">{order.businessName}</td>
                 <td className="px-3 py-2.5 text-ink-soft">{formatDate(order.placedAt)}</td>
                 <td className="px-3 py-2.5 text-ink-soft">{order.terms.toUpperCase()}</td>
-                <td className="font-mono-tab px-3 py-2.5 text-right font-semibold text-ink">
+                <td className="px-3 py-2.5 text-right font-semibold tabular-nums text-ink">
                   {formatEUR(totalsById.get(order.id) ?? 0)}
                 </td>
                 <td className="px-4 py-2.5">

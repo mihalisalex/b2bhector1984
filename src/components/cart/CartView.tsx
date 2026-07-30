@@ -210,7 +210,7 @@ export function CartView({ inStockOptions }: { inStockOptions: BoxOption[] }) {
                 <div className="flex items-center gap-4 text-xs text-ink-soft">
                   <span className="font-mono-tab">{validation.totalBoxes} boxes · {validation.totalPairs} pairs</span>
                 </div>
-                <span className="font-mono-tab text-base font-semibold text-ink">{formatEUR(validation.subtotal)}</span>
+                <span className="text-base font-semibold tabular-nums text-ink">{formatEUR(validation.subtotal)}</span>
               </div>
             </div>
           );
@@ -223,7 +223,7 @@ export function CartView({ inStockOptions }: { inStockOptions: BoxOption[] }) {
         <SaveAssortmentButton lines={lines} />
         <div className="flex items-baseline gap-3">
           <span className="text-sm font-semibold uppercase tracking-wide text-ink-soft">Cart total (net-60)</span>
-          <span className="font-mono-tab text-2xl font-bold text-ink">{formatEUR(cartTotal)}</span>
+          <span className="text-2xl font-semibold tabular-nums text-ink">{formatEUR(cartTotal)}</span>
         </div>
         <p className="text-right text-xs text-ink-soft">{grandTotalPairs} pairs in cart</p>
         <p className="text-right text-xs font-medium text-positive">
@@ -247,7 +247,7 @@ export function CartView({ inStockOptions }: { inStockOptions: BoxOption[] }) {
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-300 bg-white/97 px-4 py-3 backdrop-blur lg:hidden" style={{ boxShadow: "0 -8px 24px rgba(26,29,34,0.12)" }}>
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
-            <p className="font-mono-tab truncate text-lg font-bold text-ink">{formatEUR(cartTotal)}</p>
+            <p className="truncate text-lg font-semibold tabular-nums text-ink">{formatEUR(cartTotal)}</p>
             <p className="truncate text-[10px] text-ink-soft">{grandTotalPairs} pairs</p>
           </div>
           <LinkButton

@@ -250,7 +250,7 @@ export function ProductsBrowser({
                 </Link>
                 <p className="font-mono-tab text-[11px] text-ink-soft">{p.styleNumber}</p>
                 <div className="mt-1.5 flex items-center justify-between text-xs">
-                  <span className="font-mono-tab font-semibold text-ink">{formatEUR(p.salePrice ?? p.basePrice)}</span>
+                  <span className="font-semibold tabular-nums text-ink">{formatEUR(p.salePrice ?? p.basePrice)}</span>
                   <span className="text-ink-soft">{p.onHand} on hand</span>
                 </div>
               </div>
@@ -304,9 +304,9 @@ export function ProductsBrowser({
                   <td className="font-mono-tab px-3 py-2.5 text-ink-soft">{p.styleNumber}</td>
                   <td className="px-3 py-2.5 text-ink-soft">{p.category}</td>
                   <td className="px-3 py-2.5 text-ink-soft">{p.brandName}</td>
-                  <td className="font-mono-tab px-3 py-2.5 text-right text-ink">{formatEUR(p.basePrice)}</td>
-                  <td className="font-mono-tab px-3 py-2.5 text-right text-ink-soft">{p.salePrice ? formatEUR(p.salePrice) : "—"}</td>
-                  <td className="font-mono-tab px-3 py-2.5 text-right text-ink-soft">{formatEUR(p.costPrice)}</td>
+                  <td className="px-3 py-2.5 text-right tabular-nums text-ink">{formatEUR(p.basePrice)}</td>
+                  <td className="px-3 py-2.5 text-right tabular-nums text-ink-soft">{p.salePrice ? formatEUR(p.salePrice) : "—"}</td>
+                  <td className="px-3 py-2.5 text-right tabular-nums text-ink-soft">{formatEUR(p.costPrice)}</td>
                   <td className="font-mono-tab px-3 py-2.5 text-right text-ink-soft">{p.marginPct}%</td>
                   <td className="font-mono-tab px-3 py-2.5 text-right text-ink">{p.onHand}</td>
                   <td className="font-mono-tab px-3 py-2.5 text-right text-ink-soft">{p.reserved}</td>

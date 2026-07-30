@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
 import { formatEUR, TERMS_LABEL } from "@/lib/pricing";
 import { formatDate, telHref } from "@/lib/format";
+import { cn } from "@/lib/cn";
 import { ProfileForm } from "@/components/account/ProfileForm";
 import { PasswordForm } from "@/components/account/PasswordForm";
 import { ShipToManager } from "@/components/account/ShipToManager";
@@ -67,7 +68,7 @@ export default async function AccountPage() {
           <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Billing &amp; Terms</h2>
           <div className="mt-4 grid grid-cols-2 gap-4">
             <Stat label="Payment terms" value={TERMS_LABEL[account.creditTerms]} />
-            <Stat label="Credit limit" value={formatEUR(account.creditLimit)} />
+            <Stat label="Credit limit" value={formatEUR(account.creditLimit)} isPrice />
             <Stat label="Resale cert." value={account.resaleCertId} />
             <Stat label="Business type" value={account.businessType} />
             <Stat label="Store location" value={account.storeLocation} />
@@ -104,11 +105,14 @@ export default async function AccountPage() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+/** `isPrice` drops the monospace treatment — that font is for utilitarian ids/counts, not a currency figure. */
+function Stat({ label, value, isPrice }: { label: string; value: string; isPrice?: boolean }) {
   return (
     <div>
       <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-soft">{label}</p>
-      <div className="font-mono-tab mt-1 text-sm font-semibold text-ink">{value}</div>
+      <div className={cn("mt-1 text-sm font-semibold tabular-nums text-ink", !isPrice && "font-mono-tab")}>
+        {value}
+      </div>
     </div>
   );
 }

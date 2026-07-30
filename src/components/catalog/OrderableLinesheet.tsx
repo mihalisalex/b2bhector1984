@@ -179,7 +179,7 @@ export function OrderableLinesheet({
                   </p>
                   <div className="mt-1 flex flex-wrap items-center gap-2">
                     <AvailabilityBadge availability={style.availability} shipWindow={style.shipWindow} />
-                    <span className="font-mono-tab text-sm font-semibold text-ink">
+                    <span className="text-sm font-semibold tabular-nums text-ink">
                       {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
                     </span>
                     {isOnSale(style) && (
@@ -284,7 +284,7 @@ export function OrderableLinesheet({
                     </td>
                   ) : null}
                   {i === 0 ? (
-                    <td className="font-mono-tab px-3 py-2.5 text-right align-top tabular-nums text-ink" rowSpan={style.colorways.length}>
+                    <td className="px-3 py-2.5 text-right align-top tabular-nums text-ink" rowSpan={style.colorways.length}>
                       {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
                       {isOnSale(style) && (
                         <span className="ml-1.5 bg-ember px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">Sale</span>
@@ -324,7 +324,7 @@ export function OrderableLinesheet({
                 </Link>
                 <span className="flex items-center gap-3">
                   <span className="font-mono-tab text-ink-soft">{v.totalBoxes} boxes · {v.totalPairs} pairs</span>
-                  <span className="font-mono-tab font-semibold text-ink">{formatEUR(v.subtotal)}</span>
+                  <span className="font-semibold tabular-nums text-ink">{formatEUR(v.subtotal)}</span>
                 </span>
               </div>
             ))}
@@ -334,7 +334,7 @@ export function OrderableLinesheet({
 
       <div className="mt-4 flex items-center justify-between gap-4 border-t border-stone-300 pt-4">
         <div className="flex items-center gap-4">
-          <span className="font-mono-tab text-sm font-semibold text-ink">Total: {formatEUR(grandTotal)}</span>
+          <span className="text-sm font-semibold tabular-nums text-ink">Total: {formatEUR(grandTotal)}</span>
           {confirmed && validations.length === 0 && <span className="text-xs text-positive">Added to cart.</span>}
         </div>
         <button
