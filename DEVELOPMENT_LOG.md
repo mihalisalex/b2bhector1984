@@ -6,16 +6,11 @@ diffs; this file is the narrative index.
 
 ## Pending Actions (need your credentials/approval — everything else proceeds without you)
 
-- **⚠️ 15 of your 16 real products are currently `status = 'archived'`, not visible
-  anywhere on the storefront (2026-07-30).** Found while diagnosing the catalogue-crash
-  bug below — this is real data state, not something I changed. Only `Hector boat loafer`
-  is `active`; the other 15 are archived, which is almost certainly a side effect of
-  hitting the "can't delete — has order history" wall repeatedly and archiving as the
-  only available alternative each time. **I have not touched their status** — restoring
-  them is your call to make once you've looked. If you want them all back to `active`,
-  say so and I'll flip them in one script (or you can do it per-product from
-  `/admin/products` — filter by Archived, bulk-select, "Set status" → Active, using the
-  bulk toolbar this same pass added).
+- ~~**15 of your 16 real products were `status = 'archived'`**~~ — **DONE, restored to
+  `active` 2026-07-30 at your explicit request**, after being surfaced (not silently
+  fixed) while diagnosing the catalogue-crash bug. Verified: queried all 15 by id before
+  the update, updated exactly those ids to `active`, then confirmed live on `/catalogue`
+  — "16 styles" shown, matching the full real catalog.
 - ~~**Run `supabase/migrations/0023_order_lines_drop_style_fk.sql`**~~ — **DONE, confirmed
   run by you 2026-07-30, and verified live end-to-end same day**: created a fully isolated
   temporary style + colorway + order + order_line (no real data touched), attempted to
