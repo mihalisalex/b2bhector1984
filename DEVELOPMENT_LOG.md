@@ -67,6 +67,34 @@ diffs; this file is the narrative index.
 
 ## Completed
 
+- **2026-07-30** — **Product page: five targeted refinements from live feedback ("looks
+  10 years old", specific annotated screenshot).**
+  - **Title removed from the sticky bar** — it duplicated the H1 just above the fold. The
+    freed slot now shows the selected **box size** ("10-Pair Box"), small and uppercase,
+    since that's real decision-relevant info the title wasn't.
+  - **Box-size selector de-emphasised.** With only one box type (true of every seeded
+    style today), it rendered as one giant solid-black full-width bar — a second CTA
+    visually competing with "Add to cart". Single-option case is now plain text ("10-pair
+    pre-pack box"); multi-option case (verified via the JSX logic, though no seeded style
+    currently has >1 box type to exercise it live) renders as small pills, not full-width
+    tiles.
+  - **Gallery is full-bleed and taller on mobile.** The image sat inset inside the page's
+    own side padding — "boxed". `ProductGallery`'s main image now breaks out of that
+    padding (`-mx-6 lg:mx-0`) so it runs edge-to-edge on a phone, and its aspect ratio
+    changed from 4:3 to a taller 3:4, both compounding into a visibly larger photo.
+    Desktop is untouched (reverts to 4:3 inside its 440px column) — verified: 440px wide,
+    4:3 ratio, no breakout. Thumbnails/caption keep their own padding so only the hero
+    photo goes edge-to-edge, not the whole gallery block.
+  - **Breadcrumb shrunk and pulled toward the header** — was `text-xs` with 32px of page
+    padding above it; now `text-[11px]` uppercase-tracked on mobile (reverts to the
+    original case/size at `lg`) with the page's top padding roughly halved.
+  - **Price typography demonoed.** Every price on this page (buy-box header, subtotal,
+    list-price strikethrough, bar price) used `font-mono-tab` — a monospaced, tabular
+    digit font meant for utilitarian numerics (SKUs, stock counts), not a luxury price
+    tag. All now render in the site's body sans (Geist) with `tabular-nums` kept for
+    alignment. Verified via computed style: font-family resolves to Geist, not Geist
+    Mono. Scoped to this page only — catalogue/card pricing elsewhere is unchanged
+    pending a decision on whether to carry it site-wide.
 - **2026-07-30** — **Mobile product page now follows the reference pattern properly: the
   sticky bar is the single purchase surface.** Follow-up to the bar below, after you asked
   to "make it the same almost". Previously the bar coexisted with a full in-page buy box,

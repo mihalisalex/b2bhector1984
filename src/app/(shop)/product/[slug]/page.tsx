@@ -52,9 +52,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   void recordStyleView(style.id, account?.id ?? null);
 
   return (
-    <div className="mx-auto max-w-[1600px] px-6 py-8 lg:px-10">
+    <div className="mx-auto max-w-[1600px] px-6 pb-8 pt-4 lg:px-10 lg:pt-8">
       <TrackRecentlyViewed styleId={style.id} />
-      <nav className="mb-6 flex items-center gap-1.5 text-xs text-ink-soft">
+      <nav className="mb-4 flex items-center gap-1.5 text-[11px] uppercase tracking-[0.06em] text-ink-soft lg:mb-6 lg:text-xs lg:tracking-normal lg:normal-case">
         <Link href="/catalogue" className="hover:text-ink">Catalogue</Link>
         <span>/</span>
         <Link href={`/catalogue?category=${style.category}`} className="hover:text-ink">
@@ -70,13 +70,18 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             {images.length > 0 ? (
               <ProductGallery images={images} styleName={style.name} styleNumber={style.styleNumber} colorways={style.colorways} />
             ) : (
-              <StylePlate
-                swatch={style.colorways[0].swatch}
-                styleNumber={style.styleNumber}
-                imageUrl={getStyleImageUrl(style)}
-                alt={style.name}
-                className="aspect-[4/3] w-full"
-              />
+              // Full-bleed on mobile: breaking out of the page's own horizontal padding is
+              // what makes the photo feel large rather than inset in a box. Reverts at lg,
+              // where the grid column already gives it room.
+              <div className="-mx-6 lg:mx-0">
+                <StylePlate
+                  swatch={style.colorways[0].swatch}
+                  styleNumber={style.styleNumber}
+                  imageUrl={getStyleImageUrl(style)}
+                  alt={style.name}
+                  className="aspect-[3/4] w-full"
+                />
+              </div>
             )}
           </div>
 

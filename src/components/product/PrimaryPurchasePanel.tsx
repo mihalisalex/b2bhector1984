@@ -129,12 +129,12 @@ export function PrimaryPurchasePanel({
             )}
           </div>
           <div className="mt-1.5 flex items-baseline gap-2.5">
-            <span className="font-mono-tab text-[2.125rem] font-bold leading-none tabular-nums text-ink">
+            <span className="text-[2.25rem] font-semibold leading-none tracking-tight tabular-nums text-ink">
               {formatEUR(unitPrice)}
             </span>
             <span className="text-xs text-ink-soft">per pair</span>
             {onSale && (
-              <span className="font-mono-tab text-sm text-ink-soft line-through">{formatEUR(listPrice)}</span>
+              <span className="text-sm tabular-nums text-ink-soft line-through">{formatEUR(listPrice)}</span>
             )}
           </div>
           <p className="mt-2 text-[11px] leading-relaxed text-ink-soft">
@@ -150,33 +150,37 @@ export function PrimaryPurchasePanel({
           <ColorwayPicker style={style} inventory={inventory} className="hidden lg:block" />
 
           <div>
-            <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">
               Box size
             </p>
-            <div className={cn("grid gap-2", boxTypes.length === 1 ? "grid-cols-1" : boxTypes.length === 2 ? "grid-cols-2" : "grid-cols-3")}>
-              {boxTypes.map((b) => {
-                const stock = inventory[colorwayId]?.[b.id] ?? 0;
-                const active = b.id === boxTypeId;
-                return (
-                  <button
-                    key={b.id}
-                    type="button"
-                    onClick={() => setBoxTypeId(b.id)}
-                    aria-pressed={active}
-                    className={cn(
-                      "flex flex-col items-center gap-0.5 py-3 text-center transition-colors duration-150",
-                      active ? "bg-ink text-white" : "bg-stone-100 text-ink-soft hover:bg-stone-200",
-                      stock === 0 && "opacity-45",
-                    )}
-                  >
-                    <span className="font-mono-tab text-base font-bold leading-none tabular-nums">
-                      {b.totalPairs}
-                    </span>
-                    <span className="text-[10px] uppercase tracking-[0.1em]">pairs</span>
-                  </button>
-                );
-              })}
-            </div>
+            {/* Pills, not full-width tiles — with a single box type this used to render as
+                one giant solid-black bar, which read as a second call-to-action competing
+                with "Add to cart" rather than a quiet selector. */}
+            {boxTypes.length > 1 ? (
+              <div className="flex flex-wrap gap-2">
+                {boxTypes.map((b) => {
+                  const stock = inventory[colorwayId]?.[b.id] ?? 0;
+                  const active = b.id === boxTypeId;
+                  return (
+                    <button
+                      key={b.id}
+                      type="button"
+                      onClick={() => setBoxTypeId(b.id)}
+                      aria-pressed={active}
+                      className={cn(
+                        "px-3.5 py-2 text-xs font-semibold tabular-nums transition-colors duration-150",
+                        active ? "bg-ink text-white" : "bg-stone-100 text-ink-soft hover:bg-stone-200",
+                        stock === 0 && "opacity-45",
+                      )}
+                    >
+                      {b.totalPairs}-Pair Box
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm font-medium text-ink">{boxTypes[0].totalPairs}-pair pre-pack box</p>
+            )}
           </div>
 
           <div className="flex items-center justify-between gap-3">
@@ -207,7 +211,7 @@ export function PrimaryPurchasePanel({
               <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">
                 {addQty * pairsPerBox} pairs
               </span>
-              <span className="font-mono-tab text-2xl font-bold tabular-nums text-ink">{formatEUR(subtotal)}</span>
+              <span className="text-2xl font-semibold tabular-nums text-ink">{formatEUR(subtotal)}</span>
             </div>
 
             {!outOfStock && (
@@ -264,9 +268,13 @@ export function PrimaryPurchasePanel({
       >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[13px] font-medium leading-tight text-ink">{style.name}</p>
+            {/* Box size sits where the product name used to — the name is redundant with
+                the page title just above, but which box you're about to buy isn't. */}
+            <p className="truncate text-[10px] font-semibold uppercase tracking-[0.1em] text-ink-soft">
+              {box.totalPairs}-Pair Box
+            </p>
             <p className="mt-1 flex items-baseline gap-1.5">
-              <span className="font-mono-tab text-sm font-bold tabular-nums text-ink">
+              <span className="text-[17px] font-semibold tabular-nums text-ink">
                 {formatEUR(unitPrice)}
               </span>
               <span className="text-[11px] text-ink-soft">/ pair · {selectedColorway.name}</span>

@@ -116,45 +116,52 @@ export function ProductGallery({
 
   return (
     <div className={className}>
-      <button
-        ref={mainButtonRef}
-        type="button"
-        onClick={() => {
-          if (swipedRef.current) {
-            swipedRef.current = false;
-            return;
-          }
-          setLightboxOpen(true);
-        }}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        aria-label={`${styleName} — photo ${activeIndex + 1} of ${visibleImages.length}. Open full screen.`}
-        className="relative block aspect-[4/3] w-full touch-pan-y overflow-hidden bg-stone-200"
-      >
-        <Image
-          key={active.id}
-          src={active.publicUrl}
-          alt={active.altText || styleName}
-          fill
-          sizes="(min-width: 1024px) 440px, 100vw"
-          className="object-cover"
-          priority={activeIndex === 0}
-        />
-        {styleNumber && (
-          <span className="font-mono-tab absolute bottom-2 right-2 bg-ink/80 px-1.5 py-0.5 text-[10px] tracking-wide text-white">
-            {styleNumber}
-          </span>
-        )}
-      </button>
+      {/* Full-bleed on mobile — breaking out of the page's own side padding is what makes
+          the photo read as large rather than inset in a box. Reverts at lg, where the grid
+          column already gives it room; thumbnails/caption below stay padded so they align
+          with the page's text instead of also running edge to edge. */}
+      <div className="-mx-6 lg:mx-0">
+        <button
+          ref={mainButtonRef}
+          type="button"
+          onClick={() => {
+            if (swipedRef.current) {
+              swipedRef.current = false;
+              return;
+            }
+            setLightboxOpen(true);
+          }}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          aria-label={`${styleName} — photo ${activeIndex + 1} of ${visibleImages.length}. Open full screen.`}
+          className="relative block aspect-[3/4] w-full touch-pan-y overflow-hidden bg-stone-100 lg:aspect-[4/3]"
+        >
+          <Image
+            key={active.id}
+            src={active.publicUrl}
+            alt={active.altText || styleName}
+            fill
+            sizes="(min-width: 1024px) 440px, 100vw"
+            className="object-cover"
+            priority={activeIndex === 0}
+          />
+          {styleNumber && (
+            <span className="font-mono-tab absolute bottom-2 right-2 bg-ink/80 px-1.5 py-0.5 text-[10px] tracking-wide text-white">
+              {styleNumber}
+            </span>
+          )}
+        </button>
+      </div>
+
       {hasMultipleColorways && !showingTaggedPhoto && (
-        <p className="mt-1.5 text-[11px] text-ink-soft">
+        <p className="mt-1.5 px-6 text-[11px] text-ink-soft lg:px-0">
           No dedicated photo uploaded yet for <span className="font-medium text-ink">{selectedColorwayName}</span> —
           showing another available photo.
         </p>
       )}
 
       {visibleImages.length > 1 && (
-        <div className="mt-2 grid grid-cols-5 gap-2">
+        <div className="mt-2 grid grid-cols-5 gap-2 px-6 lg:px-0">
           {visibleImages.map((img, i) => (
             <button
               key={img.id}
