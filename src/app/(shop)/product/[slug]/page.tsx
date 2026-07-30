@@ -97,7 +97,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             )}
 
             <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2">
-              <AvailabilityBadge availability={style.availability} shipWindow={style.shipWindow} />
+              <AvailabilityBadge style={style} />
               <span className="font-mono-tab text-[11px] uppercase tracking-[0.14em] text-ink-soft">
                 {style.styleNumber}
               </span>

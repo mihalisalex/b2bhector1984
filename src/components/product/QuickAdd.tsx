@@ -1,19 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { formatEUR, getUnitPrice } from "@/lib/pricing";
-import { pickDefaultBoxType, pickDefaultColorway } from "@/lib/productSelectionDefaults";
+import { pickDefaultBoxType } from "@/lib/productSelectionDefaults";
 import type { StyleInventory } from "@/lib/data/inventory";
 import type { BoxTypeId, Style } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
 /**
- * Add a box straight from a catalogue card — colorway, box size and quantity picked
- * inline, without a round trip through the product page. Wholesale buyers build orders
- * across many styles at once; making each one a two-page detour is the single biggest
- * source of friction in the catalogue.
+ * Add a box straight from a catalogue card — box size and quantity picked inline,
+ * without a round trip through the product page. Wholesale buyers build orders across
+ * many styles at once; making each one a two-page detour is the single biggest source
+ * of friction in the catalogue.
+ *
+ * Colorway is owned by the card (`colorwayId`) — the card's own swatch row is the
+ * single source of truth, so there's only ever one colour picker shown per card
+ * instead of a duplicate one appearing here.
  *
  * Stock is real (passed down from the page's inventory fetch), so unavailable colorways
  * are disabled rather than failing on add.
@@ -22,21 +26,29 @@ export function QuickAdd({
   style,
   inventory,
   priceMultiplier = 1,
+  colorwayId,
 }: {
   style: Style;
   inventory: StyleInventory;
   priceMultiplier?: number;
+  colorwayId: string;
 }) {
   const { addLines, lines } = useCart();
   const boxTypes = getAvailableBoxTypes(style);
 
   const [open, setOpen] = useState(false);
-  const [colorwayId, setColorwayId] = useState(() => pickDefaultColorway(style, inventory));
-  const [boxTypeId, setBoxTypeId] = useState<BoxTypeId>(() =>
-    pickDefaultBoxType(style, inventory, pickDefaultColorway(style, inventory)),
-  );
+  const [boxTypeId, setBoxTypeId] = useState<BoxTypeId>(() => pickDefaultBoxType(style, inventory, colorwayId));
   const [qty, setQty] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
+
+  // The card's swatch row can change `colorwayId` out from under this panel —
+  // re-pick a box type that's actually in stock for the newly selected colour.
+  useEffect(() => {
+    setBoxTypeId(pickDefaultBoxType(style, inventory, colorwayId));
+    setQty(1);
+    setJustAdded(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [colorwayId]);
 
   const onHand = inventory[colorwayId]?.[boxTypeId] ?? 0;
   const inCart =
@@ -47,13 +59,6 @@ export function QuickAdd({
   const anyStock = Object.values(inventory).some((byBox) =>
     Object.values(byBox ?? {}).some((n) => (n ?? 0) > 0),
   );
-
-  function selectColorway(id: string) {
-    setColorwayId(id);
-    setBoxTypeId(pickDefaultBoxType(style, inventory, id));
-    setQty(1);
-    setJustAdded(false);
-  }
 
   function add() {
     if (remaining <= 0) return;
@@ -85,34 +90,6 @@ export function QuickAdd({
 
   return (
     <div className="mt-3 border-t border-stone-200 pt-3">
-      {style.colorways.length > 1 && (
-        <div className="mb-2 flex flex-wrap gap-1.5">
-          {style.colorways.map((c) => {
-            const stocked = Object.values(inventory[c.id] ?? {}).some((n) => (n ?? 0) > 0);
-            const selected = c.id === colorwayId;
-            return (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => selectColorway(c.id)}
-                disabled={!stocked}
-                title={stocked ? c.name : `${c.name} — out of stock`}
-                aria-label={stocked ? c.name : `${c.name}, out of stock`}
-                aria-pressed={selected}
-                className={cn(
-                  "flex h-7 w-7 overflow-hidden rounded-full ring-offset-1 transition-all",
-                  selected ? "ring-2 ring-ink" : "ring-1 ring-stone-300 hover:ring-cinder-300",
-                  !stocked && "cursor-not-allowed opacity-30",
-                )}
-              >
-                <span aria-hidden className="h-full w-1/2" style={{ background: c.swatch[0] }} />
-                <span aria-hidden className="h-full w-1/2" style={{ background: c.swatch[1] ?? c.swatch[0] }} />
-              </button>
-            );
-          })}
-        </div>
-      )}
-
       {boxTypes.length > 1 && (
         <div className="mb-2 flex gap-1.5">
           {boxTypes.map((b) => (
@@ -168,9 +145,14 @@ export function QuickAdd({
           type="button"
           onClick={add}
           disabled={remaining <= 0}
-          className="flex-1 bg-ink px-2 py-2.5 text-xs font-semibold uppercase tracking-wide text-white transition-colors hover:bg-ink/85 disabled:cursor-not-allowed disabled:bg-cinder-300"
+          className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 bg-ink px-2 py-2 leading-none text-white transition-colors hover:bg-ink/85 disabled:cursor-not-allowed disabled:bg-cinder-300"
         >
-          {justAdded ? "Added ✓" : `Add · ${formatEUR(unitPrice * box.totalPairs * qty)}`}
+          <span className="text-xs font-semibold uppercase tracking-wide">{justAdded ? "Added ✓" : "Add"}</span>
+          {!justAdded && (
+            <span className="font-mono-tab text-[11px] tabular-nums text-white/75">
+              {formatEUR(unitPrice * box.totalPairs * qty)}
+            </span>
+          )}
         </button>
       </div>
     </div>

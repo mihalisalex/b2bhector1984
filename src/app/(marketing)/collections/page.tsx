@@ -100,7 +100,7 @@ export default async function CollectionsPage({
               />
             </div>
             <div className="p-5">
-              <AvailabilityBadge availability={style.availability} shipWindow={style.shipWindow} />
+              <AvailabilityBadge style={style} />
               <h3 className="font-display mt-2 text-lg font-bold uppercase tracking-tight text-ink group-hover:underline">
                 {style.name}
               </h3>

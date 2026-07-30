@@ -10,7 +10,6 @@ import { getCurrentAccount } from "@/lib/session";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { getSeasonSettings, toSeasonOptions } from "@/lib/data/seasonSettings";
 import { CatalogSearchInput, CatalogFiltersPanel, CatalogResultsToolbar } from "@/components/catalog/CatalogToolbar";
-import { BoxPolicyBanner } from "@/components/catalog/BoxPolicyBanner";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductListRow } from "@/components/product/ProductListRow";
 
@@ -61,10 +60,6 @@ export default async function CatalogPage({
       <div className="mb-6 flex flex-col gap-3 border-b border-stone-300 pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink">Catalog</h1>
-          <p className="mt-1 text-sm text-ink-soft">
-            {styles.length} styles across {seasonOptions.map((s) => s.label).join(" and ")} collections. Wholesale
-            price is set by payment terms at checkout.
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <Suspense fallback={null}>
@@ -75,8 +70,6 @@ export default async function CatalogPage({
           </Suspense>
         </div>
       </div>
-
-      <BoxPolicyBanner />
 
       <div className="mb-4 mt-6">
         <Suspense fallback={null}>
@@ -120,9 +113,11 @@ export default async function CatalogPage({
           ))}
         </div>
       ) : (
-        // Two big columns at every width, not a responsive 1→2→3 ramp — tall 3:4 photos
-        // that read as "premium fashion editorial" rather than a dense product grid.
-        <div className="grid grid-cols-2 gap-3 sm:gap-5">
+        // Two big columns at every width, not a responsive 1→2→3 ramp — tall photos that
+        // read as "premium fashion editorial" rather than a dense product grid. Photos run
+        // full-bleed to the column edge; a hairline (divide-x/y) is the only separator
+        // between products, no gap or card border boxing them in.
+        <div className="grid grid-cols-2 divide-x divide-y divide-stone-200">
           {results.map((style) => (
             <ProductCard
               key={style.id}

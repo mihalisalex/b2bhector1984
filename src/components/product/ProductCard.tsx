@@ -11,6 +11,7 @@ import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
 import { QuickAdd } from "@/components/product/QuickAdd";
+import { pickDefaultColorway } from "@/lib/productSelectionDefaults";
 import { cn } from "@/lib/cn";
 
 /**
@@ -48,14 +49,16 @@ export function ProductCard({
   const onSale = isOnSale(style);
   const hasMultipleColorways = style.colorways.length > 1;
 
-  const [activeColorwayId, setActiveColorwayId] = useState(style.colorways[0].id);
+  const [activeColorwayId, setActiveColorwayId] = useState(() =>
+    inventory ? pickDefaultColorway(style, inventory) : style.colorways[0].id,
+  );
   const activeColorway = style.colorways.find((c) => c.id === activeColorwayId) ?? style.colorways[0];
   const taggedImage = images.find((img) => img.colorwayId === activeColorwayId);
   const imageUrl = taggedImage?.publicUrl ?? getStyleImageUrl(style);
 
   return (
-    <div className="group flex flex-col border border-stone-300 bg-white transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(26,29,34,0.12)]">
-      <div className="relative overflow-hidden">
+    <div className="group flex flex-col transition-transform duration-300 ease-out hover:-translate-y-0.5">
+      <div className="relative overflow-hidden bg-transparent">
         <Link href={`/product/${style.slug}`} tabIndex={-1} aria-hidden className="block">
           <StylePlate
             key={imageUrl}
@@ -63,7 +66,7 @@ export function ProductCard({
             styleNumber={style.styleNumber}
             imageUrl={imageUrl}
             alt={style.name}
-            className={cn("aspect-[3/4] w-full transition-transform duration-500 ease-out group-hover:scale-[1.02]", soldOut && "grayscale")}
+            className={cn("aspect-[4/5] w-full transition-transform duration-500 ease-out group-hover:scale-[1.02]", soldOut && "grayscale")}
           />
         </Link>
         <div className="absolute right-2 top-2 flex flex-col items-end gap-1.5">
@@ -80,9 +83,9 @@ export function ProductCard({
           )}
         </div>
       </div>
-      <div className="flex flex-1 flex-col gap-2 p-4">
+      <div className="flex flex-1 flex-col gap-2 px-4 pb-4 pt-3">
         <div className="flex items-center justify-between gap-2">
-          <AvailabilityBadge availability={style.availability} shipWindow={style.shipWindow} />
+          <AvailabilityBadge style={style} />
           <span className="text-[11px] uppercase tracking-wide text-ink-soft">
             {CATEGORY_LABEL[style.category]}
           </span>
@@ -150,7 +153,9 @@ export function ProductCard({
           </div>
         )}
 
-        {inventory && <QuickAdd style={style} inventory={inventory} priceMultiplier={priceMultiplier} />}
+        {inventory && (
+          <QuickAdd style={style} inventory={inventory} priceMultiplier={priceMultiplier} colorwayId={activeColorwayId} />
+        )}
       </div>
     </div>
   );

@@ -39,7 +39,7 @@ export function ProductListRow({
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <AvailabilityBadge availability={style.availability} shipWindow={style.shipWindow} />
+          <AvailabilityBadge style={style} />
           <span className="text-[11px] uppercase tracking-wide text-ink-soft">{CATEGORY_LABEL[style.category]}</span>
           <span className="text-[11px] uppercase tracking-wide text-ink-soft">{GENDER_LABEL[style.gender]}</span>
         </div>

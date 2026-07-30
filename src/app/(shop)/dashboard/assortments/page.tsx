@@ -73,7 +73,7 @@ export default async function AssortmentsPage() {
                         dense
                       />
                       <div className="p-3">
-                        <AvailabilityBadge availability={style.availability} shipWindow={style.shipWindow} />
+                        <AvailabilityBadge style={style} />
                         <p className="font-display mt-2 text-sm font-bold uppercase text-ink group-hover:underline">{style.name}</p>
                         <p className="font-mono-tab text-[11px] text-ink-soft">{style.styleNumber}</p>
                       </div>

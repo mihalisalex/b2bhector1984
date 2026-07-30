@@ -87,7 +87,7 @@ export function OrderableLinesheet({
                     {style.styleNumber} · {GENDER_LABEL[style.gender]} · {CATEGORY_LABEL[style.category]}
                   </p>
                   <div className="mt-1 flex flex-wrap items-center gap-2">
-                    <AvailabilityBadge availability={style.availability} shipWindow={style.shipWindow} />
+                    <AvailabilityBadge style={style} />
                     <span className="text-sm font-semibold tabular-nums text-ink">
                       {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
                     </span>
@@ -189,7 +189,7 @@ export function OrderableLinesheet({
                   </td>
                   {i === 0 ? (
                     <td className="px-3 py-2.5 align-top" rowSpan={style.colorways.length}>
-                      <AvailabilityBadge availability={style.availability} shipWindow={style.shipWindow} />
+                      <AvailabilityBadge style={style} />
                     </td>
                   ) : null}
                   {i === 0 ? (
