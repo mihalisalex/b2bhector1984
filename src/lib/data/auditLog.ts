@@ -51,22 +51,9 @@ export async function logAudit(
   if (error) console.error(`audit_log insert failed: ${error.message}`);
 }
 
-/** Returns an empty list (with a console warning) rather than throwing if `audit_log` doesn't exist yet. */
-export async function listRecentAuditEntries(limit = 200): Promise<AuditEntry[]> {
-  const { data, error } = await supabaseAdmin
-    .from("audit_log")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(limit);
-  if (error) {
-    console.warn(`audit_log query failed (has migration 0012 been run?): ${error.message}`);
-    return [];
-  }
-  return (data ?? []).map(mapEntry);
-}
-
-/** Page-based audit log listing with an optional action/target/detail search — unlike
- * `listRecentAuditEntries`'s flat 200-row cap, this scales past that with real pagination. */
+/** Page-based audit log listing with an optional action/target/detail search.
+ * Returns an empty page (with a console warning) rather than throwing if
+ * `audit_log` doesn't exist yet. */
 export async function listAuditEntriesPage(
   page: number,
   pageSize: number,

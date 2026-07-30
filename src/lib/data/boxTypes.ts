@@ -42,19 +42,6 @@ export function getAvailableBoxTypes(style: Style): BoxType[] {
   return BOX_TYPES.filter((b) => style.availableBoxTypes.includes(b.id));
 }
 
-/** Combined per-size pair count across a set of {boxTypeId: qty}. */
-export function getSizeBreakdown(boxQty: Partial<Record<BoxTypeId, number>>): Record<string, number> {
-  const totals: Record<string, number> = Object.fromEntries(EU_SIZES.map((s) => [s, 0]));
-  for (const box of BOX_TYPES) {
-    const qty = boxQty[box.id] ?? 0;
-    if (!qty) continue;
-    for (const [size, count] of Object.entries(box.sizeBreakdown)) {
-      totals[size] = (totals[size] ?? 0) + count * qty;
-    }
-  }
-  return totals;
-}
-
 export function getTotalPairs(boxQty: Partial<Record<BoxTypeId, number>>): number {
   return BOX_TYPES.reduce((sum, box) => sum + (boxQty[box.id] ?? 0) * box.totalPairs, 0);
 }

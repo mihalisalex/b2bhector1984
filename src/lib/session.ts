@@ -21,6 +21,32 @@ export const SESSION_MAX_AGE = 60 * 60 * 24 * 14; // 14 days
  * Next.js, so nothing about session state can be cached in memory).
  */
 
+/**
+ * Shared cookie options for both session and application cookies. `secure` is on
+ * everywhere except local dev, where there's no HTTPS to carry the cookie — without it a
+ * network attacker can strip TLS and read the session token off a plain-HTTP request.
+ */
+function authCookieOptions(maxAge: number) {
+  return {
+    maxAge,
+    path: "/",
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production",
+  };
+}
+
+/** Single place that writes the signed-in cookie — used by login and by activateAccount. */
+export async function setSessionCookie(token: string): Promise<void> {
+  const store = await cookies();
+  store.set(SESSION_COOKIE, token, authCookieOptions(SESSION_MAX_AGE));
+}
+
+export async function setApplicationCookie(applicationId: string, maxAge: number): Promise<void> {
+  const store = await cookies();
+  store.set(APPLICATION_COOKIE, applicationId, authCookieOptions(maxAge));
+}
+
 export async function createSession(accountId: string): Promise<string> {
   const token = randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + SESSION_MAX_AGE * 1000).toISOString();
@@ -31,6 +57,16 @@ export async function createSession(accountId: string): Promise<string> {
 
 export async function destroySession(token: string): Promise<void> {
   const { error } = await supabaseAdmin.from("sessions").delete().eq("token", token);
+  if (error) throw new Error(`sessions: ${error.message}`);
+}
+
+/**
+ * Revokes every session for an account. Called on password change/reset: a password is
+ * usually rotated *because* it may be compromised, so leaving already-issued sessions
+ * alive would let an attacker keep their foothold for the full 14-day cookie lifetime.
+ */
+export async function destroyAllSessionsForAccount(accountId: string): Promise<void> {
+  const { error } = await supabaseAdmin.from("sessions").delete().eq("account_id", accountId);
   if (error) throw new Error(`sessions: ${error.message}`);
 }
 

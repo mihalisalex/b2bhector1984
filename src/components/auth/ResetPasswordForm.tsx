@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import { resetPassword, type ResetPasswordState } from "@/lib/actions";
+import { MIN_PASSWORD_LENGTH } from "@/lib/passwordPolicy";
 import { Button } from "@/components/ui/Button";
 
 const initialState: ResetPasswordState = {};
@@ -26,7 +27,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
   return (
     <div className="mx-auto flex min-h-[calc(100vh-var(--shell-header-h))] max-w-md flex-col justify-center px-6 py-16">
       <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink">Choose a new password</h1>
-      <p className="mt-2 text-sm text-ink-soft">Must be at least 8 characters.</p>
+      <p className="mt-2 text-sm text-ink-soft">Must be at least {MIN_PASSWORD_LENGTH} characters.</p>
 
       <form action={formAction} className="mt-8 flex flex-col gap-4">
         <input type="hidden" name="token" value={token} />
@@ -36,7 +37,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
             name="password"
             type="password"
             required
-            minLength={8}
+            minLength={MIN_PASSWORD_LENGTH}
             className="border border-stone-300 bg-white px-3 py-2.5 text-sm text-ink outline-none focus-visible:border-signal"
           />
         </label>
@@ -46,7 +47,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
             name="confirmPassword"
             type="password"
             required
-            minLength={8}
+            minLength={MIN_PASSWORD_LENGTH}
             className="border border-stone-300 bg-white px-3 py-2.5 text-sm text-ink outline-none focus-visible:border-signal"
           />
         </label>

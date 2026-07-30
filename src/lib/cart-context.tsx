@@ -51,26 +51,32 @@ export function CartProvider({
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    // One-time sync from localStorage (an external system unavailable during SSR),
-    // not a derived-state update — the documented exception to this rule.
+    // Sync from localStorage (an external system unavailable during SSR), not a
+    // derived-state update — the documented exception to this rule. Re-runs when
+    // `accountId` changes, which is why the empty case below must still reset:
+    // these layouts keep this provider mounted across soft navigations, so signing
+    // in as a different account can swap `accountId` in place. Leaving `lines`
+    // untouched when the new account has no saved cart would let the previous
+    // account's cart fall through and then get persisted under the new key.
+    let restored: CartLine[] = [];
     try {
       const raw = window.localStorage.getItem(storageKey(accountId));
       if (raw) {
         const parsed = JSON.parse(raw);
         // Defensive against an older cart shape lingering in localStorage
         // (pre box-ordering: lines keyed by size instead of boxTypeId).
-        const valid = Array.isArray(parsed)
+        restored = Array.isArray(parsed)
           ? parsed.filter(
               (l): l is CartLine =>
                 l && typeof l.qty === "number" && ["box8", "box10", "box12"].includes(l.boxTypeId),
             )
           : [];
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setLines(valid);
       }
     } catch {
       // ignore malformed local storage
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLines(restored);
     setHydrated(true);
   }, [accountId]);
 

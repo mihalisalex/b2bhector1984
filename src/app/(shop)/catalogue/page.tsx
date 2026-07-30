@@ -119,7 +119,7 @@ export default async function CatalogPage({
         // out of the page's own horizontal padding (-mx-6/lg:-mx-10) to get there.
         <div className="-mx-6 lg:-mx-10">
           <div className="grid grid-cols-2 gap-0.5 px-0.5">
-            {results.map((style) => (
+            {results.map((style, i) => (
               <ProductCard
                 key={style.id}
                 style={style}
@@ -128,6 +128,8 @@ export default async function CatalogPage({
                 favorited={account ? favoriteIds.has(style.id) : undefined}
                 inventory={account ? inventory[style.id] : undefined}
                 images={imagesByStyle[style.id] ?? []}
+                // First row (2 columns) is above the fold and holds the LCP element.
+                priority={i < 2}
               />
             ))}
           </div>

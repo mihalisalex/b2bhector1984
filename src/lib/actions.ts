@@ -7,11 +7,13 @@ import { addOrder, getOrdersForAccount } from "@/lib/runtimeOrders";
 import {
   APPLICATION_COOKIE,
   SESSION_COOKIE,
-  SESSION_MAX_AGE,
   createSession,
+  destroyAllSessionsForAccount,
   destroySession,
   getApplication,
   getCurrentAccount,
+  setApplicationCookie,
+  setSessionCookie,
 } from "@/lib/session";
 import {
   getAccountByEmail,
@@ -32,6 +34,7 @@ import {
 } from "@/lib/data/passwordReset";
 import { z } from "zod";
 import { hashPassword, verifyPassword } from "@/lib/passwords";
+import { MIN_PASSWORD_LENGTH } from "@/lib/passwordPolicy";
 import { formatEUR, getOrderMinimumError, getUnitPrice, summarizeOrder, validateMatrix } from "@/lib/pricing";
 import { createSavedAssortment, deleteSavedAssortment as deleteSavedAssortmentData } from "@/lib/data/assortments";
 import { addFavorite, removeFavorite } from "@/lib/data/favorites";
@@ -49,6 +52,16 @@ import type { Application, BoxTypeId, CreditTerms, Order, OrderLine, SavedAssort
 
 const APPLICATION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
+/**
+ * A real scrypt hash of a random throwaway string, used only to burn the same CPU time
+ * `verifyPassword` would spend on a genuine account when the submitted email matches
+ * nothing. Must stay in valid `salt:hash` form — `verifyPassword` early-returns on a
+ * malformed value, which would reintroduce the timing gap this exists to close.
+ * No password can match it.
+ */
+const DUMMY_PASSWORD_HASH =
+  "71356a2b6ee1f799d1aec273f4dd4491:dadbd484fee656bc840c516f2b43db583fb0fb9d7087175084a8882e46b1c9b42be773c4673078886f15570f6e8b025228b6d59e4cecf786a12e0bf336ea2359";
+
 export interface FormState {
   error?: string;
   success?: string;
@@ -59,7 +72,14 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   const password = String(formData.get("password") ?? "");
 
   const account = await getAccountByEmail(email);
-  if (!account || !(await verifyPassword(password, account.password))) {
+  // Always run a full password verification, even when no account matched, so the
+  // response time doesn't reveal whether the email is registered. Short-circuiting on a
+  // missing account would return before scrypt runs, and that measurable gap defeats the
+  // deliberately generic error message below.
+  const passwordOk = account
+    ? await verifyPassword(password, account.password)
+    : await verifyPassword(password, DUMMY_PASSWORD_HASH);
+  if (!account || !passwordOk) {
     return { error: "We couldn't find an active account with that email and password." };
   }
   if (account.status !== "active") {
@@ -67,8 +87,7 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   }
 
   const token = await createSession(account.id);
-  const store = await cookies();
-  store.set(SESSION_COOKIE, token, { maxAge: SESSION_MAX_AGE, path: "/", httpOnly: true, sameSite: "lax" });
+  await setSessionCookie(token);
 
   if (account.role === "admin") redirect("/admin");
   const next = String(formData.get("next") ?? "");
@@ -112,7 +131,9 @@ export async function resetPassword(_prev: ResetPasswordState, formData: FormDat
   const password = String(formData.get("password") ?? "");
   const confirmPassword = String(formData.get("confirmPassword") ?? "");
 
-  if (password.length < 8) return { error: "Password must be at least 8 characters." };
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return { error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.` };
+  }
   if (password !== confirmPassword) return { error: "Passwords don't match." };
 
   const invalidTokenError = { error: "This reset link is invalid or has expired. Request a new one." };
@@ -122,6 +143,9 @@ export async function resetPassword(_prev: ResetPasswordState, formData: FormDat
 
     await updateAccountPasswordData(accountId, await hashPassword(password));
     await markPasswordResetTokenUsed(token);
+    // A reset is the "I may be compromised" path — drop every existing session so an
+    // attacker holding one can't outlive the password that let them in.
+    await destroyAllSessionsForAccount(accountId);
     return { done: true, success: "Password updated. You can now sign in." };
   } catch (err) {
     console.error("[resetPassword] failed:", err);
@@ -179,13 +203,7 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
 
   const id = await insertApplication(application);
 
-  const store = await cookies();
-  store.set(APPLICATION_COOKIE, id, {
-    maxAge: APPLICATION_MAX_AGE,
-    path: "/",
-    httpOnly: true,
-    sameSite: "lax",
-  });
+  await setApplicationCookie(id, APPLICATION_MAX_AGE);
   redirect("/apply/pending");
 }
 
@@ -221,8 +239,8 @@ export async function activateAccount() {
   await updateApplicationStatus(application.id, "active");
 
   const token = await createSession(id);
+  await setSessionCookie(token);
   const store = await cookies();
-  store.set(SESSION_COOKIE, token, { maxAge: SESSION_MAX_AGE, path: "/", httpOnly: true, sameSite: "lax" });
   store.delete(APPLICATION_COOKIE);
   redirect("/dashboard");
 }
@@ -360,10 +378,16 @@ export async function updateAccountPassword(_prev: FormState, formData: FormData
   const confirmPassword = String(formData.get("confirmPassword") ?? "");
 
   if (!(await verifyPassword(currentPassword, account.password))) return { error: "Current password is incorrect." };
-  if (newPassword.length < 6) return { error: "New password must be at least 6 characters." };
+  if (newPassword.length < MIN_PASSWORD_LENGTH) {
+    return { error: `New password must be at least ${MIN_PASSWORD_LENGTH} characters.` };
+  }
   if (newPassword !== confirmPassword) return { error: "New password and confirmation don't match." };
 
   await updateAccountPasswordData(account.id, await hashPassword(newPassword));
+  // Revoke other sessions, then re-issue one for this device so the user isn't signed out
+  // of the tab they just changed their password in.
+  await destroyAllSessionsForAccount(account.id);
+  await setSessionCookie(await createSession(account.id));
   revalidatePath("/dashboard/account");
   return { success: "Password updated." };
 }

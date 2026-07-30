@@ -607,7 +607,11 @@ export async function createProductAction(_prev: FormState, formData: FormData):
       gender: String(formData.get("gender") ?? "unisex") as GeneralInput["gender"],
       availability: "available",
       tagline: String(formData.get("tagline") ?? "").trim(),
-      description: String(formData.get("description") ?? "").trim(),
+      // Sanitized here, exactly as in `updateGeneralAction` — the product page renders
+      // this field with `dangerouslySetInnerHTML`, and a Server Action accepts arbitrary
+      // FormData regardless of what the form UI renders, so the write path is the only
+      // place the tag allowlist can actually be enforced.
+      description: sanitizeProductDescription(String(formData.get("description") ?? "").trim()),
       basePrice,
       msrp: Number(formData.get("msrp")) || basePrice * 2,
       costPrice: Number(formData.get("costPrice")) || 0,

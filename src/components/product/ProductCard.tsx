@@ -32,12 +32,17 @@ export function ProductCard({
   favorited,
   inventory,
   images = [],
+  priority = false,
 }: {
   style: Style;
   totalOnHand?: number;
   priceMultiplier?: number;
   /** Omit to hide the favorite toggle entirely (e.g. logged-out contexts). */
   favorited?: boolean;
+  /** Set on the above-the-fold cards so next/image preloads them instead of lazy-loading.
+   * The catalogue's first row is the Largest Contentful Paint element, and lazy-loading it
+   * delays LCP by a round trip. */
+  priority?: boolean;
   /** Per-colorway/box stock. Omit to hide Quick Add (e.g. marketing surfaces with no cart). */
   inventory?: StyleInventory;
   /** Real per-colorway tagged photos. A colorway with none just keeps showing the
@@ -66,6 +71,7 @@ export function ProductCard({
             styleNumber={style.styleNumber}
             imageUrl={imageUrl}
             alt={style.name}
+            priority={priority}
             className={cn("aspect-[4/5] w-full transition-transform duration-500 ease-out group-hover:scale-[1.02]", soldOut && "grayscale")}
           />
         </Link>

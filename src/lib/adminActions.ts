@@ -5,7 +5,6 @@ import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
 import { getApplicationById, updateApplicationStatus } from "@/lib/data/applications";
 import { updateAvailableBoxTypes } from "@/lib/data/styles";
-import { setInventoryLevel } from "@/lib/data/inventory";
 import {
   updateAccountPriceMultiplier,
   updateAccountCreditTerms,
@@ -218,21 +217,11 @@ export async function updateAvailableBoxTypesAction(formData: FormData) {
   if (!styleId) return;
   const selected = ALL_BOX_TYPES.filter((id) => formData.get(id) === "on");
   await updateAvailableBoxTypes(styleId, selected.length > 0 ? selected : ALL_BOX_TYPES);
-  revalidatePath(`/admin/styles/${styleId}`);
-  revalidatePath("/catalogue");
-  revalidatePath("/quick-order");
-  revalidatePath("/product/[slug]", "page");
-}
-
-/** Bound to `.bind(null, styleId)` — a <form action> per colorway/box-type stock cell. */
-export async function updateInventoryLevelAction(styleId: string, formData: FormData) {
-  await requireAdmin();
-  const colorwayId = String(formData.get("colorwayId") ?? "");
-  const boxTypeId = String(formData.get("boxTypeId") ?? "") as BoxTypeId;
-  const onHand = Number(formData.get("onHand") ?? 0);
-  if (!colorwayId || !boxTypeId || !Number.isFinite(onHand)) return;
-  await setInventoryLevel(styleId, colorwayId, boxTypeId, Math.round(onHand));
-  revalidatePath(`/admin/styles/${styleId}`);
+  // The form lives in the Products editor's Inventory tab, so revalidate that route —
+  // this previously pointed at `/admin/styles/:id`, which is now only a redirect stub, so
+  // the page the admin was actually looking at kept serving stale box types after a save.
+  revalidatePath("/admin/products");
+  revalidatePath(`/admin/products/${styleId}`);
   revalidatePath("/catalogue");
   revalidatePath("/quick-order");
   revalidatePath("/product/[slug]", "page");

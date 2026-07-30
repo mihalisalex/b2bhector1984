@@ -2,7 +2,6 @@
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { XMLParser } from "fast-xml-parser";
 import { parseCsv, rowsToObjects } from "@/lib/csv";
 import { validateImportRowsAction, importProductRowsAction } from "@/lib/productActions";
 import type { ImportRow, ImportRowPreview, ImportRowResult } from "@/lib/data/productImport";
@@ -47,6 +46,9 @@ async function parseFile(file: File): Promise<Record<string, string>[]> {
     return Array.isArray(data) ? data : [data];
   }
   if (file.name.endsWith(".xml")) {
+    // Loaded on demand: fast-xml-parser is ~67KB of the client bundle and CSV/JSON are
+    // the common import formats, so it shouldn't be downloaded until an XML file is picked.
+    const { XMLParser } = await import("fast-xml-parser");
     const parser = new XMLParser({ ignoreAttributes: false });
     const data = parser.parse(text);
     const root = data.products?.product ?? data.rows?.row ?? data.root?.row ?? Object.values(data)[0];
