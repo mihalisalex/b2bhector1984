@@ -67,6 +67,27 @@ diffs; this file is the narrative index.
 
 ## Completed
 
+- **2026-07-30** — **Product page: buy-box redesign + two real defects you reported.**
+  - **Mobile colorway/photo disconnect (real defect).** The swatches lived inside the buy
+    box, which on a phone sits a full screen below the gallery — so tapping a colour
+    changed a photo the buyer couldn't see. Extracted `ColorwayPicker` and render it in
+    *two* places off the same `ColorwaySelectionProvider`: directly under the gallery on
+    mobile, inside the buy box on desktop (where the gallery is already adjacent). Verified
+    live at 375px: tapping Merlot visibly swapped the photo immediately above the swatch,
+    updated the name label, and updated the sticky bar. Swatches also grew to 48px targets
+    with a clearer selected ring, and out-of-stock colours now get a diagonal strike rather
+    than just low opacity.
+  - **Asymmetric stepper (real defect).** The `−` was a Unicode minus (U+2212) and the `+`
+    an ASCII plus — different glyph widths and weights in the body face, which is why one
+    looked small and the other large. Both are now SVG rects on an identical 16×16 grid.
+    Verified numerically: both buttons 56×56, both glyphs 14×14, exactly equal.
+  - **Buy box modernised**: price is now the visual anchor (34px mono, generous air) instead
+    of a grey band; box sizes became solid filled tiles showing the pair count large; the
+    stepper is full-width at 56px tall; the CTA got wider tracking and a press state; labels
+    moved to a consistent 11px/0.14em uppercase scale; dividers are backgrounds not borders
+    (the unlayered `* { border-color }` rule in globals.css makes border colours
+    untunable). Title scaled up to 2.25/2.75rem with tighter leading. One `Stepper`
+    component now serves both the panel and the mobile bar instead of two copies.
 - **2026-07-30** — **Catalogue "Show only" filters + actionable empty state.** Three new
   filters backed by real fields rather than curated lists: **In stock now** (any
   colorway/box with stock), **On sale** (`isOnSale`, i.e. an active scheduled sale price),

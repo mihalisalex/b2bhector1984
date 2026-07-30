@@ -13,6 +13,7 @@ import { StylePlate } from "@/components/product/StylePlate";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductDetails } from "@/components/product/ProductDetails";
+import { ColorwayPicker } from "@/components/product/ColorwayPicker";
 import { PrimaryPurchasePanel } from "@/components/product/PrimaryPurchasePanel";
 import { TrackRecentlyViewed } from "@/components/product/TrackRecentlyViewed";
 import { RecentlyViewedStrip } from "@/components/product/RecentlyViewedStrip";
@@ -78,23 +79,29 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 className="aspect-[4/3] w-full"
               />
             )}
+
+            {/* Mobile: the swatches belong next to the photo they change. On desktop the
+                buy box is already beside the gallery, so it hosts them there instead. */}
+            <ColorwayPicker style={style} inventory={inventory} className="mt-5 lg:hidden" />
           </div>
 
           <div>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
               <AvailabilityBadge availability={style.availability} shipWindow={style.shipWindow} />
-              <span className="font-mono-tab text-xs uppercase tracking-wide text-ink-soft">{style.styleNumber}</span>
-              <span className="text-xs uppercase tracking-wide text-ink-soft">
+              <span className="font-mono-tab text-[11px] uppercase tracking-[0.14em] text-ink-soft">
+                {style.styleNumber}
+              </span>
+              <span className="text-[11px] uppercase tracking-[0.14em] text-ink-soft">
                 {CATEGORY_LABEL[style.category]} · {GENDER_LABEL[style.gender]}
               </span>
             </div>
 
-            <h1 className="font-display mt-3 text-3xl font-bold uppercase tracking-tight text-ink sm:text-4xl">
+            <h1 className="font-display mt-4 text-[2.25rem] font-bold uppercase leading-[0.95] tracking-[-0.02em] text-ink sm:text-[2.75rem]">
               {style.name}
             </h1>
-            <p className="mt-2 max-w-xl text-base text-ink-soft">{style.tagline}</p>
+            <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-ink-soft">{style.tagline}</p>
 
-            <div className="mt-5">
+            <div className="mt-6">
               <PrimaryPurchasePanel
                 style={style}
                 inventory={inventory}

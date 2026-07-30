@@ -6,6 +6,7 @@ import { useColorwaySelection } from "@/lib/colorway-selection-context";
 import { pickDefaultBoxType } from "@/lib/productSelectionDefaults";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { formatEUR, getUnitPrice, isOnSale, MIN_ORDER_PAIRS } from "@/lib/pricing";
+import { ColorwayPicker } from "@/components/product/ColorwayPicker";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
 import { ShareButton } from "@/components/product/ShareButton";
 import type { BoxTypeId, Style } from "@/lib/types";
@@ -26,7 +27,7 @@ export function PrimaryPurchasePanel({
   const { addLines, lines, itemCount } = useCart();
   const boxTypes = getAvailableBoxTypes(style);
 
-  const { colorwayId, setColorwayId } = useColorwaySelection();
+  const { colorwayId } = useColorwaySelection();
   const [boxTypeId, setBoxTypeId] = useState<BoxTypeId>(() => pickDefaultBoxType(style, inventory, colorwayId));
   const [addQty, setAddQty] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
@@ -94,209 +95,258 @@ export function PrimaryPurchasePanel({
   return (
     <>
       <div className="lg:sticky lg:top-[calc(var(--shell-header-h)+1.5rem)] border border-stone-300 bg-white">
-        <div className="flex items-baseline justify-between gap-3 border-b border-stone-300 bg-stone-100 px-4 py-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-mono-tab text-[11px] uppercase tracking-wide text-ink-soft">Wholesale price</span>
-              {onSale && (
-                <span className="bg-ember px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">Sale</span>
-              )}
-            </div>
-            <p className="flex items-baseline gap-2">
-              <span className="font-mono-tab text-2xl font-bold tabular-nums text-ink">{formatEUR(unitPrice)}</span>
-              <span className="text-xs font-normal text-ink-soft">/ pair</span>
-              {onSale && <span className="font-mono-tab text-sm text-ink-soft line-through">{formatEUR(listPrice)}</span>}
-            </p>
+        {/* Price — the anchor of the panel, so it gets the largest type and the most air. */}
+        <div className="px-5 pt-5 sm:px-6 sm:pt-6">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-soft">
+              Wholesale
+            </span>
+            {onSale && (
+              <span className="bg-ember px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                Sale
+              </span>
+            )}
           </div>
-          <p className="max-w-[42%] text-right text-[11px] leading-snug text-ink-soft">
-            Prepay for 10% off, net-30 for 5% off — set at checkout.
+          <div className="mt-1.5 flex items-baseline gap-2.5">
+            <span className="font-mono-tab text-[2.125rem] font-bold leading-none tabular-nums text-ink">
+              {formatEUR(unitPrice)}
+            </span>
+            <span className="text-xs text-ink-soft">per pair</span>
+            {onSale && (
+              <span className="font-mono-tab text-sm text-ink-soft line-through">{formatEUR(listPrice)}</span>
+            )}
+          </div>
+          <p className="mt-2 text-[11px] leading-relaxed text-ink-soft">
+            Prepay 10% off · Net 30 5% off · Net 60 at list — chosen at checkout
           </p>
         </div>
 
-        <div className="space-y-4 p-4">
-          {/* Colorway selector */}
-          {style.colorways.length > 1 && (
-            <div>
-              <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-soft">
-                Colorway — <span className="text-ink">{selectedColorway.name}</span>
-              </p>
-              <div className="flex flex-wrap gap-3">
-                {style.colorways.map((c) => {
-                  const anyStock = Object.values(inventory[c.id] ?? {}).some((n) => (n ?? 0) > 0);
-                  const selected = c.id === colorwayId;
-                  return (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => setColorwayId(c.id)}
-                      title={c.name}
-                      aria-label={c.name}
-                      aria-pressed={selected}
-                      className="group flex w-14 flex-col items-center gap-1.5"
-                    >
-                      <span
-                        className={cn(
-                          "block h-11 w-11 overflow-hidden rounded-full ring-offset-2 transition-all",
-                          selected ? "ring-2 ring-ink" : "ring-1 ring-stone-300 group-hover:ring-cinder-300",
-                          !anyStock && "opacity-40",
-                        )}
-                      >
-                        <span className="flex h-full w-full">
-                          <span className="h-full w-1/2" style={{ background: c.swatch[0] }} />
-                          <span className="h-full w-1/2" style={{ background: c.swatch[1] ?? c.swatch[0] }} />
-                        </span>
-                      </span>
-                      <span className={cn("truncate text-[10px] leading-tight", selected ? "font-semibold text-ink" : "text-ink-soft")}>
-                        {c.name}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+        <Divider className="mt-5" />
 
-          {/* Box type selector */}
+        <div className="space-y-5 px-5 py-5 sm:px-6">
+          {/* Desktop only: on mobile this lives directly under the gallery, where the
+              buyer can actually see the photo change. */}
+          <ColorwayPicker style={style} inventory={inventory} className="hidden lg:block" />
+
           <div>
-            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Box size</p>
+            <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">
+              Box size
+            </p>
             <div className={cn("grid gap-2", boxTypes.length === 1 ? "grid-cols-1" : boxTypes.length === 2 ? "grid-cols-2" : "grid-cols-3")}>
               {boxTypes.map((b) => {
                 const stock = inventory[colorwayId]?.[b.id] ?? 0;
+                const active = b.id === boxTypeId;
                 return (
                   <button
                     key={b.id}
                     type="button"
                     onClick={() => setBoxTypeId(b.id)}
-                    aria-pressed={b.id === boxTypeId}
+                    aria-pressed={active}
                     className={cn(
-                      "flex flex-col items-center gap-0.5 border px-2 py-2.5 text-center transition-colors",
-                      b.id === boxTypeId ? "border-ink bg-signal-100/40" : "border-stone-300 hover:border-cinder-300",
-                      stock === 0 && "opacity-50",
+                      "flex flex-col items-center gap-0.5 py-3 text-center transition-colors duration-150",
+                      active ? "bg-ink text-white" : "bg-stone-100 text-ink-soft hover:bg-stone-200",
+                      stock === 0 && "opacity-45",
                     )}
                   >
-                    <span className="text-xs font-semibold uppercase tracking-wide text-ink">{b.label}</span>
-                    <span className="font-mono-tab text-[10px] text-ink-soft">{b.totalPairs} pairs</span>
+                    <span className="font-mono-tab text-base font-bold leading-none tabular-nums">
+                      {b.totalPairs}
+                    </span>
+                    <span className="text-[10px] uppercase tracking-[0.1em]">pairs</span>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Stock line */}
-          <p className={cn("text-xs font-medium", outOfStock ? "text-ember" : lowStock ? "text-ember" : "text-positive")}>
-            {outOfStock ? "Out of stock in this combination" : lowStock ? `Only ${onHand} box${onHand === 1 ? "" : "es"} left` : `${onHand} boxes available`}
-            {existingQty > 0 && <span className="ml-1.5 text-ink-soft">· {existingQty} already in cart</span>}
-          </p>
-
-          {/* Quantity stepper */}
-          <div>
-            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Boxes to add</p>
-            <div className="flex items-center border border-stone-300">
-              <button
-                type="button"
-                onClick={() => step(-1)}
-                disabled={addQty <= 1}
-                aria-label="Decrease quantity"
-                className="flex h-12 w-12 items-center justify-center text-lg text-ink hover:bg-stone-100 disabled:opacity-30"
-              >
-                −
-              </button>
-              <input
-                type="number"
-                inputMode="numeric"
-                min={1}
-                max={Math.max(1, remaining)}
-                value={addQty}
-                disabled={outOfStock}
-                onChange={(e) => setAddQty(Math.min(Math.max(1, remaining), Math.max(1, Math.floor(Number(e.target.value)) || 1)))}
-                onFocus={(e) => e.target.select()}
-                aria-label="Quantity of boxes"
-                className="font-mono-tab h-12 w-16 border-x border-stone-300 bg-transparent text-center text-lg font-semibold tabular-nums text-ink outline-none disabled:text-ink-soft"
-              />
-              <button
-                type="button"
-                onClick={() => step(1)}
-                disabled={addQty >= remaining}
-                aria-label="Increase quantity"
-                className="flex h-12 w-12 items-center justify-center text-lg text-ink hover:bg-stone-100 disabled:opacity-30"
-              >
-                +
-              </button>
-            </div>
+          <div className="flex items-center justify-between gap-3">
+            <p className="mb-0 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">
+              Boxes
+            </p>
+            <p className={cn("text-xs font-medium", outOfStock || lowStock ? "text-ember" : "text-ink-soft")}>
+              {outOfStock
+                ? "Out of stock in this combination"
+                : lowStock
+                  ? `Only ${onHand} left`
+                  : `${onHand} in stock`}
+              {existingQty > 0 && <span className="text-ink-soft"> · {existingQty} in cart</span>}
+            </p>
           </div>
 
-          {/* Subtotal + CTA */}
-          <div ref={ctaRef} className="border-t border-stone-200 pt-4">
-            <div className="mb-3 flex items-baseline justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">
-                Subtotal · {addQty * pairsPerBox} pairs
+          <Stepper
+            qty={addQty}
+            max={remaining}
+            disabled={outOfStock}
+            onStep={step}
+            onSet={(n) => setAddQty(n)}
+          />
+
+          <div ref={ctaRef}>
+            <div className="flex items-baseline justify-between">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">
+                {addQty * pairsPerBox} pairs
               </span>
-              <span className="font-mono-tab text-xl font-bold text-ink">{formatEUR(subtotal)}</span>
+              <span className="font-mono-tab text-2xl font-bold tabular-nums text-ink">{formatEUR(subtotal)}</span>
             </div>
+
             {!outOfStock && (
-              <p className={cn("mb-3 text-[11px] leading-snug", pairsShort > 0 ? "text-ink-soft" : "text-positive")}>
+              <p className={cn("mt-2 text-[11px] leading-snug", pairsShort > 0 ? "text-ink-soft" : "text-positive")}>
                 {pairsShort > 0 ? (
                   <>
                     Takes your order to <span className="font-semibold text-ink">{pairsAfterAdd} pairs</span> —{" "}
-                    {pairsShort} short of the {MIN_ORDER_PAIRS}-pair minimum, which you can mix across any styles.
+                    {pairsShort} short of the {MIN_ORDER_PAIRS}-pair minimum, mixable across any styles.
                   </>
                 ) : (
-                  <>Meets the {MIN_ORDER_PAIRS}-pair order minimum ({pairsAfterAdd} pairs in cart after adding).</>
+                  <>Meets the {MIN_ORDER_PAIRS}-pair order minimum ({pairsAfterAdd} pairs after adding).</>
                 )}
               </p>
             )}
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={handleAddToCart}
-                disabled={remaining <= 0}
-                className="flex-1 bg-ink px-6 py-4 text-sm font-semibold uppercase tracking-wide text-white shadow-[0_10px_24px_rgba(26,29,34,0.18)] transition-colors hover:bg-ink/85 disabled:cursor-not-allowed disabled:bg-cinder-300 disabled:text-white/70 disabled:shadow-none"
-              >
-                {outOfStock ? "Out of Stock" : justAdded ? "Added ✓" : "Add to Cart"}
-              </button>
+
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={remaining <= 0}
+              className="mt-4 w-full bg-ink px-6 py-4 text-sm font-semibold uppercase tracking-[0.1em] text-white transition-all duration-150 hover:bg-ink/85 active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-cinder-300 disabled:text-white/70"
+            >
+              {outOfStock ? "Out of stock" : justAdded ? "Added to cart ✓" : "Add to cart"}
+            </button>
+
+            <div className="mt-2.5 flex items-center gap-2">
               <FavoriteButton styleId={style.id} initialFavorited={initialFavorited} />
               <ShareButton title={style.name} />
             </div>
+
             {justAdded && (
-              <p className="mt-2 text-xs font-medium text-positive">
-                Added to cart. <a href="/cart" className="underline hover:text-ink">View cart</a>
+              <p className="mt-2.5 text-xs font-medium text-positive">
+                Added.{" "}
+                <a href="/cart" className="underline hover:text-ink">
+                  View cart
+                </a>
               </p>
             )}
           </div>
         </div>
       </div>
 
-      {/* Mobile sticky bottom bar — only rendered once the main CTA has scrolled out of view */}
+      {/* Mobile sticky bar — appears once the in-page CTA scrolls away. */}
       <div
         className={cn(
-          "fixed inset-x-0 bottom-0 z-30 border-t border-stone-300 bg-white/97 px-4 py-3 backdrop-blur transition-transform duration-200 lg:hidden",
+          "fixed inset-x-0 bottom-0 z-30 bg-white/95 px-4 pb-3 pt-2.5 backdrop-blur-md transition-transform duration-200 lg:hidden",
           ctaVisible ? "translate-y-full" : "translate-y-0",
         )}
-        style={{ boxShadow: "0 -8px 24px rgba(26,29,34,0.12)" }}
+        style={{ boxShadow: "0 -10px 30px rgba(26,29,34,0.14)" }}
         aria-hidden={ctaVisible}
       >
         <div className="flex items-center gap-3">
-          <div className="flex items-center border border-stone-300">
-            <button type="button" onClick={() => step(-1)} disabled={addQty <= 1} aria-label="Decrease quantity" className="flex h-11 w-10 items-center justify-center text-ink disabled:opacity-30">−</button>
-            <span className="font-mono-tab flex h-11 w-9 items-center justify-center text-base font-semibold text-ink">{addQty}</span>
-            <button type="button" onClick={() => step(1)} disabled={addQty >= remaining} aria-label="Increase quantity" className="flex h-11 w-10 items-center justify-center text-ink disabled:opacity-30">+</button>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-mono-tab truncate text-base font-bold text-ink">{formatEUR(subtotal)}</p>
-            <p className="truncate text-[10px] text-ink-soft">{box.label} · {selectedColorway.name}</p>
+          <Stepper qty={addQty} max={remaining} disabled={outOfStock} onStep={step} compact />
+          <div className="min-w-0 flex-1">
+            <p className="font-mono-tab truncate text-base font-bold leading-tight tabular-nums text-ink">
+              {formatEUR(subtotal)}
+            </p>
+            <p className="truncate text-[10px] leading-tight text-ink-soft">
+              {selectedColorway.name} · {box.totalPairs} pairs
+            </p>
           </div>
           <button
             type="button"
             onClick={handleAddToCart}
             disabled={remaining <= 0}
-            className="shrink-0 bg-ink px-5 py-3 text-xs font-semibold uppercase tracking-wide text-white disabled:bg-cinder-300"
+            className="shrink-0 bg-ink px-5 py-3.5 text-xs font-semibold uppercase tracking-[0.1em] text-white transition-transform active:scale-[0.98] disabled:bg-cinder-300"
           >
-            {outOfStock ? "Sold Out" : justAdded ? "Added ✓" : "Add to Cart"}
+            {outOfStock ? "Sold out" : justAdded ? "Added ✓" : "Add"}
           </button>
         </div>
       </div>
       {/* Reserves space so the fixed bar doesn't cover page content/footer on mobile */}
-      {!ctaVisible && <div className="h-[76px] lg:hidden" aria-hidden />}
+      {!ctaVisible && <div className="h-[78px] lg:hidden" aria-hidden />}
     </>
+  );
+}
+
+function Divider({ className }: { className?: string }) {
+  // Background, not a border: globals.css has an unlayered `* { border-color }` rule that
+  // overrides every Tailwind border-color utility, so borders can't be tuned per-surface.
+  return <div className={cn("h-px bg-stone-200", className)} aria-hidden />;
+}
+
+/**
+ * Quantity stepper. Both glyphs are drawn as SVG on an identical 16x16 grid — the previous
+ * version paired a Unicode minus with an ASCII plus, which render at visibly different
+ * weights and sizes in the body face and made the control look broken.
+ */
+function Stepper({
+  qty,
+  max,
+  disabled,
+  onStep,
+  onSet,
+  compact,
+}: {
+  qty: number;
+  max: number;
+  disabled?: boolean;
+  onStep: (delta: number) => void;
+  onSet?: (n: number) => void;
+  compact?: boolean;
+}) {
+  const size = compact ? "h-11 w-10" : "h-14 w-14";
+  return (
+    <div className={cn("flex items-center bg-stone-100", compact ? "shrink-0" : "w-full")}>
+      <button
+        type="button"
+        onClick={() => onStep(-1)}
+        disabled={disabled || qty <= 1}
+        aria-label="Decrease quantity"
+        className={cn(
+          "flex shrink-0 items-center justify-center text-ink transition-colors hover:bg-stone-200 disabled:opacity-30 disabled:hover:bg-transparent",
+          size,
+        )}
+      >
+        <StepIcon kind="minus" />
+      </button>
+      {onSet && !compact ? (
+        <input
+          type="number"
+          inputMode="numeric"
+          min={1}
+          max={Math.max(1, max)}
+          value={qty}
+          disabled={disabled}
+          onChange={(e) => onSet(Math.min(Math.max(1, max), Math.max(1, Math.floor(Number(e.target.value)) || 1)))}
+          onFocus={(e) => e.target.select()}
+          aria-label="Number of boxes"
+          className="font-mono-tab h-14 flex-1 bg-transparent text-center text-xl font-bold tabular-nums text-ink outline-none disabled:text-ink-soft"
+        />
+      ) : (
+        <span
+          className={cn(
+            "font-mono-tab flex items-center justify-center text-base font-bold tabular-nums text-ink",
+            compact ? "h-11 w-9" : "h-14 flex-1 text-xl",
+          )}
+        >
+          {qty}
+        </span>
+      )}
+      <button
+        type="button"
+        onClick={() => onStep(1)}
+        disabled={disabled || qty >= max}
+        aria-label="Increase quantity"
+        className={cn(
+          "flex shrink-0 items-center justify-center text-ink transition-colors hover:bg-stone-200 disabled:opacity-30 disabled:hover:bg-transparent",
+          size,
+        )}
+      >
+        <StepIcon kind="plus" />
+      </button>
+    </div>
+  );
+}
+
+function StepIcon({ kind }: { kind: "minus" | "plus" }) {
+  return (
+    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="currentColor" aria-hidden>
+      <rect x="1.5" y="7.25" width="13" height="1.5" />
+      {kind === "plus" && <rect x="7.25" y="1.5" width="1.5" height="13" />}
+    </svg>
   );
 }
