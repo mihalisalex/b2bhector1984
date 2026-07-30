@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { COLOR_FAMILIES, PRICE_BANDS } from "@/lib/catalogFilters";
+import { COLOR_FAMILIES, FLAG_OPTIONS, PRICE_BANDS } from "@/lib/catalogFilters";
 import { SORT_OPTIONS } from "@/lib/catalogSort";
 import { cn } from "@/lib/cn";
 
@@ -132,7 +132,8 @@ export function CatalogFilters({
     searchParams.getAll("gender").length +
     searchParams.getAll("availability").length +
     searchParams.getAll("color").length +
-    searchParams.getAll("price").length;
+    searchParams.getAll("price").length +
+    searchParams.getAll("flag").length;
 
   const view = searchParams.get("view") === "list" ? "list" : "grid";
   const sort = searchParams.get("sort") ?? "newest";
@@ -193,6 +194,17 @@ export function CatalogFilters({
       </div>
 
       <div className={cn("mt-4 flex-col gap-6 lg:mt-6 lg:flex", open ? "flex" : "hidden")}>
+        <FilterGroup title="Show only">
+          {FLAG_OPTIONS.map((opt) => (
+            <Checkbox
+              key={opt.value}
+              label={opt.label}
+              checked={isChecked("flag", opt.value)}
+              onChange={() => toggle("flag", opt.value)}
+            />
+          ))}
+        </FilterGroup>
+
         {seasonOptions.length > 0 && (
           <FilterGroup title="Season">
             {seasonOptions.map((opt) => (

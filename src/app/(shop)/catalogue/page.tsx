@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getAllStyles, searchStyleIds } from "@/lib/data/styles";
 import { filterStyles, parseFilters } from "@/lib/catalogFilters";
 import { isSortKey, pairsSoldByStyle, sortStyles } from "@/lib/catalogSort";
-import { getInventoryForStyles, type StyleInventory } from "@/lib/data/inventory";
+import { getInventoryForStyles, totalOnHandForStyle } from "@/lib/data/inventory";
 import { getFavoriteStyleIds } from "@/lib/data/favorites";
 import { getCurrentAccount } from "@/lib/session";
 import { supabaseAdmin } from "@/lib/supabase/server";
@@ -13,14 +13,6 @@ import { BoxPolicyBanner } from "@/components/catalog/BoxPolicyBanner";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductListRow } from "@/components/product/ProductListRow";
 
-function totalOnHand(styleId: string, inventory: Record<string, StyleInventory>): number {
-  const byColorway = inventory[styleId] ?? {};
-  return Object.values(byColorway).reduce(
-    (sum, byBox) => sum + Object.values(byBox).reduce((s: number, n) => s + (n ?? 0), 0),
-    0,
-  );
-}
-
 export const metadata = { title: "Catalog", robots: { index: false, follow: false } };
 
 export default async function CatalogPage({
@@ -29,23 +21,31 @@ export default async function CatalogPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const sp = await searchParams;
-  const [styles, seasonSettings] = await Promise.all([getAllStyles(), getSeasonSettings()]);
-  const seasonOptions = toSeasonOptions(seasonSettings);
   const filters = parseFilters(sp);
-  const matchedIds = filters.q ? await searchStyleIds(filters.q) : undefined;
-  const filtered = filterStyles(styles, filters, matchedIds);
-
   const sortParam = typeof sp.sort === "string" ? sp.sort : "newest";
   const sort = isSortKey(sortParam) ? sortParam : "newest";
   const view = sp.view === "list" ? "list" : "grid";
 
-  const [inventory, account, { data: orderLineRows }] = await Promise.all([
-    getInventoryForStyles(filtered.map((s) => s.id)),
+  // Everything here is independent of the filter result, so it all goes out at once.
+  // Inventory covers the *whole* catalogue rather than the filtered subset: the
+  // "in stock now" filter has to be evaluated before we know what's left, and Quick Add
+  // needs per-colorway stock for whatever survives anyway.
+  const [styles, seasonSettings, account, { data: orderLineRows }] = await Promise.all([
+    getAllStyles(),
+    getSeasonSettings(),
     getCurrentAccount(),
     sort === "best_selling"
       ? supabaseAdmin.from("order_lines").select("style_id, box_type_id, qty")
       : Promise.resolve({ data: null }),
   ]);
+  const seasonOptions = toSeasonOptions(seasonSettings);
+  const [matchedIds, inventory] = await Promise.all([
+    filters.q ? searchStyleIds(filters.q) : Promise.resolve(undefined),
+    getInventoryForStyles(styles.map((s) => s.id)),
+  ]);
+  const inStockIds = new Set(styles.filter((s) => totalOnHandForStyle(s.id, inventory) > 0).map((s) => s.id));
+  const filtered = filterStyles(styles, filters, matchedIds, inStockIds);
+
   const favoriteIds = account ? await getFavoriteStyleIds(account.id) : new Set<string>();
   const priceMultiplier = account?.priceMultiplier ?? 1;
   const results = sortStyles(filtered, sort, orderLineRows ? pairsSoldByStyle(orderLineRows) : undefined);
@@ -85,8 +85,24 @@ export default async function CatalogPage({
         <div className="border border-dashed border-stone-300 bg-stone-100 px-6 py-20 text-center">
           <p className="font-display text-lg font-bold uppercase text-ink">No styles match this filter</p>
           <p className="mt-2 text-sm text-ink-soft">
-            Try clearing a filter or searching a different style name or number.
+            {`${styles.length} styles are available — the current combination just doesn’t overlap.`}
           </p>
+          {/* A dead-end empty state is the one place a buyer is most likely to give up, so it
+              carries the recovery action rather than only describing it. */}
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/catalogue"
+              className="border border-ink bg-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85"
+            >
+              Clear all filters
+            </Link>
+            <Link
+              href="/quick-order"
+              className="border border-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-white"
+            >
+              Browse full linesheet
+            </Link>
+          </div>
         </div>
       ) : view === "list" ? (
         <div className="flex flex-col gap-3">
@@ -94,7 +110,7 @@ export default async function CatalogPage({
             <ProductListRow
               key={style.id}
               style={style}
-              totalOnHand={totalOnHand(style.id, inventory)}
+              totalOnHand={totalOnHandForStyle(style.id, inventory)}
               priceMultiplier={priceMultiplier}
               favorited={account ? favoriteIds.has(style.id) : undefined}
             />
@@ -106,7 +122,7 @@ export default async function CatalogPage({
             <ProductCard
               key={style.id}
               style={style}
-              totalOnHand={totalOnHand(style.id, inventory)}
+              totalOnHand={totalOnHandForStyle(style.id, inventory)}
               priceMultiplier={priceMultiplier}
               favorited={account ? favoriteIds.has(style.id) : undefined}
               inventory={account ? inventory[style.id] : undefined}

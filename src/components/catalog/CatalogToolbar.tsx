@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { COLOR_FAMILIES, PRICE_BANDS } from "@/lib/catalogFilters";
+import { COLOR_FAMILIES, FLAG_OPTIONS, PRICE_BANDS } from "@/lib/catalogFilters";
 import { SORT_OPTIONS } from "@/lib/catalogSort";
 import { cn } from "@/lib/cn";
 
@@ -136,7 +136,7 @@ export function CatalogFiltersPanel({
 
   const clearAll = () => {
     const params = new URLSearchParams(searchParams.toString());
-    ["category", "season", "gender", "availability", "color", "price"].forEach((key) => params.delete(key));
+    ["category", "season", "gender", "availability", "color", "price", "flag"].forEach((key) => params.delete(key));
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
@@ -152,7 +152,8 @@ export function CatalogFiltersPanel({
     searchParams.getAll("gender").length +
     searchParams.getAll("availability").length +
     searchParams.getAll("color").length +
-    searchParams.getAll("price").length;
+    searchParams.getAll("price").length +
+    searchParams.getAll("flag").length;
 
   return (
     <div className="relative shrink-0" ref={panelRef}>
@@ -170,6 +171,17 @@ export function CatalogFiltersPanel({
 
       {open && (
         <div className="absolute right-0 top-full z-40 mt-2 flex max-h-[70vh] w-72 flex-col gap-5 overflow-y-auto border border-stone-300 bg-white p-4 text-left shadow-lg">
+          <FilterGroup title="Show only">
+            {FLAG_OPTIONS.map((opt) => (
+              <Checkbox
+                key={opt.value}
+                label={opt.label}
+                checked={isChecked("flag", opt.value)}
+                onChange={() => toggle("flag", opt.value)}
+              />
+            ))}
+          </FilterGroup>
+
           {seasonOptions.length > 0 && (
             <FilterGroup title="Season">
               {seasonOptions.map((opt) => (

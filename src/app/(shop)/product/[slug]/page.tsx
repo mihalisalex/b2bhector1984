@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { CATEGORY_LABEL, GENDER_LABEL, getRelatedStyles, getStyleBySlug, getStyleImageUrl } from "@/lib/data/styles";
-import { getInventoryForStyle, getInventoryForStyles, type StyleInventory } from "@/lib/data/inventory";
+import { getInventoryForStyle, getInventoryForStyles, totalOnHandForStyle } from "@/lib/data/inventory";
 import { listImagesForStyle } from "@/lib/data/styleImages";
 import { getCurrentAccount } from "@/lib/session";
 import { recordStyleView } from "@/lib/data/styleAnalytics";
@@ -120,7 +120,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <ProductCard
                 key={r.id}
                 style={r}
-                totalOnHand={totalOnHand(r.id, relatedInventory)}
+                totalOnHand={totalOnHandForStyle(r.id, relatedInventory)}
                 priceMultiplier={priceMultiplier}
               />
             ))}
@@ -165,13 +165,5 @@ function TrustItem({ children }: { children: React.ReactNode }) {
       </span>
       <span>{children}</span>
     </li>
-  );
-}
-
-function totalOnHand(styleId: string, inventory: Record<string, StyleInventory>): number {
-  const byColorway = inventory[styleId] ?? {};
-  return Object.values(byColorway).reduce(
-    (sum, byBox) => sum + Object.values(byBox).reduce((s: number, n) => s + (n ?? 0), 0),
-    0,
   );
 }

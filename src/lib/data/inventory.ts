@@ -194,3 +194,19 @@ export async function decrementInventoryForOrder(lines: StockLine[]): Promise<{ 
   }
   return { ok: true };
 }
+
+/**
+ * Total boxes on hand for one style, across every colorway and box size.
+ * Shared so the catalogue grid, product page and stock filters all agree on what
+ * "has stock" means instead of each re-deriving the same nested reduce.
+ */
+export function totalOnHandForStyle(
+  styleId: string,
+  inventory: Record<string, StyleInventory>,
+): number {
+  const byColorway = inventory[styleId] ?? {};
+  return Object.values(byColorway).reduce(
+    (sum, byBox) => sum + Object.values(byBox ?? {}).reduce((s: number, n) => s + (n ?? 0), 0),
+    0,
+  );
+}

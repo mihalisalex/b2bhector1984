@@ -67,6 +67,26 @@ diffs; this file is the narrative index.
 
 ## Completed
 
+- **2026-07-30** — **Catalogue "Show only" filters + actionable empty state.** Three new
+  filters backed by real fields rather than curated lists: **In stock now** (any
+  colorway/box with stock), **On sale** (`isOnSale`, i.e. an active scheduled sale price),
+  **Featured** (`styles.featured`). Wired into both `/catalogue` and `/quick-order` so the
+  two surfaces agree.
+  - The in-stock filter needed inventory *before* filtering, but both pages fetched it
+    afterwards keyed off the filtered ids. Restructured both to load whole-catalogue
+    inventory (16 styles — negligible) in parallel with everything else, which also
+    **removed a sequential await** on each page: `styles → filter → inventory` became one
+    parallel batch, and Quick Add gets its per-colorway stock from the same fetch.
+    `filterStyles` takes `inStockIds` as an optional 4th arg, so any caller without
+    inventory loaded simply no-ops that one flag instead of filtering everything out.
+  - **Empty state is no longer a dead end** — it was the single most likely place to give
+    up, describing the recovery ("try clearing a filter") without offering it. Now carries
+    real actions: Clear all filters, Browse full linesheet. Verified live: `?flag=featured`
+    → 0 results → Clear all filters → back to 16.
+  - **Consolidated duplicate logic**: the nested "total boxes on hand for a style" reduce
+    was copy-pasted in three places (catalogue page, product page, and would have been a
+    fourth here). Now one exported `totalOnHandForStyle` in `lib/data/inventory.ts`, so
+    every surface agrees on what "has stock" means.
 - **2026-07-30** — **Catalogue Quick Add — order without opening a product page.** Wholesale
   buyers build orders across many styles at once; making each one a two-page detour was the
   single biggest source of friction in the catalogue. Cards now carry an inline Quick Add:

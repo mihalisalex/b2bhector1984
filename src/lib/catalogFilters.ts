@@ -1,4 +1,14 @@
+import { isOnSale } from "@/lib/pricing";
 import type { Category, Gender, Season, Style } from "@/lib/types";
+
+/** Quick toggles backed by real fields, not curated lists. */
+export const FLAG_OPTIONS = [
+  { value: "instock", label: "In stock now" },
+  { value: "sale", label: "On sale" },
+  { value: "featured", label: "Featured" },
+] as const;
+
+export type CatalogFlag = (typeof FLAG_OPTIONS)[number]["value"];
 
 export const COLOR_FAMILIES = [
   "Ink", "Cinder", "Bone", "Chalk", "Signal", "Navy", "Red", "Yellow", "Merlot", "Olive", "Ember",
@@ -19,6 +29,7 @@ export interface CatalogFilters {
   availability: ("available" | "prebook")[];
   color: string[];
   price: string[];
+  flag: CatalogFlag[];
 }
 
 export function parseFilters(sp: Record<string, string | string[] | undefined>): CatalogFilters {
@@ -31,6 +42,9 @@ export function parseFilters(sp: Record<string, string | string[] | undefined>):
     availability: list(sp.availability) as ("available" | "prebook")[],
     color: list(sp.color),
     price: list(sp.price),
+    flag: list(sp.flag).filter((v): v is CatalogFlag =>
+      FLAG_OPTIONS.some((o) => o.value === v),
+    ),
   };
 }
 
@@ -38,8 +52,17 @@ export function parseFilters(sp: Record<string, string | string[] | undefined>):
  * `matchedIds`, when provided, is the result of a Postgres full-text search for
  * `filters.q` (see `searchStyleIds` in `src/lib/data/styles.ts`) — it replaces the
  * plain substring name/styleNumber check below with the DB's ranked match set.
+ *
+ * `inStockIds` powers the "in stock now" flag. Stock lives in a separate table, so
+ * callers that haven't loaded inventory simply omit it and that one flag no-ops rather
+ * than silently filtering everything out.
  */
-export function filterStyles(styles: Style[], filters: CatalogFilters, matchedIds?: Set<string>): Style[] {
+export function filterStyles(
+  styles: Style[],
+  filters: CatalogFilters,
+  matchedIds?: Set<string>,
+  inStockIds?: Set<string>,
+): Style[] {
   return styles.filter((s) => {
     if (filters.q) {
       if (matchedIds) {
@@ -66,6 +89,11 @@ export function filterStyles(styles: Style[], filters: CatalogFilters, matchedId
         return band && price >= band.min && price < band.max;
       });
       if (!inBand) return false;
+    }
+    for (const flag of filters.flag) {
+      if (flag === "sale" && !isOnSale(s)) return false;
+      if (flag === "featured" && !s.featured) return false;
+      if (flag === "instock" && inStockIds && !inStockIds.has(s.id)) return false;
     }
     return true;
   });

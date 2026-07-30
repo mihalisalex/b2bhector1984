@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { getAllStyles, searchStyleIds } from "@/lib/data/styles";
 import { filterStyles, parseFilters } from "@/lib/catalogFilters";
 import { isSortKey, sortStyles } from "@/lib/catalogSort";
-import { getInventoryForStyles } from "@/lib/data/inventory";
+import { getInventoryForStyles, totalOnHandForStyle } from "@/lib/data/inventory";
 import { getCurrentAccount } from "@/lib/session";
 import { getSeasonSettings, toSeasonOptions } from "@/lib/data/seasonSettings";
 import { CatalogFilters } from "@/components/catalog/CatalogFilters";
@@ -17,17 +17,24 @@ export default async function QuickOrderPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const sp = await searchParams;
-  const [styles, seasonSettings] = await Promise.all([getAllStyles(), getSeasonSettings()]);
-  const seasonOptions = toSeasonOptions(seasonSettings);
   const filters = parseFilters(sp);
-  const matchedIds = filters.q ? await searchStyleIds(filters.q) : undefined;
   const sortParam = typeof sp.sort === "string" ? sp.sort : "newest";
   const sort = isSortKey(sortParam) ? sortParam : "newest";
-  const results = sortStyles(filterStyles(styles, filters, matchedIds), sort);
-  const [inventory, account] = await Promise.all([
-    getInventoryForStyles(results.map((s) => s.id)),
+
+  const [styles, seasonSettings, account] = await Promise.all([
+    getAllStyles(),
+    getSeasonSettings(),
     getCurrentAccount(),
   ]);
+  const seasonOptions = toSeasonOptions(seasonSettings);
+  // Whole-catalogue inventory (not just the filtered subset) so the "in stock now"
+  // filter can be evaluated before we know what survives — matching /catalogue.
+  const [matchedIds, inventory] = await Promise.all([
+    filters.q ? searchStyleIds(filters.q) : Promise.resolve(undefined),
+    getInventoryForStyles(styles.map((s) => s.id)),
+  ]);
+  const inStockIds = new Set(styles.filter((s) => totalOnHandForStyle(s.id, inventory) > 0).map((s) => s.id));
+  const results = sortStyles(filterStyles(styles, filters, matchedIds, inStockIds), sort);
   const priceMultiplier = account?.priceMultiplier ?? 1;
 
   return (
