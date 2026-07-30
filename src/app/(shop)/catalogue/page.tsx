@@ -114,10 +114,9 @@ export default async function CatalogPage({
         </div>
       ) : (
         // Two big columns at every width, not a responsive 1→2→3 ramp — tall photos that
-        // read as "premium fashion editorial" rather than a dense product grid. Photos run
-        // full-bleed to the column edge; a hairline (divide-x/y) is the only separator
-        // between products, no gap or card border boxing them in.
-        <div className="grid grid-cols-2 divide-x divide-y divide-stone-200">
+        // read as "premium fashion editorial" rather than a dense product grid. Products
+        // are separated by open space, not a line or a card border boxing them in.
+        <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:gap-x-10 sm:gap-y-14">
           {results.map((style) => (
             <ProductCard
               key={style.id}

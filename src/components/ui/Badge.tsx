@@ -15,9 +15,9 @@ export function AvailabilityBadge({ style }: { style: Style }) {
   if (availability === "available") {
     const boxLabel = boxAssortmentLabel(style);
     return (
-      <span className="inline-flex flex-col gap-0.5">
+      <span className="inline-flex flex-col gap-0.5 whitespace-nowrap">
         <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-positive">
-          <span className="h-1.5 w-1.5 rounded-full bg-positive" aria-hidden />
+          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-positive" aria-hidden />
           Available now
         </span>
         {boxLabel && (
@@ -27,8 +27,8 @@ export function AvailabilityBadge({ style }: { style: Style }) {
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-ink-soft">
-      <span className="h-1.5 w-1.5 rounded-full bg-court" aria-hidden />
+    <span className="inline-flex items-center gap-1 whitespace-nowrap text-[10px] font-semibold uppercase tracking-wide text-ink-soft">
+      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-court" aria-hidden />
       Pre-book{shipWindow ? ` — ${shipWindow}` : ""}
     </span>
   );

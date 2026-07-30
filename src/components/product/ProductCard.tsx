@@ -84,19 +84,15 @@ export function ProductCard({
         </div>
       </div>
       <div className="flex flex-1 flex-col gap-2 px-4 pb-4 pt-3">
-        <div className="flex items-center justify-between gap-2">
-          <AvailabilityBadge style={style} />
-          <span className="text-[11px] uppercase tracking-wide text-ink-soft">
-            {CATEGORY_LABEL[style.category]}
-          </span>
-        </div>
+        <AvailabilityBadge style={style} />
         <h3 className="font-display text-base font-bold uppercase leading-tight tracking-tight text-ink">
           <Link href={`/product/${style.slug}`} className="hover:underline">
             {style.name}
           </Link>
         </h3>
-        <p className="text-xs text-ink-soft">
-          <span className="font-mono-tab">{style.styleNumber}</span> · {GENDER_LABEL[style.gender]}
+        <p className="text-xs uppercase tracking-wide text-ink-soft">
+          <span className="font-mono-tab normal-case">{style.styleNumber}</span> · {GENDER_LABEL[style.gender]} ·{" "}
+          {CATEGORY_LABEL[style.category]}
         </p>
 
         <div className="mt-auto border-t border-stone-200 pt-3">
