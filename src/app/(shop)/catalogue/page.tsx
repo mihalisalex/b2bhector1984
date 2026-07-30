@@ -114,20 +114,23 @@ export default async function CatalogPage({
         </div>
       ) : (
         // Two big columns at every width, not a responsive 1→2→3 ramp — tall photos that
-        // read as "premium fashion editorial" rather than a dense product grid. Products
-        // are separated by open space, not a line or a card border boxing them in.
-        <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:gap-x-10 sm:gap-y-14">
-          {results.map((style) => (
-            <ProductCard
-              key={style.id}
-              style={style}
-              totalOnHand={totalOnHandForStyle(style.id, inventory)}
-              priceMultiplier={priceMultiplier}
-              favorited={account ? favoriteIds.has(style.id) : undefined}
-              inventory={account ? inventory[style.id] : undefined}
-              images={imagesByStyle[style.id] ?? []}
-            />
-          ))}
+        // read as "premium fashion editorial" rather than a dense product grid. A hairline
+        // 2px gap is the only separation between products and from the page edges — breaks
+        // out of the page's own horizontal padding (-mx-6/lg:-mx-10) to get there.
+        <div className="-mx-6 lg:-mx-10">
+          <div className="grid grid-cols-2 gap-0.5 px-0.5">
+            {results.map((style) => (
+              <ProductCard
+                key={style.id}
+                style={style}
+                totalOnHand={totalOnHandForStyle(style.id, inventory)}
+                priceMultiplier={priceMultiplier}
+                favorited={account ? favoriteIds.has(style.id) : undefined}
+                inventory={account ? inventory[style.id] : undefined}
+                images={imagesByStyle[style.id] ?? []}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>

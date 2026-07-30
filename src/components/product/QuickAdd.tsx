@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { formatEUR, getUnitPrice } from "@/lib/pricing";
@@ -41,14 +41,17 @@ export function QuickAdd({
   const [qty, setQty] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
 
-  // The card's swatch row can change `colorwayId` out from under this panel —
-  // re-pick a box type that's actually in stock for the newly selected colour.
-  useEffect(() => {
+  // The card's swatch row can change `colorwayId` out from under this panel — re-pick a
+  // box type that's actually in stock for the newly selected colour. Adjusted during
+  // render (React's documented pattern for state that must reset when a prop changes)
+  // rather than in an effect, which would commit the stale box type for one extra frame.
+  const [prevColorwayId, setPrevColorwayId] = useState(colorwayId);
+  if (colorwayId !== prevColorwayId) {
+    setPrevColorwayId(colorwayId);
     setBoxTypeId(pickDefaultBoxType(style, inventory, colorwayId));
     setQty(1);
     setJustAdded(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [colorwayId]);
+  }
 
   const onHand = inventory[colorwayId]?.[boxTypeId] ?? 0;
   const inCart =
