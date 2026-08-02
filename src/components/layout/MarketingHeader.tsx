@@ -4,7 +4,7 @@ import { Logo } from "@/components/layout/Logo";
 import { MainNav } from "@/components/layout/MainNav";
 import { HWatermark } from "@/components/layout/HWatermark";
 import { SearchOverlay } from "@/components/layout/SearchOverlay";
-import { CartBadge } from "@/components/layout/CartBadge";
+import { CartDrawer } from "@/components/layout/CartDrawer";
 import { AccountIcon } from "@/components/layout/icons";
 import { AccountMenu } from "@/components/layout/AccountMenu";
 
@@ -39,7 +39,7 @@ export function MarketingHeader({ account }: { account: Account | null }) {
               <AccountIcon />
             </Link>
           )}
-          {account && <CartBadge />}
+          {account && <CartDrawer />}
         </div>
       </div>
     </header>

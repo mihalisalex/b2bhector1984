@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Account } from "@/lib/types";
 import { Logo } from "@/components/layout/Logo";
 import { MainNav } from "@/components/layout/MainNav";
-import { CartBadge } from "@/components/layout/CartBadge";
+import { CartDrawer } from "@/components/layout/CartDrawer";
 import { HWatermark } from "@/components/layout/HWatermark";
 import { SearchOverlay } from "@/components/layout/SearchOverlay";
 import { AccountMenu } from "@/components/layout/AccountMenu";
@@ -25,7 +25,7 @@ export function ShopHeader({ account }: { account: Account }) {
         <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
           <SearchOverlay />
           <AccountMenu account={account} />
-          <CartBadge />
+          <CartDrawer />
         </div>
       </div>
     </header>
