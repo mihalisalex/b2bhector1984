@@ -10,12 +10,14 @@ import { pageMetadata } from "@/lib/seo";
 
 /** Title/description match the root layout's defaults; declared here so the homepage
  * gets its own canonical and a self-referencing og:url like every other indexed page. */
-export const metadata = pageMetadata({
-  title: "Hector 1984 — Wholesale",
-  description:
-    "Full-grain leather footwear, wholesaled the way serious retailers expect. Apply for a Hector 1984 wholesale account — matrix ordering, terms-based pricing, net terms.",
-  path: "/",
-});
+export function generateMetadata() {
+  return pageMetadata({
+    title: "Hector 1984 — Wholesale",
+    description:
+      "Full-grain leather footwear, wholesaled the way serious retailers expect. Apply for a Hector 1984 wholesale account — matrix ordering, terms-based pricing, net terms.",
+    path: "/",
+  });
+}
 
 const SEASON_CATEGORIES: Record<Season, Category[]> = {
   summer: ["loafers", "wedding", "sneakers", "sandals"],

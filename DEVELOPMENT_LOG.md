@@ -6,6 +6,23 @@ diffs; this file is the narrative index.
 
 ## Pending Actions (need your credentials/approval — everything else proceeds without you)
 
+- **Run `supabase/migrations/0025_seo_platform.sql`** in the Supabase SQL Editor (after
+  0001–0024). Until it runs, the SEO dashboard shows a banner saying so, settings and
+  redirects can't be saved (one clear message, not a 500), and the storefront behaves
+  exactly as it did before — verified live against the unmigrated database. Nothing is
+  broken by waiting.
+- **Decision: should the trade catalogue be publicly indexable?** It ships **off**, which
+  is the correct wholesale default — product and catalogue pages are disallowed in
+  robots.txt, excluded from the sitemap, and marked `noindex`. Turning it on is one
+  checkbox in `/admin/seo/settings` → Indexing, and it changes robots.txt, the sitemap and
+  every product page's robots tag together. **It also means wholesale prices can appear in
+  Google.** No code change needed either way — this is a business call, not an engineering
+  one.
+- **Optional: add a Google Search Console verification token** in `/admin/seo/settings` →
+  Defaults & social. Indexed-page counts, impressions and CTR are *not* shown in the SEO
+  dashboard because they require a Search Console API credential this project doesn't
+  have; the dashboard says so plainly rather than showing a fake zero.
+
 - ~~**15 of your 16 real products were `status = 'archived'`**~~ — **DONE, restored to
   `active` 2026-07-30 at your explicit request**, after being surfaced (not silently
   fixed) while diagnosing the catalogue-crash bug. Verified: queried all 15 by id before
@@ -80,6 +97,69 @@ diffs; this file is the narrative index.
   until then, same as every other transactional email in this app.
 
 ## Completed
+
+- **2026-08-02 — Enterprise SEO platform: dashboard-managed metadata, structured data,
+  redirects, sitemaps and auditing.** Built against the brief asking for a
+  Shopify-Plus/Magento-grade SEO system manageable entirely from the admin dashboard.
+  - **The brief had to be reconciled with this app's gating first.** The entire commerce
+    surface (catalogue, product, quick-order, linesheet) is deliberately behind a login
+    and `noindex` — correct for wholesale, since trade pricing must not be indexed. So
+    "product SEO" here cannot mean "product pages that rank". Rather than either
+    ignoring that or quietly building machinery for pages Google is told never to fetch,
+    **indexability became an admin-controlled policy**: a single `commerce_indexable`
+    setting drives `robots.txt`, the sitemap and every product page's robots tag
+    *together*, so the three can never contradict each other. It ships **off**. Product
+    SEO fields still do real work while it's off — they control the link previews reps
+    paste into email and WhatsApp.
+  - **Migration `0025_seo_platform.sql` — NOT YET RUN, see Pending Actions.** Adds
+    `seo_settings` (singleton), `seo_redirects`, `seo_entity_meta` (polymorphic, keyed by
+    type+key so categories/seasons/marketing pages get editable metadata without
+    inventing a table each), `style_slug_history`, a `bump_redirect_hit` function, plus
+    `focus_keyword`/`secondary_keywords`/`twitter_*` on `styles` and `caption` on
+    `style_images`.
+  - **Everything degrades gracefully pre-migration — verified against the live DB, not
+    assumed.** A throwaway service-role probe confirmed PostgREST reports every missing
+    table/column as an error *object* (`PGRST205` / `42703`), never a throw, so the
+    `if (error) return <default>` guards genuinely fire. The whole storefront was then
+    rendered against the unmigrated database with zero server errors.
+  - **New admin section `/admin/seo`** (under Marketing, RBAC-gated on the existing
+    `products.seo` permission): Overview (live audit with per-page scores and
+    severity-sorted issues), Global settings (defaults/social, indexing policy,
+    Organization schema, per-type structured-data switches, GSC/Bing verification),
+    Pages & categories (metadata for all 7 landing pages + categories/seasons/
+    collections/brands/suppliers), Redirects (CRUD, CSV import/export, bulk delete, hit
+    counts), Bulk tools (generate missing copy, generate missing alt text, templated
+    bulk edit with `{name}`/`{category}` substitution, CSV export).
+  - **Redirect engine in `proxy.ts`.** DB-backed 301/302/307/308 with a 60s in-process
+    cache, chain-following (visitors pay one hop, never a chain), bounded loop detection,
+    and fire-and-forget hit counting via `waitUntil`. **Fails open** — a redirect-table
+    outage returns "no redirect" rather than 500-ing the site. Loops/chains are also
+    rejected at write time, and CSV import validates each row against both the existing
+    rules and the rows above it in the same file.
+  - **Product slugs are now editable — this fixes a long-standing defect.** Renaming
+    writes slug history and installs a 301 automatically, and re-points any rule that
+    pointed at the old URL so a double rename leaves one hop, not a chain. The audit
+    flags the existing `-copy-copy` slugs. Collisions fail loudly instead of suffixing,
+    which is how those slugs happened in the first place.
+  - **Structured data** (`seoJsonLd.ts`): Organization/LocalBusiness + WebSite with
+    stable `@id`s referenced by every page-level schema, BreadcrumbList, Product+Offer+
+    Brand (availability from real inventory, `BusinessCustomer` eligibility),
+    CollectionPage+ItemList, FAQPage. **Deliberately no AggregateRating/Review** — this
+    app has no reviews feature, and inventing ratings violates Google's policy. Stated in
+    the dashboard rather than silently omitted. JSON-LD is escaped against `</script>`
+    injection, since admin-authored fields flow into it.
+  - **Fixed in passing:** the root layout carried a hardcoded `Organization` schema with
+    a `"Track-engineered footwear"` slogan — stale athletic-positioning copy from before
+    the leather pivot, live on every page. Replaced by the DB-driven graph.
+  - **Verified live:** `robots.txt` (7 allows, commerce disallowed), `sitemap.xml`
+    (exactly the 7 public pages, no gated URLs), homepage Organization+WebSite JSON-LD
+    with self-referencing canonical, `/faq` FAQPage with 16 real Q&As, `/collections`
+    CollectionPage with 8 real items and real photo URLs, and `/catalogue` still 307ing
+    to `/login?next=/catalogue` after the proxy rewrite. `typecheck`/`lint`/`build` all
+    clean.
+  - **Not verified live: the `/admin/seo` pages themselves** — admin login can't be
+    automated in this harness (standing constraint). They typecheck and build; a human
+    pass is worth doing after the migration runs.
 
 - **2026-07-30 — Catalogue redesigned: two big 3:4 columns, clickable colours that swap
   the photo, on mobile and desktop both.** User sent a reference screenshot (a competitor

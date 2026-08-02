@@ -43,6 +43,9 @@ export function ProductEditorShell({
   images,
   analytics,
   permissions,
+  slugHistory,
+  commerceIndexable,
+  initialTab,
 }: {
   style: Style;
   allStyles: Style[];
@@ -55,8 +58,13 @@ export function ProductEditorShell({
   images: StyleImage[];
   analytics: StyleAnalytics;
   permissions: Record<ProductPermissionKey, boolean>;
+  slugHistory: { slug: string; isCurrent: boolean; createdAt: string }[];
+  /** Global indexing policy — the SEO tab needs it to explain why a product is noindex. */
+  commerceIndexable: boolean;
+  /** Lets the SEO dashboard deep-link straight to a product's SEO tab. */
+  initialTab?: Tab;
 }) {
-  const [tab, setTab] = useState<Tab>("General");
+  const [tab, setTab] = useState<Tab>(initialTab ?? "General");
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [isPending, startTransition] = useTransition();
   const showResult = useToastResult();
@@ -165,7 +173,15 @@ export function ProductEditorShell({
         {tab === "Variants" && <VariantsTab style={style} canEdit={permissions["products.edit"]} />}
         {tab === "Attributes" && <AttributesTab style={style} canEdit={permissions["products.edit"]} />}
         {tab === "Shipping" && <ShippingTab style={style} canEdit={permissions["products.edit"]} />}
-        {tab === "SEO" && <SeoTab style={style} canEdit={permissions["products.seo"]} />}
+        {tab === "SEO" && (
+          <SeoTab
+            style={style}
+            images={images}
+            slugHistory={slugHistory}
+            commerceIndexable={commerceIndexable}
+            canEdit={permissions["products.seo"]}
+          />
+        )}
         {tab === "Related" && <RelatedTab style={style} allStyles={allStyles} canEdit={permissions["products.edit"]} />}
         {tab === "Documents" && <DocumentsTab style={style} canEdit={permissions["products.edit"]} />}
         {tab === "Visibility" && <VisibilityTab style={style} canEdit={permissions["products.edit"]} />}

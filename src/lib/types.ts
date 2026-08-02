@@ -223,6 +223,14 @@ export interface Style {
   ogImageUrl?: string;
   twitterCard: string;
   structuredData?: Record<string, unknown>;
+  /** The single term this product is optimised for; drives the audit's keyword checks.
+   * Added by migration 0025 — `undefined` on every row until it runs. */
+  focusKeyword?: string;
+  secondaryKeywords: string[];
+  /** Twitter card copy, when it should differ from the Open Graph values. */
+  twitterTitle?: string;
+  twitterDescription?: string;
+  twitterImageUrl?: string;
 
   // --- Relations & docs ---
   relations: StyleRelation[];

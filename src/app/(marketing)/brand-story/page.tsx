@@ -2,12 +2,14 @@ import { LinkButton } from "@/components/ui/Button";
 import { StylePlate } from "@/components/product/StylePlate";
 import { pageMetadata } from "@/lib/seo";
 
-export const metadata = pageMetadata({
-  title: "The Brand",
-  description:
-    "Hector 1984 has built full-grain leather footwear — loafers, boots, formal, and more, across a Summer and Winter collection — since the year we were founded, wholesale only.",
-  path: "/brand-story",
-});
+export function generateMetadata() {
+  return pageMetadata({
+    title: "The Brand",
+    description:
+      "Hector 1984 has built full-grain leather footwear — loafers, boots, formal, and more, across a Summer and Winter collection — since the year we were founded, wholesale only.",
+    path: "/brand-story",
+  });
+}
 
 export default function BrandStoryPage() {
   return (

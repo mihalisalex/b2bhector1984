@@ -10,6 +10,9 @@ export interface StyleImage {
   styleId: string;
   storagePath: string;
   altText: string;
+  /** Optional visible caption, distinct from alt text. Added by migration 0025 —
+   * defaults to "" when that migration hasn't run. */
+  caption: string;
   isPrimary: boolean;
   sortOrder: number;
   publicUrl: string;
@@ -23,6 +26,7 @@ interface StyleImageRow {
   style_id: string;
   storage_path: string;
   alt_text: string;
+  caption?: string | null;
   is_primary: boolean;
   sort_order: number;
   colorway_id: string | null;
@@ -34,6 +38,7 @@ function mapImage(row: StyleImageRow): StyleImage {
     styleId: row.style_id,
     storagePath: row.storage_path,
     altText: row.alt_text,
+    caption: row.caption ?? "",
     isPrimary: row.is_primary,
     sortOrder: row.sort_order,
     publicUrl: supabaseAdmin.storage.from(BUCKET).getPublicUrl(row.storage_path).data.publicUrl,
@@ -110,6 +115,43 @@ export async function setPrimaryImage(styleId: string, imageId: string): Promise
 export async function updateImageAltText(imageId: string, altText: string): Promise<void> {
   const { error } = await supabaseAdmin.from("style_images").update({ alt_text: altText }).eq("id", imageId);
   if (error) throw new Error(`style_images: ${error.message}`);
+}
+
+export async function updateImageCaption(imageId: string, caption: string): Promise<void> {
+  const { error } = await supabaseAdmin.from("style_images").update({ caption }).eq("id", imageId);
+  if (error) throw new Error(`style_images: ${error.message}`);
+}
+
+/**
+ * Bulk alt-text write, used by the SEO dashboard's "generate missing alt text"
+ * action. One statement per row rather than an upsert: `style_images` rows have
+ * columns this caller knows nothing about, and an upsert would blank them.
+ */
+export async function setAltTextBulk(updates: { imageId: string; altText: string }[]): Promise<void> {
+  await Promise.all(updates.map((update) => updateImageAltText(update.imageId, update.altText)));
+}
+
+/**
+ * Every image on the site with the product context the audit engine needs to
+ * judge (and generate) alt text. Falls back to an empty list pre-migration.
+ */
+export async function listAllImagesWithContext(): Promise<
+  { id: string; styleId: string; altText: string; caption: string; publicUrl: string }[]
+> {
+  // `select("*")` rather than a column list so this still works before
+  // migration 0025 adds `caption` — mapImage defaults it.
+  const { data, error } = await supabaseAdmin.from("style_images").select("*");
+  if (error || !data) return [];
+  return (data as StyleImageRow[]).map((row) => {
+    const image = mapImage(row);
+    return {
+      id: image.id,
+      styleId: image.styleId,
+      altText: image.altText,
+      caption: image.caption,
+      publicUrl: image.publicUrl,
+    };
+  });
 }
 
 /** `colorwayId` (the app-level short local id, e.g. "c1") of `null` clears the tag (photo

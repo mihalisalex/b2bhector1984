@@ -27,12 +27,16 @@ import {
   archiveStyle,
   deleteStyle,
   listProductsForAdmin,
+  updateStyleSlug,
   type GeneralInput,
   type PricingInput,
   type InventoryMetaInput,
   type SeoInput,
   type ShippingInput,
 } from "@/lib/data/productAdmin";
+import { recordSlugChange } from "@/lib/data/seoRedirects";
+import { revalidateSeoSurfaces } from "@/lib/seoRevalidate";
+import { slugifyForSeo } from "@/lib/seoAutogen";
 import { setInventoryLevel, setReservedStock } from "@/lib/data/inventory";
 import {
   createStyleImageUploadTarget,
@@ -296,22 +300,55 @@ export async function createWarehouseAction(_prev: FormState, formData: FormData
 
 export async function updateSeoAction(styleId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("products.seo");
+  const csv = (key: string) =>
+    String(formData.get(key) ?? "")
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+
   const input: SeoInput = {
     seoTitle: String(formData.get("seoTitle") ?? "").trim() || undefined,
     metaDescription: String(formData.get("metaDescription") ?? "").trim() || undefined,
-    seoKeywords: String(formData.get("seoKeywords") ?? "").split(",").map((k) => k.trim()).filter(Boolean),
+    seoKeywords: csv("seoKeywords"),
+    focusKeyword: String(formData.get("focusKeyword") ?? "").trim() || undefined,
+    secondaryKeywords: csv("secondaryKeywords"),
     canonicalUrl: String(formData.get("canonicalUrl") ?? "").trim() || undefined,
     robots: String(formData.get("robots") ?? "index,follow"),
     ogTitle: String(formData.get("ogTitle") ?? "").trim() || undefined,
     ogDescription: String(formData.get("ogDescription") ?? "").trim() || undefined,
     ogImageUrl: String(formData.get("ogImageUrl") ?? "").trim() || undefined,
+    twitterTitle: String(formData.get("twitterTitle") ?? "").trim() || undefined,
+    twitterDescription: String(formData.get("twitterDescription") ?? "").trim() || undefined,
+    twitterImageUrl: String(formData.get("twitterImageUrl") ?? "").trim() || undefined,
     twitterCard: String(formData.get("twitterCard") ?? "summary_large_image"),
   };
+
   const failure = await runOrError(() => updateStyleSeo(styleId, input));
   if (failure) return failure;
+
+  // The slug is saved on the same form but through a separate path, because a
+  // rename has side effects (history + an automatic 301) that the plain field
+  // write does not. Done after the SEO write so a slug collision can't discard
+  // the rest of the admin's edits.
+  const requestedSlug = slugifyForSeo(String(formData.get("slug") ?? ""));
+  let slugNote = "";
+  if (requestedSlug) {
+    try {
+      const previous = await updateStyleSlug(styleId, requestedSlug);
+      if (previous !== requestedSlug) {
+        await recordSlugChange(styleId, previous, requestedSlug);
+        await logAudit(admin.id, "product.slug_changed", "style", styleId, `${previous} → ${requestedSlug}`);
+        slugNote = ` URL changed to /product/${requestedSlug} — a 301 from the old URL was created automatically.`;
+        revalidateSeoSurfaces();
+      }
+    } catch (err) {
+      return { error: friendlyDbError(err) };
+    }
+  }
+
   await logAudit(admin.id, "product.seo_changed", "style", styleId);
   revalidateProduct(styleId);
-  return { success: "SEO saved." };
+  return { success: `SEO saved.${slugNote}` };
 }
 
 // ---------------------------------------------------------------------------

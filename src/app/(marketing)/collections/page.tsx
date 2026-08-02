@@ -5,14 +5,18 @@ import type { Category, Season } from "@/lib/types";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
 import { LinkButton } from "@/components/ui/Button";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { pageMetadata } from "@/lib/seo";
+import { buildCollectionSchema } from "@/lib/seoJsonLd";
 
-export const metadata = pageMetadata({
-  title: "Collections",
-  description:
-    "Browse the current Hector 1984 collection — Summer and Winter, seven categories. Wholesale pricing and matrix ordering unlock with an approved buyer account.",
-  path: "/collections",
-});
+export function generateMetadata() {
+  return pageMetadata({
+    title: "Collections",
+    description:
+      "Browse the current Hector 1984 collection — Summer and Winter, seven categories. Wholesale pricing and matrix ordering unlock with an approved buyer account.",
+    path: "/collections",
+  });
+}
 
 const CATEGORIES: Category[] = ["loafers", "wedding", "sneakers", "sandals", "boots", "formal", "anatomic"];
 const SEASON_CATEGORIES: Record<Season, Category[]> = {
@@ -39,8 +43,24 @@ export default async function CollectionsPage({
     (s) => (!activeCategory || s.category === activeCategory) && (!activeSeason || s.season === activeSeason),
   );
 
+  // CollectionPage + ItemList for the public lookbook. Members link to
+  // /collections itself rather than to /product/* — those product URLs are
+  // gated and noindex, and pointing structured data at pages Google is told not
+  // to crawl produces Search Console errors rather than rich results.
+  const collectionSchema = buildCollectionSchema({
+    name: activeCategory ? CATEGORY_LABEL[activeCategory] : "Collections",
+    description: `${results.length} styles from the Hector 1984 ${activeSeason ?? "current"} collection.`,
+    path: "/collections",
+    items: results.map((style) => ({
+      name: style.name,
+      path: "/collections",
+      imageUrl: getStyleImageUrl(style),
+    })),
+  });
+
   return (
     <div className="mx-auto max-w-[1440px] px-6 py-12 lg:px-10">
+      <JsonLd schema={collectionSchema} />
       <div className="border-b border-stone-300 pb-8">
         <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">Lookbook</span>
         <h1 className="font-display mt-2 text-3xl font-bold uppercase tracking-tight text-ink sm:text-4xl">

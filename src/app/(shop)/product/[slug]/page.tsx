@@ -16,23 +16,41 @@ import { ProductDetails } from "@/components/product/ProductDetails";
 import { PrimaryPurchasePanel, BUY_BAR_RELEASE_ID } from "@/components/product/PrimaryPurchasePanel";
 import { TrackRecentlyViewed } from "@/components/product/TrackRecentlyViewed";
 import { RecentlyViewedStrip } from "@/components/product/RecentlyViewedStrip";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { productMetadata } from "@/lib/seo";
+import { buildBreadcrumbSchema, buildProductSchema } from "@/lib/seoJsonLd";
+import { getSeoSettings } from "@/lib/data/seoSettings";
+import type { Metadata } from "next";
 import type { SalesRep } from "@/lib/types";
 
-/** Old slugs from before a product's name/slug was corrected — kept so existing
- * bookmarks/backlinks 301 instead of 404ing. Add an entry here (never rename the DB
- * `slug` column and just delete the old mapping) whenever a live slug changes. */
+/**
+ * Pre-migration fallback only.
+ *
+ * Slug redirects are now managed in the database (`seo_redirects`) and served by
+ * `proxy.ts` before this page is ever reached — renaming a product's slug in the
+ * admin SEO tab creates the 301 automatically. Migration 0025 seeds the one
+ * entry below into that table, so on a migrated database this map is dead code
+ * that never fires. It stays as a safety net for an unmigrated deployment.
+ *
+ * Do not add new entries here — use the redirect manager at /admin/seo/redirects.
+ */
 const LEGACY_SLUG_REDIRECTS: Record<string, string> = {
   "riviera-loafer": "hector-boat-loafer", // HL-1001, corrected 2026-07-29 — was stale from an earlier product rename
 };
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const style = await getStyleBySlug(slug);
-  return {
-    title: style ? style.name : "Style",
-    description: style?.tagline,
-    robots: { index: false, follow: false },
-  };
+  if (!style) return { title: "Style", robots: { index: false, follow: false } };
+
+  // Everything — title, description, canonical, share card, robots — comes from
+  // the product's own SEO fields, falling back to generated copy. The robots
+  // value is clamped by the global indexing policy inside `productMetadata`, so
+  // a per-product "index,follow" can never leak trade pricing while the
+  // catalogue is private.
+  const images = await listImagesForStyle(style.id);
+  const primary = images.find((image) => image.isPrimary) ?? images[0];
+  return productMetadata(style, primary?.publicUrl);
 }
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -57,8 +75,28 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const favorited = account ? await isFavorite(account.id, style.id) : false;
   void recordStyleView(style.id, account?.id ?? null);
 
+  // Structured data. Both builders return null when the corresponding schema
+  // type is switched off in the SEO settings, and JsonLd renders nothing for a
+  // null — so an admin can disable either without touching this page.
+  const seoSettings = await getSeoSettings();
+  const productSchema = buildProductSchema(style, seoSettings, {
+    imageUrls: images.length > 0 ? images.map((image) => image.publicUrl) : [getStyleImageUrl(style)],
+    // `inventory` here is this style's own colorway→box map (not the batched
+    // styleId-keyed record `totalOnHandForStyle` expects), so it sums directly.
+    inStock: totalOnHandForStyle(style.id, { [style.id]: inventory }) > 0,
+  });
+  const breadcrumbSchema = buildBreadcrumbSchema(
+    [
+      { name: "Catalogue", path: "/catalogue" },
+      { name: CATEGORY_LABEL[style.category], path: `/catalogue?category=${style.category}` },
+      { name: style.name, path: `/product/${style.slug}` },
+    ],
+    seoSettings,
+  );
+
   return (
     <div className="mx-auto max-w-[1600px] px-6 pb-8 pt-4 lg:px-10 lg:pt-8">
+      <JsonLd schema={[productSchema, breadcrumbSchema].filter((schema) => schema !== null)} />
       <TrackRecentlyViewed styleId={style.id} />
 
       {/* The product view is intentionally the SAME single-column layout at every size —

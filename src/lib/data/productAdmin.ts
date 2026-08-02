@@ -356,11 +356,16 @@ export interface SeoInput {
   seoTitle?: string;
   metaDescription?: string;
   seoKeywords: string[];
+  focusKeyword?: string;
+  secondaryKeywords: string[];
   canonicalUrl?: string;
   robots: string;
   ogTitle?: string;
   ogDescription?: string;
   ogImageUrl?: string;
+  twitterTitle?: string;
+  twitterDescription?: string;
+  twitterImageUrl?: string;
   twitterCard: string;
 }
 
@@ -371,15 +376,48 @@ export async function updateStyleSeo(styleId: string, input: SeoInput): Promise<
       seo_title: input.seoTitle ?? null,
       meta_description: input.metaDescription ?? null,
       seo_keywords: input.seoKeywords,
+      focus_keyword: input.focusKeyword ?? null,
+      secondary_keywords: input.secondaryKeywords,
       canonical_url: input.canonicalUrl ?? null,
       robots: input.robots,
       og_title: input.ogTitle ?? null,
       og_description: input.ogDescription ?? null,
       og_image_url: input.ogImageUrl ?? null,
+      twitter_title: input.twitterTitle ?? null,
+      twitter_description: input.twitterDescription ?? null,
+      twitter_image_url: input.twitterImageUrl ?? null,
       twitter_card: input.twitterCard,
     })
     .eq("id", styleId);
   if (error) throw new Error(`styles: ${error.message}`);
+}
+
+/**
+ * Renames a product's URL slug.
+ *
+ * Returns the previous slug so the caller can record the change and install a
+ * redirect. Fails loudly on a collision rather than silently suffixing, which
+ * is how this codebase ended up with `hector-boat-loafer-copy-copy` in the
+ * first place.
+ */
+export async function updateStyleSlug(styleId: string, slug: string): Promise<string> {
+  const { data: current, error: readError } = await supabaseAdmin
+    .from("styles")
+    .select("slug")
+    .eq("id", styleId)
+    .single();
+  if (readError) throw new Error(`styles: ${readError.message}`);
+
+  const previous = (current as { slug: string }).slug;
+  if (previous === slug) return previous;
+
+  const { error } = await supabaseAdmin.from("styles").update({ slug }).eq("id", styleId);
+  if (error) {
+    // 23505 = unique_violation on styles.slug.
+    if (error.code === "23505") throw new Error(`The slug "${slug}" is already used by another product.`);
+    throw new Error(`styles: ${error.message}`);
+  }
+  return previous;
 }
 
 // ---------------------------------------------------------------------------

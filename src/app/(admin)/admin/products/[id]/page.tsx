@@ -8,6 +8,8 @@ import { getAllWarehouses } from "@/lib/data/warehouses";
 import { getWarehouseBreakdownForStyle } from "@/lib/data/inventory";
 import { listMovementsForStyle } from "@/lib/data/inventoryMovements";
 import { listImagesForStyle } from "@/lib/data/styleImages";
+import { listSlugHistory } from "@/lib/data/seoRedirects";
+import { getSeoSettings } from "@/lib/data/seoSettings";
 import { getStyleAnalytics } from "@/lib/data/styleAnalytics";
 import { getCurrentAccount } from "@/lib/session";
 import { hasPermission } from "@/lib/data/permissions";
@@ -15,22 +17,31 @@ import { PRODUCT_PERMISSION_KEYS } from "@/lib/data/permissions";
 import { ProductEditorShell } from "@/components/admin/products/editor/ProductEditorShell";
 import type { ProductPermissionKey } from "@/lib/types";
 
-export default async function ProductEditorPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function ProductEditorPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const [{ id }, { tab }] = await Promise.all([params, searchParams]);
   const style = await getStyleDetailForAdmin(id);
   if (!style) notFound();
 
-  const [allStyles, brands, suppliers, collections, warehouses, warehouseStock, movements, images, account] = await Promise.all([
-    getAllStyles(),
-    getAllBrands(),
-    getAllSuppliers(),
-    getAllCollections(),
-    getAllWarehouses(),
-    getWarehouseBreakdownForStyle(id),
-    listMovementsForStyle(id),
-    listImagesForStyle(id),
-    getCurrentAccount(),
-  ]);
+  const [allStyles, brands, suppliers, collections, warehouses, warehouseStock, movements, images, slugHistory, seoSettings, account] =
+    await Promise.all([
+      getAllStyles(),
+      getAllBrands(),
+      getAllSuppliers(),
+      getAllCollections(),
+      getAllWarehouses(),
+      getWarehouseBreakdownForStyle(id),
+      listMovementsForStyle(id),
+      listImagesForStyle(id),
+      listSlugHistory(id),
+      getSeoSettings(),
+      getCurrentAccount(),
+    ]);
 
   const onHandNow = warehouseStock.reduce((sum, row) => sum + row.onHand, 0);
   const analytics = await getStyleAnalytics(style, onHandNow);
@@ -53,6 +64,10 @@ export default async function ProductEditorPage({ params }: { params: Promise<{ 
       images={images}
       analytics={analytics}
       permissions={permissions}
+      slugHistory={slugHistory}
+      commerceIndexable={seoSettings.commerceIndexable}
+      // The SEO dashboard deep-links here with ?tab=seo.
+      initialTab={tab?.toLowerCase() === "seo" ? "SEO" : undefined}
     />
   );
 }

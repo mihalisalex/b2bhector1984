@@ -1,13 +1,18 @@
 import Link from "next/link";
 import { LinkButton } from "@/components/ui/Button";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { pageMetadata } from "@/lib/seo";
+import { buildFaqSchema } from "@/lib/seoJsonLd";
+import { getSeoSettings } from "@/lib/data/seoSettings";
 
-export const metadata = pageMetadata({
-  title: "FAQ",
-  description:
-    "Answers to common questions about Hector 1984 wholesale — box-only ordering, terms-based pricing, accounts, and shipping.",
-  path: "/faq",
-});
+export function generateMetadata() {
+  return pageMetadata({
+    title: "FAQ",
+    description:
+      "Answers to common questions about Hector 1984 wholesale — box-only ordering, terms-based pricing, accounts, and shipping.",
+    path: "/faq",
+  });
+}
 
 interface Faq {
   q: string;
@@ -111,9 +116,19 @@ const GROUPS: FaqGroup[] = [
   },
 ];
 
-export default function FaqPage() {
+export default async function FaqPage() {
+  // FAQPage markup makes these questions eligible for rich results. Built from
+  // the same GROUPS array the page renders, so the two can never drift apart —
+  // marking up an answer that isn't on the page is a policy violation.
+  const settings = await getSeoSettings();
+  const faqSchema = buildFaqSchema(
+    GROUPS.flatMap((group) => group.items),
+    settings,
+  );
+
   return (
     <div>
+      <JsonLd schema={faqSchema} />
       <section className="border-b border-stone-300 bg-stone-100 px-6 py-20 lg:px-10">
         <div className="mx-auto max-w-3xl text-center">
           <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">FAQ</span>

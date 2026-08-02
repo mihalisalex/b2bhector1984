@@ -59,6 +59,11 @@ interface StyleRow {
   og_image_url?: string | null;
   twitter_card?: string;
   structured_data?: Record<string, unknown> | null;
+  focus_keyword?: string | null;
+  secondary_keywords?: string[];
+  twitter_title?: string | null;
+  twitter_description?: string | null;
+  twitter_image_url?: string | null;
   length_cm?: number | string | null;
   width_cm?: number | string | null;
   height_cm?: number | string | null;
@@ -202,6 +207,11 @@ function assembleStyles(
       ogImageUrl: s.og_image_url ?? undefined,
       twitterCard: s.twitter_card ?? "summary_large_image",
       structuredData: s.structured_data ?? undefined,
+      focusKeyword: s.focus_keyword ?? undefined,
+      secondaryKeywords: s.secondary_keywords ?? [],
+      twitterTitle: s.twitter_title ?? undefined,
+      twitterDescription: s.twitter_description ?? undefined,
+      twitterImageUrl: s.twitter_image_url ?? undefined,
 
       relations: [],
       documents: [],

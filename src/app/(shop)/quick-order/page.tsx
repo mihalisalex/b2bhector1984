@@ -8,8 +8,17 @@ import { getSeasonSettings, toSeasonOptions } from "@/lib/data/seasonSettings";
 import { CatalogFilters } from "@/components/catalog/CatalogFilters";
 import { LinesheetToolbar } from "@/components/catalog/LinesheetToolbar";
 import { OrderableLinesheet } from "@/components/catalog/OrderableLinesheet";
+import { commerceMetadata } from "@/lib/seo";
 
-export const metadata = { title: "Quick Order", robots: { index: false, follow: false } };
+/** Robots follows the global indexing policy — see the catalogue page's note. */
+export function generateMetadata() {
+  return commerceMetadata({
+    title: "Quick Order",
+    description:
+      "Build a wholesale order across many styles at once — a linesheet view with live stock and box quantities.",
+    path: "/quick-order",
+  });
+}
 
 export default async function QuickOrderPage({
   searchParams,

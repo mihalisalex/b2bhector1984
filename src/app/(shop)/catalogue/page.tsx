@@ -12,8 +12,21 @@ import { getSeasonSettings, toSeasonOptions } from "@/lib/data/seasonSettings";
 import { CatalogSearchInput, CatalogFiltersPanel, CatalogResultsToolbar } from "@/components/catalog/CatalogToolbar";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductListRow } from "@/components/product/ProductListRow";
+import { commerceMetadata } from "@/lib/seo";
 
-export const metadata = { title: "Catalog", robots: { index: false, follow: false } };
+/**
+ * Robots comes from the global indexing policy rather than being hardcoded, so
+ * this page, robots.txt and the sitemap always agree. It resolves to
+ * `noindex,nofollow` while the trade catalogue is private, which is the default.
+ */
+export function generateMetadata() {
+  return commerceMetadata({
+    title: "Catalogue",
+    description:
+      "The full Hector 1984 wholesale catalogue — every style, colourway and box configuration, with live stock and trade pricing.",
+    path: "/catalogue",
+  });
+}
 
 export default async function CatalogPage({
   searchParams,

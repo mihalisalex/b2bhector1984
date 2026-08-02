@@ -5,11 +5,13 @@ import { getCurrentAccount } from "@/lib/session";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = pageMetadata({
-  title: "Buyer Login",
-  description: "Sign in to your Hector 1984 wholesale account for full pricing, matrix ordering, and order history.",
-  path: "/login",
-});
+export function generateMetadata(): Promise<Metadata> {
+  return pageMetadata({
+    title: "Buyer Login",
+    description: "Sign in to your Hector 1984 wholesale account for full pricing, matrix ordering, and order history.",
+    path: "/login",
+  });
+}
 
 export default async function LoginPage() {
   const account = await getCurrentAccount();
