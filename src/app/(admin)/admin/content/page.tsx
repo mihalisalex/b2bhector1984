@@ -25,7 +25,7 @@ export default async function AdminContentPage() {
             alt="Homepage hero image preview"
             fill
             sizes="(min-width: 1024px) 576px, 100vw"
-            className="object-cover grayscale"
+            className="object-cover"
           />
         </div>
         <ImageUploadForm

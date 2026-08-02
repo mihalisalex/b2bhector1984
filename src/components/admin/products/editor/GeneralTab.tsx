@@ -89,6 +89,20 @@ export function GeneralTab({
       <TextAreaField label="Materials (comma-separated)" name="materials" defaultValue={style.materials.join(", ")} rows={2} disabled={!canEdit} />
       <TextField label="Tags (comma-separated)" name="tags" defaultValue={style.tags.join(", ")} disabled={!canEdit} />
 
+      <div>
+        <TextField
+          label="Catalogue date"
+          name="createdAt"
+          type="datetime-local"
+          defaultValue={toDateTimeInput(style.createdAt)}
+          disabled={!canEdit}
+        />
+        <p className="mt-1 text-xs text-ink-soft">
+          Sets this product&rsquo;s place in the catalogue, which is ordered newest first by default — a later date
+          moves it further forward. Also shown as &ldquo;Created&rdquo; in the products table. Times are UTC.
+        </p>
+      </div>
+
       {collections.length > 0 && (
         <div>
           <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Collections</label>
@@ -106,4 +120,16 @@ export function GeneralTab({
       {canEdit && <SaveBar isPending={isPending} />}
     </form>
   );
+}
+
+/**
+ * ISO timestamp -> the "YYYY-MM-DDTHH:mm" that `datetime-local` expects.
+ *
+ * Sliced rather than run through `toLocaleString`, so the server render and the browser
+ * render produce byte-identical output. Formatting as local time here would differ
+ * between a UTC host and the admin's own timezone and hydrate mismatched. The value
+ * stays UTC end to end — `parseCreatedAt` reads it back the same way.
+ */
+function toDateTimeInput(iso: string): string {
+  return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(iso) ? iso.slice(0, 16) : "";
 }

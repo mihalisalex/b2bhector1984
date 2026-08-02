@@ -4,16 +4,21 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { logout } from "@/lib/actions";
 import type { Account } from "@/lib/types";
 import { cn } from "@/lib/cn";
 import { HWatermark } from "@/components/layout/HWatermark";
 import { useFocusTrap } from "@/lib/useFocusTrap";
 
+/** Where a buyer goes to place an order — the drawer's main menu. */
 const LINKS = [
   { href: "/", label: "Home" },
   { href: "/quick-order", label: "Quick Order" },
   { href: "/catalogue", label: "Catalogue" },
+];
+
+/** Company/reference pages. Same typographic treatment, set apart at the foot of the
+ * drawer so they don't compete with the ordering routes above. */
+const SECONDARY_LINKS = [
   { href: "/brand-story", label: "The Brand" },
   { href: "/faq", label: "FAQ" },
   { href: "/contact", label: "Contact" },
@@ -102,63 +107,23 @@ export function MainNav({ account }: { account: Account | null }) {
               </div>
 
               <nav className="relative flex flex-1 flex-col gap-1 px-5 py-6" aria-label="Primary">
-                {LINKS.map((item) => {
-                  const active = pathname === item.href;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      aria-current={active ? "page" : undefined}
-                      className={cn(
-                        "group flex items-center justify-between border-b py-3 font-display text-lg font-bold uppercase tracking-tight transition-colors duration-150",
-                        active ? "border-ink text-signal" : "border-stone-200 text-ink hover:text-signal",
-                      )}
-                    >
-                      <span className="flex items-center gap-2">
-                        {active && <span className="h-1.5 w-1.5 rounded-full bg-signal" aria-hidden />}
-                        {item.label}
-                      </span>
-                      <span
-                        aria-hidden
-                        className="translate-x-1 text-signal opacity-0 transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100"
-                      >
-                        →
-                      </span>
-                    </Link>
-                  );
-                })}
+                {LINKS.map((item) => (
+                  <DrawerLink key={item.href} item={item} active={pathname === item.href} />
+                ))}
               </nav>
 
-              <div className="relative border-t border-stone-300 bg-stone-100 px-5 py-5">
-                {account ? (
-                  <div className="flex flex-col gap-3">
-                    <Link href="/dashboard/account" className="group">
-                      <p className="text-sm font-semibold text-ink group-hover:text-signal">{account.contactName}</p>
-                      <p className="text-xs text-ink-soft">{account.businessName}</p>
-                    </Link>
-                    <Link href="/dashboard" className="text-sm font-medium text-ink-soft hover:text-ink">
-                      Dashboard
-                    </Link>
-                    <Link href="/cart" className="text-sm font-medium text-ink-soft hover:text-ink">
-                      Cart
-                    </Link>
-                    <Link href="/dashboard/account" className="text-sm font-medium text-ink-soft hover:text-ink">
-                      Account settings
-                    </Link>
-                    <Link href="/dashboard/favorites" className="text-sm font-medium text-ink-soft hover:text-ink">
-                      Favorites
-                    </Link>
-                    <Link href="/dashboard/assortments" className="text-sm font-medium text-ink-soft hover:text-ink">
-                      Saved assortments
-                    </Link>
-                    <form action={logout}>
-                      <button type="submit" className="text-sm font-medium text-ember hover:underline">
-                        Sign out
-                      </button>
-                    </form>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-2.5">
+              {/* The buyer's own links (dashboard, cart, sign out) used to live here;
+                  they're in the account-icon menu now, so this space carries the company
+                  pages instead — same type as the main menu, set apart on its own ground. */}
+              <div className="relative border-t border-stone-300 bg-stone-100 px-5 py-4">
+                <nav className="flex flex-col" aria-label="Company">
+                  {SECONDARY_LINKS.map((item) => (
+                    <DrawerLink key={item.href} item={item} active={pathname === item.href} />
+                  ))}
+                </nav>
+
+                {!account && (
+                  <div className="mt-4 flex flex-col gap-2.5">
                     <Link
                       href="/apply"
                       className="bg-ink px-4 py-2.5 text-center text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85"
@@ -179,5 +144,31 @@ export function MainNav({ account }: { account: Account | null }) {
           document.body,
         )}
     </>
+  );
+}
+
+/** One drawer row. Shared so the company links at the foot are typographically identical
+ * to the main menu above them — the only difference is the ground they sit on. */
+function DrawerLink({ item, active }: { item: { href: string; label: string }; active: boolean }) {
+  return (
+    <Link
+      href={item.href}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "group flex items-center justify-between border-b py-3 font-display text-lg font-bold uppercase tracking-tight transition-colors duration-150",
+        active ? "border-ink text-signal" : "border-stone-200 text-ink hover:text-signal",
+      )}
+    >
+      <span className="flex items-center gap-2">
+        {active && <span className="h-1.5 w-1.5 rounded-full bg-signal" aria-hidden />}
+        {item.label}
+      </span>
+      <span
+        aria-hidden
+        className="translate-x-1 text-signal opacity-0 transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100"
+      >
+        →
+      </span>
+    </Link>
   );
 }

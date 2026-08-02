@@ -127,6 +127,24 @@ async function runBestEffort(label: string, fn: () => Promise<void>): Promise<vo
 // General
 // ---------------------------------------------------------------------------
 
+/**
+ * `<input type="datetime-local">` posts "YYYY-MM-DDTHH:mm" with no timezone. This reads
+ * it as UTC (hence the appended "Z") to match how `GeneralTab` fills the field — it
+ * slices the stored ISO string, which is already UTC. Interpreting it as server-local
+ * instead would shift the value by the host's offset on every save, and formatting it
+ * back as local would differ between the server render and the browser, which is a
+ * hydration mismatch on a field measured in minutes.
+ *
+ * Returns undefined for blank or unparseable input so the stored timestamp is left
+ * alone rather than clobbered with an Invalid Date.
+ */
+function parseCreatedAt(raw: FormDataEntryValue | null): string | undefined {
+  const value = String(raw ?? "").trim();
+  if (!value) return undefined;
+  const parsed = new Date(/[Zz]|[+-]\d{2}:?\d{2}$/.test(value) ? value : `${value}Z`);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
+}
+
 export async function updateGeneralAction(styleId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("products.edit");
   const input: GeneralInput = {
@@ -143,9 +161,13 @@ export async function updateGeneralAction(styleId: string, _prev: FormState, for
     materials: String(formData.get("materials") ?? "").split(",").map((m) => m.trim()).filter(Boolean),
     tags: String(formData.get("tags") ?? "").split(",").map((t) => t.trim()).filter(Boolean),
     collectionIds: formData.getAll("collectionIds").map(String),
+    createdAt: parseCreatedAt(formData.get("createdAt")),
   };
   if (!input.name) return { error: "Product name is required." };
   if (!input.styleNumber) return { error: "Style number is required." };
+  if (formData.get("createdAt") && !input.createdAt) {
+    return { error: "Catalogue date isn't a valid date and time." };
+  }
   const failure = await runOrError(() => updateStyleGeneral(styleId, input));
   if (failure) return failure;
   await logAudit(admin.id, "product.updated", "style", styleId, "general");

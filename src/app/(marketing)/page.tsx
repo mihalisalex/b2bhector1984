@@ -37,7 +37,7 @@ export default async function HomePage() {
           fill
           priority
           sizes="100vw"
-          className="object-cover grayscale"
+          className="object-cover"
         />
         <div
           className="absolute inset-0"

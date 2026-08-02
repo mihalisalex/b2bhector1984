@@ -190,6 +190,13 @@ export interface GeneralInput {
   materials: string[];
   tags: string[];
   collectionIds: string[];
+  /**
+   * ISO timestamp. Drives the catalogue's default "Newest" order, so editing it is how an
+   * admin decides which products lead the grid — a later date sorts earlier. Only ever
+   * feeds sorting and the admin "Created" column; nothing financial, referential or
+   * audit-related reads it. Omitted leaves the stored value untouched.
+   */
+  createdAt?: string;
 }
 
 export async function updateStyleGeneral(styleId: string, input: GeneralInput): Promise<void> {
@@ -208,6 +215,8 @@ export async function updateStyleGeneral(styleId: string, input: GeneralInput): 
       gender: input.gender,
       materials: input.materials,
       tags: input.tags,
+      // Spread so an absent value doesn't overwrite the stored timestamp with null.
+      ...(input.createdAt ? { created_at: input.createdAt } : {}),
     })
     .eq("id", styleId);
   if (error) throw new Error(`styles: ${error.message}`);
