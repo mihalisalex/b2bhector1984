@@ -38,6 +38,36 @@ export default async function AdminContentPage() {
       <section className="mt-10 max-w-xl">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Hero copy</h2>
         <form action={updateHomepageHeroAction} className="mt-3 space-y-5">
+          <div className="border border-stone-300 bg-stone-100 p-4">
+            <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-ink-soft">
+              <input type="checkbox" name="announcementEnabled" defaultChecked={hero.announcementEnabled} className="h-4 w-4 accent-ink" />
+              Announcement bar
+            </label>
+            <p className="mt-0.5 text-[11px] font-normal normal-case tracking-normal text-ink-soft/70">
+              The bar above the hero on the homepage — e.g. a season or collection launch. Unchecked hides it.
+            </p>
+            <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-[1fr_180px]">
+              <Field label="Text">
+                <input
+                  type="text"
+                  name="announcementText"
+                  defaultValue={hero.announcementText}
+                  placeholder="Summer 2027 Collection is Live Now"
+                  className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
+                />
+              </Field>
+              <Field label="Links to">
+                <input
+                  type="text"
+                  name="announcementHref"
+                  defaultValue={hero.announcementHref}
+                  placeholder="/catalogue"
+                  className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
+                />
+              </Field>
+            </div>
+          </div>
+
           <Field label="Eyebrow">
             <input
               type="text"

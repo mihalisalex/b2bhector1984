@@ -325,6 +325,9 @@ export async function updateHomepageHeroAction(formData: FormData) {
     primaryCtaHref: String(formData.get("primaryCtaHref") ?? ""),
     secondaryCtaLabel: String(formData.get("secondaryCtaLabel") ?? ""),
     secondaryCtaHref: String(formData.get("secondaryCtaHref") ?? ""),
+    announcementEnabled: formData.get("announcementEnabled") === "on",
+    announcementText: String(formData.get("announcementText") ?? ""),
+    announcementHref: String(formData.get("announcementHref") ?? ""),
   });
   revalidatePath("/admin/content");
   revalidatePath("/");

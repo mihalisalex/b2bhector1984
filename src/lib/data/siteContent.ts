@@ -14,6 +14,12 @@ export interface HomepageHero {
   primaryCtaHref: string;
   secondaryCtaLabel: string;
   secondaryCtaHref: string;
+  /** The bar above the hero ("Summer 2027 Collection is Live Now" -> /catalogue). Added by
+   * migration 0024 — `mapHero` defaults these when the columns aren't there yet, so an
+   * unmigrated database just doesn't show the bar instead of crashing the homepage. */
+  announcementEnabled: boolean;
+  announcementText: string;
+  announcementHref: string;
 }
 
 interface HeroRow {
@@ -25,6 +31,9 @@ interface HeroRow {
   primary_cta_href: string;
   secondary_cta_label: string;
   secondary_cta_href: string;
+  announcement_enabled?: boolean | null;
+  announcement_text?: string | null;
+  announcement_href?: string | null;
 }
 
 function mapHero(row: HeroRow): HomepageHero {
@@ -37,6 +46,9 @@ function mapHero(row: HeroRow): HomepageHero {
     primaryCtaHref: row.primary_cta_href,
     secondaryCtaLabel: row.secondary_cta_label,
     secondaryCtaHref: row.secondary_cta_href,
+    announcementEnabled: row.announcement_enabled ?? false,
+    announcementText: row.announcement_text ?? "",
+    announcementHref: row.announcement_href ?? "/catalogue",
   };
 }
 
@@ -58,6 +70,9 @@ export async function updateHomepageHero(input: {
   primaryCtaHref: string;
   secondaryCtaLabel: string;
   secondaryCtaHref: string;
+  announcementEnabled: boolean;
+  announcementText: string;
+  announcementHref: string;
 }): Promise<void> {
   const { error } = await supabaseAdmin
     .from("site_content")
@@ -69,6 +84,9 @@ export async function updateHomepageHero(input: {
       primary_cta_href: input.primaryCtaHref,
       secondary_cta_label: input.secondaryCtaLabel,
       secondary_cta_href: input.secondaryCtaHref,
+      announcement_enabled: input.announcementEnabled,
+      announcement_text: input.announcementText,
+      announcement_href: input.announcementHref,
       updated_at: new Date().toISOString(),
     })
     .eq("id", HERO_ID);

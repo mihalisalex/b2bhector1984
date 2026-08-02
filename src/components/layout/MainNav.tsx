@@ -155,7 +155,10 @@ function DrawerLink({ item, active }: { item: { href: string; label: string }; a
       href={item.href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "group flex items-center justify-between border-b py-3 font-display text-lg font-bold uppercase tracking-tight transition-colors duration-150",
+        // Body sans (Plus Jakarta Sans), not font-display: the drawer's link list reads as
+        // navigation UI, not a headline, so it takes the site's modern rounded sans rather
+        // than the Didot-style serif reserved for titles.
+        "group flex items-center justify-between border-b py-3 text-lg font-bold uppercase tracking-tight transition-colors duration-150",
         active ? "border-ink text-signal" : "border-stone-200 text-ink hover:text-signal",
       )}
     >
