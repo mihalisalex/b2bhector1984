@@ -6,6 +6,7 @@ import { HWatermark } from "@/components/layout/HWatermark";
 import { SearchOverlay } from "@/components/layout/SearchOverlay";
 import { CartBadge } from "@/components/layout/CartBadge";
 import { AccountIcon } from "@/components/layout/icons";
+import { AccountMenu } from "@/components/layout/AccountMenu";
 
 export function MarketingHeader({ account }: { account: Account | null }) {
   return (
@@ -25,13 +26,19 @@ export function MarketingHeader({ account }: { account: Account | null }) {
               behind login here, same as the catalog itself; anonymous visitors get the
               account icon only, which routes them to /login. */}
           {account && <SearchOverlay />}
-          <Link
-            href={account ? "/dashboard/account" : "/login"}
-            aria-label={account ? "Account" : "Log in"}
-            className="flex h-9 w-9 items-center justify-center text-ink transition-colors hover:text-signal"
-          >
-            <AccountIcon />
-          </Link>
+          {/* Signed in, the icon opens the account menu (same as the shop header);
+              anonymous visitors have nothing to put in a menu, so it stays a link. */}
+          {account ? (
+            <AccountMenu account={account} />
+          ) : (
+            <Link
+              href="/login"
+              aria-label="Log in"
+              className="flex h-9 w-9 items-center justify-center text-ink transition-colors hover:text-signal"
+            >
+              <AccountIcon />
+            </Link>
+          )}
           {account && <CartBadge />}
         </div>
       </div>

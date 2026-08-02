@@ -16,7 +16,15 @@ export interface CartLine {
 
 interface CartContextValue {
   lines: CartLine[];
-  /** Total pairs across the cart (not box count). */
+  /**
+   * Lines whose style is no longer purchasable — archived, or deleted outright — so it's
+   * gone from the storefront catalogue this provider resolves against. They're kept in
+   * `lines` (never silently dropped: an archive can be reversed, and quietly deleting a
+   * buyer's work is worse than showing it) but excluded from every total, and the cart
+   * surfaces them separately so they can actually be removed.
+   */
+  unavailableLines: CartLine[];
+  /** Total pairs across the cart, excluding unavailable lines. */
   itemCount: number;
   addLines: (styleId: string, incoming: { colorwayId: string; boxTypeId: BoxTypeId; qty: number }[]) => void;
   setLineQty: (styleId: string, colorwayId: string, boxTypeId: BoxTypeId, qty: number) => void;
@@ -126,7 +134,19 @@ export function CartProvider({
 
   const clearCart = useCallback(() => setLines([]), []);
 
-  const itemCount = useMemo(() => lines.reduce((sum, l) => sum + pairsInLine(l), 0), [lines]);
+  const unavailableLines = useMemo(
+    () => lines.filter((l) => !getStyleById(l.styleId)),
+    [lines, getStyleById],
+  );
+
+  // Counts only what can actually be bought. Counting orphaned lines here is what let a
+  // cart show "64 pairs" on the badge while the cart page rendered nothing — the page
+  // skips styles it can't resolve, so the pairs were real to the badge and invisible
+  // everywhere else, with no control to clear them.
+  const itemCount = useMemo(
+    () => lines.reduce((sum, l) => (getStyleById(l.styleId) ? sum + pairsInLine(l) : sum), 0),
+    [lines, getStyleById],
+  );
 
   const styleSubtotal = useCallback(
     (styleId: string) => {
@@ -148,6 +168,7 @@ export function CartProvider({
   const value = useMemo<CartContextValue>(
     () => ({
       lines,
+      unavailableLines,
       itemCount,
       addLines,
       setLineQty,
@@ -157,7 +178,7 @@ export function CartProvider({
       cartTotal,
       priceMultiplier,
     }),
-    [lines, itemCount, addLines, setLineQty, removeStyle, clearCart, styleSubtotal, cartTotal, priceMultiplier],
+    [lines, unavailableLines, itemCount, addLines, setLineQty, removeStyle, clearCart, styleSubtotal, cartTotal, priceMultiplier],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

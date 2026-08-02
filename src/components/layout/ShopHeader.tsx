@@ -5,7 +5,7 @@ import { MainNav } from "@/components/layout/MainNav";
 import { CartBadge } from "@/components/layout/CartBadge";
 import { HWatermark } from "@/components/layout/HWatermark";
 import { SearchOverlay } from "@/components/layout/SearchOverlay";
-import { AccountIcon } from "@/components/layout/icons";
+import { AccountMenu } from "@/components/layout/AccountMenu";
 
 export function ShopHeader({ account }: { account: Account }) {
   return (
@@ -16,15 +16,15 @@ export function ShopHeader({ account }: { account: Account }) {
           <MainNav account={account} />
         </div>
 
-        <Link href="/dashboard" aria-label="Hector 1984 wholesale home" className="flex items-center justify-center">
+        {/* The homepage, matching the marketing header's logo and the nav's "Home" —
+            the buyer's dashboard is reachable from the account menu instead. */}
+        <Link href="/" aria-label="Hector 1984 home" className="flex items-center justify-center">
           <Logo />
         </Link>
 
         <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
           <SearchOverlay />
-          <Link href="/dashboard/account" aria-label="Account" className="flex h-9 w-9 items-center justify-center text-ink transition-colors hover:text-signal">
-            <AccountIcon />
-          </Link>
+          <AccountMenu account={account} />
           <CartBadge />
         </div>
       </div>

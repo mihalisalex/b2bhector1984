@@ -26,7 +26,7 @@ export function CartView({
    * could push a line past on-hand and it wouldn't get caught until placeOrder, if then). */
   inventory: Record<string, StyleInventory>;
 }) {
-  const { lines, setLineQty, removeStyle, cartTotal, priceMultiplier } = useCart();
+  const { lines, unavailableLines, setLineQty, removeStyle, cartTotal, priceMultiplier } = useCart();
   const { getStyleById } = useCatalog();
 
   function onHandFor(styleId: string, colorwayId: string, boxTypeId: BoxTypeId): number {
@@ -38,17 +38,33 @@ export function CartView({
     return Math.min(max, Math.max(0, Math.floor(value) || 0));
   }
 
-  const styleIds = useMemo(() => Array.from(new Set(lines.map((l) => l.styleId))), [lines]);
+  // Everything below counts only sellable lines. A line whose style has been archived or
+  // deleted can't be priced, ordered, or even rendered, so including it inflated the pair
+  // count and the stock check against a style that isn't there.
+  const sellableLines = useMemo(() => lines.filter((l) => getStyleById(l.styleId)), [lines, getStyleById]);
+  const styleIds = useMemo(
+    () => Array.from(new Set(sellableLines.map((l) => l.styleId))),
+    [sellableLines],
+  );
   const grandTotalPairs = useMemo(
-    () => lines.reduce((sum, l) => sum + l.qty * getBoxType(l.boxTypeId).totalPairs, 0),
-    [lines],
+    () => sellableLines.reduce((sum, l) => sum + l.qty * getBoxType(l.boxTypeId).totalPairs, 0),
+    [sellableLines],
   );
   const minimumError = getOrderMinimumError(grandTotalPairs);
   // Belt-and-suspenders alongside the disabled "+" button: also gate the actual
   // checkout hand-off, so a line that's over stock for any reason (a stale cart from
   // before this fix, stock dropping after the line was added) can't slip through.
-  const overStockLine = lines.find((l) => l.qty > onHandFor(l.styleId, l.colorwayId, l.boxTypeId));
-  const blockedReason = minimumError || (overStockLine ? "One or more lines exceed available stock — reduce quantity to check out." : undefined);
+  const overStockLine = sellableLines.find((l) => l.qty > onHandFor(l.styleId, l.colorwayId, l.boxTypeId));
+  const unavailableStyleIds = useMemo(
+    () => Array.from(new Set(unavailableLines.map((l) => l.styleId))),
+    [unavailableLines],
+  );
+  const blockedReason =
+    minimumError ||
+    (overStockLine ? "One or more lines exceed available stock — reduce quantity to check out." : undefined) ||
+    (unavailableLines.length > 0
+      ? "Remove the styles that are no longer available before checking out."
+      : undefined);
 
   if (lines.length === 0) {
     return (
@@ -70,6 +86,40 @@ export function CartView({
           ← Continue shopping
         </Link>
       </div>
+
+      {unavailableStyleIds.length > 0 && (
+        <div className="mt-6 border border-ember/40 bg-ember-100 px-4 py-3">
+          <p className="text-sm font-semibold text-ember">
+            {unavailableStyleIds.length === 1 ? "A style in your cart is" : "Some styles in your cart are"} no longer
+            available
+          </p>
+          <p className="mt-1 text-xs text-ink-soft">
+            These were withdrawn after you added them, so they can&rsquo;t be priced or ordered. They&rsquo;re not
+            included in your totals — remove them to check out.
+          </p>
+          <ul className="mt-3 flex flex-col gap-2">
+            {unavailableStyleIds.map((styleId) => {
+              const pairs = unavailableLines
+                .filter((l) => l.styleId === styleId)
+                .reduce((sum, l) => sum + l.qty * getBoxType(l.boxTypeId).totalPairs, 0);
+              return (
+                <li key={styleId} className="flex items-center justify-between gap-3 border-t border-ember/20 pt-2">
+                  <span className="text-xs text-ink-soft">
+                    <span className="font-mono-tab text-ink">{styleId}</span> · {pairs} pair{pairs === 1 ? "" : "s"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => removeStyle(styleId)}
+                    className="text-xs font-semibold uppercase tracking-wide text-ember hover:underline"
+                  >
+                    Remove
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
 
       <div className="mt-6 flex flex-col gap-6">
         {styleIds.map((styleId) => {
