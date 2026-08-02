@@ -29,19 +29,6 @@ export default async function HomePage() {
 
   return (
     <div>
-      {/* Announcement bar — editable in /admin/content (checkbox to hide it entirely).
-          A leather-saddle brown rather than the site's usual ink/white: this is a launch
-          callout, not a structural UI element, so it's allowed its own accent instead of
-          borrowing the black/white/gray palette everything else on the page uses. */}
-      {hero.announcementEnabled && hero.announcementText && (
-        <Link
-          href={hero.announcementHref}
-          className="block bg-[#5C3A24] px-4 py-2.5 text-center text-[11px] font-semibold uppercase tracking-[0.15em] text-white transition-colors hover:bg-[#6B4630]"
-        >
-          {hero.announcementText}
-        </Link>
-      )}
-
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-stone-300 bg-ink">
         <Image
@@ -73,7 +60,11 @@ export default async function HomePage() {
               ))}
             </h1>
             <div className="mt-6 flex flex-wrap gap-3">
-              <LinkButton href={hero.primaryCtaHref} size="lg">{hero.primaryCtaLabel}</LinkButton>
+              {/* Leather brown, matching the announcement bar, instead of the default
+                  ink-black primary button — ties the hero CTA to this launch's own accent. */}
+              <LinkButton href={hero.primaryCtaHref} size="lg" className="!bg-leather hover:!bg-leather/85">
+                {hero.primaryCtaLabel}
+              </LinkButton>
               <LinkButton href={hero.secondaryCtaHref} variant="secondary" size="lg" className="!border-white !text-white hover:!bg-white hover:!text-ink">
                 {hero.secondaryCtaLabel}
               </LinkButton>

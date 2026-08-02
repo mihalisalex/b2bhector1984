@@ -1,15 +1,18 @@
 import { getCurrentAccount } from "@/lib/session";
 import { getStorefrontStyles } from "@/lib/data/styles";
+import { getHomepageHero } from "@/lib/data/siteContent";
 import { CatalogProvider } from "@/lib/catalog-context";
 import { CartProvider } from "@/lib/cart-context";
+import { HomeAnnouncementBar } from "@/components/layout/HomeAnnouncementBar";
 import { MarketingHeader } from "@/components/layout/MarketingHeader";
 import { Footer } from "@/components/layout/Footer";
 
 export default async function MarketingLayout({ children }: { children: React.ReactNode }) {
-  const account = await getCurrentAccount();
+  const [account, hero] = await Promise.all([getCurrentAccount(), getHomepageHero()]);
 
   const content = (
     <>
+      <HomeAnnouncementBar enabled={hero.announcementEnabled} text={hero.announcementText} href={hero.announcementHref} />
       <MarketingHeader account={account} />
       <main className="flex-1">{children}</main>
       <Footer />

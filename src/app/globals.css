@@ -20,6 +20,10 @@
   --color-court-100: #e5e5e5;
   --color-positive: #3d5c3a;
   --color-positive-100: #dde6d8;
+  /* Saddle-leather brown — a deliberate one-off accent for launch/promo callouts
+     (announcement bar, its matching hero CTA), not part of the ink/white/gray system
+     everything else on the site uses. */
+  --color-leather: #4e311f;
 
   --shell-header-h: 4.5rem;
 }
@@ -47,6 +51,7 @@
   --color-court-100: var(--color-court-100);
   --color-positive: var(--color-positive);
   --color-positive-100: var(--color-positive-100);
+  --color-leather: var(--color-leather);
 }
 
 * {

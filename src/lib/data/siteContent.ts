@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { assertAllowedExtension, IMAGE_EXTENSIONS } from "@/lib/uploadValidation";
 
@@ -52,7 +53,10 @@ function mapHero(row: HeroRow): HomepageHero {
   };
 }
 
-export async function getHomepageHero(): Promise<HomepageHero> {
+/** `cache()`-wrapped: the marketing layout (announcement bar) and the homepage (hero
+ * content) both need this in the same request's render tree, so they share one fetch
+ * instead of querying `site_content` twice. */
+export const getHomepageHero = cache(async (): Promise<HomepageHero> => {
   const { data, error } = await supabaseAdmin
     .from("site_content")
     .select("*")
@@ -60,7 +64,7 @@ export async function getHomepageHero(): Promise<HomepageHero> {
     .single();
   if (error) throw new Error(`site_content: ${error.message}`);
   return mapHero(data);
-}
+});
 
 export async function updateHomepageHero(input: {
   eyebrow: string;
