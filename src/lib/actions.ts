@@ -119,7 +119,7 @@ export async function requestPasswordReset(_prev: FormState, formData: FormData)
       await sendEmail({
         to: account.email,
         subject: PASSWORD_RESET_EMAIL_SUBJECT,
-        html: textToHtml(buildPasswordResetEmailBody(resetUrl, account.contactName)),
+        html: textToHtml(buildPasswordResetEmailBody(resetUrl, account.contactName), PASSWORD_RESET_EMAIL_SUBJECT),
       });
     }
   } catch (err) {
@@ -216,7 +216,7 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
     await sendEmail({
       to: adminEmail,
       subject: NEW_APPLICATION_ADMIN_EMAIL_SUBJECT,
-      html: textToHtml(buildNewApplicationAdminEmailBody(application)),
+      html: textToHtml(buildNewApplicationAdminEmailBody(application), NEW_APPLICATION_ADMIN_EMAIL_SUBJECT),
     });
   } else {
     console.warn("[email] ADMIN_EMAIL not set — skipping new-application admin notification");
@@ -224,7 +224,7 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
   await sendEmail({
     to: application.email,
     subject: APPLICATION_RECEIVED_EMAIL_SUBJECT,
-    html: textToHtml(buildApplicationReceivedEmailBody(application.contactName)),
+    html: textToHtml(buildApplicationReceivedEmailBody(application.contactName), APPLICATION_RECEIVED_EMAIL_SUBJECT),
   });
 
   await setApplicationCookie(id, APPLICATION_MAX_AGE);
@@ -379,10 +379,11 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
   };
 
   await addOrder(account.id, order);
+  const confirmationSubject = orderConfirmationEmailSubject(order);
   await sendEmail({
     to: account.email,
-    subject: orderConfirmationEmailSubject(order),
-    html: textToHtml(buildOrderConfirmationEmailBody(order, account.contactName)),
+    subject: confirmationSubject,
+    html: textToHtml(buildOrderConfirmationEmailBody(order, account.contactName), confirmationSubject),
   });
 
   // WhatsApp notification for the proforma invoice request — no-ops safely

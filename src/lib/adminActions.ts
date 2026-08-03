@@ -15,7 +15,7 @@ import {
 import { createSalesRep, updateSalesRep, deleteSalesRep } from "@/lib/data/salesReps";
 import { logAudit } from "@/lib/data/auditLog";
 import { updateHomepageHero, createHeroImageUploadTarget, finalizeHeroImageUpload } from "@/lib/data/siteContent";
-import { updateSeasonSettings } from "@/lib/data/seasonSettings";
+import { updateSeasonSettings, createSeasonTeaserUploadTarget, finalizeSeasonTeaserUpload } from "@/lib/data/seasonSettings";
 import {
   updateOrderStatus as updateOrderStatusInDb,
   updateOrderDetails as updateOrderDetailsInDb,
@@ -35,7 +35,7 @@ import {
 } from "@/lib/emailTemplates";
 import { SITE_URL } from "@/lib/siteUrl";
 import type { FormState } from "@/lib/actions";
-import type { BoxTypeId, CreditTerms, OrderStatus } from "@/lib/types";
+import type { BoxTypeId, CreditTerms, OrderStatus, Season } from "@/lib/types";
 
 async function requireAdmin() {
   const account = await getCurrentAccount();
@@ -47,10 +47,11 @@ async function requireAdmin() {
 async function notifyOrderStatusChange(orderId: string, status: OrderStatus) {
   const order = await getOrderByIdAdmin(orderId);
   if (!order?.email) return;
+  const subject = orderStatusEmailSubject({ id: order.id, status });
   await sendEmail({
     to: order.email,
-    subject: orderStatusEmailSubject({ id: order.id, status }),
-    html: textToHtml(buildOrderStatusEmailBody({ id: order.id, poNumber: order.poNumber, status }, order.contactName)),
+    subject,
+    html: textToHtml(buildOrderStatusEmailBody({ id: order.id, poNumber: order.poNumber, status }, order.contactName), subject),
   });
 }
 
@@ -62,13 +63,16 @@ async function notifyApplicationDecision(applicationId: string, decision: "appro
     await sendEmail({
       to: application.email,
       subject: APPLICATION_APPROVED_EMAIL_SUBJECT,
-      html: textToHtml(buildApplicationApprovedEmailBody(application.contactName, `${SITE_URL}/apply/pending`)),
+      html: textToHtml(
+        buildApplicationApprovedEmailBody(application.contactName, `${SITE_URL}/apply/pending`),
+        APPLICATION_APPROVED_EMAIL_SUBJECT,
+      ),
     });
   } else {
     await sendEmail({
       to: application.email,
       subject: APPLICATION_DECLINED_EMAIL_SUBJECT,
-      html: textToHtml(buildApplicationDeclinedEmailBody(application.contactName)),
+      html: textToHtml(buildApplicationDeclinedEmailBody(application.contactName), APPLICATION_DECLINED_EMAIL_SUBJECT),
     });
   }
 }
@@ -363,6 +367,27 @@ export async function updateSeasonSettingsAction(formData: FormData) {
   revalidatePath("/catalogue");
   revalidatePath("/collections");
   revalidatePath("/quick-order");
+}
+
+export async function createSeasonTeaserUploadUrlAction(season: Season, fileName: string): Promise<UploadTarget> {
+  await requireAdmin();
+  try {
+    return await createSeasonTeaserUploadTarget(season, fileName);
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Could not start upload." };
+  }
+}
+
+export async function finalizeSeasonTeaserUploadAction(season: Season, path: string): Promise<UploadState> {
+  await requireAdmin();
+  try {
+    await finalizeSeasonTeaserUpload(season, path);
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Upload failed." };
+  }
+  revalidatePath("/admin/seasons");
+  revalidatePath("/");
+  return {};
 }
 
 export async function createHeroImageUploadUrlAction(fileName: string): Promise<UploadTarget> {

@@ -82,11 +82,7 @@ export default async function HomePage() {
       {/* Easy steps to order, right up top for first-time buyers */}
       <section className="border-b border-stone-300 bg-white py-16">
         <div className="mx-auto max-w-[1440px] px-6 lg:px-10">
-          <p className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">
-            New here? Ordering takes three steps.
-          </p>
-          <div className="relative mt-10 grid grid-cols-1 gap-10 sm:grid-cols-3">
-            <div className="pointer-events-none absolute inset-x-0 top-6 hidden h-px bg-stone-300 sm:block" aria-hidden />
+          <div className="grid grid-cols-1 gap-12 sm:grid-cols-3 sm:gap-10">
             <QuickStep n="01" title="Apply" body="Tell us about your store — takes 2 minutes." href="/apply" cta="Apply now" />
             <QuickStep n="02" title="Log in" body="Once approved, sign in to unlock full wholesale pricing." href="/login" cta="Buyer login" />
             <QuickStep n="03" title="Order" body="Browse Quick Order or the Catalogue and check out." href="/quick-order" cta="Quick Order" />
@@ -94,59 +90,89 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Season teaser */}
-      <section className="mx-auto max-w-[1440px] px-6 py-20 lg:px-10">
-        <div className="flex items-end justify-between border-b border-stone-300 pb-6">
-          <div>
-            <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-ink sm:text-3xl">
-              The Collection
-            </h2>
-            <p className="mt-2 max-w-lg text-sm text-ink-soft">
-              Two seasons, seven categories. Full pricing and matrix ordering unlock once your
-              wholesale account is approved.
-            </p>
-          </div>
-          <Link href="/collections" className="hidden text-sm font-medium text-signal hover:underline sm:block">
-            View lookbook →
-          </Link>
-        </div>
+      {/* Season spotlight — one full-width editorial row per enabled season, alternating
+          text/image sides, instead of a 2-up grid that left a dead cell whenever a season
+          had no styles yet (see the homepage redesign discussion for why). */}
+      {seasonOptions.map(({ value: season, label }, index) => {
+        const seasonStyles = styles.filter((s) => s.season === season);
+        const rep = seasonStyles[0];
+        if (!rep) return null;
+        const imageUrl = seasonSettings[season].teaserImageUrl || getStyleImageUrl(rep);
+        const imageOnRight = index % 2 === 0;
 
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
-          {seasonOptions.map(({ value: season, label }, index) => {
-            const seasonStyles = styles.filter((s) => s.season === season);
-            const rep = seasonStyles[0];
-            if (!rep) return null;
-            return (
-              <Link
-                key={season}
-                href={`/collections?season=${season}`}
-                className="group relative block aspect-[4/3] overflow-hidden border border-stone-300 bg-ink sm:aspect-[16/11]"
-              >
-                <StylePlate
-                  swatch={rep.colorways[0].swatch}
-                  imageUrl={getStyleImageUrl(rep)}
-                  alt={rep.name}
-                  priority={index === 0}
-                  className="h-full w-full transition-transform duration-500 ease-out group-hover:scale-[1.04]"
-                />
-                <div
-                  className="absolute inset-0"
-                  style={{ background: "linear-gradient(0deg, rgba(8,9,11,0.75) 0%, rgba(8,9,11,0.1) 55%)" }}
-                  aria-hidden
-                />
-                <div className="absolute inset-x-0 bottom-0 p-6">
-                  <h3 className="font-display text-2xl font-bold uppercase tracking-tight text-white group-hover:underline">
-                    {label}
-                  </h3>
-                  <p className="mt-1 text-xs uppercase tracking-wide text-stone-300/80">
-                    {seasonStyles.length} styles · {SEASON_CATEGORIES[season].map((c) => CATEGORY_LABEL[c]).join(", ")}
-                  </p>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
+        const imagePanel = (
+          <Link
+            href={`/collections?season=${season}`}
+            className="group relative block aspect-[4/3] overflow-hidden bg-ink sm:aspect-auto"
+          >
+            <StylePlate
+              swatch={rep.colorways[0].swatch}
+              imageUrl={imageUrl}
+              alt={rep.name}
+              priority={index === 0}
+              className="h-full w-full transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+            />
+            <div
+              className="absolute inset-0"
+              style={{
+                background: imageOnRight
+                  ? "linear-gradient(260deg, rgba(8,9,11,0.5) 0%, rgba(8,9,11,0.02) 40%)"
+                  : "linear-gradient(100deg, rgba(8,9,11,0.5) 0%, rgba(8,9,11,0.02) 40%)",
+              }}
+              aria-hidden
+            />
+            <span
+              aria-hidden
+              className="font-display absolute top-4 text-6xl font-extrabold leading-none text-white/20 sm:text-7xl"
+              style={imageOnRight ? { right: "1rem" } : { left: "1rem" }}
+            >
+              {String(index + 1).padStart(2, "0")}
+            </span>
+          </Link>
+        );
+
+        const textPanel = (
+          <div className="flex flex-col justify-center px-6 py-12 lg:px-14">
+            <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">
+              {index === 0 ? "The current drop" : "Also available"}
+            </span>
+            <h2 className="font-display mt-3 text-2xl font-bold uppercase leading-[1.05] tracking-tight text-ink sm:text-3xl">
+              {label}
+            </h2>
+            <p className="mt-3 max-w-xs text-sm leading-relaxed text-ink-soft">
+              {seasonStyles.length} styles · {SEASON_CATEGORIES[season].map((c) => CATEGORY_LABEL[c]).join(", ")}. Full
+              pricing and matrix ordering unlock once your wholesale account is approved.
+            </p>
+            <Link
+              href={`/collections?season=${season}`}
+              className="group mt-5 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-ink hover:text-signal"
+            >
+              View lookbook
+              <span aria-hidden className="transition-transform duration-150 group-hover:translate-x-1">
+                →
+              </span>
+            </Link>
+          </div>
+        );
+
+        return (
+          <section key={season} className="border-b border-stone-300 bg-white">
+            <div className="grid grid-cols-1 sm:grid-cols-2">
+              {imageOnRight ? (
+                <>
+                  {textPanel}
+                  {imagePanel}
+                </>
+              ) : (
+                <>
+                  {imagePanel}
+                  {textPanel}
+                </>
+              )}
+            </div>
+          </section>
+        );
+      })}
 
       {/* Built for operators */}
       <section className="border-y border-stone-300 bg-stone-100 py-20">
@@ -207,21 +233,26 @@ function QuickStep({
   cta: string;
 }) {
   return (
-    <div className="relative flex flex-col items-start">
-      <span className="font-mono-tab relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-ink text-sm font-semibold text-white">
+    <div className="relative">
+      <span
+        aria-hidden
+        className="font-display pointer-events-none absolute -top-8 left-0 select-none text-7xl font-extrabold leading-none text-stone-200 sm:-top-9 sm:text-8xl"
+      >
         {n}
       </span>
-      <h3 className="font-display mt-4 text-lg font-bold uppercase tracking-tight text-ink">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-ink-soft">{body}</p>
-      <Link
-        href={href}
-        className="group mt-3 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-ink hover:text-signal"
-      >
-        {cta}
-        <span aria-hidden className="transition-transform duration-150 group-hover:translate-x-1">
-          →
-        </span>
-      </Link>
+      <div className="relative mt-10 sm:mt-12">
+        <h3 className="font-display text-lg font-bold uppercase tracking-tight text-ink">{title}</h3>
+        <p className="mt-2 text-sm leading-relaxed text-ink-soft">{body}</p>
+        <Link
+          href={href}
+          className="group mt-3 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-ink hover:text-signal"
+        >
+          {cta}
+          <span aria-hidden className="transition-transform duration-150 group-hover:translate-x-1">
+            →
+          </span>
+        </Link>
+      </div>
     </div>
   );
 }

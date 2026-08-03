@@ -1,5 +1,8 @@
+import Image from "next/image";
 import { getSeasonSettings } from "@/lib/data/seasonSettings";
-import { updateSeasonSettingsAction } from "@/lib/adminActions";
+import { updateSeasonSettingsAction, createSeasonTeaserUploadUrlAction, finalizeSeasonTeaserUploadAction } from "@/lib/adminActions";
+import { ImageUploadForm } from "@/components/admin/ImageUploadForm";
+import type { Season } from "@/lib/types";
 
 export default async function AdminSeasonsPage() {
   const settings = await getSeasonSettings();
@@ -13,7 +16,8 @@ export default async function AdminSeasonsPage() {
         Control which seasons buyers can browse and what they&rsquo;re called. Turning a season off
         hides its styles from the Catalogue, Quick Order, Collections, and the homepage — the
         styles and their data are untouched, and direct links (cart, favorites, saved
-        assortments) keep working.
+        assortments) keep working. The homepage spotlight photo is chosen here too, rather than
+        automatically picking whichever style happens to be first for that season.
       </p>
 
       <form action={updateSeasonSettingsAction} className="mt-8 max-w-xl space-y-8">
@@ -27,6 +31,11 @@ export default async function AdminSeasonsPage() {
           Save changes
         </button>
       </form>
+
+      <div className="mt-10 max-w-xl space-y-8">
+        <SeasonTeaserImage season="summer" imageUrl={settings.summer.teaserImageUrl} label={settings.summer.label} />
+        <SeasonTeaserImage season="winter" imageUrl={settings.winter.teaserImageUrl} label={settings.winter.label} />
+      </div>
     </div>
   );
 }
@@ -64,6 +73,28 @@ function SeasonField({
           className="mt-1.5 w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
         />
       </label>
+    </div>
+  );
+}
+
+function SeasonTeaserImage({ season, imageUrl, label }: { season: Season; imageUrl?: string; label: string }) {
+  return (
+    <div className="border border-stone-300 bg-white p-4">
+      <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{label} — homepage spotlight photo</span>
+      <div className="relative mt-3 aspect-[16/9] w-full overflow-hidden border border-stone-300 bg-stone-100">
+        {imageUrl ? (
+          <Image src={imageUrl} alt={`${label} homepage spotlight`} fill sizes="(min-width: 1024px) 576px, 100vw" className="object-cover" />
+        ) : (
+          <div className="flex h-full items-center justify-center text-xs text-ink-soft">
+            No photo chosen yet — falls back to the season&rsquo;s first style photo
+          </div>
+        )}
+      </div>
+      <ImageUploadForm
+        createUploadTarget={createSeasonTeaserUploadUrlAction.bind(null, season)}
+        finalizeUpload={finalizeSeasonTeaserUploadAction.bind(null, season)}
+        buttonLabel={imageUrl ? "Upload & replace" : "Upload photo"}
+      />
     </div>
   );
 }
