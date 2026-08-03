@@ -25,7 +25,7 @@ import {
   deleteShipToAddress as deleteShipToAddressRow,
   setDefaultShipToAddress as setDefaultShipToAddressRow,
 } from "@/lib/data/accounts";
-import { insertApplication, updateApplicationStatus } from "@/lib/data/applications";
+import { insertApplication, updateApplicationStatus, getApplicationById } from "@/lib/data/applications";
 import { getStylesByIds } from "@/lib/data/styles";
 import {
   createPasswordResetToken,
@@ -231,9 +231,13 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
   redirect("/apply/pending");
 }
 
-/** Approved -> active: the buyer sets their own password, provisions the account, and signs them in. */
+/** Approved -> active: the buyer sets their own password, provisions the account, and signs them in.
+ * The form carries the application id as a hidden field (see ActivateAccountForm) so this works
+ * from the "activate now" email link on any browser, not just the one that originally applied —
+ * falls back to the `hector_application` cookie for the same-browser case with no id posted. */
 export async function activateAccount(_prev: FormState, formData: FormData): Promise<FormState> {
-  const application = await getApplication();
+  const explicitId = String(formData.get("applicationId") ?? "").trim();
+  const application = explicitId ? ((await getApplicationById(explicitId)) ?? null) : await getApplication();
   if (!application || application.status !== "approved") redirect("/apply/pending");
 
   const password = String(formData.get("password") ?? "");

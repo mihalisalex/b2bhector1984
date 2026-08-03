@@ -64,7 +64,7 @@ async function notifyApplicationDecision(applicationId: string, decision: "appro
       to: application.email,
       subject: APPLICATION_APPROVED_EMAIL_SUBJECT,
       html: textToHtml(
-        buildApplicationApprovedEmailBody(application.contactName, `${SITE_URL}/apply/pending`),
+        buildApplicationApprovedEmailBody(application.contactName, `${SITE_URL}/apply/pending?app=${application.id}`),
         APPLICATION_APPROVED_EMAIL_SUBJECT,
       ),
     });

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getApplication } from "@/lib/session";
+import { getApplicationById } from "@/lib/data/applications";
 import { ActivateAccountForm } from "@/components/auth/ActivateAccountForm";
 import { LinkButton } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
@@ -13,8 +14,19 @@ const STEPS = [
   { key: "active", label: "Active" },
 ] as const;
 
-export default async function ApplicationPendingPage() {
-  const application = await getApplication();
+export default async function ApplicationPendingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ app?: string }>;
+}) {
+  // The "your application is approved, activate now" email link carries the
+  // application's own id (an unguessable uuid) so it works from ANY browser —
+  // not just the one that originally submitted the application, which is what
+  // the `hector_application` cookie alone requires. Cookie stays as the
+  // fallback for the same-browser case (e.g. checking status right after
+  // applying, with no id in the URL).
+  const { app: applicationId } = await searchParams;
+  const application = applicationId ? ((await getApplicationById(applicationId)) ?? null) : await getApplication();
 
   if (!application) {
     return (
@@ -81,7 +93,7 @@ export default async function ApplicationPendingPage() {
               You&rsquo;re approved for a wholesale account. Set a password to activate it and
               start browsing the full catalog with pricing.
             </p>
-            <ActivateAccountForm />
+            <ActivateAccountForm applicationId={application.id} />
           </>
         )}
       </div>
