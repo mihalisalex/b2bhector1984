@@ -3,7 +3,7 @@ import { LinkButton } from "@/components/ui/Button";
 
 export const metadata = {
   title: "Terms of Service",
-  description: "Terms of Service for Hector 1984 Wholesale.",
+  description: "Terms of Service for Hector Footwear Wholesale.",
   robots: { index: false, follow: false },
 };
 

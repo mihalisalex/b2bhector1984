@@ -3,7 +3,7 @@ import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
 
 export const metadata: Metadata = {
   title: "Reset Password",
-  description: "Reset the password for your Hector 1984 wholesale account.",
+  description: "Reset the password for your Hector Footwear wholesale account.",
 };
 
 export default function ForgotPasswordPage() {

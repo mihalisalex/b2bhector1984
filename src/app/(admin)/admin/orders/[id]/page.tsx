@@ -95,7 +95,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
               <EmailBuyerPanel
                 to={order.email}
                 toName={order.contactName}
-                defaultSubject={`Your Hector 1984 order ${order.id}`}
+                defaultSubject={`Your Hector Footwear order ${order.id}`}
                 defaultBody={emailBody}
               />
             </div>

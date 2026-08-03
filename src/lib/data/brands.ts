@@ -12,12 +12,12 @@ function mapBrand(row: BrandRow): Brand {
   return { id: row.id, name: row.name };
 }
 
-/** Falls back to a single "Hector 1984" placeholder if migration 0013 hasn't run yet. */
+/** Falls back to a single "Hector Footwear" placeholder if migration 0013 hasn't run yet. */
 export async function getAllBrands(): Promise<Brand[]> {
   const { data, error } = await supabaseAdmin.from("brands").select("*").order("name");
   if (error) {
     console.warn(`brands query failed (has migration 0013 been run?): ${error.message}`);
-    return [{ id: "hector-1984", name: "Hector 1984" }];
+    return [{ id: "hector-footwear", name: "Hector Footwear" }];
   }
   return (data ?? []).map(mapBrand);
 }

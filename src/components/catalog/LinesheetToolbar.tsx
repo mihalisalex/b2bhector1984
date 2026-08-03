@@ -34,7 +34,7 @@ export function LinesheetToolbar({ styles, priceMultiplier = 1 }: { styles: Styl
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "hector-1984-linesheet.csv";
+    a.download = "hector-footwear-linesheet.csv";
     a.click();
     URL.revokeObjectURL(url);
   }

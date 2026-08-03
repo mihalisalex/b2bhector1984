@@ -64,9 +64,9 @@ export interface SeoSettings {
 }
 
 export const DEFAULT_SEO_SETTINGS: SeoSettings = {
-  siteName: "Hector 1984",
-  titleTemplate: "%s — Hector 1984 Wholesale",
-  defaultTitle: "Hector 1984 — Wholesale Footwear",
+  siteName: "Hector Footwear",
+  titleTemplate: "%s — Hector Footwear Wholesale",
+  defaultTitle: "Hector Footwear — Wholesale Footwear",
   defaultDescription:
     "Full-grain leather footwear for wholesale buyers. Two seasonal collections, box-only ordering, trade terms.",
   defaultTwitterCard: "summary_large_image",
@@ -78,7 +78,7 @@ export const DEFAULT_SEO_SETTINGS: SeoSettings = {
   sitemapEnabled: true,
   sitemapIncludeImages: true,
 
-  organizationLegalName: "Hector 1984",
+  organizationLegalName: "Hector Footwear",
   organizationCountry: "GR",
   socialProfiles: [],
   localBusinessEnabled: false,

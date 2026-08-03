@@ -30,7 +30,7 @@ async function main() {
   const { error } = await supabase.from("accounts").upsert(
     {
       id: "acct-admin-01",
-      business_name: "Hector 1984 HQ",
+      business_name: "Hector Footwear HQ",
       contact_name: "House Admin",
       email: adminEmail,
       password: await hashPassword(adminPassword!), // validated non-empty above

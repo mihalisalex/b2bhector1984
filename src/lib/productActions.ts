@@ -157,7 +157,7 @@ export async function updateGeneralAction(styleId: string, _prev: FormState, for
     tagline: String(formData.get("tagline") ?? "").trim(),
     description: sanitizeProductDescription(String(formData.get("description") ?? "")),
     productType: String(formData.get("productType") ?? "Footwear").trim(),
-    brandId: String(formData.get("brandId") ?? "hector-1984"),
+    brandId: String(formData.get("brandId") ?? "hector-footwear"),
     supplierId: String(formData.get("supplierId") ?? "").trim() || undefined,
     category: String(formData.get("category") ?? "") as GeneralInput["category"],
     season: String(formData.get("season") ?? "") as GeneralInput["season"],

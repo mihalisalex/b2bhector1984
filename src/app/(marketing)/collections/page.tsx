@@ -13,7 +13,7 @@ export function generateMetadata() {
   return pageMetadata({
     title: "Collections",
     description:
-      "Browse the current Hector 1984 collection — Summer and Winter, seven categories. Wholesale pricing and matrix ordering unlock with an approved buyer account.",
+      "Browse the current Hector Footwear collection — Summer and Winter, seven categories. Wholesale pricing and matrix ordering unlock with an approved buyer account.",
     path: "/collections",
   });
 }
@@ -49,7 +49,7 @@ export default async function CollectionsPage({
   // to crawl produces Search Console errors rather than rich results.
   const collectionSchema = buildCollectionSchema({
     name: activeCategory ? CATEGORY_LABEL[activeCategory] : "Collections",
-    description: `${results.length} styles from the Hector 1984 ${activeSeason ?? "current"} collection.`,
+    description: `${results.length} styles from the Hector Footwear ${activeSeason ?? "current"} collection.`,
     path: "/collections",
     items: results.map((style) => ({
       name: style.name,

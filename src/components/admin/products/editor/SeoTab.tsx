@@ -61,7 +61,7 @@ export function SeoTab({
   // disagree with what actually ships.
   const generated = useMemo(
     () => ({
-      title: generateProductTitle(source, "Hector 1984"),
+      title: generateProductTitle(source, "Hector Footwear"),
       description: generateProductDescription(source),
       focusKeyword: generateFocusKeyword(source),
       secondaryKeywords: generateSecondaryKeywords(source).join(", "),
@@ -92,11 +92,11 @@ export function SeoTab({
       category: style.category,
       ...(style.materials.length ? { material: style.materials.join(", ") } : {}),
       image: images.length ? images.map((image) => image.publicUrl) : [style.primaryImageUrl].filter(Boolean),
-      url: `https://hector1984.com/product/${slug}`,
-      brand: { "@type": "Brand", name: style.brandName || "Hector 1984" },
+      url: `https://hectorfootwear.gr/product/${slug}`,
+      brand: { "@type": "Brand", name: style.brandName || "Hector Footwear" },
       offers: {
         "@type": "Offer",
-        url: `https://hector1984.com/product/${slug}`,
+        url: `https://hectorfootwear.gr/product/${slug}`,
         priceCurrency: style.currency || "EUR",
         price: style.basePrice.toFixed(2),
         eligibleCustomerType: "https://schema.org/BusinessCustomer",
@@ -382,7 +382,7 @@ export function SeoTab({
         </div>
       )}
 
-      <StructuredDataPreview schema={structuredData} testUrl={`https://hector1984.com/product/${slug}`} />
+      <StructuredDataPreview schema={structuredData} testUrl={`https://hectorfootwear.gr/product/${slug}`} />
 
       {canEdit && <SaveBar isPending={isPending} label="Save SEO" />}
     </form>

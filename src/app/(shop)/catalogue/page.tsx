@@ -23,7 +23,7 @@ export function generateMetadata() {
   return commerceMetadata({
     title: "Catalogue",
     description:
-      "The full Hector 1984 wholesale catalogue — every style, colourway and box configuration, with live stock and trade pricing.",
+      "The full Hector Footwear wholesale catalogue — every style, colourway and box configuration, with live stock and trade pricing.",
     path: "/catalogue",
   });
 }

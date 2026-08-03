@@ -380,3 +380,43 @@ export interface SavedAssortment {
   /** Empty colorway/box on a line means it was saved before line-item storage (migration 0021) — not directly loadable into the cart. */
   lines: SavedAssortmentLine[];
 }
+
+export type JournalStatus = "draft" | "published" | "scheduled" | "archived";
+
+export const JOURNAL_CATEGORIES = [
+  "Industry Insights",
+  "Market Trends",
+  "Buyer Guides",
+  "Supplier Guides",
+  "Procurement Insights",
+  "Case Studies",
+  "Marketplace Updates",
+] as const;
+
+export type JournalCategory = (typeof JOURNAL_CATEGORIES)[number];
+
+export interface JournalPost {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  contentHtml: string;
+  featuredImagePath?: string;
+  featuredImageUrl?: string;
+  authorName: string;
+  category: JournalCategory;
+  tags: string[];
+  featured: boolean;
+  status: JournalStatus;
+  /** Optional future schedule — stored for reference only, same manual-flip caveat as Style.publishAt. */
+  publishAt?: string;
+  /** When the post first went live; the public-facing "Publish date". */
+  publishedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  seoTitle?: string;
+  metaDescription?: string;
+  ogImageUrl?: string;
+  canonicalUrl?: string;
+  robots: string;
+}

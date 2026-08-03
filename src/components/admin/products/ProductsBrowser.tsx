@@ -142,7 +142,7 @@ export function ProductsBrowser({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "hector-1984-products.csv";
+    a.download = "hector-footwear-products.csv";
     a.click();
     URL.revokeObjectURL(url);
   }

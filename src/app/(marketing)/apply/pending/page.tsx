@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getApplication } from "@/lib/session";
-import { activateAccount } from "@/lib/actions";
-import { Button, LinkButton } from "@/components/ui/Button";
+import { ActivateAccountForm } from "@/components/auth/ActivateAccountForm";
+import { LinkButton } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 
 export const metadata = { title: "Application Status", robots: { index: false, follow: false } };
@@ -78,12 +78,10 @@ export default async function ApplicationPendingPage() {
           <>
             <p className="font-display text-lg font-bold uppercase tracking-tight text-positive">Approved</p>
             <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-              You&rsquo;re approved for a wholesale account. Activate it now to set your login and
+              You&rsquo;re approved for a wholesale account. Set a password to activate it and
               start browsing the full catalog with pricing.
             </p>
-            <form action={activateAccount} className="mt-4">
-              <Button type="submit" size="lg">Activate My Account</Button>
-            </form>
+            <ActivateAccountForm />
           </>
         )}
       </div>

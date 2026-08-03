@@ -13,6 +13,12 @@ const COMMANDS: { label: string; command: string; arg?: string }[] = [
   { label: "Link", command: "createLink" },
 ];
 
+/** Only shown when `allowImages` is set (long-form journal articles, not product
+ * descriptions) — inserts by URL rather than a full upload flow, kept deliberately
+ * simple like the rest of this editor. Paired with `sanitizeJournalBody`'s `img`
+ * allowlist entry, not `sanitizeProductDescription`'s. */
+const IMAGE_COMMAND: { label: string; command: string; arg?: string } = { label: "Image", command: "insertImage" };
+
 /**
  * Minimal contentEditable rich text editor — no editor dependency (tiptap/
  * draft-js etc), just document.execCommand + a hidden input synced on every
@@ -25,14 +31,17 @@ export function RichTextEditor({
   label,
   defaultValue,
   disabled,
+  allowImages = false,
 }: {
   name: string;
   label: string;
   defaultValue: string;
   disabled?: boolean;
+  allowImages?: boolean;
 }) {
   const editorRef = useRef<HTMLDivElement>(null);
   const hiddenRef = useRef<HTMLInputElement>(null);
+  const commands = allowImages ? [...COMMANDS, IMAGE_COMMAND] : COMMANDS;
 
   function sync() {
     if (editorRef.current && hiddenRef.current) hiddenRef.current.value = editorRef.current.innerHTML;
@@ -45,6 +54,10 @@ export function RichTextEditor({
       const url = window.prompt("Link URL");
       if (!url) return;
       document.execCommand(command, false, url);
+    } else if (command === "insertImage") {
+      const url = window.prompt("Image URL");
+      if (!url) return;
+      document.execCommand(command, false, url);
     } else {
       document.execCommand(command, false, arg);
     }
@@ -54,7 +67,7 @@ export function RichTextEditor({
   return (
     <div className="border border-stone-300 bg-white">
       <div className="flex flex-wrap gap-1 border-b border-stone-300 bg-stone-100 p-1.5">
-        {COMMANDS.map((c) => (
+        {commands.map((c) => (
           <button
             key={c.label}
             type="button"

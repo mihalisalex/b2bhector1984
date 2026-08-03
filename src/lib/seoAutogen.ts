@@ -68,7 +68,7 @@ export interface ProductSeoSource {
 }
 
 /**
- * "Hector Boat Loafer — Loafers | Hector 1984"
+ * "Hector Boat Loafer — Loafers | Hector Footwear"
  *
  * Brand goes last: Google truncates from the right, and the distinguishing
  * part of a wholesale product title is the style name, not the house name that
@@ -208,4 +208,32 @@ export function containsKeyword(text: string, keyword: string): boolean {
   const needle = keyword.trim().toLowerCase();
   if (!needle) return false;
   return text.toLowerCase().includes(needle);
+}
+
+export interface ArticleSeoSource {
+  title: string;
+  excerpt?: string;
+  contentHtml?: string;
+  category: string;
+  siteName: string;
+}
+
+/** "How to Find Reliable Suppliers | Journal | Hector Footwear" — same right-truncation
+ * logic as generateProductTitle: the distinguishing part (the headline) comes first,
+ * the repeated site furniture is what gets dropped if the full form runs long. */
+export function generateArticleTitle(source: ArticleSeoSource): string {
+  const withSite = `${source.title} | Journal | ${source.siteName}`;
+  if (withSite.length <= TITLE_MAX) return withSite;
+  const withJournal = `${source.title} | Journal`;
+  return withJournal.length <= TITLE_MAX ? withJournal : truncate(source.title, TITLE_MAX);
+}
+
+/** Prefers the human-written excerpt, falls back to the stripped article body. */
+export function generateArticleDescription(source: ArticleSeoSource): string {
+  const excerpt = source.excerpt?.trim();
+  if (excerpt && excerpt.length >= DESCRIPTION_MIN) return truncate(excerpt, DESCRIPTION_MAX);
+  const body = source.contentHtml ? stripHtml(source.contentHtml) : "";
+  if (excerpt && body) return truncate(`${excerpt} ${body}`, DESCRIPTION_MAX);
+  if (body.length >= DESCRIPTION_MIN) return truncate(body, DESCRIPTION_MAX);
+  return truncate(`${source.title} — ${source.category} insights from ${source.siteName}.`, DESCRIPTION_MAX);
 }

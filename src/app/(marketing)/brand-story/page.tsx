@@ -6,7 +6,7 @@ export function generateMetadata() {
   return pageMetadata({
     title: "The Brand",
     description:
-      "Hector 1984 has built full-grain leather footwear — loafers, boots, formal, and more, across a Summer and Winter collection — since the year we were founded, wholesale only.",
+      "Hector Footwear has built full-grain leather footwear — loafers, boots, formal, and more, across a Summer and Winter collection — since the year we were founded, wholesale only.",
     path: "/brand-story",
   });
 }
@@ -30,7 +30,7 @@ export default function BrandStoryPage() {
       <section className="mx-auto grid max-w-[1200px] grid-cols-1 gap-12 px-6 py-20 lg:grid-cols-2 lg:px-10">
         <div className="flex flex-col gap-6 text-sm leading-relaxed text-ink-soft">
           <p>
-            Hector 1984 started in a shared shop space behind a downtown shoemaker, three weeks
+            Hector Footwear started in a shared shop space behind a downtown shoemaker, three weeks
             before that year&rsquo;s trade show. The first pair off the last was a hand-lasted
             loafer built for a local retailer who needed a shoe that could hold its shape on a
             shop-owner&rsquo;s budget — and it sold out of the store that carried it twice before

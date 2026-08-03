@@ -168,7 +168,7 @@ function assembleStyles(
       // Everything below defaults sanely if migrations 0013-0015 haven't run
       // yet — the admin Products module flags that explicitly; every other
       // page in the app (catalogue, cart, checkout, etc) keeps working either way.
-      brandId: s.brand_id ?? "hector-1984",
+      brandId: s.brand_id ?? "hector-footwear",
       brandName: "",
       supplierId: s.supplier_id ?? undefined,
       productType: s.product_type ?? "Footwear",

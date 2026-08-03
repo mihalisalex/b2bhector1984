@@ -45,8 +45,12 @@ import { getHomepageHero } from "@/lib/data/siteContent";
 import {
   buildOrderConfirmationEmailBody,
   buildPasswordResetEmailBody,
+  buildApplicationReceivedEmailBody,
+  buildNewApplicationAdminEmailBody,
   orderConfirmationEmailSubject,
   PASSWORD_RESET_EMAIL_SUBJECT,
+  APPLICATION_RECEIVED_EMAIL_SUBJECT,
+  NEW_APPLICATION_ADMIN_EMAIL_SUBJECT,
   textToHtml,
 } from "@/lib/emailTemplates";
 import { SITE_URL } from "@/lib/siteUrl";
@@ -205,14 +209,39 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
 
   const id = await insertApplication(application);
 
+  // Best-effort notifications — sendEmail never throws, so a Resend outage
+  // can't block the applicant's redirect to the pending-review page.
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (adminEmail) {
+    await sendEmail({
+      to: adminEmail,
+      subject: NEW_APPLICATION_ADMIN_EMAIL_SUBJECT,
+      html: textToHtml(buildNewApplicationAdminEmailBody(application)),
+    });
+  } else {
+    console.warn("[email] ADMIN_EMAIL not set — skipping new-application admin notification");
+  }
+  await sendEmail({
+    to: application.email,
+    subject: APPLICATION_RECEIVED_EMAIL_SUBJECT,
+    html: textToHtml(buildApplicationReceivedEmailBody(application.contactName)),
+  });
+
   await setApplicationCookie(id, APPLICATION_MAX_AGE);
   redirect("/apply/pending");
 }
 
-/** Approved -> active: provisions the buyer account and signs the buyer in. */
-export async function activateAccount() {
+/** Approved -> active: the buyer sets their own password, provisions the account, and signs them in. */
+export async function activateAccount(_prev: FormState, formData: FormData): Promise<FormState> {
   const application = await getApplication();
   if (!application || application.status !== "approved") redirect("/apply/pending");
+
+  const password = String(formData.get("password") ?? "");
+  const confirmPassword = String(formData.get("confirmPassword") ?? "");
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return { error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.` };
+  }
+  if (password !== confirmPassword) return { error: "Passwords don't match." };
 
   const id = `acct-${crypto.randomUUID().slice(0, 8)}`;
   await createAccount({
@@ -221,7 +250,7 @@ export async function activateAccount() {
     contactName: application.contactName,
     email: application.email,
     phone: application.phone,
-    password: await hashPassword("wholesale84"),
+    password: await hashPassword(password),
     status: "active",
     creditTerms: "prepay",
     creditLimit: 5000,

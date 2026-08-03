@@ -12,9 +12,9 @@ import { pageMetadata } from "@/lib/seo";
  * gets its own canonical and a self-referencing og:url like every other indexed page. */
 export function generateMetadata() {
   return pageMetadata({
-    title: "Hector 1984 — Wholesale",
+    title: "Hector Footwear — Wholesale",
     description:
-      "Full-grain leather footwear, wholesaled the way serious retailers expect. Apply for a Hector 1984 wholesale account — matrix ordering, terms-based pricing, net terms.",
+      "Full-grain leather footwear, wholesaled the way serious retailers expect. Apply for a Hector Footwear wholesale account — matrix ordering, terms-based pricing, net terms.",
     path: "/",
   });
 }
@@ -62,9 +62,7 @@ export default async function HomePage() {
               ))}
             </h1>
             <div className="mt-6 flex flex-wrap gap-3">
-              {/* Leather brown, matching the announcement bar, instead of the default
-                  ink-black primary button — ties the hero CTA to this launch's own accent. */}
-              <LinkButton href={hero.primaryCtaHref} size="lg" className="!bg-leather hover:!bg-leather/85">
+              <LinkButton href={hero.primaryCtaHref} size="lg">
                 {hero.primaryCtaLabel}
               </LinkButton>
               <LinkButton href={hero.secondaryCtaHref} variant="secondary" size="lg" className="!border-white !text-white hover:!bg-white hover:!text-ink">
@@ -182,7 +180,7 @@ export default async function HomePage() {
         <div className="mx-auto flex max-w-[1440px] flex-col items-start justify-between gap-6 px-6 sm:flex-row sm:items-center lg:px-10">
           <div>
             <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-white">
-              Ready to carry Hector 1984?
+              Ready to carry Hector Footwear?
             </h2>
             <p className="mt-1 text-sm text-stone-300/80">Applications reviewed by a real person, not a bot.</p>
           </div>

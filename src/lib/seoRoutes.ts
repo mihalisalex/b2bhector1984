@@ -31,9 +31,9 @@ export const PUBLIC_PAGES: PublicPage[] = [
   {
     path: "/",
     label: "Homepage",
-    defaultTitle: "Hector 1984 — Wholesale",
+    defaultTitle: "Hector Footwear — Wholesale",
     defaultDescription:
-      "Full-grain leather footwear, wholesaled the way serious retailers expect. Apply for a Hector 1984 wholesale account — matrix ordering, terms-based pricing, net terms.",
+      "Full-grain leather footwear, wholesaled the way serious retailers expect. Apply for a Hector Footwear wholesale account — matrix ordering, terms-based pricing, net terms.",
     changeFrequency: "weekly",
     priority: 1,
   },
@@ -42,7 +42,7 @@ export const PUBLIC_PAGES: PublicPage[] = [
     label: "The Brand",
     defaultTitle: "The Brand",
     defaultDescription:
-      "Hector 1984 has built full-grain leather footwear — loafers, boots, formal, and more, across a Summer and Winter collection — since the year we were founded, wholesale only.",
+      "Hector Footwear has built full-grain leather footwear — loafers, boots, formal, and more, across a Summer and Winter collection — since the year we were founded, wholesale only.",
     changeFrequency: "monthly",
     priority: 0.7,
   },
@@ -51,16 +51,25 @@ export const PUBLIC_PAGES: PublicPage[] = [
     label: "Collections (public lookbook)",
     defaultTitle: "Collections",
     defaultDescription:
-      "Browse the current Hector 1984 collection — Summer and Winter, seven categories. Wholesale pricing and matrix ordering unlock with an approved buyer account.",
+      "Browse the current Hector Footwear collection — Summer and Winter, seven categories. Wholesale pricing and matrix ordering unlock with an approved buyer account.",
     changeFrequency: "weekly",
     priority: 0.9,
+  },
+  {
+    path: "/journal",
+    label: "Journal",
+    defaultTitle: "Journal",
+    defaultDescription:
+      "Wholesale buying guides, supplier sourcing advice, and footwear industry insights from Hector Footwear — practical reading for retail buyers before they place an order.",
+    changeFrequency: "weekly",
+    priority: 0.7,
   },
   {
     path: "/faq",
     label: "FAQ",
     defaultTitle: "FAQ",
     defaultDescription:
-      "Answers to common questions about Hector 1984 wholesale — box-only ordering, terms-based pricing, accounts, and shipping.",
+      "Answers to common questions about Hector Footwear wholesale — box-only ordering, terms-based pricing, accounts, and shipping.",
     changeFrequency: "monthly",
     priority: 0.6,
   },
@@ -69,7 +78,7 @@ export const PUBLIC_PAGES: PublicPage[] = [
     label: "Contact",
     defaultTitle: "Contact",
     defaultDescription:
-      "Get in touch with Hector 1984 Wholesale — general inquiries, new wholesale accounts, and existing buyer support.",
+      "Get in touch with Hector Footwear Wholesale — general inquiries, new wholesale accounts, and existing buyer support.",
     changeFrequency: "yearly",
     priority: 0.5,
   },
@@ -78,7 +87,7 @@ export const PUBLIC_PAGES: PublicPage[] = [
     label: "Apply for Wholesale Access",
     defaultTitle: "Apply for Wholesale Access",
     defaultDescription:
-      "Apply for a Hector 1984 wholesale account. Tell us about your store — resale certificate, expected volume, and location. Most applications are reviewed within 2 business days.",
+      "Apply for a Hector Footwear wholesale account. Tell us about your store — resale certificate, expected volume, and location. Most applications are reviewed within 2 business days.",
     changeFrequency: "yearly",
     priority: 0.8,
   },
@@ -87,7 +96,7 @@ export const PUBLIC_PAGES: PublicPage[] = [
     label: "Buyer Login",
     defaultTitle: "Buyer Login",
     defaultDescription:
-      "Sign in to your Hector 1984 wholesale account for full pricing, matrix ordering, and order history.",
+      "Sign in to your Hector Footwear wholesale account for full pricing, matrix ordering, and order history.",
     changeFrequency: "yearly",
     priority: 0.3,
   },

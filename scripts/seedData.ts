@@ -437,6 +437,12 @@ export const STYLES: SeedStyle[] = [
   },
 ];
 
+/**
+ * Fictional demo accounts (shared password "wholesale84") — no longer consumed by
+ * `seed.ts` since this app went live 2026-08-03 (see that file's header comment). Kept
+ * here only as historical reference for what local/staging demo data used to look like;
+ * not wired into anything that can run against production anymore.
+ */
 export const ACCOUNTS: Account[] = [
   {
     id: "acct-001",
@@ -477,7 +483,7 @@ export const ACCOUNTS: Account[] = [
     rep: {
       name: "Marcus Iyer",
       title: "Territory Sales Manager, Pacific NW",
-      email: "marcus.iyer@hector1984.com",
+      email: "marcus.iyer@hectorfootwear.gr",
       phone: "(503) 555-0148",
       initials: "MI",
       territory: "WA / OR / ID",
@@ -514,7 +520,7 @@ export const ACCOUNTS: Account[] = [
     rep: {
       name: "Renata Souza",
       title: "Key Account Director",
-      email: "renata.souza@hector1984.com",
+      email: "renata.souza@hectorfootwear.gr",
       phone: "(312) 555-0193",
       initials: "RS",
       territory: "National Accounts",
@@ -551,7 +557,7 @@ export const ACCOUNTS: Account[] = [
     rep: {
       name: "Marcus Iyer",
       title: "Territory Sales Manager, Pacific NW",
-      email: "marcus.iyer@hector1984.com",
+      email: "marcus.iyer@hectorfootwear.gr",
       phone: "(503) 555-0148",
       initials: "MI",
       territory: "WA / OR / ID",

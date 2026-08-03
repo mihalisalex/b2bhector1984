@@ -17,7 +17,7 @@ export function MarketingHeader({ account }: { account: Account | null }) {
           <MainNav account={account} />
         </div>
 
-        <Link href="/" className="flex items-center justify-center" aria-label="Hector 1984 home">
+        <Link href="/" className="flex items-center justify-center" aria-label="Hector Footwear home">
           <Logo />
         </Link>
 

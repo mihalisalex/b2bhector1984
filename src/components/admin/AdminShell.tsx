@@ -115,7 +115,7 @@ export function AdminShell({
                 <span className="h-[1.5px] w-5 bg-white" aria-hidden />
               </button>
               <span className="font-display text-sm font-bold uppercase tracking-tight text-white">
-                Hector 1984 — Admin
+                Hector Footwear — Admin
               </span>
             </header>
 
@@ -180,7 +180,7 @@ function AdminBrand() {
   return (
     <Link href="/admin" className="block px-5 py-4">
       <span className="font-display block text-sm font-bold uppercase tracking-tight text-white">
-        Hector 1984
+        Hector Footwear
       </span>
       <span className="font-mono-tab mt-0.5 block text-[10px] uppercase tracking-[0.2em] text-stone-300/60">
         Admin

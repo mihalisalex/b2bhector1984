@@ -1,16 +1,25 @@
 /**
- * Seeds the Supabase project with this app's existing mock data.
+ * Seeds the Supabase project's catalog reference data (box types, styles, colorways).
  * Run once after applying supabase/migrations/0001_init.sql:
  *
  *   npm run seed
+ *
+ * Deliberately does NOT seed accounts/orders/saved_assortments anymore, even though
+ * `./seedData` still exports fictional ACCOUNTS/ORDERS/ASSORTMENTS data — this app went
+ * live 2026-08-03 and those rows (3 demo buyer accounts sharing a hardcoded password,
+ * plus their orders) were deleted from production. Since `insert()` only fails on a
+ * primary-key conflict, re-running the old version of this script today would have
+ * silently re-created that shared-password demo data (accounts/ship_to are seeded
+ * before styles/colorways, which *would* correctly fail on conflict — but by then the
+ * damage from the accounts step is already done). If you need demo buyer accounts again
+ * for local/staging use, seed them by hand against a non-production database.
  */
 import { config } from "dotenv";
 config({ path: ".env.local" });
 
 import { createClient } from "@supabase/supabase-js";
-import { STYLES, ACCOUNTS, ORDERS, ASSORTMENTS } from "./seedData";
+import { STYLES } from "./seedData";
 import { BOX_TYPES } from "../src/lib/data/boxTypes";
-import { hashPassword } from "../src/lib/passwords";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -22,7 +31,6 @@ if (!url || !key) {
 const supabase = createClient(url, key, { auth: { persistSession: false } });
 
 const colorwayId = (styleId: string, cId: string) => `${styleId}-${cId}`;
-const shipToId = (accountId: string, sId: string) => `${accountId}-${sId}`;
 
 async function insert(table: string, rows: unknown[]) {
   if (rows.length === 0) return;
@@ -50,59 +58,6 @@ async function main() {
       size_breakdown: b.sizeBreakdown,
       sort_order: i,
     })),
-  );
-
-  console.log("Seeding sales_reps + accounts...");
-  const repByEmail = new Map<string, string>();
-  const repRows: { id: string; name: string; title: string; email: string; phone: string; initials: string; territory: string }[] = [];
-  for (const acct of ACCOUNTS) {
-    if (!repByEmail.has(acct.rep.email)) {
-      const id = crypto.randomUUID();
-      repByEmail.set(acct.rep.email, id);
-      repRows.push({ id, name: acct.rep.name, title: acct.rep.title, email: acct.rep.email, phone: acct.rep.phone, initials: acct.rep.initials, territory: acct.rep.territory });
-    }
-  }
-  await insert("sales_reps", repRows);
-
-  const accountRows = await Promise.all(
-    ACCOUNTS.map(async (a) => ({
-      id: a.id,
-      business_name: a.businessName,
-      contact_name: a.contactName,
-      email: a.email,
-      password: await hashPassword(a.password),
-      status: a.status,
-      credit_terms: a.creditTerms,
-      credit_limit: a.creditLimit,
-      price_multiplier: a.priceMultiplier,
-      resale_cert_id: a.resaleCertId,
-      business_type: a.businessType,
-      store_location: a.storeLocation,
-      expected_volume: a.expectedVolume,
-      applied_at: a.appliedAt,
-      approved_at: a.approvedAt ?? null,
-      rep_id: repByEmail.get(a.rep.email),
-      role: "buyer",
-    })),
-  );
-  await insert("accounts", accountRows);
-
-  console.log("Seeding ship_to_addresses...");
-  await insert(
-    "ship_to_addresses",
-    ACCOUNTS.flatMap((a) =>
-      a.shipTo.map((s) => ({
-        id: shipToId(a.id, s.id),
-        account_id: a.id,
-        label: s.label,
-        line1: s.line1,
-        line2: s.line2 ?? null,
-        city: s.city,
-        state: s.state,
-        zip: s.zip,
-        is_default: s.isDefault ?? false,
-      })),
-    ),
   );
 
   console.log("Seeding styles + colorways...");
@@ -141,48 +96,6 @@ async function main() {
       })),
     ),
   );
-
-  console.log("Seeding saved_assortments...");
-  for (const [accountId, list] of Object.entries(ASSORTMENTS)) {
-    for (const a of list) {
-      const id = crypto.randomUUID();
-      const { error } = await supabase.from("saved_assortments").insert({ id, account_id: accountId, name: a.name, created_at: a.createdAt });
-      if (error) throw new Error(`saved_assortments: ${error.message}`);
-      await insert(
-        "saved_assortment_styles",
-        a.styleIds.map((styleId) => ({ assortment_id: id, style_id: styleId })),
-      );
-    }
-  }
-
-  console.log("Seeding orders + order_lines...");
-  for (const [accountId, orders] of Object.entries(ORDERS)) {
-    for (const o of orders) {
-      const { error } = await supabase.from("orders").insert({
-        id: o.id,
-        account_id: accountId,
-        po_number: o.poNumber,
-        placed_at: o.placedAt,
-        status: o.status,
-        terms: o.terms,
-        ship_to_id: shipToId(accountId, o.shipToId),
-        notes: o.notes ?? null,
-        invoice_url: o.invoiceUrl ?? null,
-      });
-      if (error) throw new Error(`orders: ${error.message}`);
-      await insert(
-        "order_lines",
-        o.lines.map((l) => ({
-          order_id: o.id,
-          style_id: l.styleId,
-          colorway_id: colorwayId(l.styleId, l.colorwayId),
-          box_type_id: l.boxTypeId,
-          qty: l.qty,
-          unit_price: l.unitPrice,
-        })),
-      );
-    }
-  }
 
   console.log("Done.");
 }

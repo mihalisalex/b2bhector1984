@@ -14,3 +14,16 @@ export function sanitizeProductDescription(html: string): string {
     allowedSchemes: ["http", "https", "mailto"],
   });
 }
+
+/**
+ * Same allowlist as product descriptions plus the extra tags a long-form
+ * article body legitimately needs (h3, blockquote, inline images) — still
+ * exactly what `RichTextEditor`'s toolbar can produce when `allowImages` is on.
+ */
+export function sanitizeJournalBody(html: string): string {
+  return sanitizeHtml(html, {
+    allowedTags: ["p", "br", "strong", "em", "u", "h2", "h3", "ul", "ol", "li", "a", "blockquote", "img"],
+    allowedAttributes: { a: ["href"], img: ["src", "alt"] },
+    allowedSchemes: ["http", "https", "mailto"],
+  });
+}

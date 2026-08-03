@@ -52,7 +52,7 @@ export function LengthMeter({ value, min, max, label }: { value: string; min: nu
 /** Renders the breadcrumb-style URL Google shows instead of the raw path. */
 function displayUrl(path: string): string {
   const clean = path.replace(/^https?:\/\//, "").replace(/^\//, "");
-  return ["hector1984.com", ...clean.split("/").filter(Boolean)].join(" › ");
+  return ["hectorfootwear.gr", ...clean.split("/").filter(Boolean)].join(" › ");
 }
 
 export function SerpPreview({ title, description, path }: { title: string; description: string; path: string }) {
@@ -114,7 +114,7 @@ export function SocialPreview({
           )}
         </div>
         <div className="min-w-0 p-2">
-          <p className="truncate text-[11px] uppercase tracking-wide text-ink-soft">hector1984.com</p>
+          <p className="truncate text-[11px] uppercase tracking-wide text-ink-soft">hectorfootwear.gr</p>
           <p className="truncate text-sm font-semibold text-ink">{title || "Untitled"}</p>
           <p className="line-clamp-2 text-xs text-ink-soft">{description}</p>
         </div>

@@ -102,9 +102,9 @@ export async function updateSeoSettingsAction(_prev: FormState, formData: FormDa
 
   if (section === "general") {
     patch = {
-      siteName: String(formData.get("siteName") ?? "").trim() || "Hector 1984",
-      titleTemplate: String(formData.get("titleTemplate") ?? "").trim() || "%s — Hector 1984 Wholesale",
-      defaultTitle: String(formData.get("defaultTitle") ?? "").trim() || "Hector 1984 — Wholesale Footwear",
+      siteName: String(formData.get("siteName") ?? "").trim() || "Hector Footwear",
+      titleTemplate: String(formData.get("titleTemplate") ?? "").trim() || "%s — Hector Footwear Wholesale",
+      defaultTitle: String(formData.get("defaultTitle") ?? "").trim() || "Hector Footwear — Wholesale Footwear",
       defaultDescription: String(formData.get("defaultDescription") ?? "").trim(),
       defaultOgImageUrl: text(formData, "defaultOgImageUrl"),
       twitterSite: text(formData, "twitterSite"),
@@ -400,7 +400,7 @@ export async function generateMissingProductSeoAction(_prev: FormState, formData
 
     try {
       await updateStyleSeo(style.id, {
-        seoTitle: needsTitle ? generateProductTitle(source, "Hector 1984") : style.seoTitle,
+        seoTitle: needsTitle ? generateProductTitle(source, "Hector Footwear") : style.seoTitle,
         metaDescription: needsDescription ? generateProductDescription(source) : style.metaDescription,
         seoKeywords: style.seoKeywords,
         focusKeyword: style.focusKeyword,
@@ -490,7 +490,7 @@ export async function bulkEditProductSeoAction(_prev: FormState, formData: FormD
       .replaceAll("{category}", style.category)
       .replaceAll("{season}", style.season ?? "")
       .replaceAll("{styleNumber}", style.styleNumber)
-      .replaceAll("{brand}", style.brandName || "Hector 1984");
+      .replaceAll("{brand}", style.brandName || "Hector Footwear");
 
     const patch = {
       seoTitle: style.seoTitle,

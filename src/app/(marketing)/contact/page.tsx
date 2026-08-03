@@ -6,7 +6,7 @@ export function generateMetadata() {
   return pageMetadata({
     title: "Contact",
     description:
-      "Get in touch with Hector 1984 Wholesale — general inquiries, new wholesale accounts, and existing buyer support.",
+      "Get in touch with Hector Footwear Wholesale — general inquiries, new wholesale accounts, and existing buyer support.",
     path: "/contact",
   });
 }
@@ -23,7 +23,7 @@ export default function ContactPage() {
             not a bot.
           </h1>
           <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-ink-soft">
-            Every inquiry is answered by someone on the Hector 1984 team — usually within two
+            Every inquiry is answered by someone on the Hector Footwear team — usually within two
             business days.
           </p>
         </div>
@@ -35,14 +35,14 @@ export default function ContactPage() {
             title="General Inquiries"
             body="Questions about the brand, existing orders, or anything else."
             lines={[
-              { href: "mailto:wholesale@hector1984.com", label: "wholesale@hector1984.com" },
+              { href: "mailto:wholesale@hectorfootwear.gr", label: "wholesale@hectorfootwear.gr" },
               { href: "tel:+15035550100", label: "(503) 555-0100" },
             ]}
           />
           <ContactCard
             title="New Wholesale Accounts"
             body="Ready to apply, or have questions before you do? Reach the accounts team directly."
-            lines={[{ href: "mailto:newaccounts@hector1984.com", label: "newaccounts@hector1984.com" }]}
+            lines={[{ href: "mailto:newaccounts@hectorfootwear.gr", label: "newaccounts@hectorfootwear.gr" }]}
           />
           <ContactCard
             title="Existing Buyers"

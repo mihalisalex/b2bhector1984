@@ -18,7 +18,7 @@ export function ShopHeader({ account }: { account: Account }) {
 
         {/* The homepage, matching the marketing header's logo and the nav's "Home" —
             the buyer's dashboard is reachable from the account menu instead. */}
-        <Link href="/" aria-label="Hector 1984 home" className="flex items-center justify-center">
+        <Link href="/" aria-label="Hector Footwear home" className="flex items-center justify-center">
           <Logo />
         </Link>
 

@@ -13,7 +13,7 @@ export function ApplicationsCsvExportButton({ applications }: { applications: Ap
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "hector-1984-applications.csv";
+    a.download = "hector-footwear-applications.csv";
     a.click();
     URL.revokeObjectURL(url);
   }

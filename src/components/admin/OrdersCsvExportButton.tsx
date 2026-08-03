@@ -26,7 +26,7 @@ export function OrdersCsvExportButton({ orders }: { orders: AdminOrder[] }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "hector-1984-orders.csv";
+    a.download = "hector-footwear-orders.csv";
     a.click();
     URL.revokeObjectURL(url);
   }

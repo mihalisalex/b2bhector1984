@@ -8,7 +8,7 @@ export function generateMetadata(): Promise<Metadata> {
   return pageMetadata({
     title: "Apply for Wholesale Access",
     description:
-      "Apply for a Hector 1984 wholesale account. Tell us about your store — resale certificate, expected volume, and location. Most applications are reviewed within 2 business days.",
+      "Apply for a Hector Footwear wholesale account. Tell us about your store — resale certificate, expected volume, and location. Most applications are reviewed within 2 business days.",
     path: "/apply",
   });
 }

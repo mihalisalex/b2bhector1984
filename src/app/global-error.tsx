@@ -39,7 +39,7 @@ export default function GlobalError({
         }}
       >
         <p style={{ margin: 0, fontSize: "0.75rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "#6b6b6b" }}>
-          Hector 1984
+          Hector Footwear
         </p>
         <h1 style={{ margin: 0, fontSize: "1.75rem", textTransform: "uppercase", letterSpacing: "-0.01em" }}>
           Something went wrong

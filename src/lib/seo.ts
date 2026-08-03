@@ -4,11 +4,14 @@ import { SITE_URL } from "@/lib/siteUrl";
 import { getSeoSettings, type SeoSettings } from "@/lib/data/seoSettings";
 import { getEntityMeta, type SeoEntityType } from "@/lib/data/seoEntityMeta";
 import {
+  generateArticleDescription,
+  generateArticleTitle,
   generateProductDescription,
   generateProductTitle,
+  type ArticleSeoSource,
   type ProductSeoSource,
 } from "@/lib/seoAutogen";
-import type { Style } from "@/lib/types";
+import type { JournalPost, Style } from "@/lib/types";
 
 /**
  * The single place page metadata is assembled.
@@ -20,7 +23,7 @@ import type { Style } from "@/lib/types";
  *    the homepage and actively deindex the rest. Canonicals are therefore always
  *    declared per route, which is what `path` is for.
  *  - **Open Graph title/url.** The root layout hardcoded both, so every share
- *    card read "Hector 1984 — Wholesale" and linked to the site root regardless
+ *    card read "Hector Footwear — Wholesale" and linked to the site root regardless
  *    of the page. Here they're derived from the page's own title and path.
  *
  * Everything is admin-overridable: values come from `seo_entity_meta` (per page
@@ -232,6 +235,43 @@ export async function productMetadata(style: Style, imageUrl?: string): Promise<
       twitterImageUrl: style.twitterImageUrl,
       twitterCard: style.twitterCard,
       keywords: style.seoKeywords,
+    },
+    settings,
+  );
+}
+
+/**
+ * Full journal article metadata: admin overrides → generated copy → nothing
+ * blank — the same override cascade as `productMetadata`, since a journal
+ * post carries its own first-class SEO columns rather than going through the
+ * polymorphic `seo_entity_meta` table (see migration 0027's header comment).
+ * Always public/indexable — the journal is a marketing content hub, not a
+ * gated commerce surface, so unlike products this never runs through
+ * `commerceRobots`.
+ */
+export async function articleMetadata(post: JournalPost): Promise<Metadata> {
+  const settings = await getSeoSettings();
+  const source: ArticleSeoSource = {
+    title: post.title,
+    excerpt: post.excerpt,
+    contentHtml: post.contentHtml,
+    category: post.category,
+    siteName: settings.siteName,
+  };
+
+  const title = post.seoTitle?.trim() || generateArticleTitle(source);
+  const description = post.metaDescription?.trim() || generateArticleDescription(source);
+  const image = post.ogImageUrl?.trim() || post.featuredImageUrl;
+
+  return buildMetadata(
+    {
+      title,
+      description,
+      path: `/journal/${post.slug}`,
+      canonicalPath: post.canonicalUrl?.trim() || `/journal/${post.slug}`,
+      robots: post.robots,
+      ogImageUrl: image,
+      ogType: "article",
     },
     settings,
   );

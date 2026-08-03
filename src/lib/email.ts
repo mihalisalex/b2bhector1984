@@ -2,7 +2,7 @@ import "server-only";
 
 // Must exactly match a sender address on a domain verified in Resend's
 // dashboard (Domains → hectorfootwear.gr) — sending fails otherwise.
-const FROM_EMAIL = "Hector 1984 Wholesale <info@hectorfootwear.gr>";
+const FROM_EMAIL = "Hector Footwear Wholesale <info@hectorfootwear.gr>";
 
 export interface SendEmailInput {
   to: string;

@@ -3,7 +3,7 @@ import { LinkButton } from "@/components/ui/Button";
 
 export const metadata = {
   title: "Cookie Notice",
-  description: "Cookie Notice for Hector 1984 Wholesale.",
+  description: "Cookie Notice for Hector Footwear Wholesale.",
   robots: { index: false, follow: false },
 };
 
@@ -44,7 +44,7 @@ export default function CookiesPage() {
 
       <section className="mx-auto max-w-[900px] px-6 py-16 lg:px-10">
         <p className="max-w-[65ch] text-sm leading-relaxed text-ink-soft">
-          Hector 1984 Wholesale uses a small number of essential cookies to run the ordering portal.
+          Hector Footwear Wholesale uses a small number of essential cookies to run the ordering portal.
           We don&rsquo;t use advertising or third-party tracking cookies.
         </p>
 

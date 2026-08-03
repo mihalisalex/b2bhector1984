@@ -49,18 +49,18 @@ export function ApplyForm() {
             <SelectField label="Business type *" name="businessType" options={BUSINESS_TYPES} required />
             <SelectField label="Expected annual volume *" name="expectedVolume" options={VOLUME_BANDS} required />
           </Row>
-          <Field label="Resale certificate / Tax ID *" name="resaleCertId" required placeholder="e.g. OR-RS-88214" mono />
+          <Field label="Resale certificate / Tax ID *" name="resaleCertId" required placeholder="e.g. EL123456789" mono />
         </fieldset>
 
         <fieldset className="flex flex-col gap-4">
           <Legend>Store Location</Legend>
           <Field label="Store address *" name="addressLine1" required />
           <Row cols={3}>
-            <Field label="City *" name="city" required />
-            <Field label="State *" name="state" required maxLength={2} placeholder="OR" />
-            <Field label="ZIP *" name="zip" required />
+            <Field label="City *" name="city" required placeholder="Athens" />
+            <Field label="Region *" name="state" required placeholder="Attica" />
+            <Field label="Postal code *" name="zip" required placeholder="104 31" />
           </Row>
-          <Field label="City, state (as shown publicly) *" name="storeLocation" required placeholder="Portland, OR" />
+          <Field label="City, region (as shown publicly) *" name="storeLocation" required placeholder="Athens, Attica" />
         </fieldset>
 
         <fieldset className="flex flex-col gap-4">

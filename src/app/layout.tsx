@@ -25,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
     robots: { index: true, follow: true },
     // Deliberately no `title`/`url` here: those are per-page and come from
     // `pageMetadata()` (src/lib/seo.ts). Hardcoding them at the root made every share
-    // card read "Hector 1984 — Wholesale" and link to the site root. Likewise no
+    // card read "Hector Footwear — Wholesale" and link to the site root. Likewise no
     // root-level `alternates.canonical` — Next resolves it against `metadataBase`, so a
     // single value would canonicalise every route to the homepage.
     openGraph: {

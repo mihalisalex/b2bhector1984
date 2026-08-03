@@ -28,7 +28,7 @@ export function HomeAnnouncementBar({
   return (
     <Link
       href={href}
-      className="block bg-leather px-4 py-2.5 text-center text-[11px] font-semibold uppercase tracking-[0.15em] text-white transition-colors hover:bg-leather/85"
+      className="block bg-ink px-4 py-2.5 text-center text-[11px] font-semibold uppercase tracking-[0.15em] text-white transition-colors hover:bg-ink/85"
     >
       {text}
     </Link>

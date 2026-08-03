@@ -102,7 +102,7 @@ function GeneralSection({ settings, canEdit }: { settings: SeoSettings; canEdit:
           name="titleTemplate"
           defaultValue={settings.titleTemplate}
           disabled={!canEdit}
-          placeholder="%s — Hector 1984 Wholesale"
+          placeholder="%s — Hector Footwear Wholesale"
         />
         <p className="mt-1 text-xs text-ink-soft">
           <code className="font-mono-tab">%s</code> is replaced by each page&rsquo;s own title. The homepage
@@ -153,8 +153,8 @@ function GeneralSection({ settings, canEdit }: { settings: SeoSettings; canEdit:
       />
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <TextField label="X / Twitter site handle" name="twitterSite" defaultValue={settings.twitterSite} disabled={!canEdit} placeholder="@hector1984" />
-        <TextField label="X / Twitter creator handle" name="twitterCreator" defaultValue={settings.twitterCreator} disabled={!canEdit} placeholder="@hector1984" />
+        <TextField label="X / Twitter site handle" name="twitterSite" defaultValue={settings.twitterSite} disabled={!canEdit} placeholder="@hectorfootwear" />
+        <TextField label="X / Twitter creator handle" name="twitterCreator" defaultValue={settings.twitterCreator} disabled={!canEdit} placeholder="@hectorfootwear" />
       </div>
 
       <SelectField

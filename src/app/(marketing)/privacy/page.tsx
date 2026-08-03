@@ -3,7 +3,7 @@ import { LinkButton } from "@/components/ui/Button";
 
 export const metadata = {
   title: "Privacy Policy",
-  description: "Privacy Policy for Hector 1984 Wholesale.",
+  description: "Privacy Policy for Hector Footwear Wholesale.",
   robots: { index: false, follow: false },
 };
 
@@ -23,7 +23,7 @@ const CLAUSES: Clause[] = [
   },
   {
     q: "Who it's shared with",
-    a: "Your information is used internally by Hector 1984 Wholesale and your assigned territory rep. We don't sell account data to third parties.",
+    a: "Your information is used internally by Hector Footwear Wholesale and your assigned territory rep. We don't sell account data to third parties.",
   },
   {
     q: "Data retention",

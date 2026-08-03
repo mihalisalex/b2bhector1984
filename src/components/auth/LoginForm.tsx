@@ -21,7 +21,7 @@ export function LoginForm() {
         </span>
         <div>
           <p className="font-display text-4xl font-bold leading-[1.05] text-white">
-            Everything your store needs to buy Hector 1984, in one place.
+            Everything your store needs to buy Hector Footwear, in one place.
           </p>
           <p className="mt-6 max-w-md text-sm leading-relaxed text-stone-300/80">
             Matrix ordering, terms-based pricing, pre-book and at-once inventory, net terms,
@@ -48,9 +48,9 @@ export function LoginForm() {
 
           <form action={formAction} className="mt-8 flex flex-col gap-4">
             {next && <input type="hidden" name="next" value={next} />}
-            <Field label="Email" name="email" type="email" defaultValue="buyer@unionsupply.com" required />
+            <Field label="Email" name="email" type="email" required />
             <div>
-              <Field label="Password" name="password" type="password" defaultValue="wholesale84" required />
+              <Field label="Password" name="password" type="password" required />
               <Link href="/forgot-password" className="mt-1.5 inline-block text-xs text-signal underline underline-offset-2">
                 Forgot password?
               </Link>
@@ -66,12 +66,6 @@ export function LoginForm() {
               {pending ? "Signing in…" : "Sign In"}
             </Button>
           </form>
-
-          <div className="mt-8 border border-stone-300 bg-stone-100 p-4 text-xs leading-relaxed text-ink-soft">
-            <p className="font-semibold uppercase tracking-wide text-ink">Demo credentials</p>
-            <p className="mt-1 font-mono-tab">buyer@unionsupply.com / wholesale84</p>
-            <p className="mt-1">Preferred-tier account with order history pre-loaded.</p>
-          </div>
         </div>
       </div>
     </div>

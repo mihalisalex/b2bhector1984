@@ -1,5 +1,5 @@
 {
-  "name": "hector-1984-wholesale",
+  "name": "hector-footwear-wholesale",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -12,6 +12,7 @@
     "seed": "tsx scripts/seed.ts",
     "seed:admin": "tsx scripts/seedAdmin.ts",
     "seed:inventory": "tsx scripts/seedInventory.ts",
+    "seed:journal": "tsx scripts/seedJournal.ts",
     "rehash-passwords": "tsx scripts/rehashPasswords.ts"
   },
   "dependencies": {

@@ -4,6 +4,7 @@ import { getAllEntityMeta } from "@/lib/data/seoEntityMeta";
 import { getStorefrontStyles } from "@/lib/data/styles";
 import { listImagesForStyles } from "@/lib/data/styleImages";
 import { getStyleImageUrl } from "@/lib/data/styleLabels";
+import { getPublishedJournalPosts } from "@/lib/data/journalPosts";
 import { absoluteUrl } from "@/lib/seo";
 import { PUBLIC_PAGES } from "@/lib/seoRoutes";
 
@@ -42,6 +43,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: override?.updatedAt ? new Date(override.updatedAt) : now,
       changeFrequency: page.changeFrequency,
       priority: page.priority,
+    });
+  }
+
+  // The journal is public content, unconditionally advertised — unlike the
+  // catalogue below it, it never sits behind `commerce_indexable`.
+  const posts = await getPublishedJournalPosts();
+  for (const post of posts) {
+    if (post.robots.includes("noindex")) continue;
+    entries.push({
+      url: absoluteUrl(post.canonicalUrl?.trim() || `/journal/${post.slug}`),
+      lastModified: new Date(post.updatedAt),
+      changeFrequency: "monthly",
+      priority: post.featured ? 0.7 : 0.5,
+      ...(post.featuredImageUrl ? { images: [absoluteUrl(post.featuredImageUrl)] } : {}),
     });
   }
 

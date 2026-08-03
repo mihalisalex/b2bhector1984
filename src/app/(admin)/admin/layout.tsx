@@ -30,6 +30,7 @@ const NAV_SECTIONS: AdminNavSection[] = [
     title: "Marketing",
     items: [
       { href: "/admin/content", label: "Content" },
+      { href: "/admin/journal", label: "Journal" },
       { href: "/admin/seo", label: "SEO" },
     ],
   },

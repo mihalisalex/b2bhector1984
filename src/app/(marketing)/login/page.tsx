@@ -8,7 +8,7 @@ import { pageMetadata } from "@/lib/seo";
 export function generateMetadata(): Promise<Metadata> {
   return pageMetadata({
     title: "Buyer Login",
-    description: "Sign in to your Hector 1984 wholesale account for full pricing, matrix ordering, and order history.",
+    description: "Sign in to your Hector Footwear wholesale account for full pricing, matrix ordering, and order history.",
     path: "/login",
   });
 }

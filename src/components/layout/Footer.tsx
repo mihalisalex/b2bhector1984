@@ -26,6 +26,7 @@ export function Footer() {
             links={[
               { href: "/brand-story", label: "The brand" },
               { href: "/brand-story#materials", label: "Materials & craft" },
+              { href: "/journal", label: "Journal" },
             ]}
           />
           <FooterCol
@@ -33,7 +34,7 @@ export function Footer() {
             links={[
               { href: "/faq", label: "FAQ" },
               { href: "/contact", label: "Contact us" },
-              { href: "mailto:wholesale@hector1984.com", label: "wholesale@hector1984.com" },
+              { href: "mailto:wholesale@hectorfootwear.gr", label: "wholesale@hectorfootwear.gr" },
               { href: "tel:+15035550100", label: "(503) 555-0100" },
             ]}
           />
@@ -48,7 +49,7 @@ export function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col gap-2 border-t border-white/10 pt-6 text-xs text-stone-300/60 md:flex-row md:items-center md:justify-between">
-          <span>© {new Date().getFullYear()} Hector 1984 Footwear Co. Wholesale accounts only.</span>
+          <span>© {new Date().getFullYear()} Hector Footwear Co. Wholesale accounts only.</span>
           <span>All pricing and inventory data on this site is illustrative.</span>
         </div>
       </div>

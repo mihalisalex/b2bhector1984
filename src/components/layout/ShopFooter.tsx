@@ -10,7 +10,7 @@ export function ShopFooter({ account }: { account: Account }) {
         </span>
         <span className="flex gap-4">
           <Link href="/dashboard" className="hover:text-ink">Dashboard</Link>
-          <a href="mailto:wholesale@hector1984.com" className="hover:text-ink">Support</a>
+          <a href="mailto:wholesale@hectorfootwear.gr" className="hover:text-ink">Support</a>
         </span>
       </div>
     </footer>

@@ -326,7 +326,7 @@ function BulkEditBar({ ids, onDone }: { ids: string[]; onDone: () => void }) {
         ) : (
           <input
             name="value"
-            placeholder="{name} — {category} | Hector 1984"
+            placeholder="{name} — {category} | Hector Footwear"
             className="w-full border border-stone-300 px-3 py-2 text-sm"
           />
         )}

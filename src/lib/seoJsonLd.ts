@@ -3,7 +3,7 @@ import { SITE_URL } from "@/lib/siteUrl";
 import { absoluteUrl } from "@/lib/seo";
 import { getSeoSettings, type SeoSettings } from "@/lib/data/seoSettings";
 import { generateProductDescription, type ProductSeoSource } from "@/lib/seoAutogen";
-import type { Style } from "@/lib/types";
+import type { JournalPost, Style } from "@/lib/types";
 
 /**
  * JSON-LD builders.
@@ -265,6 +265,30 @@ export function buildCollectionSchema({
         ...(item.imageUrl ? { image: absoluteUrl(item.imageUrl) } : {}),
       })),
     },
+  });
+}
+
+/**
+ * BlogPosting for a journal article. Not gated behind a settings switch (the
+ * journal has no dedicated on/off flag the way Product/FAQ schema do) — same
+ * treatment as `buildCollectionSchema`/`buildBrandSchema`, which are always
+ * emitted because there's nothing to fabricate here, only real post data.
+ */
+export function buildArticleSchema(post: JournalPost, settings: SeoSettings): JsonLd {
+  return compact({
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.metaDescription?.trim() || post.excerpt,
+    image: post.featuredImageUrl ? [absoluteUrl(post.featuredImageUrl)] : undefined,
+    datePublished: post.publishedAt,
+    dateModified: post.updatedAt,
+    author: { "@type": "Organization", name: post.authorName || settings.siteName },
+    publisher: { "@id": ORGANIZATION_ID },
+    url: absoluteUrl(`/journal/${post.slug}`),
+    mainEntityOfPage: { "@type": "WebPage", "@id": absoluteUrl(`/journal/${post.slug}`) },
+    articleSection: post.category,
+    keywords: post.tags.length ? post.tags.join(", ") : undefined,
   });
 }
 

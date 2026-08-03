@@ -20,6 +20,7 @@ const LINKS = [
  * drawer so they don't compete with the ordering routes above. */
 const SECONDARY_LINKS = [
   { href: "/brand-story", label: "The Brand" },
+  { href: "/journal", label: "Journal" },
   { href: "/faq", label: "FAQ" },
   { href: "/contact", label: "Contact" },
 ];

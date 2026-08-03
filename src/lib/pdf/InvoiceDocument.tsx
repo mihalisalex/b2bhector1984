@@ -92,7 +92,7 @@ export function InvoiceDocument({
   grandTotal,
 }: InvoiceDocumentProps) {
   return (
-    <Document title={`${order.id} — Hector 1984`}>
+    <Document title={`${order.id} — Hector Footwear`}>
       <Page size="A4" style={styles.page}>
         <View style={styles.headerRow}>
           <View>
@@ -178,7 +178,7 @@ export function InvoiceDocument({
 
         <Text style={styles.footer}>
           This is a proforma invoice, not a charge — it reflects stock and production check before your order is
-          confirmed. Hector 1984 Wholesale · wholesale@hector1984.com. All pricing and inventory data on this
+          confirmed. Hector Footwear Wholesale · wholesale@hectorfootwear.gr. All pricing and inventory data on this
           document is illustrative.
         </Text>
       </Page>

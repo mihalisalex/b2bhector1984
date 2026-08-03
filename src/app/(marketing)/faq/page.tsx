@@ -9,7 +9,7 @@ export function generateMetadata() {
   return pageMetadata({
     title: "FAQ",
     description:
-      "Answers to common questions about Hector 1984 wholesale — box-only ordering, terms-based pricing, accounts, and shipping.",
+      "Answers to common questions about Hector Footwear wholesale — box-only ordering, terms-based pricing, accounts, and shipping.",
     path: "/faq",
   });
 }
@@ -30,7 +30,7 @@ const GROUPS: FaqGroup[] = [
     items: [
       {
         q: "Can I order single pairs?",
-        a: "No — Hector 1984 sells wholesale only in fixed pre-pack boxes (8, 10, or 12 pairs), never as single pairs. Every box spans EU sizes 40–45 in a set ratio, so the box is the ordering unit, not the individual size.",
+        a: "No — Hector Footwear sells wholesale only in fixed pre-pack boxes (8, 10, or 12 pairs), never as single pairs. Every box spans EU sizes 40–45 in a set ratio, so the box is the ordering unit, not the individual size.",
       },
       {
         q: "What if I only need a few pairs in one size?",
@@ -76,7 +76,7 @@ const GROUPS: FaqGroup[] = [
       },
       {
         q: "I can't log in — what do I do?",
-        a: "Reach out to your territory rep (listed on your dashboard) or wholesale@hector1984.com and we'll help sort out access.",
+        a: "Reach out to your territory rep (listed on your dashboard) or wholesale@hectorfootwear.gr and we'll help sort out access.",
       },
       {
         q: "Who do I talk to about my account?",
@@ -93,7 +93,7 @@ const GROUPS: FaqGroup[] = [
       },
       {
         q: "Where do you ship?",
-        a: "Shipping details vary by territory — contact your rep or wholesale@hector1984.com to confirm coverage and lead times for your location.",
+        a: "Shipping details vary by territory — contact your rep or wholesale@hectorfootwear.gr to confirm coverage and lead times for your location.",
       },
     ],
   },
