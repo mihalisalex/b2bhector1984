@@ -25,6 +25,7 @@ interface OrderLineRow {
   box_type_id: BoxTypeId;
   qty: number;
   unit_price: number | string;
+  vat_rate: number | string | null;
 }
 
 function mapOrder(accountId: string, row: OrderRow, lineRows: OrderLineRow[]): Order {
@@ -37,6 +38,10 @@ function mapOrder(accountId: string, row: OrderRow, lineRows: OrderLineRow[]): O
       boxTypeId: l.box_type_id,
       qty: l.qty,
       unitPrice: toNumber(l.unit_price),
+      // `?? 0` covers both a genuine null and the column being entirely absent
+      // pre-migration 0026 (select("*") just omits an unknown column rather
+      // than erroring) — either way, no VAT is the correct pre-migration answer.
+      vatRate: toNumber(l.vat_rate ?? 0),
     }));
 
   return {
@@ -105,17 +110,34 @@ export async function addOrder(accountId: string, order: Order): Promise<void> {
   await supabaseAdmin.from("order_status_history").insert({ order_id: order.id, status: order.status });
 
   if (order.lines.length === 0) return;
-  const { error: linesError } = await supabaseAdmin.from("order_lines").insert(
-    order.lines.map((line) => ({
-      order_id: order.id,
-      style_id: line.styleId,
-      colorway_id: toDbId(line.styleId, line.colorwayId),
-      box_type_id: line.boxTypeId,
-      qty: line.qty,
-      unit_price: line.unitPrice,
-    })),
-  );
-  if (linesError) throw new Error(`order_lines: ${linesError.message}`);
+  const baseRows = order.lines.map((line) => ({
+    order_id: order.id,
+    style_id: line.styleId,
+    colorway_id: toDbId(line.styleId, line.colorwayId),
+    box_type_id: line.boxTypeId,
+    qty: line.qty,
+    unit_price: line.unitPrice,
+  }));
+
+  // Unlike a read (select("*") just silently omits a column that doesn't
+  // exist yet), an INSERT naming an unknown column errors outright — so
+  // writing vat_rate unconditionally would break every checkout the moment
+  // this shipped, not just degrade gracefully, until migration 0026 runs.
+  // Try with it first; if that's the specific reason it failed, fall back to
+  // the pre-migration shape so placing an order never breaks over a column
+  // this feature added.
+  const { error: linesError } = await supabaseAdmin
+    .from("order_lines")
+    .insert(baseRows.map((row, i) => ({ ...row, vat_rate: order.lines[i].vatRate })));
+
+  if (linesError) {
+    const message = linesError.message;
+    const isMissingVatColumn = message.includes("schema cache") || message.includes("Could not find") || message.includes("vat_rate");
+    if (!isMissingVatColumn) throw new Error(`order_lines: ${message}`);
+
+    const { error: fallbackError } = await supabaseAdmin.from("order_lines").insert(baseRows);
+    if (fallbackError) throw new Error(`order_lines: ${fallbackError.message}`);
+  }
 }
 
 export interface AdminOrder extends Order {

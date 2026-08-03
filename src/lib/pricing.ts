@@ -56,17 +56,35 @@ export function formatEUR(n: number): string {
 }
 
 /** Total order value, boxes, and pairs — order lines store per-box qty and per-pair price. */
-export function summarizeOrder(order: { lines: Order["lines"] }): { total: number; totalBoxes: number; totalPairs: number } {
+/**
+ * `total` is the net (pre-VAT) amount — its meaning is unchanged from before
+ * VAT existed, so every existing caller that destructures just `{ total }`
+ * keeps working exactly as it did. `vatTotal`/`grandTotal` are additive: VAT
+ * is charged on top of list prices (the standard EU B2B convention), computed
+ * per line from `line.vatRate` — captured at order-placement time, not looked
+ * up live, so a later change to a product's VAT rate never rewrites the tax
+ * on an order that already exists. Lines with no stored rate (every order
+ * placed before this existed) contribute 0 VAT, so grandTotal === total for
+ * them — numerically unchanged, not retroactively taxed.
+ */
+export function summarizeOrder(order: {
+  lines: Order["lines"];
+}): { total: number; vatTotal: number; grandTotal: number; totalBoxes: number; totalPairs: number } {
   let total = 0;
+  let vatTotal = 0;
   let totalBoxes = 0;
   let totalPairs = 0;
   for (const line of order.lines) {
     const pairs = line.qty * getBoxType(line.boxTypeId).totalPairs;
-    total += pairs * line.unitPrice;
+    const lineTotal = pairs * line.unitPrice;
+    total += lineTotal;
+    vatTotal += lineTotal * (line.vatRate ?? 0);
     totalBoxes += line.qty;
     totalPairs += pairs;
   }
-  return { total: round2(total), totalBoxes, totalPairs };
+  const roundedTotal = round2(total);
+  const roundedVat = round2(vatTotal);
+  return { total: roundedTotal, vatTotal: roundedVat, grandTotal: round2(roundedTotal + roundedVat), totalBoxes, totalPairs };
 }
 
 /** The only minimum that applies — no more per-style box minimums. */

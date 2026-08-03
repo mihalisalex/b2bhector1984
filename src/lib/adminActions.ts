@@ -10,6 +10,7 @@ import {
   updateAccountCreditTerms,
   updateAccountCreditLimit,
   updateAccountRep,
+  updateAccountPhoneAdmin,
 } from "@/lib/data/accounts";
 import { createSalesRep, updateSalesRep, deleteSalesRep } from "@/lib/data/salesReps";
 import { logAudit } from "@/lib/data/auditLog";
@@ -238,6 +239,17 @@ export async function updateAccountPriceMultiplierAction(accountId: string, _pre
   return { success: "Price multiplier saved." };
 }
 
+/** Backfills/corrects the WhatsApp number for accounts that predate this feature or never went through the application flow. */
+export async function updateAccountPhoneAction(accountId: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  const admin = await requireAdmin();
+  const phone = String(formData.get("phone") ?? "").trim();
+  if (phone && phone.replace(/\D/g, "").length < 7) return { error: "Enter a valid phone number, including country code." };
+  await updateAccountPhoneAdmin(accountId, phone);
+  await logAudit(admin.id, "account.phone_updated", "account", accountId);
+  revalidatePath("/admin/accounts");
+  return { success: "Phone saved." };
+}
+
 const ACCOUNT_TERMS: CreditTerms[] = ["prepay", "net30", "net60"];
 
 /** Bound to `.bind(null, accountId)` — a <form action> per account row's terms select. */
@@ -328,6 +340,7 @@ export async function updateHomepageHeroAction(formData: FormData) {
     announcementEnabled: formData.get("announcementEnabled") === "on",
     announcementText: String(formData.get("announcementText") ?? ""),
     announcementHref: String(formData.get("announcementHref") ?? ""),
+    whatsappClosingNote: String(formData.get("whatsappClosingNote") ?? ""),
   });
   revalidatePath("/admin/content");
   revalidatePath("/");

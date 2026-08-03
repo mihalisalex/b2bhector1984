@@ -11,6 +11,7 @@ import type { BoxTypeId } from "@/lib/types";
 import type { StyleInventory } from "@/lib/data/inventory";
 import type { BoxOption } from "@/lib/orderMinimum";
 import { LinkButton } from "@/components/ui/Button";
+import { VatSuffix } from "@/components/ui/VatSuffix";
 import { StylePlate } from "@/components/product/StylePlate";
 import { SaveAssortmentButton } from "@/components/dashboard/SaveAssortmentButton";
 import { CompleteMinimum } from "@/components/cart/CompleteMinimum";
@@ -26,7 +27,7 @@ export function CartView({
    * could push a line past on-hand and it wouldn't get caught until placeOrder, if then). */
   inventory: Record<string, StyleInventory>;
 }) {
-  const { lines, unavailableLines, setLineQty, removeStyle, cartTotal, priceMultiplier } = useCart();
+  const { lines, unavailableLines, setLineQty, removeStyle, cartTotal, cartVatTotal, cartGrandTotal, priceMultiplier } = useCart();
   const { getStyleById } = useCatalog();
 
   function onHandFor(styleId: string, colorwayId: string, boxTypeId: BoxTypeId): number {
@@ -296,7 +297,10 @@ export function CartView({
                 <div className="flex items-center gap-4 text-xs text-ink-soft">
                   <span className="font-mono-tab">{validation.totalBoxes} boxes · {validation.totalPairs} pairs</span>
                 </div>
-                <span className="text-base font-semibold tabular-nums text-ink">{formatEUR(validation.subtotal)}</span>
+                <span className="text-base font-semibold tabular-nums text-ink">
+                  {formatEUR(validation.subtotal)}
+                  <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
+                </span>
               </div>
             </div>
           );
@@ -307,13 +311,18 @@ export function CartView({
 
       <div className="mt-8 flex flex-col items-end gap-3 border-t border-stone-300 pt-6">
         <SaveAssortmentButton lines={lines} />
+        {cartVatTotal > 0 && (
+          <p className="text-right text-xs text-ink-soft">
+            Subtotal {formatEUR(cartTotal)} + VAT {formatEUR(cartVatTotal)}
+          </p>
+        )}
         <div className="flex items-baseline gap-3">
           <span className="text-sm font-semibold uppercase tracking-wide text-ink-soft">Cart total (net-60)</span>
-          <span className="text-2xl font-semibold tabular-nums text-ink">{formatEUR(cartTotal)}</span>
+          <span className="text-2xl font-semibold tabular-nums text-ink">{formatEUR(cartGrandTotal)}</span>
         </div>
         <p className="text-right text-xs text-ink-soft">{grandTotalPairs} pairs in cart</p>
         <p className="text-right text-xs font-medium text-positive">
-          Prepay in full at checkout to save {formatEUR(cartTotal * 0.1)} (10% off)
+          Prepay in full at checkout to save {formatEUR(cartGrandTotal * 0.1)} (10% off)
         </p>
         {blockedReason && (
           <p className="max-w-sm text-right text-xs font-medium text-ember">{blockedReason}</p>
@@ -333,7 +342,7 @@ export function CartView({
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-300 bg-white/97 px-4 py-3 backdrop-blur lg:hidden" style={{ boxShadow: "0 -8px 24px rgba(26,29,34,0.12)" }}>
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-lg font-semibold tabular-nums text-ink">{formatEUR(cartTotal)}</p>
+            <p className="truncate text-lg font-semibold tabular-nums text-ink">{formatEUR(cartGrandTotal)}</p>
             <p className="truncate text-[10px] text-ink-soft">{grandTotalPairs} pairs</p>
           </div>
           <LinkButton

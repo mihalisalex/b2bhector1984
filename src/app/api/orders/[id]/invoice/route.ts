@@ -55,7 +55,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     };
   });
 
-  const { total, totalBoxes, totalPairs } = summarizeOrder(order);
+  const { total, vatTotal, grandTotal, totalBoxes, totalPairs } = summarizeOrder(order);
 
   const buffer = await renderToBuffer(
     InvoiceDocument({
@@ -75,6 +75,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       totalBoxes,
       totalPairs,
       total,
+      vatTotal,
+      grandTotal,
     }),
   );
 

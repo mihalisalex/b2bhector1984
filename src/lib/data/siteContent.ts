@@ -21,6 +21,9 @@ export interface HomepageHero {
   announcementEnabled: boolean;
   announcementText: string;
   announcementHref: string;
+  /** The free-text closing line appended to the WhatsApp proforma-invoice notification
+   * (migration 0026) — the one part of that message that isn't a computed order figure. */
+  whatsappClosingNote: string;
 }
 
 interface HeroRow {
@@ -35,6 +38,7 @@ interface HeroRow {
   announcement_enabled?: boolean | null;
   announcement_text?: string | null;
   announcement_href?: string | null;
+  whatsapp_closing_note?: string | null;
 }
 
 function mapHero(row: HeroRow): HomepageHero {
@@ -50,6 +54,7 @@ function mapHero(row: HeroRow): HomepageHero {
     announcementEnabled: row.announcement_enabled ?? false,
     announcementText: row.announcement_text ?? "",
     announcementHref: row.announcement_href ?? "/catalogue",
+    whatsappClosingNote: row.whatsapp_closing_note ?? "Thank you for your business — we'll confirm stock and production shortly.",
   };
 }
 
@@ -77,6 +82,7 @@ export async function updateHomepageHero(input: {
   announcementEnabled: boolean;
   announcementText: string;
   announcementHref: string;
+  whatsappClosingNote: string;
 }): Promise<void> {
   const { error } = await supabaseAdmin
     .from("site_content")
@@ -90,6 +96,7 @@ export async function updateHomepageHero(input: {
       secondary_cta_href: input.secondaryCtaHref,
       announcement_enabled: input.announcementEnabled,
       announcement_text: input.announcementText,
+      whatsapp_closing_note: input.whatsappClosingNote,
       announcement_href: input.announcementHref,
       updated_at: new Date().toISOString(),
     })

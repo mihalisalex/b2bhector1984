@@ -274,6 +274,10 @@ export interface Account {
   businessName: string;
   contactName: string;
   email: string;
+  /** Not captured for every account — only populated automatically for accounts
+   * activated from an application (see activateAccount()) since this migration
+   * landed; older/seeded accounts need it added by hand in /admin/accounts. */
+  phone?: string;
   password: string;
   status: AccountStatus;
   creditTerms: CreditTerms;
@@ -305,6 +309,12 @@ export interface OrderLine {
   qty: number;
   /** Per-pair wholesale price at the time of order. */
   unitPrice: number;
+  /** The style's VAT rate (e.g. 0.24) captured at order time, same principle as
+   * unitPrice — a later change to the product's rate must not rewrite the tax
+   * on an already-placed order. 0 for every order placed before this field
+   * existed (order_lines.vat_rate defaults to 0), so old orders show €0 VAT
+   * rather than guessing at a rate that didn't apply when they were placed. */
+  vatRate: number;
 }
 
 export type OrderStatus =

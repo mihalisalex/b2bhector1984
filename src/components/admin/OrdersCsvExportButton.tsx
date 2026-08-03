@@ -7,10 +7,19 @@ import type { AdminOrder } from "@/lib/runtimeOrders";
 
 export function OrdersCsvExportButton({ orders }: { orders: AdminOrder[] }) {
   function exportCsv() {
-    const header = ["Order", "Business", "Placed", "Terms", "Status", "Total (EUR)"];
+    const header = ["Order", "Business", "Placed", "Terms", "Status", "Subtotal (EUR)", "VAT (EUR)", "Total (EUR)"];
     const rows = orders.map((o) => {
-      const { total } = summarizeOrder(o);
-      return [o.id, o.businessName, formatDate(o.placedAt), o.terms.toUpperCase(), o.status, formatEUR(total)];
+      const { total, vatTotal, grandTotal } = summarizeOrder(o);
+      return [
+        o.id,
+        o.businessName,
+        formatDate(o.placedAt),
+        o.terms.toUpperCase(),
+        o.status,
+        formatEUR(total),
+        formatEUR(vatTotal),
+        formatEUR(grandTotal),
+      ];
     });
     const csv = toCsv([header, ...rows]);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });

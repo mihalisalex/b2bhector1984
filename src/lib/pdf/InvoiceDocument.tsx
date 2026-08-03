@@ -38,9 +38,12 @@ const styles = StyleSheet.create({
   colQty: { width: "10%", textAlign: "right" },
   colUnit: { width: "11%", textAlign: "right" },
   colTotal: { width: "11%", textAlign: "right" },
-  totalsRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 14, paddingTop: 10, borderTop: "1.5pt solid #121212" },
+  totalsRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginTop: 14, paddingTop: 10, borderTop: "1.5pt solid #121212" },
   totalsLabel: { fontSize: 9, color: "#6b6b6b" },
-  totalsValue: { fontSize: 13, fontFamily: "Helvetica-Bold" },
+  totalsValue: { fontSize: 13, fontFamily: "Helvetica-Bold", textAlign: "right" },
+  vatRow: { flexDirection: "row", justifyContent: "space-between", gap: 16, marginBottom: 2 },
+  vatLabel: { fontSize: 8, color: "#6b6b6b" },
+  vatValue: { fontSize: 9, textAlign: "right" },
   footer: { position: "absolute", bottom: 40, left: 40, right: 40, fontSize: 8, color: "#6b6b6b", lineHeight: 1.5, borderTop: "0.5pt solid #d4d4d4", paddingTop: 10 },
 });
 
@@ -69,10 +72,25 @@ export interface InvoiceDocumentProps {
   lines: InvoiceLineView[];
   totalBoxes: number;
   totalPairs: number;
+  /** Net (pre-VAT) subtotal. */
   total: number;
+  vatTotal: number;
+  /** What the buyer actually owes — total + vatTotal. */
+  grandTotal: number;
 }
 
-export function InvoiceDocument({ order, businessName, contactName, shipTo, lines, totalBoxes, totalPairs, total }: InvoiceDocumentProps) {
+export function InvoiceDocument({
+  order,
+  businessName,
+  contactName,
+  shipTo,
+  lines,
+  totalBoxes,
+  totalPairs,
+  total,
+  vatTotal,
+  grandTotal,
+}: InvoiceDocumentProps) {
   return (
     <Document title={`${order.id} — Hector 1984`}>
       <Page size="A4" style={styles.page}>
@@ -143,7 +161,19 @@ export function InvoiceDocument({ order, businessName, contactName, shipTo, line
 
         <View style={styles.totalsRow}>
           <Text style={styles.totalsLabel}>{totalBoxes} boxes · {totalPairs} pairs</Text>
-          <Text style={styles.totalsValue}>{formatEUR(total)}</Text>
+          <View>
+            <View style={styles.vatRow}>
+              <Text style={styles.vatLabel}>Subtotal</Text>
+              <Text style={styles.vatValue}>{formatEUR(total)}</Text>
+            </View>
+            {vatTotal > 0 && (
+              <View style={styles.vatRow}>
+                <Text style={styles.vatLabel}>VAT</Text>
+                <Text style={styles.vatValue}>{formatEUR(vatTotal)}</Text>
+              </View>
+            )}
+            <Text style={styles.totalsValue}>{formatEUR(grandTotal)}</Text>
+          </View>
         </View>
 
         <Text style={styles.footer}>

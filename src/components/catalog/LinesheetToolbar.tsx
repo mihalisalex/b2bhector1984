@@ -7,7 +7,16 @@ import { toCsv } from "@/lib/csv";
 
 export function LinesheetToolbar({ styles, priceMultiplier = 1 }: { styles: Style[]; priceMultiplier?: number }) {
   function exportCsv() {
-    const header = ["Style #", "Name", "Category", "Availability", "Colorways", "Box Options", "Wholesale Price (EUR)"];
+    const header = [
+      "Style #",
+      "Name",
+      "Category",
+      "Availability",
+      "Colorways",
+      "Box Options",
+      "Wholesale Price (EUR, excl. VAT)",
+      "VAT Rate",
+    ];
     const rows = styles.map((s) => {
       return [
         s.styleNumber,
@@ -17,6 +26,7 @@ export function LinesheetToolbar({ styles, priceMultiplier = 1 }: { styles: Styl
         s.colorways.map((c) => c.name).join(" / "),
         getAvailableBoxTypes(s).map((b) => b.totalPairs).join(" / ") + "-pair",
         getUnitPrice(s, "net60", priceMultiplier).toFixed(2),
+        s.vatRate ? `${Math.round(s.vatRate * 100)}%` : "—",
       ];
     });
     const csv = toCsv([header, ...rows]);

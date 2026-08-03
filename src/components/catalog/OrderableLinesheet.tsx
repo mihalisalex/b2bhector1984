@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { formatEUR, getUnitPrice, isOnSale, validateMatrix } from "@/lib/pricing";
+import { VatSuffix } from "@/components/ui/VatSuffix";
 import { CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styleLabels";
 import type { StyleInventory } from "@/lib/data/inventory";
 import type { BoxTypeId, Style } from "@/lib/types";
@@ -61,7 +62,9 @@ export function OrderableLinesheet({
     [styles, qtyByStyle, priceMultiplier],
   );
 
-  const grandTotal = validations.reduce((sum, v) => sum + v.subtotal, 0);
+  const subtotal = validations.reduce((sum, v) => sum + v.subtotal, 0);
+  const vatTotal = validations.reduce((sum, v) => sum + v.subtotal * (v.style.vatRate ?? 0), 0);
+  const grandTotal = subtotal + vatTotal;
 
   return (
     <div>
@@ -90,6 +93,7 @@ export function OrderableLinesheet({
                     <AvailabilityBadge style={style} />
                     <span className="text-sm font-semibold tabular-nums text-ink">
                       {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
+                      <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
                     </span>
                     {isOnSale(style) && (
                       <span className="bg-ember px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">Sale</span>
@@ -195,6 +199,7 @@ export function OrderableLinesheet({
                   {i === 0 ? (
                     <td className="px-3 py-2.5 text-right align-top tabular-nums text-ink" rowSpan={style.colorways.length}>
                       {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
+                      <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
                       {isOnSale(style) && (
                         <span className="ml-1.5 bg-ember px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">Sale</span>
                       )}
@@ -233,7 +238,10 @@ export function OrderableLinesheet({
                 </Link>
                 <span className="flex items-center gap-3">
                   <span className="font-mono-tab text-ink-soft">{v.totalBoxes} boxes · {v.totalPairs} pairs</span>
-                  <span className="font-semibold tabular-nums text-ink">{formatEUR(v.subtotal)}</span>
+                  <span className="font-semibold tabular-nums text-ink">
+                    {formatEUR(v.subtotal)}
+                    <VatSuffix vatRate={v.style.vatRate} className="text-xs font-normal text-ink-soft" />
+                  </span>
                 </span>
               </div>
             ))}
@@ -242,7 +250,14 @@ export function OrderableLinesheet({
       )}
 
       <div className="mt-4 flex items-center justify-between gap-4 border-t border-stone-300 pt-4">
-        <span className="text-sm font-semibold tabular-nums text-ink">Total: {formatEUR(grandTotal)}</span>
+        <div className="text-sm text-ink">
+          {vatTotal > 0 && (
+            <p className="text-xs text-ink-soft">
+              Subtotal {formatEUR(subtotal)} + VAT {formatEUR(vatTotal)}
+            </p>
+          )}
+          <span className="font-semibold tabular-nums">Total: {formatEUR(grandTotal)}</span>
+        </div>
         <LinkButton href="/cart" size="md" className={validations.length === 0 ? "pointer-events-none opacity-40" : ""}>
           Go to Cart
         </LinkButton>

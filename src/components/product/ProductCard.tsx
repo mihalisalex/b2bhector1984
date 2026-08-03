@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styleLabels";
 import { formatEUR, getUnitPrice, isOnSale } from "@/lib/pricing";
+import { VatSuffix } from "@/components/ui/VatSuffix";
 import type { Style } from "@/lib/types";
 import type { StyleInventory } from "@/lib/data/inventory";
 import type { StyleImage } from "@/lib/data/styleImages";
@@ -106,6 +107,7 @@ export function ProductCard({
           <p className="flex items-baseline gap-2">
             <span className="text-lg font-semibold tabular-nums text-ink">
               {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
+              <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
             </span>
             {onSale && (
               <span className="text-xs tabular-nums text-ink-soft line-through">

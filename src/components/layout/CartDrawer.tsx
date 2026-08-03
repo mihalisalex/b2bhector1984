@@ -29,7 +29,7 @@ export function CartDrawer() {
   const dialogRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
-  const { lines, unavailableLines, itemCount, removeStyle, cartTotal } = useCart();
+  const { lines, unavailableLines, itemCount, removeStyle, cartTotal, cartVatTotal, cartGrandTotal } = useCart();
   const { getStyleById } = useCatalog();
 
   useFocusTrap(dialogRef, open);
@@ -199,8 +199,13 @@ export function CartDrawer() {
                 <div className="border-t border-stone-300 bg-white px-5 py-4">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Cart total (net-60)</span>
-                    <span className="text-lg font-semibold tabular-nums text-ink">{formatEUR(cartTotal)}</span>
+                    <span className="text-lg font-semibold tabular-nums text-ink">{formatEUR(cartGrandTotal)}</span>
                   </div>
+                  {cartVatTotal > 0 && (
+                    <p className="text-right text-[11px] text-ink-soft">
+                      Subtotal {formatEUR(cartTotal)} + VAT {formatEUR(cartVatTotal)}
+                    </p>
+                  )}
                   <LinkButton href="/cart" size="lg" className="mt-3 w-full justify-center">
                     Go to cart
                   </LinkButton>

@@ -31,7 +31,14 @@ interface CartContextValue {
   removeStyle: (styleId: string) => void;
   clearCart: () => void;
   styleSubtotal: (styleId: string) => number;
+  /** VAT on one style's cart lines, using that style's own vatRate. 0 for a style with no rate set. */
+  styleVat: (styleId: string) => number;
+  /** Net (pre-VAT) total across the cart — unchanged meaning from before VAT existed. */
   cartTotal: number;
+  /** VAT across the whole cart, per-style rate applied to that style's own subtotal. */
+  cartVatTotal: number;
+  /** What checkout will actually charge — cartTotal + cartVatTotal. */
+  cartGrandTotal: number;
   priceMultiplier: number;
 }
 
@@ -160,10 +167,26 @@ export function CartProvider({
     [getStyleById, lines, priceMultiplier],
   );
 
+  const styleVat = useCallback(
+    (styleId: string) => {
+      const style = getStyleById(styleId);
+      if (!style?.vatRate) return 0;
+      return Math.round(styleSubtotal(styleId) * style.vatRate * 100) / 100;
+    },
+    [getStyleById, styleSubtotal],
+  );
+
   const cartTotal = useMemo(() => {
     const styleIds = Array.from(new Set(lines.map((l) => l.styleId)));
     return Math.round(styleIds.reduce((sum, id) => sum + styleSubtotal(id), 0) * 100) / 100;
   }, [lines, styleSubtotal]);
+
+  const cartVatTotal = useMemo(() => {
+    const styleIds = Array.from(new Set(lines.map((l) => l.styleId)));
+    return Math.round(styleIds.reduce((sum, id) => sum + styleVat(id), 0) * 100) / 100;
+  }, [lines, styleVat]);
+
+  const cartGrandTotal = useMemo(() => Math.round((cartTotal + cartVatTotal) * 100) / 100, [cartTotal, cartVatTotal]);
 
   const value = useMemo<CartContextValue>(
     () => ({
@@ -175,10 +198,27 @@ export function CartProvider({
       removeStyle,
       clearCart,
       styleSubtotal,
+      styleVat,
       cartTotal,
+      cartVatTotal,
+      cartGrandTotal,
       priceMultiplier,
     }),
-    [lines, unavailableLines, itemCount, addLines, setLineQty, removeStyle, clearCart, styleSubtotal, cartTotal, priceMultiplier],
+    [
+      lines,
+      unavailableLines,
+      itemCount,
+      addLines,
+      setLineQty,
+      removeStyle,
+      clearCart,
+      styleSubtotal,
+      styleVat,
+      cartTotal,
+      cartVatTotal,
+      cartGrandTotal,
+      priceMultiplier,
+    ],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

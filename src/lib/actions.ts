@@ -40,6 +40,8 @@ import { createSavedAssortment, deleteSavedAssortment as deleteSavedAssortmentDa
 import { addFavorite, removeFavorite } from "@/lib/data/favorites";
 import { decrementInventoryForOrder } from "@/lib/data/inventory";
 import { sendEmail } from "@/lib/email";
+import { sendWhatsAppTemplate, buildProformaInvoiceParams } from "@/lib/whatsapp";
+import { getHomepageHero } from "@/lib/data/siteContent";
 import {
   buildOrderConfirmationEmailBody,
   buildPasswordResetEmailBody,
@@ -218,6 +220,7 @@ export async function activateAccount() {
     businessName: application.businessName,
     contactName: application.contactName,
     email: application.email,
+    phone: application.phone,
     password: await hashPassword("wholesale84"),
     status: "active",
     creditTerms: "prepay",
@@ -296,9 +299,13 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
     const validation = validateMatrix(style, qtyMap, terms, account.priceMultiplier);
     totalPairs += validation.totalPairs;
     const unitPrice = getUnitPrice(style, terms, account.priceMultiplier);
+    // Captured now, not looked up when the invoice/WhatsApp message is built
+    // later — same principle as unitPrice: a later change to the product's
+    // VAT rate must not rewrite the tax on an order that's already placed.
+    const vatRate = style.vatRate ?? 0;
     for (const [colorwayId, boxes] of Object.entries(qtyMap)) {
       for (const [boxTypeId, qty] of Object.entries(boxes)) {
-        if (qty && qty > 0) orderLines.push({ styleId, colorwayId, boxTypeId: boxTypeId as BoxTypeId, qty, unitPrice });
+        if (qty && qty > 0) orderLines.push({ styleId, colorwayId, boxTypeId: boxTypeId as BoxTypeId, qty, unitPrice, vatRate });
       }
     }
   }
@@ -306,15 +313,19 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
   const minimumError = getOrderMinimumError(totalPairs);
   if (minimumError) return { error: minimumError };
 
-  const { total: orderTotal } = summarizeOrder({ lines: orderLines });
+  // Credit is checked against grandTotal (net + VAT) — the real amount this
+  // order will add to the buyer's outstanding balance, not just the pre-tax
+  // figure. Existing outstanding orders are summed the same way, so a buyer
+  // can't be pushed over their real credit limit once VAT applies.
+  const { total: orderTotal, vatTotal: orderVat, grandTotal: orderGrandTotal } = summarizeOrder({ lines: orderLines });
   const existingOrders = await getOrdersForAccount(account.id);
   const outstanding = existingOrders
     .filter((o) => o.status !== "delivered")
-    .reduce((sum, o) => sum + summarizeOrder(o).total, 0);
+    .reduce((sum, o) => sum + summarizeOrder(o).grandTotal, 0);
   const availableCredit = account.creditLimit - outstanding;
-  if (orderTotal > availableCredit) {
+  if (orderGrandTotal > availableCredit) {
     return {
-      error: `This order (${formatEUR(orderTotal)}) exceeds your available credit (${formatEUR(Math.max(availableCredit, 0))} of a ${formatEUR(account.creditLimit)} limit). Contact ${account.rep.name} to raise your limit or reduce the order.`,
+      error: `This order (${formatEUR(orderGrandTotal)} incl. VAT) exceeds your available credit (${formatEUR(Math.max(availableCredit, 0))} of a ${formatEUR(account.creditLimit)} limit). Contact ${account.rep.name} to raise your limit or reduce the order.`,
     };
   }
 
@@ -344,6 +355,31 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
     subject: orderConfirmationEmailSubject(order),
     html: textToHtml(buildOrderConfirmationEmailBody(order, account.contactName)),
   });
+
+  // WhatsApp notification for the proforma invoice request — no-ops safely
+  // (with a console warning) until both WHATSAPP_* env vars are set AND the
+  // buyer has a phone on file. Never blocks or fails the order: a redirect
+  // to the order confirmation page happens regardless of whether this send
+  // succeeded, exactly like the email above.
+  if (account.phone) {
+    const hero = await getHomepageHero();
+    await sendWhatsAppTemplate({
+      to: account.phone,
+      params: buildProformaInvoiceParams({
+        contactName: account.contactName,
+        orderId: order.id,
+        poNumber: order.poNumber,
+        totalPairs,
+        subtotal: formatEUR(orderTotal),
+        vatAmount: formatEUR(orderVat),
+        grandTotal: formatEUR(orderGrandTotal),
+        extraNote: hero.whatsappClosingNote,
+      }),
+    });
+  } else {
+    console.warn(`[whatsapp] Account ${account.id} has no phone on file — skipping proforma invoice notification.`);
+  }
+
   redirect(`/dashboard/orders/${order.id}?justPlaced=1`);
 }
 
@@ -354,14 +390,20 @@ export async function updateAccountProfile(_prev: FormState, formData: FormData)
   const businessName = String(formData.get("businessName") ?? "").trim();
   const contactName = String(formData.get("contactName") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim();
   if (!businessName || !contactName || !email) {
     return { error: "Business name, contact name, and email are all required." };
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { error: "Enter a valid email address." };
   }
+  // Loose on purpose — phone formats vary a lot by country. Just enough to
+  // catch an obvious typo; digits-only normalization happens at WhatsApp-send time.
+  if (phone && phone.replace(/\D/g, "").length < 7) {
+    return { error: "Enter a valid phone number, including country code." };
+  }
 
-  const result = await updateAccountContact(account.id, { businessName, contactName, email });
+  const result = await updateAccountContact(account.id, { businessName, contactName, email, phone: phone || undefined });
   if (result.error) return { error: result.error };
 
   revalidatePath("/dashboard/account");

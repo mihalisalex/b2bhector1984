@@ -17,6 +17,9 @@ interface AccountRow {
   business_name: string;
   contact_name: string;
   email: string;
+  /** Absent entirely pre-migration 0026 (select("*") just omits it), null for
+   * any account created before this feature existed. */
+  phone?: string | null;
   password: string;
   status: Account["status"];
   credit_terms: Account["creditTerms"];
@@ -76,6 +79,7 @@ async function mapAccount(row: AccountRow): Promise<Account> {
     businessName: row.business_name,
     contactName: row.contact_name,
     email: row.email,
+    phone: row.phone ?? undefined,
     password: row.password,
     status: row.status,
     creditTerms: row.credit_terms,
@@ -164,6 +168,7 @@ export async function createAccount(input: {
   businessName: string;
   contactName: string;
   email: string;
+  phone?: string;
   password: string;
   status: Account["status"];
   creditTerms: Account["creditTerms"];
@@ -176,7 +181,7 @@ export async function createAccount(input: {
   approvedAt: string;
   shipTo: { label: string; line1: string; city: string; state: string; zip: string };
 }): Promise<void> {
-  const { error } = await supabaseAdmin.from("accounts").insert({
+  const baseRow = {
     id: input.id,
     business_name: input.businessName,
     contact_name: input.contactName,
@@ -193,8 +198,19 @@ export async function createAccount(input: {
     approved_at: input.approvedAt,
     rep_id: null,
     role: "buyer",
-  });
-  if (error) throw new Error(`accounts: ${error.message}`);
+  };
+
+  // Same reasoning as order_lines.vat_rate: an INSERT naming a column that
+  // doesn't exist yet errors outright (unlike a read, which just omits it),
+  // so account creation — and therefore every application activation — must
+  // not break for every buyer just because migration 0026 hasn't run.
+  const { error } = await supabaseAdmin.from("accounts").insert({ ...baseRow, phone: input.phone ?? null });
+  if (error) {
+    const isMissingPhoneColumn = error.message.includes("schema cache") || error.message.includes("Could not find") || error.message.includes("phone");
+    if (!isMissingPhoneColumn) throw new Error(`accounts: ${error.message}`);
+    const { error: fallbackError } = await supabaseAdmin.from("accounts").insert(baseRow);
+    if (fallbackError) throw new Error(`accounts: ${fallbackError.message}`);
+  }
 
   const { error: shipToError } = await supabaseAdmin.from("ship_to_addresses").insert({
     id: toDbId(input.id, "ship-1"),
@@ -212,17 +228,31 @@ export async function createAccount(input: {
 /** Buyer-editable identity fields — everything else (terms, credit limit, rep) is rep-managed. */
 export async function updateAccountContact(
   id: string,
-  input: { businessName: string; contactName: string; email: string },
+  input: { businessName: string; contactName: string; email: string; phone?: string },
 ): Promise<{ error?: string }> {
+  const baseUpdate = { business_name: input.businessName, contact_name: input.contactName, email: input.email };
   const { error } = await supabaseAdmin
     .from("accounts")
-    .update({ business_name: input.businessName, contact_name: input.contactName, email: input.email })
+    .update({ ...baseUpdate, phone: input.phone ?? null })
     .eq("id", id);
   if (error) {
     if (error.code === "23505") return { error: "That email is already in use by another account." };
-    throw new Error(`accounts: ${error.message}`);
+    const isMissingPhoneColumn = error.message.includes("schema cache") || error.message.includes("Could not find") || error.message.includes("phone");
+    if (!isMissingPhoneColumn) throw new Error(`accounts: ${error.message}`);
+    // Pre-migration 0026 fallback — save what the schema actually supports rather than failing the whole save.
+    const { error: fallbackError } = await supabaseAdmin.from("accounts").update(baseUpdate).eq("id", id);
+    if (fallbackError) {
+      if (fallbackError.code === "23505") return { error: "That email is already in use by another account." };
+      throw new Error(`accounts: ${fallbackError.message}`);
+    }
   }
   return {};
+}
+
+/** Admin-only phone edit/backfill for accounts that predate this feature or never went through the application flow. */
+export async function updateAccountPhoneAdmin(id: string, phone: string): Promise<void> {
+  const { error } = await supabaseAdmin.from("accounts").update({ phone: phone || null }).eq("id", id);
+  if (error) throw new Error(`accounts: ${error.message}`);
 }
 
 export async function updateAccountPassword(id: string, newPassword: string): Promise<void> {

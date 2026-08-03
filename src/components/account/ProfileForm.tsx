@@ -15,6 +15,16 @@ export function ProfileForm({ account }: { account: Account }) {
       <Field label="Business name" name="businessName" defaultValue={account.businessName} required />
       <Field label="Contact name" name="contactName" defaultValue={account.contactName} required />
       <Field label="Email" name="email" type="email" defaultValue={account.email} required />
+      <Field
+        label="Mobile phone (WhatsApp)"
+        name="phone"
+        type="tel"
+        defaultValue={account.phone}
+        placeholder="+30 691 234 5678"
+      />
+      <p className="-mt-2.5 text-xs text-ink-soft">
+        Include the country code. Used to send an order confirmation by WhatsApp when you request a proforma invoice.
+      </p>
 
       {state.error && (
         <p role="alert" className="border border-ember/40 bg-ember-100 px-3 py-2 text-sm text-ember">
@@ -40,12 +50,14 @@ function Field({
   type = "text",
   defaultValue,
   required,
+  placeholder,
 }: {
   label: string;
   name: string;
   type?: string;
   defaultValue?: string;
   required?: boolean;
+  placeholder?: string;
 }) {
   return (
     <label className="flex flex-col gap-1.5">
@@ -55,6 +67,7 @@ function Field({
         type={type}
         defaultValue={defaultValue}
         required={required}
+        placeholder={placeholder}
         className="border border-stone-300 bg-white px-3 py-2.5 text-sm text-ink outline-none focus-visible:border-signal"
       />
     </label>

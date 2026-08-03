@@ -8,6 +8,7 @@ import { formatEUR, getOrderMinimumError, TERMS_DISCOUNT, TERMS_LABEL, validateM
 import { placeOrder, type CheckoutState } from "@/lib/actions";
 import type { Account, BoxTypeId, CreditTerms } from "@/lib/types";
 import { Button, LinkButton } from "@/components/ui/Button";
+import { VatSuffix } from "@/components/ui/VatSuffix";
 
 const TERMS_OPTIONS: { value: CreditTerms; label: string }[] = [
   { value: "prepay", label: "Prepay" },
@@ -45,6 +46,11 @@ export function CheckoutForm({ account }: { account: Account }) {
     () => Math.round(styleGroups.reduce((sum, g) => sum + g.subtotal, 0) * 100) / 100,
     [styleGroups],
   );
+  const vatTotal = useMemo(
+    () => Math.round(styleGroups.reduce((sum, g) => sum + g.subtotal * (g.style.vatRate ?? 0), 0) * 100) / 100,
+    [styleGroups],
+  );
+  const grandTotal = useMemo(() => Math.round((cartTotal + vatTotal) * 100) / 100, [cartTotal, vatTotal]);
   const totalPairs = useMemo(() => styleGroups.reduce((sum, g) => sum + g.totalPairs, 0), [styleGroups]);
   const minimumError = getOrderMinimumError(totalPairs);
 
@@ -148,13 +154,28 @@ export function CheckoutForm({ account }: { account: Account }) {
               <span className="text-ink-soft">
                 {g.style.name} <span className="font-mono-tab text-xs">×{g.totalPairs}</span>
               </span>
-              <span className="tabular-nums text-ink">{formatEUR(g.subtotal)}</span>
+              <span className="tabular-nums text-ink">
+                {formatEUR(g.subtotal)}
+                <VatSuffix vatRate={g.style.vatRate} className="text-xs text-ink-soft" />
+              </span>
             </div>
           ))}
         </div>
+        {vatTotal > 0 && (
+          <div className="mt-3 flex items-center justify-between text-xs text-ink-soft">
+            <span>Subtotal</span>
+            <span className="tabular-nums">{formatEUR(cartTotal)}</span>
+          </div>
+        )}
+        {vatTotal > 0 && (
+          <div className="mt-1 flex items-center justify-between text-xs text-ink-soft">
+            <span>VAT</span>
+            <span className="tabular-nums">{formatEUR(vatTotal)}</span>
+          </div>
+        )}
         <div className="mt-4 flex items-center justify-between">
           <span className="text-sm font-semibold uppercase tracking-wide text-ink-soft">Total</span>
-          <span className="text-xl font-semibold tabular-nums text-ink">{formatEUR(cartTotal)}</span>
+          <span className="text-xl font-semibold tabular-nums text-ink">{formatEUR(grandTotal)}</span>
         </div>
         <p className="mt-1 text-right text-[11px] text-ink-soft">
           {TERMS_DISCOUNT[terms] > 0
@@ -189,7 +210,7 @@ export function CheckoutForm({ account }: { account: Account }) {
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-300 bg-white/97 px-4 py-3 backdrop-blur lg:hidden" style={{ boxShadow: "0 -8px 24px rgba(26,29,34,0.12)" }}>
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-lg font-semibold tabular-nums text-ink">{formatEUR(cartTotal)}</p>
+            <p className="truncate text-lg font-semibold tabular-nums text-ink">{formatEUR(grandTotal)}</p>
             <p className="truncate text-[10px] text-ink-soft">{totalPairs} pairs</p>
           </div>
           <Button type="submit" disabled={pending || !!minimumError} className="shrink-0">

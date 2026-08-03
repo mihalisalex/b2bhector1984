@@ -31,7 +31,7 @@ export default async function OrderDetailPage({
 
   const shipTo = account.shipTo.find((s) => s.id === order.shipToId);
   const statusHistory = await getOrderStatusHistory(order.id);
-  const { total, totalBoxes, totalPairs } = summarizeOrder(order);
+  const { total, vatTotal, grandTotal, totalBoxes, totalPairs } = summarizeOrder(order);
 
   const uniqueStyleIds = Array.from(new Set(order.lines.map((l) => l.styleId)));
   const styleEntries = await Promise.all(uniqueStyleIds.map(async (sid) => [sid, await getStyleById(sid)] as const));
@@ -128,14 +128,32 @@ export default async function OrderDetailPage({
           </tbody>
           <tfoot>
             <tr className="border-t-2 border-ink bg-stone-50">
-              <td colSpan={3} className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-ink-soft">
+              <td
+                colSpan={3}
+                rowSpan={vatTotal > 0 ? 3 : 2}
+                className="px-4 py-3 align-top text-xs font-semibold uppercase tracking-wide text-ink-soft"
+              >
                 {totalBoxes} boxes · {totalPairs} pairs
               </td>
+              <td colSpan={2} className="px-3 py-2 text-right text-xs uppercase tracking-wide text-ink-soft">
+                Subtotal
+              </td>
+              <td className="px-4 py-2 text-right text-sm tabular-nums text-ink-soft">{formatEUR(total)}</td>
+            </tr>
+            {vatTotal > 0 && (
+              <tr className="bg-stone-50">
+                <td colSpan={2} className="px-3 py-2 text-right text-xs uppercase tracking-wide text-ink-soft">
+                  VAT
+                </td>
+                <td className="px-4 py-2 text-right text-sm tabular-nums text-ink-soft">{formatEUR(vatTotal)}</td>
+              </tr>
+            )}
+            <tr className="bg-stone-50">
               <td colSpan={2} className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-ink-soft">
                 Order Total
               </td>
               <td className="px-4 py-3 text-right text-base font-semibold tabular-nums text-ink">
-                {formatEUR(total)}
+                {formatEUR(grandTotal)}
               </td>
             </tr>
           </tfoot>

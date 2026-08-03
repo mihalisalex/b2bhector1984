@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { formatEUR, getUnitPrice } from "@/lib/pricing";
+import { VatSuffix } from "@/components/ui/VatSuffix";
 import { pickDefaultBoxType } from "@/lib/productSelectionDefaults";
 import type { StyleInventory } from "@/lib/data/inventory";
 import type { BoxTypeId, Style } from "@/lib/types";
@@ -154,6 +155,7 @@ export function QuickAdd({
           {!justAdded && (
             <span className="font-mono-tab text-[11px] tabular-nums text-white/75">
               {formatEUR(unitPrice * box.totalPairs * qty)}
+              <VatSuffix vatRate={style.vatRate} className="text-white/60" />
             </span>
           )}
         </button>

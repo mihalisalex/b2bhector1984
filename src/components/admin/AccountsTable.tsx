@@ -5,6 +5,7 @@ import { PriceMultiplierInput } from "@/components/admin/PriceMultiplierInput";
 import { CreditTermsSelect } from "@/components/admin/CreditTermsSelect";
 import { CreditLimitInput } from "@/components/admin/CreditLimitInput";
 import { RepSelect } from "@/components/admin/RepSelect";
+import { PhoneInput } from "@/components/admin/PhoneInput";
 import { ListPager } from "@/components/admin/ListPager";
 import type { Account } from "@/lib/types";
 import type { AdminSalesRep } from "@/lib/data/salesReps";
@@ -54,6 +55,7 @@ export function AccountsTable({ accounts, reps }: { accounts: Account[]; reps: A
               <thead>
                 <tr className="border-b border-stone-300 bg-stone-100 text-left text-[11px] uppercase tracking-wide text-ink-soft">
                   <th className="px-4 py-2.5 font-semibold">Business</th>
+                  <th className="px-4 py-2.5 font-semibold">WhatsApp phone</th>
                   <th className="px-4 py-2.5 font-semibold">Terms</th>
                   <th className="px-4 py-2.5 font-semibold">Credit limit</th>
                   <th className="px-4 py-2.5 font-semibold">Rep</th>
@@ -66,6 +68,9 @@ export function AccountsTable({ accounts, reps }: { accounts: Account[]; reps: A
                     <td className="px-4 py-2.5">
                       <p className="font-medium text-ink">{account.businessName}</p>
                       <p className="text-xs text-ink-soft">{account.contactName} · {account.email}</p>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <PhoneInput accountId={account.id} phone={account.phone} businessName={account.businessName} />
                     </td>
                     <td className="px-4 py-2.5">
                       <CreditTermsSelect accountId={account.id} creditTerms={account.creditTerms} businessName={account.businessName} />

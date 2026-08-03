@@ -64,7 +64,7 @@ export function AdminOrdersTable({ orders }: { orders: AdminOrder[] }) {
 
   const totalsById = useMemo(() => {
     const map = new Map<string, number>();
-    for (const o of orders) map.set(o.id, summarizeOrder(o).total);
+    for (const o of orders) map.set(o.id, summarizeOrder(o).grandTotal);
     return map;
   }, [orders]);
 
@@ -107,7 +107,7 @@ export function AdminOrdersTable({ orders }: { orders: AdminOrder[] }) {
               <th className="px-3 py-2.5">Account</th>
               <th className="px-3 py-2.5">Placed</th>
               <th className="px-3 py-2.5">Terms</th>
-              <th className="px-3 py-2.5 text-right">Total</th>
+              <th className="px-3 py-2.5 text-right">Total (incl. VAT)</th>
               <th className="px-4 py-2.5">Status</th>
               <th className="px-3 py-2.5" />
             </tr>

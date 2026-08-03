@@ -6,6 +6,7 @@ import { useColorwaySelection } from "@/lib/colorway-selection-context";
 import { pickDefaultBoxType } from "@/lib/productSelectionDefaults";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { formatEUR, getUnitPrice, MIN_ORDER_PAIRS } from "@/lib/pricing";
+import { VatSuffix, vatSuffixText } from "@/components/ui/VatSuffix";
 import { ColorwayPicker } from "@/components/product/ColorwayPicker";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
 import { ShareButton } from "@/components/product/ShareButton";
@@ -171,7 +172,10 @@ export function PrimaryPurchasePanel({
               <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">
                 {addQty * pairsPerBox} pairs
               </span>
-              <span className="text-2xl font-semibold tabular-nums text-ink">{formatEUR(subtotal)}</span>
+              <span className="text-2xl font-semibold tabular-nums text-ink">
+                {formatEUR(subtotal)}
+                <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
+              </span>
             </div>
 
             {!outOfStock && (
@@ -229,6 +233,7 @@ export function PrimaryPurchasePanel({
               <p className="mt-1 flex items-baseline gap-1.5">
                 <span className="text-[17px] font-semibold tabular-nums text-ink">
                   {formatEUR(unitPrice)}
+                  <VatSuffix vatRate={style.vatRate} className="text-[11px] font-normal text-ink-soft" />
                 </span>
                 <span className="text-[11px] text-ink-soft">/ pair · {selectedColorway.name}</span>
               </p>
@@ -248,7 +253,7 @@ export function PrimaryPurchasePanel({
                 ? "Sold out"
                 : justAdded
                   ? "Added to cart ✓"
-                  : `Add ${box.totalPairs}-pair box${addQty > 1 ? "es" : ""} · ${formatEUR(subtotal)}`}
+                  : `Add ${box.totalPairs}-pair box${addQty > 1 ? "es" : ""} · ${formatEUR(subtotal)}${vatSuffixText(style.vatRate)}`}
             </button>
           </div>
         </div>

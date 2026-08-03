@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styles";
 import { formatEUR, getUnitPrice, isOnSale } from "@/lib/pricing";
+import { VatSuffix } from "@/components/ui/VatSuffix";
 import type { Style } from "@/lib/types";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
@@ -59,6 +60,7 @@ export function ProductListRow({
           <p className="flex items-baseline justify-end gap-1.5">
             <span className="text-lg font-semibold tabular-nums text-ink">
               {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
+              <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
             </span>
             {onSale && (
               <span className="text-xs tabular-nums text-ink-soft line-through">

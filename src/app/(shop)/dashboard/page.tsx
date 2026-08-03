@@ -18,7 +18,7 @@ export default async function DashboardPage() {
 
   const orders = await getOrdersForAccount(account.id);
   const assortments = await getAssortmentsForAccount(account.id);
-  const ytdTotal = orders.reduce((sum, o) => sum + summarizeOrder(o).total, 0);
+  const ytdTotal = orders.reduce((sum, o) => sum + summarizeOrder(o).grandTotal, 0);
 
   return (
     <div className="mx-auto max-w-[1400px] px-6 py-8 lg:px-10">
@@ -79,7 +79,7 @@ export default async function DashboardPage() {
           ) : (
             <div className="mt-3 flex flex-col gap-3">
               {orders.map((order) => {
-                const { total, totalPairs } = summarizeOrder(order);
+                const { grandTotal, totalPairs } = summarizeOrder(order);
                 return (
                   <div key={order.id} className="flex flex-wrap items-center justify-between gap-3 border border-stone-300 bg-white p-4">
                     <div>
@@ -94,7 +94,7 @@ export default async function DashboardPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="text-sm font-semibold tabular-nums text-ink">{formatEUR(total)}</span>
+                      <span className="text-sm font-semibold tabular-nums text-ink">{formatEUR(grandTotal)}</span>
                       <ReorderButton order={order} />
                       <Link href={`/dashboard/orders/${order.id}`} className="text-xs font-medium text-ink-soft hover:text-ink">
                         Details

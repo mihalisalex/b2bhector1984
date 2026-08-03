@@ -137,6 +137,18 @@ export default async function AdminContentPage() {
             </Field>
           </div>
 
+          <Field
+            label="WhatsApp order message — closing note"
+            hint="The one free-text line in the automatic WhatsApp message sent to a buyer's phone when they request a proforma invoice — appended after the order figures (pairs, subtotal, VAT, total)."
+          >
+            <textarea
+              name="whatsappClosingNote"
+              defaultValue={hero.whatsappClosingNote}
+              rows={2}
+              className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
+            />
+          </Field>
+
           <button
             type="submit"
             className="border border-ink bg-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85"
