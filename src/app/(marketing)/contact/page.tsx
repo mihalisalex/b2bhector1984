@@ -34,15 +34,12 @@ export default function ContactPage() {
           <ContactCard
             title="General Inquiries"
             body="Questions about the brand, existing orders, or anything else."
-            lines={[
-              { href: "mailto:wholesale@hectorfootwear.gr", label: "wholesale@hectorfootwear.gr" },
-              { href: "tel:+15035550100", label: "(503) 555-0100" },
-            ]}
+            lines={[{ href: "mailto:info@hectorfootwear.gr", label: "info@hectorfootwear.gr" }]}
           />
           <ContactCard
             title="New Wholesale Accounts"
             body="Ready to apply, or have questions before you do? Reach the accounts team directly."
-            lines={[{ href: "mailto:newaccounts@hectorfootwear.gr", label: "newaccounts@hectorfootwear.gr" }]}
+            lines={[{ href: "mailto:info@hectorfootwear.gr", label: "info@hectorfootwear.gr" }]}
           />
           <ContactCard
             title="Existing Buyers"

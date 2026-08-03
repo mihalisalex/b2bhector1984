@@ -6,7 +6,7 @@ import type { Account, SalesRep } from "@/lib/types";
 const UNASSIGNED_REP: SalesRep = {
   name: "New Accounts Team",
   title: "Wholesale Onboarding",
-  email: "newaccounts@hectorfootwear.gr",
+  email: "info@hectorfootwear.gr",
   phone: "(503) 555-0100",
   initials: "NA",
   territory: "Unassigned — a territory rep will follow up within 2 business days",

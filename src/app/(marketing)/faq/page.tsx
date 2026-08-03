@@ -76,7 +76,7 @@ const GROUPS: FaqGroup[] = [
       },
       {
         q: "I can't log in — what do I do?",
-        a: "Reach out to your territory rep (listed on your dashboard) or wholesale@hectorfootwear.gr and we'll help sort out access.",
+        a: "Reach out to your territory rep (listed on your dashboard) or info@hectorfootwear.gr and we'll help sort out access.",
       },
       {
         q: "Who do I talk to about my account?",
@@ -93,7 +93,7 @@ const GROUPS: FaqGroup[] = [
       },
       {
         q: "Where do you ship?",
-        a: "Shipping details vary by territory — contact your rep or wholesale@hectorfootwear.gr to confirm coverage and lead times for your location.",
+        a: "Shipping details vary by territory — contact your rep or info@hectorfootwear.gr to confirm coverage and lead times for your location.",
       },
     ],
   },

@@ -34,8 +34,7 @@ export function Footer() {
             links={[
               { href: "/faq", label: "FAQ" },
               { href: "/contact", label: "Contact us" },
-              { href: "mailto:wholesale@hectorfootwear.gr", label: "wholesale@hectorfootwear.gr" },
-              { href: "tel:+15035550100", label: "(503) 555-0100" },
+              { href: "mailto:info@hectorfootwear.gr", label: "info@hectorfootwear.gr" },
             ]}
           />
           <FooterCol

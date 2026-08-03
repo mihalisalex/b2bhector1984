@@ -105,7 +105,7 @@ export function SpecSheetDocument({ style, euSizes, boxes }: SpecSheetDocumentPr
         </View>
 
         <Text style={styles.footer}>
-          Hector Footwear Wholesale · wholesale@hectorfootwear.gr. Materials, weights, and box breakdowns are
+          Hector Footwear Wholesale · info@hectorfootwear.gr. Materials, weights, and box breakdowns are
           illustrative and subject to production tolerances.
         </Text>
       </Page>

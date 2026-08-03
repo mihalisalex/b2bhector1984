@@ -31,7 +31,11 @@ export default async function HomePage() {
 
   return (
     <div>
-      {/* Hero */}
+      {/* Hero — `min-h-*` (not a fixed `h-*`) on the content wrapper, so the box always grows
+          to fit however tall the admin-edited heading/body actually is (no clipping), while
+          still guaranteeing a floor on short content so `object-cover` never has to crop the
+          photo into a thin strip on a very wide screen. The section itself has no height of
+          its own — it just wraps this div, whose min-height + real content sets it. */}
       <section className="relative overflow-hidden border-b border-stone-300 bg-ink">
         <Image
           src={hero.heroImageUrl}
@@ -48,7 +52,7 @@ export default async function HomePage() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent" aria-hidden />
 
-        <div className="relative mx-auto max-w-[1440px] px-6 py-16 lg:px-10 lg:py-28">
+        <div className="relative mx-auto flex min-h-[520px] max-w-[1440px] items-center px-6 py-16 sm:min-h-[560px] lg:min-h-[640px] lg:px-10 2xl:min-h-[720px]">
           <div className="max-w-xl">
             <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-stone-300/70">
               {hero.eyebrow}
@@ -103,7 +107,7 @@ export default async function HomePage() {
         const imagePanel = (
           <Link
             href={`/collections?season=${season}`}
-            className="group relative block aspect-[4/3] overflow-hidden bg-ink sm:aspect-auto"
+            className="group relative block aspect-[4/3] overflow-hidden bg-ink sm:aspect-[4/3] lg:aspect-[3/2]"
           >
             <StylePlate
               swatch={rep.colorways[0].swatch}

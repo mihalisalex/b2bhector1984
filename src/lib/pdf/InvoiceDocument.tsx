@@ -178,7 +178,7 @@ export function InvoiceDocument({
 
         <Text style={styles.footer}>
           This is a proforma invoice, not a charge — it reflects stock and production check before your order is
-          confirmed. Hector Footwear Wholesale · wholesale@hectorfootwear.gr. All pricing and inventory data on this
+          confirmed. Hector Footwear Wholesale · info@hectorfootwear.gr. All pricing and inventory data on this
           document is illustrative.
         </Text>
       </Page>

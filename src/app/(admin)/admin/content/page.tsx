@@ -17,6 +17,22 @@ export default async function AdminContentPage() {
       </h1>
       <p className="mt-2 text-sm text-ink-soft">Edit the homepage hero image and copy.</p>
 
+      <div className="mt-6 max-w-xl border border-stone-300 bg-stone-100 p-4 text-xs leading-relaxed text-ink-soft">
+        <p className="font-semibold uppercase tracking-wide text-ink">Note — homepage image dimensions</p>
+        <p className="mt-2">
+          The hero and the season spotlight photos (below, on the homepage — not this page) use fixed
+          box sizes per screen width, not the source photo&rsquo;s own proportions, so pick photos that
+          crop well to these:
+        </p>
+        <p className="mt-2 font-mono-tab">
+          Hero — min-height: 520px (mobile) · 560px (≥640px) · 640px (≥1024px) · 720px (≥1536px, capped).
+          Grows taller automatically if the heading/body text needs more room, never crops the text.
+        </p>
+        <p className="mt-1 font-mono-tab">
+          Season spotlight photo — aspect ratio: 4:3 (mobile/tablet) · 3:2 (≥1024px).
+        </p>
+      </div>
+
       <section className="mt-8">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Hero image</h2>
         <div className="relative mt-3 aspect-[21/9] w-full max-w-xl overflow-hidden border border-stone-300 bg-ink">
