@@ -1,16 +1,22 @@
 import Link from "next/link";
 import type { Account } from "@/lib/types";
+import type { Locale } from "@/i18n/config";
+import type { Dictionary } from "@/i18n/dictionaries/en";
+import { withLocale } from "@/i18n/paths";
+import { t } from "@/i18n/format";
 
-export function ShopFooter({ account }: { account: Account }) {
+export function ShopFooter({ account, locale, dict }: { account: Account; locale: Locale; dict: Dictionary }) {
   return (
     <footer className="border-t border-stone-300 bg-stone-100 print:hidden">
       <div className="mx-auto flex max-w-[1600px] flex-col gap-2 px-6 py-6 text-xs text-ink-soft md:flex-row md:items-center md:justify-between lg:px-10">
-        <span>
-          Your rep: {account.rep.name} · {account.rep.email} · {account.rep.phone}
-        </span>
+        <span>{t(dict.shopFooter.yourRep, { name: account.rep.name, email: account.rep.email, phone: account.rep.phone })}</span>
         <span className="flex gap-4">
-          <Link href="/dashboard" className="hover:text-ink">Dashboard</Link>
-          <a href="mailto:info@hectorfootwear.gr" className="hover:text-ink">Support</a>
+          <Link href={withLocale(locale, "/dashboard")} className="hover:text-ink">
+            {dict.shopFooter.dashboard}
+          </Link>
+          <a href="mailto:info@hectorfootwear.gr" className="hover:text-ink">
+            {dict.shopFooter.support}
+          </a>
         </span>
       </div>
     </footer>

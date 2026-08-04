@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
 import { logout } from "@/lib/actions";
 import { AdminShell, type AdminNavSection } from "@/components/admin/AdminShell";
+import { bodySans, displaySerif, mono } from "@/lib/fonts";
+import "@/app/globals.css";
 
 const NAV_SECTIONS: AdminNavSection[] = [
   {
@@ -53,9 +55,20 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const account = await getCurrentAccount();
   if (!account || account.role !== "admin") redirect("/login");
 
+  // Its own root layout (see the "multiple root layouts" note on src/app/[lang]/layout.tsx) —
+  // admin never shared the storefront's fonts/body shell with a single top-level layout.tsx,
+  // so this now owns <html>/<body> directly. Always English; admin is an internal tool, not
+  // part of this feature's translated surface.
   return (
-    <AdminShell navSections={NAV_SECTIONS} logoutAction={logout}>
-      {children}
-    </AdminShell>
+    <html
+      lang="en"
+      className={`${displaySerif.variable} ${bodySans.variable} ${mono.variable} h-full antialiased`}
+    >
+      <body className="flex min-h-full flex-col bg-stone-50 text-ink">
+        <AdminShell navSections={NAV_SECTIONS} logoutAction={logout}>
+          {children}
+        </AdminShell>
+      </body>
+    </html>
   );
 }

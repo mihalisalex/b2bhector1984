@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { stripLocale } from "@/i18n/paths";
 
 /**
  * Renders above `MarketingHeader`, not inside the homepage's own content — the ask was
@@ -23,7 +24,8 @@ export function HomeAnnouncementBar({
   href: string;
 }) {
   const pathname = usePathname();
-  if (pathname !== "/" || !enabled || !text) return null;
+  const { path } = stripLocale(pathname);
+  if (path !== "/" || !enabled || !text) return null;
 
   return (
     <Link

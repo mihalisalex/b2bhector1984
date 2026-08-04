@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -8,28 +8,39 @@ import type { Account } from "@/lib/types";
 import { cn } from "@/lib/cn";
 import { HWatermark } from "@/components/layout/HWatermark";
 import { useFocusTrap } from "@/lib/useFocusTrap";
-
-/** Where a buyer goes to place an order — the drawer's main menu. */
-const LINKS = [
-  { href: "/", label: "Home" },
-  { href: "/quick-order", label: "Quick Order" },
-  { href: "/catalogue", label: "Catalogue" },
-];
-
-/** Company/reference pages. Same typographic treatment, set apart at the foot of the
- * drawer so they don't compete with the ordering routes above. */
-const SECONDARY_LINKS = [
-  { href: "/brand-story", label: "The Brand" },
-  { href: "/journal", label: "Journal" },
-  { href: "/faq", label: "FAQ" },
-  { href: "/contact", label: "Contact" },
-];
+import { useI18n } from "@/i18n/I18nProvider";
+import { stripLocale, withLocale } from "@/i18n/paths";
 
 export function MainNav({ account }: { account: Account | null }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const { locale, dict } = useI18n();
+
+  /** Where a buyer goes to place an order — the drawer's main menu. */
+  const LINKS = useMemo(
+    () => [
+      { href: "/", label: dict.nav.home },
+      { href: "/quick-order", label: dict.nav.quickOrder },
+      { href: "/catalogue", label: dict.nav.catalogue },
+    ],
+    [dict],
+  );
+
+  /** Company/reference pages. Same typographic treatment, set apart at the foot of the
+   * drawer so they don't compete with the ordering routes above. */
+  const SECONDARY_LINKS = useMemo(
+    () => [
+      { href: "/brand-story", label: dict.nav.theBrand },
+      { href: "/journal", label: dict.nav.journal },
+      { href: "/faq", label: dict.nav.faq },
+      { href: "/contact", label: dict.nav.contact },
+    ],
+    [dict],
+  );
+
+  const activePath = stripLocale(pathname).path;
 
   useFocusTrap(dialogRef, open);
 
@@ -59,7 +70,7 @@ export function MainNav({ account }: { account: Account | null }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Open menu"
+        aria-label={dict.nav.openMenu}
         aria-expanded={open}
         className="group flex h-9 w-9 shrink-0 flex-col items-center justify-center gap-[6px]"
       >
@@ -87,7 +98,7 @@ export function MainNav({ account }: { account: Account | null }) {
               ref={dialogRef}
               role="dialog"
               aria-modal="true"
-              aria-label="Main menu"
+              aria-label={dict.nav.mainMenu}
               className={cn(
                 "fixed inset-y-0 left-0 z-50 flex w-[300px] max-w-[85vw] flex-col overflow-hidden border-r border-stone-300 bg-stone-50 transition-transform duration-300 ease-out",
                 open ? "translate-x-0" : "-translate-x-full",
@@ -96,11 +107,11 @@ export function MainNav({ account }: { account: Account | null }) {
               <HWatermark className="-right-16 -top-10 text-[22rem] text-ink/[0.4]" />
 
               <div className="relative flex items-center justify-between border-b border-stone-300 px-5 py-4">
-                <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">Menu</span>
+                <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">{dict.nav.menu}</span>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  aria-label="Close menu"
+                  aria-label={dict.nav.closeMenu}
                   className="flex h-8 w-8 items-center justify-center text-ink hover:text-signal"
                 >
                   ✕
@@ -109,7 +120,7 @@ export function MainNav({ account }: { account: Account | null }) {
 
               <nav className="relative flex flex-1 flex-col gap-1 px-5 py-6" aria-label="Primary">
                 {LINKS.map((item) => (
-                  <DrawerLink key={item.href} item={item} active={pathname === item.href} />
+                  <DrawerLink key={item.href} item={item} locale={locale} active={activePath === item.href} />
                 ))}
               </nav>
 
@@ -119,23 +130,23 @@ export function MainNav({ account }: { account: Account | null }) {
               <div className="relative border-t border-stone-300 bg-stone-100 px-5 py-4">
                 <nav className="flex flex-col" aria-label="Company">
                   {SECONDARY_LINKS.map((item) => (
-                    <DrawerLink key={item.href} item={item} active={pathname === item.href} />
+                    <DrawerLink key={item.href} item={item} locale={locale} active={activePath === item.href} />
                   ))}
                 </nav>
 
                 {!account && (
                   <div className="mt-4 flex flex-col gap-2.5">
                     <Link
-                      href="/apply"
+                      href={withLocale(locale, "/apply")}
                       className="bg-ink px-4 py-2.5 text-center text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85"
                     >
-                      Apply for Access
+                      {dict.nav.applyForAccess}
                     </Link>
                     <Link
-                      href="/login"
+                      href={withLocale(locale, "/login")}
                       className="border border-ink px-4 py-2.5 text-center text-xs font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-white"
                     >
-                      Buyer Login
+                      {dict.nav.buyerLogin}
                     </Link>
                   </div>
                 )}
@@ -150,10 +161,18 @@ export function MainNav({ account }: { account: Account | null }) {
 
 /** One drawer row. Shared so the company links at the foot are typographically identical
  * to the main menu above them — the only difference is the ground they sit on. */
-function DrawerLink({ item, active }: { item: { href: string; label: string }; active: boolean }) {
+function DrawerLink({
+  item,
+  active,
+  locale,
+}: {
+  item: { href: string; label: string };
+  active: boolean;
+  locale: Parameters<typeof withLocale>[0];
+}) {
   return (
     <Link
-      href={item.href}
+      href={withLocale(locale, item.href)}
       aria-current={active ? "page" : undefined}
       className={cn(
         // Body sans (Plus Jakarta Sans), not font-display: the drawer's link list reads as

@@ -1,20 +1,14 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/lib/actions";
 import type { Account } from "@/lib/types";
 import { AccountIcon } from "@/components/layout/icons";
-
-const LINKS = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/cart", label: "Cart" },
-  { href: "/dashboard/account", label: "Account settings" },
-  { href: "/dashboard/favorites", label: "Favorites" },
-  { href: "/dashboard/assortments", label: "Saved assortments" },
-];
+import { useI18n } from "@/i18n/I18nProvider";
+import { withLocale } from "@/i18n/paths";
 
 /**
  * The account icon opens the buyer's own links instead of jumping straight to account
@@ -33,6 +27,18 @@ export function AccountMenu({ account }: { account: Account }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const { locale, dict } = useI18n();
+
+  const LINKS = useMemo(
+    () => [
+      { href: "/dashboard", label: dict.account.dashboard },
+      { href: "/cart", label: dict.account.cart },
+      { href: "/dashboard/account", label: dict.account.accountSettings },
+      { href: "/dashboard/favorites", label: dict.account.favorites },
+      { href: "/dashboard/assortments", label: dict.account.savedAssortments },
+    ],
+    [dict],
+  );
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
@@ -84,7 +90,7 @@ export function AccountMenu({ account }: { account: Account }) {
         ref={buttonRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-label="Account menu"
+        aria-label={dict.account.accountMenu}
         aria-haspopup="menu"
         aria-expanded={open}
         className="flex h-9 w-9 items-center justify-center text-ink transition-colors hover:text-signal"
@@ -99,12 +105,12 @@ export function AccountMenu({ account }: { account: Account }) {
           <div
             ref={panelRef}
             role="menu"
-            aria-label="Account"
+            aria-label={dict.account.accountLabel}
             style={{ top: pos.top, right: pos.right }}
             className="fixed z-50 w-60 border border-stone-300 bg-stone-50 shadow-[0_18px_44px_rgba(0,0,0,0.16)]"
           >
             <Link
-              href="/dashboard/account"
+              href={withLocale(locale, "/dashboard/account")}
               role="menuitem"
               onClick={() => setOpen(false)}
               className="group block border-b border-stone-300 bg-stone-100 px-4 py-3"
@@ -117,7 +123,7 @@ export function AccountMenu({ account }: { account: Account }) {
               {LINKS.map((l) => (
                 <Link
                   key={l.href}
-                  href={l.href}
+                  href={withLocale(locale, l.href)}
                   role="menuitem"
                   onClick={() => setOpen(false)}
                   className="px-4 py-2 text-sm font-medium text-ink-soft hover:bg-stone-100 hover:text-ink"
@@ -133,7 +139,7 @@ export function AccountMenu({ account }: { account: Account }) {
                 role="menuitem"
                 className="w-full px-4 py-2.5 text-left text-sm font-semibold text-ember hover:bg-ember-100"
               >
-                Sign out
+                {dict.account.signOut}
               </button>
             </form>
           </div>,

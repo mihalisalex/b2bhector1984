@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { Account } from "@/lib/types";
+import type { Locale } from "@/i18n/config";
+import type { Dictionary } from "@/i18n/dictionaries/en";
 import { Logo } from "@/components/layout/Logo";
 import { MainNav } from "@/components/layout/MainNav";
 import { HWatermark } from "@/components/layout/HWatermark";
@@ -7,8 +9,18 @@ import { SearchOverlay } from "@/components/layout/SearchOverlay";
 import { CartDrawer } from "@/components/layout/CartDrawer";
 import { AccountIcon } from "@/components/layout/icons";
 import { AccountMenu } from "@/components/layout/AccountMenu";
+import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
+import { withLocale } from "@/i18n/paths";
 
-export function MarketingHeader({ account }: { account: Account | null }) {
+export function MarketingHeader({
+  account,
+  locale,
+  dict,
+}: {
+  account: Account | null;
+  locale: Locale;
+  dict: Dictionary;
+}) {
   return (
     <header className="sticky top-0 z-40 overflow-hidden border-b border-stone-300 bg-stone-50/95 backdrop-blur">
       <HWatermark className="-top-16 right-6 text-[13rem] text-ink/[0.1]" />
@@ -17,11 +29,12 @@ export function MarketingHeader({ account }: { account: Account | null }) {
           <MainNav account={account} />
         </div>
 
-        <Link href="/" className="flex items-center justify-center" aria-label="Hector Footwear home">
+        <Link href={withLocale(locale, "/")} className="flex items-center justify-center" aria-label={dict.nav.homeAriaLabel}>
           <Logo />
         </Link>
 
         <div className="flex items-center justify-end gap-1 sm:gap-2">
+          <LanguageSwitcher />
           {/* Search previews wholesale pricing and Cart needs its provider — both stay
               behind login here, same as the catalog itself; anonymous visitors get the
               account icon only, which routes them to /login. */}
@@ -32,8 +45,8 @@ export function MarketingHeader({ account }: { account: Account | null }) {
             <AccountMenu account={account} />
           ) : (
             <Link
-              href="/login"
-              aria-label="Log in"
+              href={withLocale(locale, "/login")}
+              aria-label={dict.account.logIn}
               className="flex h-9 w-9 items-center justify-center text-ink transition-colors hover:text-signal"
             >
               <AccountIcon />

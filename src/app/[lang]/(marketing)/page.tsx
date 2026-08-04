@@ -7,6 +7,10 @@ import type { Category, Season } from "@/lib/types";
 import { LinkButton } from "@/components/ui/Button";
 import { StylePlate } from "@/components/product/StylePlate";
 import { pageMetadata } from "@/lib/seo";
+import { getDictionary } from "@/i18n/getDictionary";
+import type { Locale } from "@/i18n/config";
+import { withLocale } from "@/i18n/paths";
+import { t } from "@/i18n/format";
 
 /** Title/description match the root layout's defaults; declared here so the homepage
  * gets its own canonical and a self-referencing og:url like every other indexed page. */
@@ -24,8 +28,16 @@ const SEASON_CATEGORIES: Record<Season, Category[]> = {
   winter: ["boots", "sneakers", "formal", "anatomic"],
 };
 
-export default async function HomePage() {
-  const [styles, hero, seasonSettings] = await Promise.all([getStorefrontStyles(), getHomepageHero(), getSeasonSettings()]);
+export default async function HomePage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang: rawLang } = await params;
+  const lang = rawLang as Locale;
+  const [styles, hero, seasonSettings, dict] = await Promise.all([
+    getStorefrontStyles(),
+    getHomepageHero(),
+    getSeasonSettings(),
+    getDictionary(lang),
+  ]);
+  const h = dict.home;
   const seasonOptions = toSeasonOptions(seasonSettings);
   const headingLines = hero.heading.split("\n");
 
@@ -66,18 +78,26 @@ export default async function HomePage() {
               ))}
             </h1>
             <div className="mt-6 flex flex-wrap gap-3">
-              <LinkButton href={hero.primaryCtaHref} size="lg">
+              <LinkButton href={withLocale(lang, hero.primaryCtaHref)} size="lg">
                 {hero.primaryCtaLabel}
               </LinkButton>
-              <LinkButton href={hero.secondaryCtaHref} variant="secondary" size="lg" className="!border-white !text-white hover:!bg-white hover:!text-ink">
+              <LinkButton
+                href={withLocale(lang, hero.secondaryCtaHref)}
+                variant="secondary"
+                size="lg"
+                className="!border-white !text-white hover:!bg-white hover:!text-ink"
+              >
                 {hero.secondaryCtaLabel}
               </LinkButton>
             </div>
             <p className="mt-6 max-w-md text-sm leading-relaxed text-stone-300/80">
               {hero.body}
             </p>
-            <Link href="/collections" className="mt-3 inline-block text-sm font-medium text-stone-300 underline underline-offset-2 hover:text-white">
-              View the collection first →
+            <Link
+              href={withLocale(lang, "/collections")}
+              className="mt-3 inline-block text-sm font-medium text-stone-300 underline underline-offset-2 hover:text-white"
+            >
+              {h.viewCollectionFirst} →
             </Link>
           </div>
         </div>
@@ -87,9 +107,9 @@ export default async function HomePage() {
       <section className="border-b border-stone-300 bg-white py-16">
         <div className="mx-auto max-w-[1440px] px-6 lg:px-10">
           <div className="grid grid-cols-1 gap-12 sm:grid-cols-3 sm:gap-10">
-            <QuickStep n="01" title="Apply" body="Tell us about your store — takes 2 minutes." href="/apply" cta="Apply now" />
-            <QuickStep n="02" title="Log in" body="Once approved, sign in to unlock full wholesale pricing." href="/login" cta="Buyer login" />
-            <QuickStep n="03" title="Order" body="Browse Quick Order or the Catalogue and check out." href="/quick-order" cta="Quick Order" />
+            <QuickStep n="01" title={h.step1Title} body={h.step1Body} href={withLocale(lang, "/apply")} cta={h.step1Cta} />
+            <QuickStep n="02" title={h.step2Title} body={h.step2Body} href={withLocale(lang, "/login")} cta={h.step2Cta} />
+            <QuickStep n="03" title={h.step3Title} body={h.step3Body} href={withLocale(lang, "/quick-order")} cta={h.step3Cta} />
           </div>
         </div>
       </section>
@@ -106,7 +126,7 @@ export default async function HomePage() {
 
         const imagePanel = (
           <Link
-            href={`/collections?season=${season}`}
+            href={withLocale(lang, `/collections?season=${season}`)}
             className="group relative block aspect-[4/3] overflow-hidden bg-ink sm:aspect-[4/3] lg:aspect-[3/2]"
           >
             <StylePlate
@@ -138,20 +158,22 @@ export default async function HomePage() {
         const textPanel = (
           <div className="flex flex-col justify-center px-6 py-12 lg:px-14">
             <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">
-              {index === 0 ? "The current drop" : "Also available"}
+              {index === 0 ? h.currentDrop : h.alsoAvailable}
             </span>
             <h2 className="font-display mt-3 text-2xl font-bold uppercase leading-[1.05] tracking-tight text-ink sm:text-3xl">
               {label}
             </h2>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-ink-soft">
-              {seasonStyles.length} styles · {SEASON_CATEGORIES[season].map((c) => CATEGORY_LABEL[c]).join(", ")}. Full
-              pricing and matrix ordering unlock once your wholesale account is approved.
+              {t(h.stylesCount, {
+                count: seasonStyles.length,
+                categories: SEASON_CATEGORIES[season].map((c) => CATEGORY_LABEL[c]).join(", "),
+              })}
             </p>
             <Link
-              href={`/collections?season=${season}`}
+              href={withLocale(lang, `/collections?season=${season}`)}
               className="group mt-5 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-ink hover:text-signal"
             >
-              View lookbook
+              {h.viewLookbook}
               <span aria-hidden className="transition-transform duration-150 group-hover:translate-x-1">
                 →
               </span>
@@ -182,25 +204,13 @@ export default async function HomePage() {
       <section className="border-y border-stone-300 bg-stone-100 py-20">
         <div className="mx-auto max-w-[1440px] px-6 lg:px-10">
           <h2 className="font-display max-w-lg text-2xl font-bold uppercase tracking-tight text-ink sm:text-3xl">
-            A storefront up front. An ordering engine underneath.
+            {h.operatorsHeading}
           </h2>
           <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            <Feature
-              title="Matrix Ordering"
-              body="Build a full colorway × size-run order on one screen, with live case-pack validation."
-            />
-            <Feature
-              title="Terms-Based Pricing"
-              body="Pay in full for 10% off, net-30 for 5% off, or net-60 at list price — the same simple rule for every account."
-            />
-            <Feature
-              title="Pre-Book & At-Once"
-              body="Every style is tagged with its delivery window, so you always know what ships now versus next season."
-            />
-            <Feature
-              title="Net Terms, Real Reps"
-              body="Request net-30 or net-60 at checkout and reach your territory rep directly from your dashboard."
-            />
+            <Feature title={h.feature1Title} body={h.feature1Body} />
+            <Feature title={h.feature2Title} body={h.feature2Body} />
+            <Feature title={h.feature3Title} body={h.feature3Body} />
+            <Feature title={h.feature4Title} body={h.feature4Body} />
           </div>
         </div>
       </section>
@@ -209,13 +219,11 @@ export default async function HomePage() {
       <section className="border-t border-stone-300 bg-ink py-16">
         <div className="mx-auto flex max-w-[1440px] flex-col items-start justify-between gap-6 px-6 sm:flex-row sm:items-center lg:px-10">
           <div>
-            <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-white">
-              Ready to carry Hector Footwear?
-            </h2>
-            <p className="mt-1 text-sm text-stone-300/80">Applications reviewed by a real person, not a bot.</p>
+            <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-white">{h.ctaHeading}</h2>
+            <p className="mt-1 text-sm text-stone-300/80">{h.ctaBody}</p>
           </div>
-          <LinkButton href="/apply" size="lg" className="!bg-white !text-ink hover:!bg-stone-200">
-            Apply for Wholesale Access
+          <LinkButton href={withLocale(lang, "/apply")} size="lg" className="!bg-white !text-ink hover:!bg-stone-200">
+            {h.ctaButton}
           </LinkButton>
         </div>
       </section>

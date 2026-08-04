@@ -97,7 +97,7 @@ export function buildOrganizationSchema(settings: SeoSettings): JsonLd | null {
  * Google's sitelinks searchbox at a URL that 307s to /login would be a broken
  * promise, and Search Console reports it as such.
  */
-export function buildWebsiteSchema(settings: SeoSettings): JsonLd | null {
+export function buildWebsiteSchema(settings: SeoSettings, locale: string = "en"): JsonLd | null {
   if (!settings.schemaWebsite) return null;
 
   const potentialAction = settings.commerceIndexable
@@ -119,7 +119,7 @@ export function buildWebsiteSchema(settings: SeoSettings): JsonLd | null {
     name: settings.siteName,
     description: settings.defaultDescription,
     publisher: { "@id": ORGANIZATION_ID },
-    inLanguage: "en",
+    inLanguage: locale,
     potentialAction,
   });
 }
@@ -321,9 +321,9 @@ export function buildBrandSchema(brand: { name: string; description?: string; lo
  * layout. Page-specific schemas are emitted by the pages themselves and
  * reference these by `@id`.
  */
-export async function buildSiteSchemas(): Promise<JsonLd[]> {
+export async function buildSiteSchemas(locale: string = "en"): Promise<JsonLd[]> {
   const settings = await getSeoSettings();
-  return [buildOrganizationSchema(settings), buildWebsiteSchema(settings)].filter(
+  return [buildOrganizationSchema(settings), buildWebsiteSchema(settings, locale)].filter(
     (schema): schema is JsonLd => schema !== null,
   );
 }

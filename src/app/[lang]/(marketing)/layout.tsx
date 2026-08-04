@@ -6,16 +6,27 @@ import { CartProvider } from "@/lib/cart-context";
 import { HomeAnnouncementBar } from "@/components/layout/HomeAnnouncementBar";
 import { MarketingHeader } from "@/components/layout/MarketingHeader";
 import { Footer } from "@/components/layout/Footer";
+import { getDictionary } from "@/i18n/getDictionary";
+import type { Locale } from "@/i18n/config";
 
-export default async function MarketingLayout({ children }: { children: React.ReactNode }) {
-  const [account, hero] = await Promise.all([getCurrentAccount(), getHomepageHero()]);
+export default async function MarketingLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  // string, not Locale — see the comment on src/app/[lang]/layout.tsx's params type.
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang: rawLang } = await params;
+  const lang = rawLang as Locale;
+  const [account, hero, dict] = await Promise.all([getCurrentAccount(), getHomepageHero(), getDictionary(lang)]);
 
   const content = (
     <>
       <HomeAnnouncementBar enabled={hero.announcementEnabled} text={hero.announcementText} href={hero.announcementHref} />
-      <MarketingHeader account={account} />
+      <MarketingHeader account={account} locale={lang} dict={dict} />
       <main className="flex-1">{children}</main>
-      <Footer />
+      <Footer locale={lang} dict={dict} />
     </>
   );
 

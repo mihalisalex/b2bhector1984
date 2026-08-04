@@ -5,13 +5,22 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { SITE_URL } from "@/lib/siteUrl";
 import { getSeoSettings } from "@/lib/data/seoSettings";
 import { buildSiteSchemas } from "@/lib/seoJsonLd";
-import "./globals.css";
+import { LOCALES, type Locale } from "@/i18n/config";
+import { getDictionary } from "@/i18n/getDictionary";
+import { I18nProvider } from "@/i18n/I18nProvider";
+import "@/app/globals.css";
 
 /**
- * Site-wide defaults. Every value here is admin-editable in /admin/seo/settings
- * — this function reads the `seo_settings` row and falls back to the shipped
- * defaults if migration 0025 hasn't run.
+ * Root layout for the whole storefront ((marketing) + (shop)). This is one half of Next's
+ * "multiple root layouts" pattern — src/app/(admin)/admin/layout.tsx is the other, its own
+ * independent <html>/<body>. There is no longer a single shared src/app/layout.tsx; proxy.ts
+ * guarantees `lang` here is always one of LOCALES (see its doc comment), so no notFound()
+ * guard is needed for an invalid value.
  */
+export function generateStaticParams() {
+  return LOCALES.map((lang) => ({ lang }));
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSeoSettings();
 
@@ -23,11 +32,6 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: settings.defaultDescription,
     robots: { index: true, follow: true },
-    // Deliberately no `title`/`url` here: those are per-page and come from
-    // `pageMetadata()` (src/lib/seo.ts). Hardcoding them at the root made every share
-    // card read "Hector Footwear — Wholesale" and link to the site root. Likewise no
-    // root-level `alternates.canonical` — Next resolves it against `metadataBase`, so a
-    // single value would canonicalise every route to the homepage.
     openGraph: {
       type: "website",
       siteName: settings.siteName,
@@ -47,18 +51,30 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  // Organization + WebSite, emitted once for the whole site with stable `@id`s
-  // that per-page schemas reference instead of repeating the publisher block.
-  const siteSchemas = await buildSiteSchemas();
+export default async function LocaleLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  // Typed as `string`, not `Locale`, to structurally match Next's generated `LayoutProps<"/[lang]">` —
+  // a narrower param type breaks the generated route-type validator. proxy.ts guarantees this is
+  // always one of LOCALES before a request ever reaches this layout.
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang: rawLang } = await params;
+  const lang = rawLang as Locale;
+
+  const [dict, siteSchemas] = await Promise.all([getDictionary(lang), buildSiteSchemas(lang)]);
 
   return (
     <html
-      lang="en"
+      lang={lang}
       className={`${displaySerif.variable} ${bodySans.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-stone-50 text-ink">
-        {children}
+        <I18nProvider locale={lang} dict={dict}>
+          {children}
+        </I18nProvider>
         <CookieConsentBanner />
         <JsonLd schema={siteSchemas} />
       </body>

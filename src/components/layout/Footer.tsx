@@ -1,69 +1,87 @@
 import Link from "next/link";
 import { Logo } from "@/components/layout/Logo";
+import type { Locale } from "@/i18n/config";
+import type { Dictionary } from "@/i18n/dictionaries/en";
+import { withLocale } from "@/i18n/paths";
+import { t } from "@/i18n/format";
 
-export function Footer() {
+export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
+  const f = dict.footer;
   return (
     <footer className="border-t border-stone-300 bg-ink text-stone-200">
       <div className="mx-auto max-w-[1440px] px-6 py-14 lg:px-10">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-5">
           <div>
             <Logo inverted />
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-stone-300/80">
-              Full-grain leather footwear, wholesaled the way serious retailers expect. Est. 1984.
-            </p>
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-stone-300/80">{f.tagline}</p>
           </div>
 
           <FooterCol
-            title="Wholesale"
+            title={f.wholesale}
+            locale={locale}
             links={[
-              { href: "/apply", label: "Apply for access" },
-              { href: "/login", label: "Buyer login" },
-              { href: "/catalogue", label: "Catalogue" },
+              { href: "/apply", label: f.applyForAccess },
+              { href: "/login", label: f.buyerLogin },
+              { href: "/catalogue", label: f.catalogue },
             ]}
           />
           <FooterCol
-            title="Company"
+            title={f.company}
+            locale={locale}
             links={[
-              { href: "/brand-story", label: "The brand" },
-              { href: "/brand-story#materials", label: "Materials & craft" },
-              { href: "/journal", label: "Journal" },
+              { href: "/brand-story", label: f.theBrand },
+              { href: "/brand-story#materials", label: f.materialsAndCraft },
+              { href: "/journal", label: f.journal },
             ]}
           />
           <FooterCol
-            title="Contact"
+            title={f.contact}
+            locale={locale}
             links={[
-              { href: "/faq", label: "FAQ" },
-              { href: "/contact", label: "Contact us" },
-              { href: "mailto:info@hectorfootwear.gr", label: "info@hectorfootwear.gr" },
+              { href: "/faq", label: f.faq },
+              { href: "/contact", label: f.contactUs },
+              { href: "mailto:info@hectorfootwear.gr", label: "info@hectorfootwear.gr", external: true },
             ]}
           />
           <FooterCol
-            title="Legal"
+            title={f.legal}
+            locale={locale}
             links={[
-              { href: "/terms", label: "Terms of Service" },
-              { href: "/privacy", label: "Privacy Policy" },
-              { href: "/cookies", label: "Cookie Notice" },
+              { href: "/terms", label: f.termsOfService },
+              { href: "/privacy", label: f.privacyPolicy },
+              { href: "/cookies", label: f.cookieNotice },
             ]}
           />
         </div>
 
         <div className="mt-12 flex flex-col gap-2 border-t border-white/10 pt-6 text-xs text-stone-300/60 md:flex-row md:items-center md:justify-between">
-          <span>© {new Date().getFullYear()} Hector Footwear Co. Wholesale accounts only.</span>
-          <span>All pricing and inventory data on this site is illustrative.</span>
+          <span>{t(f.copyright, { year: new Date().getFullYear() })}</span>
+          <span>{f.disclaimer}</span>
         </div>
       </div>
     </footer>
   );
 }
 
-function FooterCol({ title, links }: { title: string; links: { href: string; label: string }[] }) {
+function FooterCol({
+  title,
+  links,
+  locale,
+}: {
+  title: string;
+  links: { href: string; label: string; external?: boolean }[];
+  locale: Locale;
+}) {
   return (
     <div>
       <h3 className="text-xs font-semibold uppercase tracking-wide text-stone-300/60">{title}</h3>
       <ul className="mt-4 space-y-2.5">
         {links.map((l) => (
           <li key={l.href}>
-            <Link href={l.href} className="text-sm text-stone-200 transition-colors hover:text-white">
+            <Link
+              href={l.external ? l.href : withLocale(locale, l.href)}
+              className="text-sm text-stone-200 transition-colors hover:text-white"
+            >
               {l.label}
             </Link>
           </li>

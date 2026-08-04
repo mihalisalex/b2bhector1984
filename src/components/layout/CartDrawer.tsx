@@ -14,6 +14,9 @@ import { StylePlate } from "@/components/product/StylePlate";
 import { LinkButton } from "@/components/ui/Button";
 import { useFocusTrap } from "@/lib/useFocusTrap";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/i18n/I18nProvider";
+import { withLocale } from "@/i18n/paths";
+import { t } from "@/i18n/format";
 
 /**
  * The cart icon used to be a plain `<Link href="/cart">` — one click and the whole page
@@ -31,6 +34,8 @@ export function CartDrawer() {
 
   const { lines, unavailableLines, itemCount, removeStyle, cartTotal, cartVatTotal, cartGrandTotal } = useCart();
   const { getStyleById } = useCatalog();
+  const { locale, dict } = useI18n();
+  const cart = dict.cart;
 
   useFocusTrap(dialogRef, open);
 
@@ -68,7 +73,7 @@ export function CartDrawer() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label={`Cart, ${itemCount} pair${itemCount === 1 ? "" : "s"}`}
+        aria-label={`${cart.title}, ${itemCount} ${itemCount === 1 ? cart.pair : cart.pairs}`}
         aria-haspopup="dialog"
         aria-expanded={open}
         className="relative flex h-9 w-9 items-center justify-center text-ink transition-colors hover:text-signal"
@@ -103,7 +108,7 @@ export function CartDrawer() {
               ref={dialogRef}
               role="dialog"
               aria-modal="true"
-              aria-label="Cart"
+              aria-label={cart.title}
               className={cn(
                 "fixed inset-y-0 right-0 z-50 flex w-[380px] max-w-[92vw] flex-col overflow-hidden border-l border-stone-300 bg-stone-50 transition-transform duration-300 ease-out",
                 open ? "translate-x-0" : "translate-x-full",
@@ -111,12 +116,13 @@ export function CartDrawer() {
             >
               <div className="flex items-center justify-between border-b border-stone-300 px-5 py-4">
                 <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">
-                  Cart{itemCount > 0 ? ` · ${itemCount} pair${itemCount === 1 ? "" : "s"}` : ""}
+                  {cart.title}
+                  {itemCount > 0 ? ` · ${itemCount} ${itemCount === 1 ? cart.pair : cart.pairs}` : ""}
                 </span>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  aria-label="Close cart"
+                  aria-label={cart.close}
                   className="flex h-8 w-8 items-center justify-center text-ink hover:text-signal"
                 >
                   ✕
@@ -126,9 +132,9 @@ export function CartDrawer() {
               <div className="scroll-thin flex-1 overflow-y-auto">
                 {lines.length === 0 ? (
                   <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
-                    <p className="font-display text-lg font-bold uppercase tracking-tight text-ink">Your cart is empty</p>
-                    <p className="text-sm text-ink-soft">Build an order from the catalogue.</p>
-                    <LinkButton href="/catalogue">Browse Catalogue</LinkButton>
+                    <p className="font-display text-lg font-bold uppercase tracking-tight text-ink">{cart.empty}</p>
+                    <p className="text-sm text-ink-soft">{cart.emptyHint}</p>
+                    <LinkButton href={withLocale(locale, "/catalogue")}>{cart.browseCatalogue}</LinkButton>
                   </div>
                 ) : (
                   <div className="flex flex-col divide-y divide-stone-200">
@@ -151,7 +157,7 @@ export function CartDrawer() {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-start justify-between gap-2">
                               <Link
-                                href={`/product/${style.slug}`}
+                                href={withLocale(locale, `/product/${style.slug}`)}
                                 className="font-display text-sm font-bold uppercase leading-tight text-ink hover:underline"
                               >
                                 {style.name}
@@ -159,13 +165,15 @@ export function CartDrawer() {
                               <button
                                 type="button"
                                 onClick={() => removeStyle(styleId)}
-                                aria-label={`Remove ${style.name} from cart`}
+                                aria-label={`${cart.remove} ${style.name}`}
                                 className="shrink-0 text-ink-soft hover:text-ember"
                               >
                                 ✕
                               </button>
                             </div>
-                            <p className="font-mono-tab text-[11px] text-ink-soft">{styleTotalPairs} pairs</p>
+                            <p className="font-mono-tab text-[11px] text-ink-soft">
+                              {styleTotalPairs} {styleTotalPairs === 1 ? cart.pair : cart.pairs}
+                            </p>
                             <ul className="mt-1.5 flex flex-col gap-0.5">
                               {styleLines.map((l) => {
                                 const colorway = style.colorways.find((c) => c.id === l.colorwayId);
@@ -187,10 +195,11 @@ export function CartDrawer() {
                 {unavailableCount > 0 && (
                   <div className="border-t border-ember/30 bg-ember-100 px-5 py-3">
                     <p className="text-xs font-semibold text-ember">
-                      {unavailableCount === 1 ? "A style" : "Some styles"} in your cart{" "}
-                      {unavailableCount === 1 ? "is" : "are"} no longer available.
+                      {unavailableCount === 1 ? cart.unavailableNoticeSingular : cart.unavailableNoticePlural}
                     </p>
-                    <p className="mt-0.5 text-[11px] text-ink-soft">Remove {unavailableCount === 1 ? "it" : "them"} on the cart page to check out.</p>
+                    <p className="mt-0.5 text-[11px] text-ink-soft">
+                      {unavailableCount === 1 ? cart.unavailableHintSingular : cart.unavailableHintPlural}
+                    </p>
                   </div>
                 )}
               </div>
@@ -198,16 +207,16 @@ export function CartDrawer() {
               {lines.length > 0 && (
                 <div className="border-t border-stone-300 bg-white px-5 py-4">
                   <div className="flex items-baseline justify-between gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Cart total (net-60)</span>
+                    <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{cart.cartTotal}</span>
                     <span className="text-lg font-semibold tabular-nums text-ink">{formatEUR(cartGrandTotal)}</span>
                   </div>
                   {cartVatTotal > 0 && (
                     <p className="text-right text-[11px] text-ink-soft">
-                      Subtotal {formatEUR(cartTotal)} + VAT {formatEUR(cartVatTotal)}
+                      {t(cart.subtotalVat, { subtotal: formatEUR(cartTotal), vat: formatEUR(cartVatTotal) })}
                     </p>
                   )}
-                  <LinkButton href="/cart" size="lg" className="mt-3 w-full justify-center">
-                    Go to cart
+                  <LinkButton href={withLocale(locale, "/cart")} size="lg" className="mt-3 w-full justify-center">
+                    {cart.goToCart}
                   </LinkButton>
                 </div>
               )}

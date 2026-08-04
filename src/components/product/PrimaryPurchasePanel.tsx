@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
+import { useI18n } from "@/i18n/I18nProvider";
+import { withLocale } from "@/i18n/paths";
 import { useColorwaySelection } from "@/lib/colorway-selection-context";
 import { pickDefaultBoxType } from "@/lib/productSelectionDefaults";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
@@ -32,6 +35,7 @@ export function PrimaryPurchasePanel({
   initialFavorited: boolean;
 }) {
   const { addLines, lines, itemCount } = useCart();
+  const { locale } = useI18n();
   const boxTypes = getAvailableBoxTypes(style);
 
   const { colorwayId } = useColorwaySelection();
@@ -199,9 +203,9 @@ export function PrimaryPurchasePanel({
             {justAdded && (
               <p className="mt-2.5 text-xs font-medium text-positive">
                 Added.{" "}
-                <a href="/cart" className="underline hover:text-ink">
+                <Link href={withLocale(locale, "/cart")} className="underline hover:text-ink">
                   View cart
-                </a>
+                </Link>
               </p>
             )}
           </div>
