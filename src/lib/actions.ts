@@ -293,6 +293,17 @@ const cartLineSchema = z.object({
 });
 const cartLinesSchema = z.array(cartLineSchema);
 
+/** Looser than `cartLineSchema` on purpose: a saved assortment may predate line-item
+ * detail (migration 0021), so colorway/box are optional here — see SavedAssortmentLine. */
+const assortmentLinesSchema = z.array(
+  z.object({
+    styleId: z.string().min(1),
+    colorwayId: z.string().min(1).optional(),
+    boxTypeId: z.enum(["box8", "box10", "box12"]).optional(),
+    qty: z.number().int().positive(),
+  }),
+);
+
 export async function placeOrder(_prev: CheckoutState, formData: FormData): Promise<CheckoutState> {
   const account = await getCurrentAccount();
   if (!account) redirect("/login");
@@ -595,7 +606,17 @@ export async function saveAssortment(_prev: FormState, formData: FormData): Prom
   if (!account) redirect("/login");
 
   const name = String(formData.get("name") ?? "").trim();
-  const lines = JSON.parse(String(formData.get("lines") ?? "[]")) as SavedAssortmentLine[];
+  // Same treatment as placeOrder's cart lines: this is a server action, so the payload is
+  // an untrusted HTTP body, not just whatever SaveAssortmentButton happens to send. It was
+  // previously a bare JSON.parse plus an unchecked cast — malformed JSON threw an
+  // unhandled error (a 500 rather than a message), and a well-formed but wrong-shaped body
+  // went straight through to the insert.
+  let lines: SavedAssortmentLine[];
+  try {
+    lines = assortmentLinesSchema.parse(JSON.parse(String(formData.get("lines") ?? "[]")));
+  } catch {
+    return { error: "That assortment's contents looked invalid. Please refresh and try again." };
+  }
   if (!name) return { error: "Give this assortment a name." };
   if (lines.length === 0) return { error: "Add at least one style before saving." };
 
