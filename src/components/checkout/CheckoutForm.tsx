@@ -4,7 +4,7 @@ import { useActionState, useMemo, useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
 import { useCatalog } from "@/lib/catalog-context";
-import { formatEUR, getOrderMinimumError, TERMS_DISCOUNT, TERMS_LABEL, validateMatrix } from "@/lib/pricing";
+import { formatEUR, getOrderMinimumError, getUnitPrice, TERMS_DISCOUNT, TERMS_LABEL, validateMatrix } from "@/lib/pricing";
 import { placeOrder, type CheckoutState } from "@/lib/actions";
 import type { Account, BoxTypeId, CreditTerms } from "@/lib/types";
 import { Button, LinkButton } from "@/components/ui/Button";
@@ -54,9 +54,6 @@ export function CheckoutForm({ account }: { account: Account }) {
   const totalPairs = useMemo(() => styleGroups.reduce((sum, g) => sum + g.totalPairs, 0), [styleGroups]);
   const minimumError = getOrderMinimumError(totalPairs);
 
-  const availableNow = styleGroups.filter((g) => g.style.availability === "available");
-  const prebook = styleGroups.filter((g) => g.style.availability === "prebook");
-
   // Preview only — mirrors the same on-hand comparison PrimaryPurchasePanel/QuickAdd/
   // OrderableLinesheet already show per line, just rolled up per style here. The real,
   // authoritative fulfillment decision is made server-side in placeOrder()'s atomic stock
@@ -80,6 +77,18 @@ export function CheckoutForm({ account }: { account: Account }) {
   // ("made to order") vs. timing confirmed later ("pre-order").
   const madeToOrder = useMemo(() => backordered.filter((g) => g.style.backorderMode !== "pre_order"), [backordered]);
   const preOrder = useMemo(() => backordered.filter((g) => g.style.backorderMode === "pre_order"), [backordered]);
+
+  // `style.availability` ("available" vs "prebook") is a merchandising/season field —
+  // completely separate from real-time stock. A style can be "available" (in-season,
+  // normally ships at-once) while this specific cart line still runs past its on-hand
+  // and lands in `backordered` above. Without excluding those here, a fully-backordered
+  // style (0 on hand, everything going to production) was showing up in BOTH "At-once"
+  // *and* "Pre-order/Made to order" — telling the buyer the same style both ships in 5
+  // days and has no fixed ship date. `backordered` is the more specific, stock-aware
+  // signal, so it wins.
+  const backorderedIds = useMemo(() => new Set(backordered.map((g) => g.style.id)), [backordered]);
+  const availableNow = styleGroups.filter((g) => g.style.availability === "available" && !backorderedIds.has(g.style.id));
+  const prebook = styleGroups.filter((g) => g.style.availability === "prebook" && !backorderedIds.has(g.style.id));
 
   if (lines.length === 0) {
     return (
@@ -179,17 +188,35 @@ export function CheckoutForm({ account }: { account: Account }) {
       <div className="h-fit border border-stone-300 bg-white p-5 lg:sticky lg:top-[calc(var(--shell-header-h)+1.5rem)]">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Order Summary</h2>
         <div className="mt-3 flex flex-col gap-2.5 border-b border-stone-200 pb-4">
-          {styleGroups.map((g) => (
-            <div key={g.style.id} className="flex items-center justify-between text-sm">
-              <span className="text-ink-soft">
-                {g.style.name} <span className="font-mono-tab text-xs">×{g.totalPairs}</span>
-              </span>
-              <span className="tabular-nums text-ink">
-                {formatEUR(g.subtotal)}
-                <VatSuffix vatRate={g.style.vatRate} className="text-xs text-ink-soft" />
-              </span>
-            </div>
-          ))}
+          {styleGroups.map((g) => {
+            // List price (no terms discount) for this line, so the terms-driven saving —
+            // "sale," in effect, exactly like a scheduled product sale — is visible right
+            // on the line it applies to, not just as a summary note under the grand total.
+            const termsDiscount = TERMS_DISCOUNT[terms];
+            const listSubtotal =
+              termsDiscount > 0
+                ? Math.round(getUnitPrice(g.style, "net60", account.priceMultiplier) * g.totalPairs * 100) / 100
+                : g.subtotal;
+            return (
+              <div key={g.style.id} className="flex items-center justify-between text-sm">
+                <span className="text-ink-soft">
+                  {g.style.name} <span className="font-mono-tab text-xs">×{g.totalPairs}</span>
+                  {termsDiscount > 0 && (
+                    <span className="ml-1.5 bg-ember px-1 py-0.5 align-middle text-[9px] font-semibold uppercase tracking-wide text-white">
+                      {TERMS_LABEL[terms]} −{Math.round(termsDiscount * 100)}%
+                    </span>
+                  )}
+                </span>
+                <span className="tabular-nums text-ink">
+                  {termsDiscount > 0 && (
+                    <span className="mr-1.5 text-xs text-ink-soft line-through">{formatEUR(listSubtotal)}</span>
+                  )}
+                  {formatEUR(g.subtotal)}
+                  <VatSuffix vatRate={g.style.vatRate} className="text-xs text-ink-soft" />
+                </span>
+              </div>
+            );
+          })}
         </div>
         {vatTotal > 0 && (
           <div className="mt-3 flex items-center justify-between text-xs text-ink-soft">
