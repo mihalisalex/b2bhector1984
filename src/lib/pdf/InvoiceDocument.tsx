@@ -74,6 +74,7 @@ const styles = StyleSheet.create({
   summaryRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 6 },
   summaryLabel: { fontSize: 9, color: "#6b6b6b" },
   summaryValue: { fontSize: 9.5 },
+  summaryValueBold: { fontSize: 9.5, fontFamily: "Helvetica-Bold" },
   grandTotalBand: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -84,7 +85,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   grandTotalLabel: { fontSize: 8.5, color: "#ffffff", letterSpacing: 1 },
-  grandTotalValue: { fontSize: 16, fontFamily: "Helvetica-Bold", color: "#ffffff" },
+  grandTotalValue: { fontSize: 16, color: "#ffffff" },
 
   footer: {
     position: "absolute",
@@ -216,7 +217,7 @@ export function InvoiceDocument({
             <View style={styles.summaryBox}>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Subtotal</Text>
-                <Text style={styles.summaryValue}>{formatEUR(total)}</Text>
+                <Text style={styles.summaryValueBold}>{formatEUR(total)}</Text>
               </View>
               {vatTotal > 0 && (
                 <View style={styles.summaryRow}>
