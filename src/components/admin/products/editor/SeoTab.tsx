@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { updateSeoAction } from "@/lib/productActions";
+import { SITE_URL } from "@/lib/siteUrl";
 import { useToastResult } from "@/components/ui/ToastProvider";
 import { SelectField, TextAreaField, TextField, SaveBar } from "@/components/admin/products/editor/FormField";
 import { SerpPreview, SocialPreview, StructuredDataPreview } from "@/components/admin/seo/SeoPreviews";
@@ -93,11 +94,11 @@ export function SeoTab({
       category: style.category,
       ...(style.materials.length ? { material: style.materials.join(", ") } : {}),
       image: images.length ? images.map((image) => image.publicUrl) : [style.primaryImageUrl].filter(Boolean),
-      url: `https://hectorfootwear.gr/product/${slug}`,
+      url: `${SITE_URL}/product/${slug}`,
       brand: { "@type": "Brand", name: style.brandName || "Hector Footwear" },
       offers: {
         "@type": "Offer",
-        url: `https://hectorfootwear.gr/product/${slug}`,
+        url: `${SITE_URL}/product/${slug}`,
         priceCurrency: style.currency || "EUR",
         price: style.basePrice.toFixed(2),
         eligibleCustomerType: "https://schema.org/BusinessCustomer",
@@ -383,7 +384,7 @@ export function SeoTab({
         </div>
       )}
 
-      <StructuredDataPreview schema={structuredData} testUrl={`https://hectorfootwear.gr/product/${slug}`} />
+      <StructuredDataPreview schema={structuredData} testUrl={`${SITE_URL}/product/${slug}`} />
 
       {canEdit && <SaveBar isPending={isPending} label="Save SEO" />}
     </form>
