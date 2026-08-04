@@ -8,20 +8,24 @@ import { recordRedirectHit, resolveRedirect } from "@/lib/redirectEngine";
 // had already drifted (`/linesheet` was gated there but not here), which is the exact
 // failure seoRoutes.ts was introduced to stop.
 import { isGatedPath } from "@/lib/seoRoutes";
+// Also import-safe for the same reason: i18n/config.ts is constants and a type guard with
+// no imports at all. Deriving the list here means adding a locale to that one file is
+// enough — the hard-coded copy this replaced would have left any new locale silently
+// unroutable in the middleware while the rest of the app happily served it.
+import { DEFAULT_LOCALE, LOCALES, type Locale } from "@/i18n/config";
 
-// Kept as literals (not imported from src/lib/session.ts or src/i18n/config.ts) — those
-// modules either pull in `next/headers` (unusable in proxy) or exist for app code, and
-// this file must be able to reason about locales/session with zero risk of an unrelated
-// import dragging something edge-incompatible along with it. Must stay in sync with
-// SESSION_COOKIE in session.ts and the locale list in i18n/config.ts.
+// Kept as literals: session.ts pulls in `next/headers` (unusable here), and
+// i18n/localeCookie.ts carries a `document`-touching helper that has no business in an
+// edge bundle. Must stay in sync with SESSION_COOKIE in session.ts and LOCALE_COOKIE in
+// i18n/localeCookie.ts.
 const SESSION_COOKIE = "hector_session";
 const LOCALE_COOKIE = "hector_locale";
-const NON_DEFAULT_LOCALES = ["de", "fr", "el"] as const;
-type NonDefaultLocale = (typeof NON_DEFAULT_LOCALES)[number];
 
-function matchLocalePrefix(pathname: string): NonDefaultLocale | null {
+const NON_DEFAULT_LOCALES: readonly string[] = LOCALES.filter((l) => l !== DEFAULT_LOCALE);
+
+function matchLocalePrefix(pathname: string): Locale | null {
   const first = pathname.split("/")[1];
-  return (NON_DEFAULT_LOCALES as readonly string[]).includes(first) ? (first as NonDefaultLocale) : null;
+  return NON_DEFAULT_LOCALES.includes(first) ? (first as Locale) : null;
 }
 
 /**
@@ -61,7 +65,7 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
       // No prefix in the URL — default to English, unless a remembered choice says
       // otherwise, in which case redirect (not rewrite) so the address bar reflects it.
       const cookieLocale = request.cookies.get(LOCALE_COOKIE)?.value;
-      if (cookieLocale && (NON_DEFAULT_LOCALES as readonly string[]).includes(cookieLocale)) {
+      if (cookieLocale && NON_DEFAULT_LOCALES.includes(cookieLocale)) {
         const target = pathname === "/" ? `/${cookieLocale}` : `/${cookieLocale}${pathname}`;
         return NextResponse.redirect(new URL(`${target}${search}`, request.url), 307);
       }
