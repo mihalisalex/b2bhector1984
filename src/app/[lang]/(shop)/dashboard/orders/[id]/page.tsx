@@ -37,6 +37,12 @@ export default async function OrderDetailPage({
   const styleEntries = await Promise.all(uniqueStyleIds.map(async (sid) => [sid, await getStyleById(sid)] as const));
   const styleById = new Map(styleEntries);
   const productionLines = order.lines.filter((l) => l.fulfillment === "production");
+  // Only "made to order" lines carry a concrete date; "pre-order" lines deliberately have
+  // none (timing is confirmed once production is scheduled — see placeOrder). The banner
+  // below has to say which of those actually applies, or it points buyers at an expected
+  // date that isn't there for a pre-order line.
+  const withEta = productionLines.filter((l) => l.productionEta);
+  const withoutEta = productionLines.filter((l) => !l.productionEta);
 
   return (
     <div className="mx-auto max-w-[1000px] px-6 py-8 lg:px-10">
@@ -56,9 +62,17 @@ export default async function OrderDetailPage({
       {productionLines.length > 0 && (
         <div className="mb-6 border border-ember/40 bg-ember-100 px-4 py-3 text-sm text-ember">
           {productionLines.length === 1 ? "One line in this order wasn't" : `${productionLines.length} lines in this order weren't`}{" "}
-          fully in stock and {productionLines.length === 1 ? "is" : "are"}{" "}
-          in production — see &ldquo;Status&rdquo; below for each item&rsquo;s expected date. Anything not marked is
-          shipping from stock as normal.
+          fully in stock and {productionLines.length === 1 ? "is" : "are"} in production.{" "}
+          {withEta.length > 0 && (
+            <>See &ldquo;Status&rdquo; below for the expected date on {withoutEta.length > 0 ? "the made-to-order items" : "each item"}.{" "}</>
+          )}
+          {withoutEta.length > 0 && (
+            <>
+              {withEta.length > 0 ? "Pre-order items have" : "These are pre-order, so there's"} no fixed ship date
+              yet — {account.rep.name} will confirm timing once production is scheduled.{" "}
+            </>
+          )}
+          Anything not marked is shipping from stock as normal.
         </div>
       )}
 
