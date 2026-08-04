@@ -4,12 +4,6 @@ import { fromDbId, toDbId } from "@/lib/data/dbIds";
 import { logInventoryMovement } from "@/lib/data/inventoryMovements";
 import type { BoxTypeId } from "@/lib/types";
 
-export interface InventoryLevel {
-  colorwayId: string; // local id, e.g. "c1"
-  boxTypeId: BoxTypeId;
-  onHand: number;
-}
-
 /** colorwayId (local) -> boxTypeId -> on-hand boxes, for one style. Summed across warehouses. */
 export type StyleInventory = Record<string, Partial<Record<BoxTypeId, number>>>;
 

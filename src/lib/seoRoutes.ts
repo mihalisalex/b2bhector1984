@@ -103,13 +103,6 @@ export const PUBLIC_PAGES: PublicPage[] = [
 ];
 
 /**
- * Public but deliberately kept out of the sitemap: legal boilerplate has no
- * search value and dilutes the crawl budget of a seven-page site. They stay
- * crawlable (not disallowed) so the footer links don't lead into a wall.
- */
-export const PUBLIC_UNLISTED_PAGES = ["/terms", "/privacy", "/cookies"];
-
-/**
  * Route prefixes behind the login. These are disallowed in robots.txt AND
  * declare `noindex` in their own metadata, unless the `commerce_indexable`
  * setting is turned on. Both are needed: `Disallow` prevents crawling but not
@@ -147,8 +140,4 @@ export const COMMERCE_PREFIXES = ["/catalogue", "/product", "/quick-order", "/li
 
 export function isGatedPath(path: string): boolean {
   return GATED_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
-}
-
-export function findPublicPage(path: string): PublicPage | undefined {
-  return PUBLIC_PAGES.find((page) => page.path === path);
 }

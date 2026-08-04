@@ -94,11 +94,6 @@ export async function getEntityMeta(
   return all.get(`${entityType}:${entityKey}`);
 }
 
-export async function listEntityMeta(entityType: SeoEntityType): Promise<SeoEntityMeta[]> {
-  const all = await getAllEntityMeta();
-  return [...all.values()].filter((meta) => meta.entityType === entityType);
-}
-
 export interface EntityMetaInput {
   seoTitle?: string;
   metaDescription?: string;

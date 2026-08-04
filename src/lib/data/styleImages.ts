@@ -117,11 +117,6 @@ export async function updateImageAltText(imageId: string, altText: string): Prom
   if (error) throw new Error(`style_images: ${error.message}`);
 }
 
-export async function updateImageCaption(imageId: string, caption: string): Promise<void> {
-  const { error } = await supabaseAdmin.from("style_images").update({ caption }).eq("id", imageId);
-  if (error) throw new Error(`style_images: ${error.message}`);
-}
-
 /**
  * Bulk alt-text write, used by the SEO dashboard's "generate missing alt text"
  * action. One statement per row rather than an upsert: `style_images` rows have

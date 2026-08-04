@@ -159,9 +159,3 @@ export function recordRedirectHit(ruleId: string): Promise<void> {
     .then(() => undefined)
     .catch(() => undefined);
 }
-
-/** Test/admin hook: drops the cache so a just-saved rule takes effect immediately in dev. */
-export function clearRedirectCache(): void {
-  cache = undefined;
-  inFlight = undefined;
-}

@@ -147,18 +147,6 @@ export function generateImageAltText(product: { name: string; category: string }
 }
 
 /**
- * SEO-safe filename for an uploaded asset: lowercase, hyphenated, ASCII, with
- * the original extension preserved. `hector-boat-loafer-tan.jpg` rather than
- * `IMG_4821 (1).jpg`.
- */
-export function optimizeFilename(originalName: string, context: string): string {
-  const dot = originalName.lastIndexOf(".");
-  const ext = dot > 0 ? originalName.slice(dot + 1).toLowerCase() : "jpg";
-  const slug = slugifyForSeo(context) || "image";
-  return `${slug}.${ext}`;
-}
-
-/**
  * Slugifier for SEO surfaces. Separate from `src/lib/slug.ts` (which the
  * product creation flow uses) because this one also strips diacritics and
  * stopwords — a slug is one of the few places where "the" and "and" are pure

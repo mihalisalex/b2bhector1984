@@ -2,7 +2,7 @@ import "server-only";
 import type { Metadata } from "next";
 import { SITE_URL } from "@/lib/siteUrl";
 import { getSeoSettings, type SeoSettings } from "@/lib/data/seoSettings";
-import { getEntityMeta, type SeoEntityType } from "@/lib/data/seoEntityMeta";
+import { getEntityMeta } from "@/lib/data/seoEntityMeta";
 import {
   generateArticleDescription,
   generateArticleTitle,
@@ -272,48 +272,6 @@ export async function articleMetadata(post: JournalPost): Promise<Metadata> {
       robots: post.robots,
       ogImageUrl: image,
       ogType: "article",
-    },
-    settings,
-  );
-}
-
-/**
- * Metadata for a category / collection / brand / supplier / season listing,
- * with the same override-then-generate cascade as everything else.
- */
-export async function entityMetadata({
-  entityType,
-  entityKey,
-  title,
-  description,
-  path,
-  gated = true,
-}: {
-  entityType: SeoEntityType;
-  entityKey: string;
-  title: string;
-  description: string;
-  path: string;
-  /** Listing pages that live behind the login default to the commerce robots policy. */
-  gated?: boolean;
-}): Promise<Metadata> {
-  const [settings, override] = await Promise.all([getSeoSettings(), getEntityMeta(entityType, entityKey)]);
-  const robots = gated ? commerceRobots(settings, override?.robots) : override?.robots;
-  return buildMetadata(
-    {
-      title: override?.seoTitle?.trim() || title,
-      description: override?.metaDescription?.trim() || description,
-      path,
-      canonicalPath: override?.canonicalUrl?.trim() || path,
-      robots,
-      ogTitle: override?.ogTitle,
-      ogDescription: override?.ogDescription,
-      ogImageUrl: override?.ogImageUrl,
-      twitterTitle: override?.twitterTitle,
-      twitterDescription: override?.twitterDescription,
-      twitterImageUrl: override?.twitterImageUrl,
-      twitterCard: override?.twitterCard,
-      keywords: override?.secondaryKeywords,
     },
     settings,
   );

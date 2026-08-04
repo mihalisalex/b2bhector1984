@@ -87,23 +87,6 @@ export async function listRedirects(): Promise<SeoRedirect[]> {
   return (data as RedirectRow[]).map(mapRedirect);
 }
 
-/** Just the fields the proxy needs, and only enabled rules. Kept narrow because this is read on request paths. */
-export async function listActiveRedirects(): Promise<
-  { id: string; fromPath: string; toPath: string; statusCode: number }[]
-> {
-  const { data, error } = await supabaseAdmin
-    .from("seo_redirects")
-    .select("id, from_path, to_path, status_code")
-    .eq("enabled", true);
-  if (error || !data) return [];
-  return (data as Pick<RedirectRow, "id" | "from_path" | "to_path" | "status_code">[]).map((row) => ({
-    id: row.id,
-    fromPath: row.from_path,
-    toPath: row.to_path,
-    statusCode: row.status_code,
-  }));
-}
-
 export interface RedirectValidation {
   ok: boolean;
   error?: string;
@@ -279,14 +262,3 @@ export async function listSlugHistory(styleId: string): Promise<{ slug: string; 
   }));
 }
 
-/** True when the slug is free — i.e. not in use by another product and not parked in slug history. */
-export async function isSlugAvailable(slug: string, exceptStyleId: string): Promise<boolean> {
-  const { data: styleHit } = await supabaseAdmin.from("styles").select("id").eq("slug", slug).neq("id", exceptStyleId);
-  if (styleHit && styleHit.length > 0) return false;
-  const { data: historyHit } = await supabaseAdmin
-    .from("style_slug_history")
-    .select("style_id")
-    .eq("slug", slug)
-    .neq("style_id", exceptStyleId);
-  return !historyHit || historyHit.length === 0;
-}
