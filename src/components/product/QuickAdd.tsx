@@ -127,7 +127,9 @@ export function QuickAdd({
 
       <p className={cn("mb-2 text-[11px] font-medium", remaining > 0 && !willBeProduction ? "text-ink-soft" : "text-ember")}>
         {willBeProduction
-          ? `Production upon request — ~${productionLeadTimeDays} days`
+          ? style.backorderMode === "pre_order"
+            ? "Pre-order — ships when ready"
+            : `Made to order — ~${productionLeadTimeDays} days`
           : remaining > 0
             ? `${remaining} box${remaining === 1 ? "" : "es"} available`
             : "None left in this combination"}

@@ -41,6 +41,7 @@ type SeedStyle = Omit<
   | "lowStockThreshold"
   | "trackInventory"
   | "allowBackorder"
+  | "backorderMode"
   | "incomingStock"
   | "seoTitle"
   | "metaDescription"

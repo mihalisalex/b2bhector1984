@@ -328,6 +328,7 @@ export interface InventoryMetaInput {
   lowStockThreshold: number;
   trackInventory: boolean;
   allowBackorder: boolean;
+  backorderMode: "made_to_order" | "pre_order";
   incomingStock: number;
 }
 
@@ -342,6 +343,7 @@ export async function updateStyleInventoryMeta(styleId: string, input: Inventory
       low_stock_threshold: input.lowStockThreshold,
       track_inventory: input.trackInventory,
       allow_backorder: input.allowBackorder,
+      backorder_mode: input.backorderMode,
       incoming_stock: input.incomingStock,
     })
     .eq("id", styleId);

@@ -389,9 +389,19 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
     .slice(0, 10);
   stockResult.fulfillments.forEach((fulfillment, i) => {
     orderLines[i].fulfillment = fulfillment;
-    if (fulfillment === "production") orderLines[i].productionEta = productionEta;
+    // A pre-order style intentionally gets no ETA here — timing isn't fixed, it's
+    // confirmed with the buyer once production is scheduled. Only "made to order"
+    // (the default) stamps the site-wide lead time as a concrete date.
+    if (fulfillment === "production" && styleById.get(orderLines[i].styleId)?.backorderMode !== "pre_order") {
+      orderLines[i].productionEta = productionEta;
+    }
   });
-  const hasProductionLines = orderLines.some((l) => l.fulfillment === "production");
+  const hasMadeToOrderLines = orderLines.some(
+    (l) => l.fulfillment === "production" && l.productionEta !== undefined,
+  );
+  const hasPreOrderLines = orderLines.some(
+    (l) => l.fulfillment === "production" && l.productionEta === undefined,
+  );
 
   const order: Order = {
     id: `ORD-${Date.now().toString().slice(-5)}`,
@@ -409,7 +419,12 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
     to: account.email,
     subject: confirmationSubject,
     html: textToHtml(
-      buildOrderConfirmationEmailBody(order, account.contactName, hasProductionLines ? hero.productionLeadTimeDays : undefined),
+      buildOrderConfirmationEmailBody(
+        order,
+        account.contactName,
+        hasMadeToOrderLines ? hero.productionLeadTimeDays : undefined,
+        hasPreOrderLines,
+      ),
       confirmationSubject,
     ),
   });
@@ -420,9 +435,12 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
   // to the order confirmation page happens regardless of whether this send
   // succeeded, exactly like the email above.
   if (account.phone) {
-    const productionNote = hasProductionLines
-      ? `Some items in this order are made to order and will ship in about ${hero.productionLeadTimeDays} days. `
-      : "";
+    const productionNote = [
+      hasMadeToOrderLines
+        ? `Some items in this order are made to order and will ship in about ${hero.productionLeadTimeDays} days. `
+        : "",
+      hasPreOrderLines ? "Some items are on pre-order — we'll confirm ship timing once production is scheduled. " : "",
+    ].join("");
     await sendWhatsAppTemplate({
       to: account.phone,
       params: buildProformaInvoiceParams({

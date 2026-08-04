@@ -155,7 +155,7 @@ export default async function AdminContentPage() {
 
           <Field
             label="Production lead time (days)"
-            hint="Shown to buyers as the estimated wait ('Production upon request — ships in ~N days') for any order line that isn't fully covered by on-hand stock."
+            hint="Shown to buyers as the estimated wait ('Made to order — ships in ~N days') for any order line that isn't fully covered by on-hand stock, for styles set to 'Made to order' on their Inventory tab. Styles set to 'Pre-order' there show no fixed ETA instead."
           >
             <input
               type="number"

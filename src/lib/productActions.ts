@@ -246,6 +246,7 @@ export async function updateInventoryMetaAction(styleId: string, _prev: FormStat
     lowStockThreshold: Number(formData.get("lowStockThreshold")) || 0,
     trackInventory: formData.get("trackInventory") === "on",
     allowBackorder: formData.get("allowBackorder") === "on",
+    backorderMode: formData.get("backorderMode") === "pre_order" ? "pre_order" : "made_to_order",
     incomingStock: Number(formData.get("incomingStock")) || 0,
   };
   const failure = await runOrError(() => updateStyleInventoryMeta(styleId, input));

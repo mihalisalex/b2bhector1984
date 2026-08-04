@@ -181,7 +181,9 @@ export function PrimaryPurchasePanel({
               {outOfStock
                 ? "Out of stock in this combination"
                 : willBeProduction
-                  ? `Production upon request — ships in ~${productionLeadTimeDays} days`
+                  ? style.backorderMode === "pre_order"
+                    ? "Available for pre-order — ships when ready, we'll confirm timing"
+                    : `Made to order — ships in ~${productionLeadTimeDays} days`
                   : lowStock
                     ? `Only ${onHand} left`
                     : `${onHand} in stock`}

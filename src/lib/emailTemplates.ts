@@ -13,15 +13,32 @@ export function buildOrderStatusEmailBody(order: { id: string; status: string },
 }
 
 /**
- * `productionLeadTimeDays` is only passed when the order includes at least one line that
- * wasn't fully covered by on-hand stock ("production upon request") — omit it to get the
- * plain confirmation body for an all-in-stock order.
+ * `madeToOrderLeadTimeDays` is only passed when the order includes at least one line that
+ * wasn't fully covered by on-hand stock and whose style is in "made to order" mode (a fixed
+ * ETA). `hasPreOrderLines` flags lines in "pre-order" mode instead — no fixed ETA, timing
+ * confirmed later. Both are independently omittable/false to get the plain confirmation body
+ * for an all-in-stock order.
  */
-export function buildOrderConfirmationEmailBody(order: { id: string }, contactName: string, productionLeadTimeDays?: number): string {
+export function buildOrderConfirmationEmailBody(
+  order: { id: string },
+  contactName: string,
+  madeToOrderLeadTimeDays?: number,
+  hasPreOrderLines = false,
+): string {
   const firstName = contactName.split(" ")[0] || "there";
-  const productionNote = productionLeadTimeDays
-    ? ` Some items in this order weren't in stock and have gone into production — expect those in about ${productionLeadTimeDays} days; anything on hand ships right away.`
-    : "";
+  const notes: string[] = [];
+  if (madeToOrderLeadTimeDays) {
+    notes.push(
+      `Some items in this order weren't in stock and are made to order — expect those in about ${madeToOrderLeadTimeDays} days.`,
+    );
+  }
+  if (hasPreOrderLines) {
+    notes.push(
+      `Some items are on pre-order — they weren't in stock, and we'll confirm ship timing with you once production is scheduled.`,
+    );
+  }
+  if (notes.length > 0) notes.push("Anything on hand ships right away.");
+  const productionNote = notes.length > 0 ? ` ${notes.join(" ")}` : "";
   return `Hi ${firstName},\n\nWe've received your order ${order.id}. We'll be in touch as it moves through production.${productionNote}\n\nBest,\nHector Footwear Wholesale`;
 }
 

@@ -210,6 +210,11 @@ export interface Style {
   lowStockThreshold: number;
   trackInventory: boolean;
   allowBackorder: boolean;
+  /** Only meaningful when `allowBackorder` is true — how the shortfall-goes-to-production
+   * case is messaged to buyers. 'made_to_order' surfaces the site-wide ~40-day ETA;
+   * 'pre_order' drops the fixed ETA in favor of "ships when ready, we'll confirm timing".
+   * Added by migration 0031. */
+  backorderMode: "made_to_order" | "pre_order";
   incomingStock: number;
 
   // --- SEO ---

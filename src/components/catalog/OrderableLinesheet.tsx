@@ -132,6 +132,7 @@ export function OrderableLinesheet({
                             label={`${box.label} for ${style.name} ${colorway.name}`}
                             onHand={inventory[style.id]?.[colorway.id]?.[box.id] ?? 0}
                             allowBackorder={style.allowBackorder}
+                            backorderMode={style.backorderMode}
                             productionLeadTimeDays={productionLeadTimeDays}
                           />
                         </div>
@@ -226,6 +227,7 @@ export function OrderableLinesheet({
                           label={`${boxTypeId} for ${style.name} ${colorway.name}`}
                           onHand={inventory[style.id]?.[colorway.id]?.[boxTypeId] ?? 0}
                           allowBackorder={style.allowBackorder}
+                          backorderMode={style.backorderMode}
                           productionLeadTimeDays={productionLeadTimeDays}
                         />
                       ) : (
@@ -286,6 +288,7 @@ function Stepper({
   label,
   onHand,
   allowBackorder,
+  backorderMode,
   productionLeadTimeDays,
 }: {
   value: number;
@@ -294,6 +297,7 @@ function Stepper({
   label: string;
   onHand: number;
   allowBackorder: boolean;
+  backorderMode: "made_to_order" | "pre_order";
   productionLeadTimeDays: number;
 }) {
   const outOfStock = onHand === 0 && !allowBackorder;
@@ -340,7 +344,13 @@ function Stepper({
         </button>
       </div>
       <span className={cn("font-mono-tab text-[9px]", outOfStock || willBeProduction ? "text-ember" : "text-ink-soft/70")}>
-        {outOfStock ? "out" : willBeProduction ? `~${productionLeadTimeDays}d` : `${onHand} avail.`}
+        {outOfStock
+          ? "out"
+          : willBeProduction
+            ? backorderMode === "pre_order"
+              ? "pre-order"
+              : `~${productionLeadTimeDays}d`
+            : `${onHand} avail.`}
       </span>
     </div>
   );

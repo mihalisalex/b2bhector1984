@@ -62,7 +62,7 @@ export function CheckoutForm({ account }: { account: Account }) {
   // authoritative fulfillment decision is made server-side in placeOrder()'s atomic stock
   // check; this can't guarantee it (stock can move between this render and submission),
   // it's just an honest heads-up before the buyer clicks submit.
-  const madeToOrder = useMemo(
+  const backordered = useMemo(
     () =>
       styleGroups.filter((g) => {
         if (!g.style.allowBackorder) return false;
@@ -75,6 +75,11 @@ export function CheckoutForm({ account }: { account: Account }) {
       }),
     [styleGroups, inventory, lines],
   );
+  // Same underlying mechanic (order beyond on-hand -> production), split by the
+  // admin-editable per-style toggle that decides how it's communicated: a fixed ETA
+  // ("made to order") vs. timing confirmed later ("pre-order").
+  const madeToOrder = useMemo(() => backordered.filter((g) => g.style.backorderMode !== "pre_order"), [backordered]);
+  const preOrder = useMemo(() => backordered.filter((g) => g.style.backorderMode === "pre_order"), [backordered]);
 
   if (lines.length === 0) {
     return (
@@ -131,7 +136,7 @@ export function CheckoutForm({ account }: { account: Account }) {
           />
         </Section>
 
-        {(availableNow.length > 0 || prebook.length > 0 || madeToOrder.length > 0) && (
+        {(availableNow.length > 0 || prebook.length > 0 || madeToOrder.length > 0 || preOrder.length > 0) && (
           <Section title="Estimated Shipping">
             <div className="flex flex-col gap-2 text-sm text-ink-soft">
               {availableNow.length > 0 && (
@@ -154,7 +159,16 @@ export function CheckoutForm({ account }: { account: Account }) {
                   confirmed after you submit.
                 </p>
               )}
-              {[availableNow.length > 0, prebook.length > 0, madeToOrder.length > 0].filter(Boolean).length > 1 && (
+              {preOrder.length > 0 && (
+                <p>
+                  <span className="font-medium text-ink">
+                    Pre-order ({preOrder.length} style{preOrder.length > 1 ? "s" : ""}):
+                  </span>{" "}
+                  not fully in stock — no fixed ship date yet. {account.rep.name} will confirm timing once
+                  production is scheduled.
+                </p>
+              )}
+              {[availableNow.length > 0, prebook.length > 0, madeToOrder.length > 0, preOrder.length > 0].filter(Boolean).length > 1 && (
                 <p className="text-xs">This order will ship in multiple shipments.</p>
               )}
             </div>

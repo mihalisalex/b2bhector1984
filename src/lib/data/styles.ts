@@ -48,6 +48,7 @@ interface StyleRow {
   low_stock_threshold?: number;
   track_inventory?: boolean;
   allow_backorder?: boolean;
+  backorder_mode?: "made_to_order" | "pre_order";
   incoming_stock?: number;
   seo_title?: string | null;
   meta_description?: string | null;
@@ -195,6 +196,7 @@ function assembleStyles(
       lowStockThreshold: s.low_stock_threshold ?? 5,
       trackInventory: s.track_inventory ?? true,
       allowBackorder: s.allow_backorder ?? false,
+      backorderMode: s.backorder_mode ?? "made_to_order",
       incomingStock: s.incoming_stock ?? 0,
 
       seoTitle: s.seo_title ?? undefined,

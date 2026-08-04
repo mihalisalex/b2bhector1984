@@ -17,26 +17,60 @@ import { SaveAssortmentButton } from "@/components/dashboard/SaveAssortmentButto
 import { CompleteMinimum } from "@/components/cart/CompleteMinimum";
 import { cn } from "@/lib/cn";
 
+/** Ceiling on the stepper when a style allows ordering beyond on-hand stock (the shortfall
+ * goes to production) — not a real business constraint, just a sanity bound on the input.
+ * Mirrors PrimaryPurchasePanel/QuickAdd/OrderableLinesheet's constant of the same name. */
+const MAX_BACKORDER_QTY = 999;
+
 export function CartView({
   inStockOptions,
   inventory,
 }: {
   inStockOptions: BoxOption[];
-  /** Real per-colorway/box stock — the +/- steppers below clamp against this so a buyer
-   * can never queue up more than what's actually available (previously unclamped: you
-   * could push a line past on-hand and it wouldn't get caught until placeOrder, if then). */
+  /** Real per-colorway/box stock — the +/- steppers below clamp against this (or, for a
+   * style with backorders allowed, against MAX_BACKORDER_QTY instead — the shortfall goes
+   * to production rather than blocking the buyer). */
   inventory: Record<string, StyleInventory>;
 }) {
   const { lines, unavailableLines, setLineQty, removeStyle, cartTotal, cartVatTotal, cartGrandTotal, priceMultiplier } = useCart();
-  const { getStyleById } = useCatalog();
+  const { getStyleById, productionLeadTimeDays } = useCatalog();
 
   function onHandFor(styleId: string, colorwayId: string, boxTypeId: BoxTypeId): number {
     return inventory[styleId]?.[colorwayId]?.[boxTypeId] ?? 0;
   }
 
+  /** The real ceiling for a line: uncapped (well, sanity-capped) when its style allows
+   * backorders, otherwise exactly what's on the shelf — same distinction every other
+   * add-to-cart surface (PrimaryPurchasePanel, QuickAdd, OrderableLinesheet) already makes. */
+  function maxFor(styleId: string, colorwayId: string, boxTypeId: BoxTypeId): number {
+    const onHand = onHandFor(styleId, colorwayId, boxTypeId);
+    return getStyleById(styleId)?.allowBackorder ? MAX_BACKORDER_QTY : onHand;
+  }
+
   function clamp(styleId: string, colorwayId: string, boxTypeId: BoxTypeId, value: number): number {
-    const max = onHandFor(styleId, colorwayId, boxTypeId);
+    const max = maxFor(styleId, colorwayId, boxTypeId);
     return Math.min(max, Math.max(0, Math.floor(value) || 0));
+  }
+
+  /** Per-line stock status: whether the "+" should be disabled, whether the quantity
+   * typed/loaded in is a real problem (over the true ceiling, blocking checkout), and the
+   * message to show underneath — including the made-to-order/pre-order distinction once a
+   * backorder-allowed style's line runs past on-hand into production. */
+  function lineStatus(styleId: string, colorwayId: string, boxTypeId: BoxTypeId, qty: number) {
+    const style = getStyleById(styleId);
+    const onHand = onHandFor(styleId, colorwayId, boxTypeId);
+    const allowBackorder = style?.allowBackorder ?? false;
+    const max = allowBackorder ? MAX_BACKORDER_QTY : onHand;
+    const overStock = qty > max;
+    const willBeProduction = allowBackorder && qty > onHand;
+    const label = overStock
+      ? `Only ${onHand} available — reduce quantity`
+      : willBeProduction
+        ? style?.backorderMode === "pre_order"
+          ? `${onHand} in stock · rest is pre-order, ships when ready`
+          : `${onHand} in stock · rest ships in ~${productionLeadTimeDays} days`
+        : `${onHand} available`;
+    return { onHand, max, overStock, willBeProduction, label };
   }
 
   // Everything below counts only sellable lines. A line whose style has been archived or
@@ -52,10 +86,13 @@ export function CartView({
     [sellableLines],
   );
   const minimumError = getOrderMinimumError(grandTotalPairs);
-  // Belt-and-suspenders alongside the disabled "+" button: also gate the actual
-  // checkout hand-off, so a line that's over stock for any reason (a stale cart from
-  // before this fix, stock dropping after the line was added) can't slip through.
-  const overStockLine = sellableLines.find((l) => l.qty > onHandFor(l.styleId, l.colorwayId, l.boxTypeId));
+  // Belt-and-suspenders alongside the disabled "+" button: also gate the actual checkout
+  // hand-off, so a line that's over its real ceiling for any reason (a stale cart from
+  // before this fix, stock dropping after the line was added) can't slip through. A line
+  // over on-hand is fine — expected, even — when its style allows backorders; `maxFor`
+  // is what actually caps it (on-hand, or MAX_BACKORDER_QTY when backorders are allowed),
+  // so only a line past *that* ceiling is a real problem.
+  const overStockLine = sellableLines.find((l) => l.qty > maxFor(l.styleId, l.colorwayId, l.boxTypeId));
   const unavailableStyleIds = useMemo(
     () => Array.from(new Set(unavailableLines.map((l) => l.styleId))),
     [unavailableLines],
@@ -164,8 +201,7 @@ export function CartView({
                 {styleLines.map((l) => {
                   const colorway = style.colorways.find((c) => c.id === l.colorwayId);
                   const box = getBoxType(l.boxTypeId);
-                  const onHand = onHandFor(styleId, l.colorwayId, l.boxTypeId);
-                  const overStock = l.qty > onHand;
+                  const { max, overStock, willBeProduction, label } = lineStatus(styleId, l.colorwayId, l.boxTypeId, l.qty);
                   return (
                     <div key={`${l.colorwayId}-${l.boxTypeId}`} className="flex items-center justify-between gap-3 px-4 py-3">
                       <div className="min-w-0 flex-1">
@@ -173,8 +209,8 @@ export function CartView({
                         <p className="font-mono-tab text-xs text-ink-soft">
                           {box.label} · {l.qty * box.totalPairs} pairs
                         </p>
-                        <p className={cn("text-[11px]", overStock ? "font-medium text-ember" : "text-ink-soft")}>
-                          {overStock ? `Only ${onHand} available — reduce quantity` : `${onHand} available`}
+                        <p className={cn("text-[11px]", overStock ? "font-medium text-ember" : willBeProduction ? "text-ink" : "text-ink-soft")}>
+                          {label}
                         </p>
                       </div>
                       <div className="flex shrink-0 items-center border border-stone-300">
@@ -189,7 +225,7 @@ export function CartView({
                         <input
                           type="number"
                           min={0}
-                          max={onHand}
+                          max={max}
                           value={l.qty}
                           onChange={(e) => setLineQty(styleId, l.colorwayId, l.boxTypeId, clamp(styleId, l.colorwayId, l.boxTypeId, Number(e.target.value)))}
                           aria-label={`${colorway?.name ?? "Colorway"} ${box.label} quantity`}
@@ -199,7 +235,7 @@ export function CartView({
                           type="button"
                           aria-label="Increase quantity"
                           onClick={() => setLineQty(styleId, l.colorwayId, l.boxTypeId, l.qty + 1)}
-                          disabled={l.qty >= onHand}
+                          disabled={l.qty >= max}
                           className="flex h-9 w-9 items-center justify-center text-ink hover:bg-stone-100 disabled:opacity-30 disabled:hover:bg-transparent"
                         >
                           +
@@ -234,8 +270,7 @@ export function CartView({
                     {styleLines.map((l) => {
                       const colorway = style.colorways.find((c) => c.id === l.colorwayId);
                       const box = getBoxType(l.boxTypeId);
-                      const onHand = onHandFor(styleId, l.colorwayId, l.boxTypeId);
-                      const overStock = l.qty > onHand;
+                      const { max, overStock, willBeProduction, label } = lineStatus(styleId, l.colorwayId, l.boxTypeId, l.qty);
                       return (
                         <tr key={`${l.colorwayId}-${l.boxTypeId}`} className="border-b border-stone-100 last:border-b-0">
                           <td className="px-4 py-2 text-ink">{colorway?.name ?? l.colorwayId}</td>
@@ -253,7 +288,7 @@ export function CartView({
                               <input
                                 type="number"
                                 min={0}
-                                max={onHand}
+                                max={max}
                                 value={l.qty}
                                 onChange={(e) =>
                                   setLineQty(styleId, l.colorwayId, l.boxTypeId, clamp(styleId, l.colorwayId, l.boxTypeId, Number(e.target.value)))
@@ -265,14 +300,14 @@ export function CartView({
                                 type="button"
                                 aria-label="Increase quantity"
                                 onClick={() => setLineQty(styleId, l.colorwayId, l.boxTypeId, l.qty + 1)}
-                                disabled={l.qty >= onHand}
+                                disabled={l.qty >= max}
                                 className="flex h-9 w-9 items-center justify-center text-ink hover:bg-stone-100 disabled:opacity-30 disabled:hover:bg-transparent"
                               >
                                 +
                               </button>
                             </div>
-                            <p className={cn("mt-1 text-[11px]", overStock ? "font-medium text-ember" : "text-ink-soft")}>
-                              {overStock ? `Only ${onHand} available` : `${onHand} available`}
+                            <p className={cn("mt-1 text-[11px]", overStock ? "font-medium text-ember" : willBeProduction ? "text-ink" : "text-ink-soft")}>
+                              {label}
                             </p>
                           </td>
                           <td className="font-mono-tab px-4 py-2 text-right text-ink-soft">{l.qty * box.totalPairs}</td>
