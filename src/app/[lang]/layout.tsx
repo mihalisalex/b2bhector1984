@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { bodySans, displaySerif, mono } from "@/lib/fonts";
 import { CookieConsentBanner } from "@/components/layout/CookieConsentBanner";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -77,6 +78,7 @@ export default async function LocaleLayout({
         </I18nProvider>
         <CookieConsentBanner />
         <JsonLd schema={siteSchemas} />
+        <Analytics />
       </body>
     </html>
   );
