@@ -38,8 +38,11 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
         <Link href="/admin" className="hover:text-ink">Orders</Link> / {order.id}
       </nav>
 
+      {/* Same reasoning as the buyer-facing order page: production is an ordinary
+          fulfilment route here, not an error state, so it uses the in-production
+          token rather than the error red. */}
       {productionLines.length > 0 && (
-        <div className="mb-6 border border-ember/40 bg-ember-100 px-4 py-3 text-sm text-ember">
+        <div className="mb-6 border border-court/50 bg-court-100 px-4 py-3 text-sm text-ink">
           {productionLines.length} of {order.lines.length} line{order.lines.length === 1 ? "" : "s"} on this order{" "}
           {productionLines.length === 1 ? "wasn't" : "weren't"}{" "}
           fully in stock at placement and went to production — see the Status column below for each line.

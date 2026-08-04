@@ -49,9 +49,11 @@ export function OrderLineRow({
       </td>
       <td className="px-3 py-2 text-right tabular-nums text-ink-soft">{formatEUR(unitPrice)}</td>
       <td className="px-4 py-2 text-right font-semibold tabular-nums text-ink">{formatEUR(lineTotal)}</td>
+      {/* `text-ink` + medium weight below, not the error red: this marks an ordinary
+          fulfilment route, and still reads as distinct from the muted "In stock". */}
       <td className="px-3 py-2">
         {fulfillment === "production" ? (
-          <span className="whitespace-nowrap text-xs font-medium text-ember">
+          <span className="whitespace-nowrap text-xs font-medium text-ink">
             Production{productionEta ? ` · ETA ${formatDate(productionEta)}` : ""}
           </span>
         ) : (

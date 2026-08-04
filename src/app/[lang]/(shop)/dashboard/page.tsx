@@ -90,7 +90,7 @@ export default async function DashboardPage() {
                         </Link>
                         <StatusBadge status={order.status} />
                         {productionCount > 0 && (
-                          <span className="border border-ember/40 bg-ember-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ember">
+                          <span className="border border-court/50 bg-court-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink">
                             {productionCount} in production
                           </span>
                         )}

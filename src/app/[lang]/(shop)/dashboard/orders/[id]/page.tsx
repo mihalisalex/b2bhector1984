@@ -59,8 +59,13 @@ export default async function OrderDetailPage({
         </div>
       )}
 
+      {/* `court`, not `ember`: ember is this design system's error/danger colour (see
+          globals.css), and a production/pre-order notice is neither — it's the normal
+          path for most of the catalogue now, so an alarm-red panel on every single
+          order was crying wolf. `court` is the token the in-production status badge
+          already uses. */}
       {productionLines.length > 0 && (
-        <div className="mb-6 border border-ember/40 bg-ember-100 px-4 py-3 text-sm text-ember">
+        <div className="mb-6 border border-court/50 bg-court-100 px-4 py-3 text-sm text-ink">
           {productionLines.length === 1 ? "One line in this order wasn't" : `${productionLines.length} lines in this order weren't`}{" "}
           fully in stock and {productionLines.length === 1 ? "is" : "are"} in production.{" "}
           {withEta.length > 0 && (
@@ -149,7 +154,7 @@ export default async function OrderDetailPage({
                   </td>
                   <td className="px-3 py-2">
                     {line.fulfillment === "production" ? (
-                      <span className="whitespace-nowrap text-xs font-medium text-ember">
+                      <span className="whitespace-nowrap text-xs font-medium text-ink">
                         Production{line.productionEta ? ` · ETA ${formatDate(line.productionEta)}` : ""}
                       </span>
                     ) : (
