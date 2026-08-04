@@ -11,6 +11,7 @@ import {
   updateAccountCreditLimit,
   updateAccountRep,
   updateAccountPhoneAdmin,
+  getAccountByEmail,
 } from "@/lib/data/accounts";
 import { createSalesRep, updateSalesRep, deleteSalesRep } from "@/lib/data/salesReps";
 import { logAudit } from "@/lib/data/auditLog";
@@ -163,6 +164,25 @@ export async function approveApplication(applicationId: string) {
     await logAudit(admin.id, "application.approved", "application", applicationId);
     await notifyApplicationDecision(applicationId, "approved");
   }
+  revalidatePath("/admin/applications");
+}
+
+/**
+ * Re-sends the "you're approved, activate now" email for an application that's already
+ * approved — for cases like the activation link having been broken (dead domain, expired
+ * assumption, etc.) when the original email went out. A no-op if the application was
+ * declined/never approved, or if it's already been activated (an account already exists
+ * for the email) — resending an activation link to someone who already has an account
+ * would be confusing, not helpful.
+ */
+export async function resendActivationEmail(applicationId: string) {
+  const admin = await requireAdmin();
+  const application = await getApplicationById(applicationId);
+  if (!application || application.status !== "approved") return;
+  const existingAccount = await getAccountByEmail(application.email);
+  if (existingAccount) return;
+  await logAudit(admin.id, "application.activation_email_resent", "application", applicationId);
+  await notifyApplicationDecision(applicationId, "approved");
   revalidatePath("/admin/applications");
 }
 

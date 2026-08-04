@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { approveApplication, declineApplication, bulkApproveApplications } from "@/lib/adminActions";
+import { approveApplication, declineApplication, bulkApproveApplications, resendActivationEmail } from "@/lib/adminActions";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/cn";
 import { ListPager } from "@/components/admin/ListPager";
@@ -147,6 +147,18 @@ export function AdminApplicationsList({ applications }: { applications: Applicat
                     className="border border-stone-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-ink-soft hover:border-ember hover:text-ember"
                   >
                     Decline
+                  </button>
+                </form>
+              </div>
+            )}
+            {app.status === "approved" && (
+              <div className="flex shrink-0 items-center gap-2">
+                <form action={resendActivationEmail.bind(null, app.id)}>
+                  <button
+                    type="submit"
+                    className="border border-stone-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-ink-soft hover:border-ink hover:text-ink"
+                  >
+                    Resend activation email
                   </button>
                 </form>
               </div>
