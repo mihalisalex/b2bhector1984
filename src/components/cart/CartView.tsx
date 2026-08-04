@@ -32,7 +32,7 @@ export function CartView({
    * to production rather than blocking the buyer). */
   inventory: Record<string, StyleInventory>;
 }) {
-  const { lines, unavailableLines, setLineQty, removeStyle, cartTotal, cartVatTotal, cartGrandTotal, priceMultiplier } = useCart();
+  const { lines, unavailableLines, setLineQty, removeStyle, clearCart, cartTotal, cartVatTotal, cartGrandTotal, priceMultiplier } = useCart();
   const { getStyleById, productionLeadTimeDays } = useCatalog();
 
   function onHandFor(styleId: string, colorwayId: string, boxTypeId: BoxTypeId): number {
@@ -120,9 +120,20 @@ export function CartView({
         <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink">
           Cart
         </h1>
-        <Link href="/catalogue" className="text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-ink">
-          ← Continue shopping
-        </Link>
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => {
+              if (confirm("Empty your entire cart? This removes every line item.")) clearCart();
+            }}
+            className="text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-ember"
+          >
+            Empty cart
+          </button>
+          <Link href="/catalogue" className="text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-ink">
+            ← Continue shopping
+          </Link>
+        </div>
       </div>
 
       {unavailableStyleIds.length > 0 && (
