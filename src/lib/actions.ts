@@ -38,7 +38,7 @@ import { MIN_PASSWORD_LENGTH } from "@/lib/passwordPolicy";
 import { formatEUR, getOrderMinimumError, getUnitPrice, summarizeOrder, validateMatrix } from "@/lib/pricing";
 import { createSavedAssortment, deleteSavedAssortment as deleteSavedAssortmentData } from "@/lib/data/assortments";
 import { addFavorite, removeFavorite } from "@/lib/data/favorites";
-import { decrementInventoryForOrder, type StockLine } from "@/lib/data/inventory";
+import { decrementInventoryForOrder, restoreInventoryForLines, type StockLine } from "@/lib/data/inventory";
 import { sendEmail } from "@/lib/email";
 import { sendWhatsAppTemplate, buildProformaInvoiceParams } from "@/lib/whatsapp";
 import { getHomepageHero } from "@/lib/data/siteContent";
@@ -413,7 +413,25 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
     lines: orderLines,
   };
 
-  await addOrder(account.id, order);
+  // Inventory was already decremented above, but the order row doesn't exist yet — those
+  // are two separate writes with no shared transaction. If this insert fails (a bad
+  // ship-to FK, a DB blip), the stock is gone with no order to show for it, so put it back
+  // before surfacing the error. Only the lines that actually came off the shelf are
+  // restored; `"production"` lines never touched `on_hand` in the first place.
+  //
+  // Scoped tightly to `addOrder` on purpose: `redirect()` further down signals success by
+  // *throwing* (NEXT_REDIRECT), so widening this catch would roll back completed orders.
+  try {
+    await addOrder(account.id, order);
+  } catch (err) {
+    const decremented = stockLines.filter((_, i) => stockResult.fulfillments[i] === "stock");
+    await restoreInventoryForLines(decremented);
+    console.error(`[checkout] order ${order.id} failed to save; inventory restored:`, err);
+    return {
+      error: `Something went wrong saving your order, so nothing was charged or reserved. Please try again, or contact ${account.rep.name} if it keeps happening.`,
+    };
+  }
+
   const confirmationSubject = orderConfirmationEmailSubject(order);
   await sendEmail({
     to: account.email,

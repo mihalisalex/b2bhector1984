@@ -163,6 +163,39 @@ export interface StockLine {
 export type LineFulfillment = "stock" | "production";
 
 /**
+ * Puts back stock that `decrementInventoryForOrder` already took, for the lines that were
+ * actually decremented (never the `"production"` ones — those never touched `on_hand`).
+ *
+ * Exported because the decrement and the thing it's reserving stock *for* (the order row)
+ * are two separate writes: `placeOrder` has to be able to undo the decrement when the order
+ * insert itself fails, or the stock is silently gone with no order to show for it.
+ *
+ * Best-effort by design — this runs on a path where something has *already* gone wrong, so
+ * a failure here must not mask the original error. Anything that fails to restore is logged
+ * loudly (it's a real stock discrepancy an admin has to reconcile by hand) and skipped.
+ */
+export async function restoreInventoryForLines(lines: StockLine[]): Promise<void> {
+  for (const done of lines) {
+    try {
+      const { error } = await supabaseAdmin.rpc("adjust_inventory", {
+        p_style_id: done.styleId,
+        p_colorway_id: toDbId(done.styleId, done.colorwayId),
+        p_box_type_id: done.boxTypeId,
+        p_qty: -done.qty,
+        p_warehouse_id: "main",
+      });
+      if (error) throw new Error(error.message);
+      await logInventoryMovement(done.styleId, toDbId(done.styleId, done.colorwayId), done.boxTypeId, "main", done.qty, "order_rollback", null);
+    } catch (err) {
+      console.error(
+        `[inventory] FAILED to restore ${done.qty} × ${done.boxTypeId} of ${done.styleId}/${done.colorwayId} — on_hand is now short by that amount and needs a manual adjustment:`,
+        err,
+      );
+    }
+  }
+}
+
+/**
  * Resolves stock for every line via the atomic `adjust_inventory` DB function (race-safe:
  * its update only touches a row when the full requested quantity is actually on hand).
  *
@@ -174,6 +207,9 @@ export type LineFulfillment = "stock" | "production";
  * whose style doesn't allow backorders still fails the whole order exactly as before: every
  * line already decremented earlier in this same call is rolled back before returning, so a
  * partial order never silently reserves stock for lines that didn't actually get ordered.
+ *
+ * The same rollback also covers a mid-loop DB error, which previously propagated straight
+ * out and stranded every decrement made before it.
  */
 export async function decrementInventoryForOrder(
   lines: StockLine[],
@@ -181,29 +217,28 @@ export async function decrementInventoryForOrder(
   const succeeded: StockLine[] = [];
   const fulfillments: LineFulfillment[] = [];
   for (const line of lines) {
-    const { data, error } = await supabaseAdmin.rpc("adjust_inventory", {
-      p_style_id: line.styleId,
-      p_colorway_id: toDbId(line.styleId, line.colorwayId),
-      p_box_type_id: line.boxTypeId,
-      p_qty: line.qty,
-      p_warehouse_id: "main",
-    });
-    if (error) throw new Error(`adjust_inventory: ${error.message}`);
-    if (!data) {
+    let covered: boolean;
+    try {
+      const { data, error } = await supabaseAdmin.rpc("adjust_inventory", {
+        p_style_id: line.styleId,
+        p_colorway_id: toDbId(line.styleId, line.colorwayId),
+        p_box_type_id: line.boxTypeId,
+        p_qty: line.qty,
+        p_warehouse_id: "main",
+      });
+      if (error) throw new Error(`adjust_inventory: ${error.message}`);
+      covered = Boolean(data);
+    } catch (err) {
+      await restoreInventoryForLines(succeeded);
+      throw err;
+    }
+
+    if (!covered) {
       if (line.allowBackorder) {
         fulfillments.push("production");
         continue;
       }
-      for (const done of succeeded) {
-        await supabaseAdmin.rpc("adjust_inventory", {
-          p_style_id: done.styleId,
-          p_colorway_id: toDbId(done.styleId, done.colorwayId),
-          p_box_type_id: done.boxTypeId,
-          p_qty: -done.qty,
-          p_warehouse_id: "main",
-        });
-        await logInventoryMovement(done.styleId, toDbId(done.styleId, done.colorwayId), done.boxTypeId, "main", done.qty, "order_rollback", null);
-      }
+      await restoreInventoryForLines(succeeded);
       return { ok: false, failedLine: line };
     }
     await logInventoryMovement(line.styleId, toDbId(line.styleId, line.colorwayId), line.boxTypeId, "main", -line.qty, "order_placed", null);

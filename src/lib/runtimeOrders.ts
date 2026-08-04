@@ -141,10 +141,34 @@ export async function addOrder(accountId: string, order: Order): Promise<void> {
   if (linesError) {
     const message = linesError.message;
     const isMissingColumn = message.includes("schema cache") || message.includes("Could not find") || message.includes("column");
-    if (!isMissingColumn) throw new Error(`order_lines: ${message}`);
+    if (!isMissingColumn) {
+      await deleteOrphanOrder(order.id);
+      throw new Error(`order_lines: ${message}`);
+    }
 
     const { error: fallbackError } = await supabaseAdmin.from("order_lines").insert(baseRows);
-    if (fallbackError) throw new Error(`order_lines: ${fallbackError.message}`);
+    if (fallbackError) {
+      await deleteOrphanOrder(order.id);
+      throw new Error(`order_lines: ${fallbackError.message}`);
+    }
+  }
+}
+
+/**
+ * Removes an `orders` row whose line items failed to insert. Without this, a failed
+ * checkout left a real, buyer-visible order with zero line items behind — priced at €0,
+ * counted in the admin dashboard, and impossible to fulfil. `order_lines` and
+ * `order_status_history` both cascade on `order_id`, so deleting the parent is enough.
+ *
+ * Best-effort: this runs while an error is already being thrown, so a cleanup failure is
+ * logged rather than raised — the caller's original, more useful error must win.
+ */
+async function deleteOrphanOrder(orderId: string): Promise<void> {
+  try {
+    const { error } = await supabaseAdmin.from("orders").delete().eq("id", orderId);
+    if (error) throw new Error(error.message);
+  } catch (err) {
+    console.error(`[orders] FAILED to clean up line-less order ${orderId} — needs manual removal:`, err);
   }
 }
 
