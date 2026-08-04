@@ -16,9 +16,13 @@ test("buyer can add styles to cart and place an order", async ({ page }) => {
 
   await page.goto("/quick-order");
 
-  // Fill enough in-stock box steppers to clear the 40-pair order minimum.
-  // Assumes the smallest box (8 pairs) as a conservative lower bound —
-  // real box sizes are 8/10/12, so this comfortably clears the minimum.
+  // Fill enough box steppers to clear the 40-pair order minimum. Assumes the
+  // smallest box (8 pairs) as a conservative lower bound — real box sizes are
+  // 8/10/12, so this comfortably clears the minimum.
+  //
+  // Each stepper writes straight to the cart (see OrderableLinesheet: no local
+  // staging state, and no "Add all to cart" button to commit it — this spec used
+  // to click one that no longer exists).
   const spinbuttons = page.getByRole("spinbutton");
   const count = await spinbuttons.count();
   let boxesFilled = 0;
@@ -30,10 +34,9 @@ test("buyer can add styles to cart and place an order", async ({ page }) => {
   }
   expect(boxesFilled).toBeGreaterThan(0);
 
-  await page.getByRole("button", { name: "Add All to Cart" }).click();
-
   await page.goto("/checkout");
-  await page.getByPlaceholder("e.g. US-0530").fill(`PW-SMOKE-${Date.now()}`);
+  // No PO number field any more — removed in b73ccc7, along with the
+  // "e.g. US-0530" placeholder this spec used to fill.
   await page.getByRole("button", { name: "Request Proforma Invoice" }).click();
 
   await expect(page).toHaveURL(/\/dashboard\/orders\//, { timeout: 15_000 });
