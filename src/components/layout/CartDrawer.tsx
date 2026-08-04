@@ -208,11 +208,11 @@ export function CartDrawer() {
                 <div className="border-t border-stone-300 bg-white px-5 py-4">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{cart.cartTotal}</span>
-                    <span className="text-lg font-semibold tabular-nums text-ink">{formatEUR(cartGrandTotal)}</span>
+                    <span className="text-lg font-semibold tabular-nums text-ink">{formatEUR(cartTotal)}</span>
                   </div>
                   {cartVatTotal > 0 && (
                     <p className="text-right text-[11px] text-ink-soft">
-                      {t(cart.subtotalVat, { subtotal: formatEUR(cartTotal), vat: formatEUR(cartVatTotal) })}
+                      {t(cart.plusVatTotal, { vat: formatEUR(cartVatTotal), total: formatEUR(cartGrandTotal) })}
                     </p>
                   )}
                   <LinkButton href={withLocale(locale, "/cart")} size="lg" className="mt-3 w-full justify-center">

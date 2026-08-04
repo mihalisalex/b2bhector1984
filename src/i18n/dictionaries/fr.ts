@@ -37,7 +37,7 @@ const fr: Dictionary = {
     emptyHint: "Composez une commande à partir du catalogue.",
     browseCatalogue: "Parcourir le catalogue",
     cartTotal: "Total du panier (net-60)",
-    subtotalVat: "Sous-total {subtotal} + TVA {vat}",
+    plusVatTotal: "+ TVA {vat} = {total}",
     goToCart: "Aller au panier",
     remove: "Retirer",
     unavailableNoticeSingular: "Un modèle de votre panier n'est plus disponible.",

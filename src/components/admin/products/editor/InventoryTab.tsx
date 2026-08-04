@@ -153,7 +153,7 @@ export function InventoryTab({
               className="border border-stone-300 bg-white px-3 py-1.5 text-sm outline-none focus-visible:border-signal disabled:bg-stone-100"
             >
               <option value="made_to_order">Made to order — ~40-day ETA shown</option>
-              <option value="pre_order">Pre-order — ships when ready, no fixed ETA</option>
+              <option value="pre_order">Pre-order — ships upon arrangement, no fixed ETA</option>
             </select>
             <p className="mt-1 max-w-xs text-[11px] text-ink-soft">
               Only shown to buyers when a line isn&rsquo;t fully in stock and &ldquo;Allow backorders&rdquo; is on above.

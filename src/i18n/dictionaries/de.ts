@@ -37,7 +37,7 @@ const de: Dictionary = {
     emptyHint: "Stellen Sie eine Bestellung aus dem Katalog zusammen.",
     browseCatalogue: "Katalog durchsuchen",
     cartTotal: "Warenkorbsumme (netto-60)",
-    subtotalVat: "Zwischensumme {subtotal} + MwSt. {vat}",
+    plusVatTotal: "+ MwSt. {vat} = {total}",
     goToCart: "Zum Warenkorb",
     remove: "Entfernen",
     unavailableNoticeSingular: "Ein Modell in Ihrem Warenkorb ist nicht mehr verfügbar.",

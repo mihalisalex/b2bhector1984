@@ -35,7 +35,7 @@ const en = {
     emptyHint: "Build an order from the catalogue.",
     browseCatalogue: "Browse Catalogue",
     cartTotal: "Cart total (net-60)",
-    subtotalVat: "Subtotal {subtotal} + VAT {vat}",
+    plusVatTotal: "+ VAT {vat} = {total}",
     goToCart: "Go to cart",
     remove: "Remove",
     unavailableNoticeSingular: "A style in your cart is no longer available.",

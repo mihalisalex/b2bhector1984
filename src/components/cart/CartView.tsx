@@ -67,7 +67,7 @@ export function CartView({
       ? `Only ${onHand} available — reduce quantity`
       : willBeProduction
         ? style?.backorderMode === "pre_order"
-          ? `${onHand} in stock · rest is pre-order, ships when ready`
+          ? `${onHand} in stock · rest is pre-order, ships upon arrangement`
           : `${onHand} in stock · rest ships in ~${productionLeadTimeDays} days`
         : `${onHand} available`;
     return { onHand, max, overStock, willBeProduction, label };
@@ -346,15 +346,15 @@ export function CartView({
 
       <div className="mt-8 flex flex-col items-end gap-3 border-t border-stone-300 pt-6">
         <SaveAssortmentButton lines={lines} />
-        {cartVatTotal > 0 && (
-          <p className="text-right text-xs text-ink-soft">
-            Subtotal {formatEUR(cartTotal)} + VAT {formatEUR(cartVatTotal)}
-          </p>
-        )}
         <div className="flex items-baseline gap-3">
           <span className="text-sm font-semibold uppercase tracking-wide text-ink-soft">Cart total (net-60)</span>
-          <span className="text-2xl font-semibold tabular-nums text-ink">{formatEUR(cartGrandTotal)}</span>
+          <span className="text-2xl font-semibold tabular-nums text-ink">{formatEUR(cartTotal)}</span>
         </div>
+        {cartVatTotal > 0 && (
+          <p className="text-right text-xs text-ink-soft">
+            + VAT {formatEUR(cartVatTotal)} = {formatEUR(cartGrandTotal)}
+          </p>
+        )}
         <p className="text-right text-xs text-ink-soft">{grandTotalPairs} pairs in cart</p>
         <p className="text-right text-xs font-medium text-positive">
           Prepay in full at checkout to save {formatEUR(cartGrandTotal * 0.1)} (10% off)

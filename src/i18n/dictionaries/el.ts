@@ -37,7 +37,7 @@ const el: Dictionary = {
     emptyHint: "Δημιουργήστε μια παραγγελία από τον κατάλογο.",
     browseCatalogue: "Περιήγηση στον κατάλογο",
     cartTotal: "Σύνολο καλαθιού (εξόφληση σε 60 ημέρες)",
-    subtotalVat: "Υποσύνολο {subtotal} + ΦΠΑ {vat}",
+    plusVatTotal: "+ ΦΠΑ {vat} = {total}",
     goToCart: "Μετάβαση στο καλάθι",
     remove: "Αφαίρεση",
     unavailableNoticeSingular: "Ένα μοντέλο στο καλάθι σας δεν είναι πλέον διαθέσιμο.",
