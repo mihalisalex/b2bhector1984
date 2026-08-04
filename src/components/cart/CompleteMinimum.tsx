@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
+import { useCatalog } from "@/lib/catalog-context";
 import { formatEUR, MIN_ORDER_PAIRS } from "@/lib/pricing";
 import { suggestBoxesToCloseGap, type BoxOption } from "@/lib/orderMinimum";
 import { StylePlate } from "@/components/product/StylePlate";
@@ -9,8 +10,12 @@ import { StylePlate } from "@/components/product/StylePlate";
 /**
  * The 40-pair minimum is the one hard gate on every order in this business, and
  * until now the app only ever announced the shortfall. This closes it: real
- * in-stock boxes, ranked to land on (or just over) the remaining pairs, added in
+ * orderable boxes, ranked to land on (or just over) the remaining pairs, added in
  * one click. The list re-ranks after every add, so repeated clicks converge.
+ *
+ * Suggestions include made-to-order and pre-order boxes, not just what's on the
+ * shelf — each card says which it is, so "one tap adds a box" never doubles as an
+ * implied promise that it ships immediately.
  */
 export function CompleteMinimum({
   options,
@@ -20,11 +25,16 @@ export function CompleteMinimum({
   totalPairs: number;
 }) {
   const { addLines, lines } = useCart();
+  const { productionLeadTimeDays } = useCatalog();
   const shortfall = MIN_ORDER_PAIRS - totalPairs;
   if (shortfall <= 0) return null;
 
-  // Don't offer a box the buyer already has maxed out against available stock.
+  // Don't offer a box the buyer already has maxed out against available stock —
+  // but on-hand is only a ceiling for stock boxes. A made-to-order or pre-order box
+  // has no shelf to run out of, so it stays offerable however many are already in
+  // the cart (the same rule the cart's own +/- stepper follows).
   const available = options.filter((option) => {
+    if (option.fulfillment !== "stock") return true;
     const inCart =
       lines.find(
         (l) =>
@@ -63,8 +73,8 @@ export function CompleteMinimum({
           {shortfall} more {shortfall === 1 ? "pair" : "pairs"} to check out
         </h2>
         <p className="mt-1 text-xs text-ink-soft">
-          Orders ship at a {MIN_ORDER_PAIRS}-pair minimum, mixable across styles. These are in stock now
-          and sized to close the gap — one tap adds a box.
+          Orders ship at a {MIN_ORDER_PAIRS}-pair minimum, mixable across styles. These are sized to close
+          the gap — one tap adds a box.
         </p>
       </div>
 
@@ -97,6 +107,13 @@ export function CompleteMinimum({
                   <p className="mt-0.5 text-xs tabular-nums text-ink">
                     {formatEUR(option.unitPrice * option.pairs)}
                     <span className="font-mono-tab text-ink-soft"> · {option.pairs} pairs</span>
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-ink-soft">
+                    {option.fulfillment === "stock"
+                      ? `${option.onHand} in stock`
+                      : option.fulfillment === "pre_order"
+                        ? "Pre-order — ships upon arrangement"
+                        : `Made to order — ~${productionLeadTimeDays} days`}
                   </p>
                 </div>
               </div>

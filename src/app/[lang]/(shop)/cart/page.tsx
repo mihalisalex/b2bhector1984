@@ -18,6 +18,13 @@ export const metadata = { title: "Cart", robots: { index: false, follow: false }
  * Restricted to available-now styles: the point of the suggestion is to complete
  * *this* order, so offering a pre-book style that ships next season would be a
  * misleading answer to "what closes my gap".
+ *
+ * A box with zero on-hand still counts when its style allows backorders — it is
+ * genuinely orderable, just produced rather than shipped from the shelf. Excluding
+ * those (the original behaviour) quietly killed this entire feature the moment the
+ * catalogue moved to pre-order at zero stock: every buyer saw "add N more pairs"
+ * with nothing offered to close the gap. Each option carries its own `fulfillment`
+ * so the card can say which it is rather than implying immediate availability.
  */
 export default async function CartPage() {
   const [styles, account] = await Promise.all([getStorefrontStyles(), getCurrentAccount()]);
@@ -31,11 +38,13 @@ export default async function CartPage() {
   for (const style of sellable) {
     const unitPrice = getUnitPrice(style, "net60", priceMultiplier);
     const imageUrl = getStyleImageUrl(style);
+    const backorderFulfillment = style.backorderMode === "pre_order" ? "pre_order" : "made_to_order";
     for (const colorway of style.colorways) {
       for (const box of getAvailableBoxTypes(style)) {
         const onHand = inventory[style.id]?.[colorway.id]?.[box.id] ?? 0;
-        if (onHand <= 0) continue;
+        if (onHand <= 0 && !style.allowBackorder) continue;
         inStockOptions.push({
+          fulfillment: onHand > 0 ? "stock" : backorderFulfillment,
           styleId: style.id,
           styleName: style.name,
           slug: style.slug,
