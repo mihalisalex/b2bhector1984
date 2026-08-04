@@ -117,7 +117,6 @@ export async function sendWhatsAppTemplate({ to, params }: SendWhatsAppTemplateI
 export function buildProformaInvoiceParams(input: {
   contactName: string;
   orderId: string;
-  poNumber: string;
   totalPairs: number;
   subtotal: string;
   vatAmount: string;
@@ -128,7 +127,6 @@ export function buildProformaInvoiceParams(input: {
   return [
     firstName,
     input.orderId,
-    input.poNumber,
     String(input.totalPairs),
     input.subtotal,
     input.vatAmount,
@@ -150,17 +148,16 @@ export function buildProformaInvoiceParams(input: {
  *
  * Body:
  *
- *   Hi {{1}}, we've received your proforma invoice request for order {{2}}
- *   (PO {{3}}).
+ *   Hi {{1}}, we've received your proforma invoice request for order {{2}}.
  *
- *   Pairs ordered: {{4}}
- *   Subtotal: {{5}}
- *   VAT: {{6}}
- *   Total: {{7}}
+ *   Pairs ordered: {{3}}
+ *   Subtotal: {{4}}
+ *   VAT: {{5}}
+ *   Total: {{6}}
  *
- *   {{8}}
+ *   {{7}}
  *
- * The 8th variable is your free-text closing line ("extra words") — since a
+ * The 7th variable is your free-text closing line ("extra words") — since a
  * template's wording is fixed once approved, edit what THAT variable's actual
  * per-order value says (via the `extraNote` field this module sends), not the
  * template body itself, if you want different closing text without a new

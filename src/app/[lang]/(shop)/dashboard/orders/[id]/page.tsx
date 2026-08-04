@@ -58,7 +58,7 @@ export default async function OrderDetailPage({
             <h1 className="font-mono-tab text-2xl font-bold text-ink">{order.id}</h1>
             <StatusBadge status={order.status} />
           </div>
-          <p className="mt-1 text-sm text-ink-soft">PO {order.poNumber} · Placed {formatDate(order.placedAt)}</p>
+          <p className="mt-1 text-sm text-ink-soft">Placed {formatDate(order.placedAt)}</p>
         </div>
         <div className="flex items-center gap-3 print:hidden">
           <ReorderButton order={order} className="border border-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-white" />

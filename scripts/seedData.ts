@@ -570,7 +570,6 @@ export const ORDERS: Record<string, Order[]> = {
   "acct-001": [
     {
       id: "ORD-59090",
-      poNumber: "US-0522",
       placedAt: "2026-07-25",
       status: "submitted",
       terms: "net30",
@@ -582,7 +581,6 @@ export const ORDERS: Record<string, Order[]> = {
     },
     {
       id: "ORD-59012",
-      poNumber: "US-0514",
       placedAt: "2026-07-20",
       status: "in_production",
       terms: "net30",
@@ -594,7 +592,6 @@ export const ORDERS: Record<string, Order[]> = {
     },
     {
       id: "ORD-58877",
-      poNumber: "US-0501",
       placedAt: "2026-07-10",
       status: "shipped",
       terms: "net30",
@@ -608,7 +605,6 @@ export const ORDERS: Record<string, Order[]> = {
     },
     {
       id: "ORD-58210",
-      poNumber: "US-0472",
       placedAt: "2026-06-02",
       status: "delivered",
       terms: "net30",
@@ -625,7 +621,6 @@ export const ORDERS: Record<string, Order[]> = {
   "acct-002": [
     {
       id: "ORD-57110",
-      poNumber: "FH-2291",
       placedAt: "2026-07-15",
       status: "shipped",
       terms: "net60",
@@ -639,7 +634,6 @@ export const ORDERS: Record<string, Order[]> = {
   "acct-003": [
     {
       id: "ORD-59201",
-      poNumber: "TM-0031",
       placedAt: "2026-07-24",
       status: "submitted",
       terms: "prepay",

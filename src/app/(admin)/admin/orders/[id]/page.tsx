@@ -66,7 +66,6 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
             <OrderDetailsForm
               orderId={order.id}
               accountId={order.accountId}
-              poNumber={order.poNumber}
               terms={order.terms}
               shipToId={order.shipToId}
               notes={order.notes}

@@ -61,7 +61,6 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     InvoiceDocument({
       order: {
         id: order.id,
-        poNumber: order.poNumber,
         placedAt: order.placedAt,
         status: order.status,
         terms: order.terms,

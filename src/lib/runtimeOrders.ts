@@ -6,7 +6,6 @@ import type { BoxTypeId, CreditTerms, Order, OrderLine, OrderStatusEvent } from 
 interface OrderRow {
   id: string;
   account_id: string;
-  po_number: string;
   placed_at: string;
   status: Order["status"];
   terms: Order["terms"];
@@ -46,7 +45,6 @@ function mapOrder(accountId: string, row: OrderRow, lineRows: OrderLineRow[]): O
 
   return {
     id: row.id,
-    poNumber: row.po_number,
     placedAt: row.placed_at,
     status: row.status,
     terms: row.terms,
@@ -97,7 +95,6 @@ export async function addOrder(accountId: string, order: Order): Promise<void> {
   const { error: orderError } = await supabaseAdmin.from("orders").insert({
     id: order.id,
     account_id: accountId,
-    po_number: order.poNumber,
     placed_at: order.placedAt,
     status: order.status,
     terms: order.terms,
@@ -226,7 +223,6 @@ export async function updateOrderDetails(
   orderId: string,
   accountId: string,
   input: {
-    poNumber: string;
     terms: CreditTerms;
     shipToId: string;
     notes?: string;
@@ -238,7 +234,6 @@ export async function updateOrderDetails(
   const { error } = await supabaseAdmin
     .from("orders")
     .update({
-      po_number: input.poNumber,
       terms: input.terms,
       ship_to_id: input.shipToId ? toDbId(accountId, input.shipToId) : null,
       notes: input.notes || null,

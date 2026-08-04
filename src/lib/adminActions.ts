@@ -52,7 +52,7 @@ async function notifyOrderStatusChange(orderId: string, status: OrderStatus) {
   await sendEmail({
     to: order.email,
     subject,
-    html: textToHtml(buildOrderStatusEmailBody({ id: order.id, poNumber: order.poNumber, status }, order.contactName), subject),
+    html: textToHtml(buildOrderStatusEmailBody({ id: order.id, status }, order.contactName), subject),
   });
 }
 
@@ -106,7 +106,6 @@ export async function updateOrderDetailsAction(
 ): Promise<FormState> {
   const admin = await requireAdmin();
 
-  const poNumber = String(formData.get("poNumber") ?? "").trim();
   const terms = String(formData.get("terms") ?? "");
   const shipToId = String(formData.get("shipToId") ?? "");
   const notes = String(formData.get("notes") ?? "").trim();
@@ -114,11 +113,9 @@ export async function updateOrderDetailsAction(
   const trackingNumber = String(formData.get("trackingNumber") ?? "").trim();
   const carrier = String(formData.get("carrier") ?? "").trim();
 
-  if (!poNumber) return { error: "PO number is required." };
   if (!ORDER_TERMS.includes(terms as CreditTerms)) return { error: "Select valid payment terms." };
 
   await updateOrderDetailsInDb(orderId, accountId, {
-    poNumber,
     terms: terms as CreditTerms,
     shipToId,
     notes: notes || undefined,

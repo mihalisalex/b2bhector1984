@@ -326,7 +326,6 @@ export type OrderStatus =
 
 export interface Order {
   id: string;
-  poNumber: string;
   placedAt: string;
   status: OrderStatus;
   terms: CreditTerms;

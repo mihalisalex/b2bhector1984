@@ -59,7 +59,6 @@ export interface InvoiceLineView {
 export interface InvoiceDocumentProps {
   order: {
     id: string;
-    poNumber: string;
     placedAt: string;
     status: string;
     terms: string;
@@ -125,9 +124,7 @@ export function InvoiceDocument({
             )}
           </View>
           <View style={styles.infoBlock}>
-            <Text style={styles.infoLabel}>PO NUMBER</Text>
-            <Text style={styles.infoValue}>{order.poNumber}</Text>
-            <Text style={[styles.infoLabel, { marginTop: 8 }]}>TERMS</Text>
+            <Text style={styles.infoLabel}>TERMS</Text>
             <Text style={styles.infoValue}>{TERMS_LABEL[order.terms] ?? order.terms}</Text>
             {order.trackingNumber && (
               <>

@@ -7,14 +7,14 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 /** Shared with the admin order page's manual mailto compose panel (EmailBuyerPanel) default body. */
-export function buildOrderStatusEmailBody(order: { id: string; poNumber: string; status: string }, contactName: string): string {
+export function buildOrderStatusEmailBody(order: { id: string; status: string }, contactName: string): string {
   const firstName = contactName.split(" ")[0] || "there";
-  return `Hi ${firstName},\n\nWriting about your order ${order.id} (PO ${order.poNumber}), currently ${order.status.replace("_", " ")}.\n\n\n\nBest,\nHector Footwear Wholesale`;
+  return `Hi ${firstName},\n\nWriting about your order ${order.id}, currently ${order.status.replace("_", " ")}.\n\n\n\nBest,\nHector Footwear Wholesale`;
 }
 
-export function buildOrderConfirmationEmailBody(order: { id: string; poNumber: string }, contactName: string): string {
+export function buildOrderConfirmationEmailBody(order: { id: string }, contactName: string): string {
   const firstName = contactName.split(" ")[0] || "there";
-  return `Hi ${firstName},\n\nWe've received your order ${order.id} (PO ${order.poNumber}). We'll be in touch as it moves through production.\n\nBest,\nHector Footwear Wholesale`;
+  return `Hi ${firstName},\n\nWe've received your order ${order.id}. We'll be in touch as it moves through production.\n\nBest,\nHector Footwear Wholesale`;
 }
 
 export function orderStatusEmailSubject(order: { id: string; status: string }): string {

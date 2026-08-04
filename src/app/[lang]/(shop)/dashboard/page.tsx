@@ -90,7 +90,7 @@ export default async function DashboardPage() {
                         <StatusBadge status={order.status} />
                       </div>
                       <p className="mt-1 text-xs text-ink-soft">
-                        PO {order.poNumber} · {formatDate(order.placedAt)} · {totalPairs} pairs
+                        {formatDate(order.placedAt)} · {totalPairs} pairs
                       </p>
                     </div>
                     <div className="flex items-center gap-4">

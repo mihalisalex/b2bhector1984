@@ -69,18 +69,6 @@ export function CheckoutForm({ account }: { account: Account }) {
   return (
     <form action={formAction} className="mt-6 grid grid-cols-1 gap-10 pb-24 lg:grid-cols-[1fr_400px] lg:pb-0">
       <div className="flex flex-col gap-8">
-        <Section title="Purchase Order">
-          <label className="flex flex-col gap-1.5">
-            <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">PO number *</span>
-            <input
-              name="poNumber"
-              required
-              placeholder="e.g. US-0530"
-              className="max-w-xs border border-stone-300 bg-white px-3 py-2.5 text-sm outline-none focus-visible:border-signal"
-            />
-          </label>
-        </Section>
-
         <Section title="Ship To">
           <div className="flex flex-col gap-2">
             {account.shipTo.map((addr) => (
@@ -198,7 +186,7 @@ export function CheckoutForm({ account }: { account: Account }) {
           {pending ? "Requesting…" : "Request Proforma Invoice"}
         </Button>
         <p className="mt-3 text-center text-[11px] text-ink-soft">
-          This isn&rsquo;t a charge — it sends this PO to {account.rep.name}{" "}
+          This isn&rsquo;t a charge — it sends this order to {account.rep.name}{" "}
           as a proforma invoice so we can check stock and production before confirming. You&rsquo;ll see it
           in{" "}
           <Link href="/dashboard" className="underline">order history</Link> immediately.

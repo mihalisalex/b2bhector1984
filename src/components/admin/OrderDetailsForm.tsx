@@ -13,7 +13,6 @@ const initialState: FormState = {};
 export function OrderDetailsForm({
   orderId,
   accountId,
-  poNumber,
   terms,
   shipToId,
   notes,
@@ -24,7 +23,6 @@ export function OrderDetailsForm({
 }: {
   orderId: string;
   accountId: string;
-  poNumber: string;
   terms: CreditTerms;
   shipToId: string;
   notes?: string;
@@ -38,8 +36,6 @@ export function OrderDetailsForm({
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label="PO number" name="poNumber" defaultValue={poNumber} required />
-
         <label className="flex flex-col gap-1.5">
           <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Payment terms</span>
           <select

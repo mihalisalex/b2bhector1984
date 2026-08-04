@@ -305,9 +305,6 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
   }
   if (cartLines.length === 0) return { error: "Your cart is empty." };
 
-  const poNumber = String(formData.get("poNumber") ?? "").trim();
-  if (!poNumber) return { error: "A PO number is required to submit this order." };
-
   const shipToId = String(formData.get("shipToId") ?? "");
   if (!account.shipTo.some((s) => s.id === shipToId)) return { error: "Select a valid ship-to address." };
 
@@ -373,7 +370,6 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
 
   const order: Order = {
     id: `ORD-${Date.now().toString().slice(-5)}`,
-    poNumber,
     placedAt: new Date().toISOString(),
     status: "submitted",
     terms,
@@ -402,7 +398,6 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
       params: buildProformaInvoiceParams({
         contactName: account.contactName,
         orderId: order.id,
-        poNumber: order.poNumber,
         totalPairs,
         subtotal: formatEUR(orderTotal),
         vatAmount: formatEUR(orderVat),
