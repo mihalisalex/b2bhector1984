@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { updateSeoAction } from "@/lib/productActions";
 import { useToastResult } from "@/components/ui/ToastProvider";
 import { SelectField, TextAreaField, TextField, SaveBar } from "@/components/admin/products/editor/FormField";
@@ -117,9 +118,9 @@ export function SeoTab({
             serves <code className="font-mono-tab">noindex</code>. These fields still matter: they
             control the title, description and image that appear when a rep shares this product&rsquo;s
             link by email, WhatsApp or Slack. Indexing policy lives in{" "}
-            <a href="/admin/seo/settings?section=indexing" className="underline underline-offset-2">
+            <Link href="/admin/seo/settings?section=indexing" className="underline underline-offset-2">
               SEO settings
-            </a>
+            </Link>
             .
           </p>
         </div>
@@ -375,9 +376,9 @@ export function SeoTab({
         <div className="border border-signal bg-signal/5 px-4 py-3 text-xs text-ink">
           <strong>{missingAlt}</strong> of {images.length} photos have no alt text. Add it on the{" "}
           <em>Images &amp; Media</em> tab, or generate it for the whole catalogue from{" "}
-          <a href="/admin/seo/bulk" className="underline underline-offset-2">
+          <Link href="/admin/seo/bulk" className="underline underline-offset-2">
             SEO bulk tools
-          </a>
+          </Link>
           .
         </div>
       )}
