@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import type { NextFetchEvent, NextRequest } from "next/server";
 import { recordRedirectHit, resolveRedirect } from "@/lib/redirectEngine";
+// Safe to import here, unlike session.ts/i18n/config.ts below: seoRoutes.ts is pure data
+// plus pure functions with zero imports of its own, so it can't drag anything
+// edge-incompatible into this bundle. It is also the declared single source of truth for
+// which routes are gated — this file used to keep its own copy of that list, and the two
+// had already drifted (`/linesheet` was gated there but not here), which is the exact
+// failure seoRoutes.ts was introduced to stop.
+import { isGatedPath } from "@/lib/seoRoutes";
 
 // Kept as literals (not imported from src/lib/session.ts or src/i18n/config.ts) — those
 // modules either pull in `next/headers` (unusable in proxy) or exist for app code, and
@@ -11,20 +18,6 @@ const SESSION_COOKIE = "hector_session";
 const LOCALE_COOKIE = "hector_locale";
 const NON_DEFAULT_LOCALES = ["de", "fr", "el"] as const;
 type NonDefaultLocale = (typeof NON_DEFAULT_LOCALES)[number];
-
-const GATED_PREFIXES = [
-  "/catalogue",
-  "/quick-order",
-  "/cart",
-  "/checkout",
-  "/product",
-  "/dashboard",
-  "/admin",
-];
-
-function isGated(pathname: string): boolean {
-  return GATED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
-}
 
 function matchLocalePrefix(pathname: string): NonDefaultLocale | null {
   const first = pathname.split("/")[1];
@@ -98,7 +91,7 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
   }
 
   // ---- 2. Auth gate ----------------------------------------------------------
-  if (isGated(logicalPath) && !request.cookies.has(SESSION_COOKIE)) {
+  if (isGatedPath(logicalPath) && !request.cookies.has(SESSION_COOKIE)) {
     const loginPath = !isAdmin && locale !== "en" ? `/${locale}/login` : "/login";
     const loginUrl = new URL(loginPath, request.url);
     loginUrl.searchParams.set("next", pathname + search);
