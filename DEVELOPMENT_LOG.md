@@ -6,6 +6,41 @@ diffs; this file is the narrative index.
 
 ## Pending Actions (need your credentials/approval — everything else proceeds without you)
 
+- **2026-08-04 — Push/deploy the maintenance pass.** Seven commits are on `main`
+  locally and **not pushed**. They include a fix to `placeOrder` (the money path)
+  and two to `proxy.ts` (every request). Routing was verified live and
+  typecheck/lint/build are green, but the authenticated flows — login, checkout,
+  order placement — could not be exercised, because the E2E suite runs against
+  live production and there is no test account. Recommend a quick manual
+  checkout on a preview deploy before promoting.
+- **2026-08-04 — The E2E suite cannot run.** It points at whatever `.env.local`
+  points at (live production), places a real order and decrements real
+  inventory, and still defaults to `buyer@unionsupply.com`, one of the demo
+  accounts deleted at go-live. Two stale selectors were fixed, but it needs
+  either a separate Supabase test project or a dedicated test buyer account
+  before it can pass. Recommend a test project — it also unblocks wiring the
+  suite into CI, which is currently impossible for the same reason.
+- **2026-08-04 — "Complete your minimum" is now silently dead.** The cart helper
+  that suggests boxes to close the 40-pair gap only offers **in-stock** boxes,
+  and the whole catalogue is now pre-order at zero stock, so it renders nothing.
+  It degrades cleanly (no crash) but buyers short of the minimum get no help.
+  Options: (a) let it suggest pre-order boxes too, dropping "these are in stock
+  now" from the copy; (b) leave it dormant until stock returns. Recommend (a) —
+  it matches how the rest of the site now sells. Behaviour change, so not done
+  unilaterally.
+- **2026-08-04 — The production banner is styled as an error on every order.**
+  With the catalogue fully pre-order, every order now shows the red/ember
+  "in production" banner on the buyer's order page. It's accurate but reads as
+  an alarm for what is now the normal path. Recommend restyling it as neutral
+  info. Purely a design call.
+- **2026-08-04 — Dependency updates available, none security-critical.**
+  `npm audit` is clean (0 vulnerabilities). Minor/patch bumps are waiting
+  (`@supabase/supabase-js` 2.110.8 → 2.112.0, `tsx`, `@types/*`,
+  `@playwright/test`), plus majors that need real consideration (Next 16.3,
+  ESLint 10, TypeScript 7, `@types/node` 26). Not applied: the site is live and
+  the E2E net can't be run, so an unverifiable bump isn't worth it. Recommend
+  doing the minors right after the test-account issue above is resolved.
+
 - **Run `supabase/migrations/0025_seo_platform.sql`** in the Supabase SQL Editor (after
   0001–0024). Until it runs, the SEO dashboard shows a banner saying so, settings and
   redirects can't be saved (one clear message, not a 500), and the storefront behaves
@@ -655,6 +690,38 @@ diffs; this file is the narrative index.
 
 ## Refactors
 
+- **2026-08-04** — Maintenance pass: dead code, duplication, validation.
+  Removed eight exports verified unreferenced by a word-boundary search across
+  every file in the repo (not just the import graph): `entityMetadata`
+  (`seo.ts`), `findPublicPage`/`PUBLIC_UNLISTED_PAGES` (`seoRoutes.ts`),
+  `optimizeFilename` (`seoAutogen.ts`), `clearRedirectCache`
+  (`redirectEngine.ts` — a "clears the cache in dev" hook nothing called, and
+  which could not have worked as described anyway since module state isn't
+  shared across serverless isolates, which is why that module's own doc already
+  treats TTL staleness as acceptable), `listEntityMeta` (`seoEntityMeta.ts`),
+  `listActiveRedirects`/`isSlugAvailable` (`seoRedirects.ts` — the first
+  superseded by `redirectEngine`'s own raw fetch, which is what the proxy
+  actually uses), `updateImageCaption` (`styleImages.ts`) and the orphan
+  `InventoryLevel` type (`inventory.ts`, superseded by `StyleInventory`).
+  **Deliberately left in place**: `createBrandAction`, `createCollectionAction`
+  and `reorderProductImagesAction` — equally unreferenced, but the 2026-07-29
+  audit already examined and kept them as intentional stubs, and reversing that
+  is the owner's call. `isGatedPath` was also unused and is now live instead:
+  `proxy.ts` points at it.
+
+  `proxy.ts` also stopped hard-coding the locale list, deriving it from
+  `i18n/config.ts` instead — adding a fifth locale would previously have left it
+  unroutable in middleware while the rest of the app served it fine. Both
+  imports are safe in the edge bundle because `seoRoutes.ts` and `i18n/config.ts`
+  have no imports of their own; `session.ts` (`next/headers`) and
+  `i18n/localeCookie.ts` (touches `document`) stay inlined, and the comment now
+  says which is which instead of lumping them together.
+
+  Verified: typecheck, lint and a clean production build all pass; `npm audit`
+  reports 0 vulnerabilities; no circular dependencies; no unused files; and the
+  full routing matrix (gating, all four locales, `/en/*` canonicalization,
+  robots.txt and sitemap.xml) was re-checked live against the dev server.
+
 - **2026-07-29** — Codebase quality audit, dead-code + duplication cleanup
   (full breakdown in the dedicated section below): removed 4 orphaned
   pre-Product-Management-module actions in `adminActions.ts` (superseded by
@@ -691,6 +758,45 @@ diffs; this file is the narrative index.
   relying solely on the caller to handle it.
 
 ## Bugs Fixed
+
+- **2026-08-04** — Maintenance pass (see also Refactors). Four real defects:
+  - **Inventory leaked whenever an order failed to save.** `placeOrder`
+    decremented stock, then inserted the order as a separate write with no
+    shared transaction — if the insert threw (bad ship-to FK, DB blip) the
+    exception left the app with the stock gone and no order to show for it.
+    Flagged in the 2026-08-04 production-upon-request work as out-of-scope,
+    fixed now. Three holes closed together: `placeOrder` restores the
+    decremented lines and returns a message instead of a 500 (scoped to
+    `addOrder` only — widening it would catch `redirect()`'s NEXT_REDIRECT and
+    roll back *successful* orders); `decrementInventoryForOrder` rolled back on
+    "not enough stock" but not when the `adjust_inventory` RPC itself errored
+    mid-loop, stranding every earlier decrement; and `addOrder` left a
+    buyer-visible €0 order with no line items behind when the `orders` row
+    inserted but `order_lines` failed. Rollback extracted as
+    `restoreInventoryForLines()`, best-effort with loud logging since it runs
+    on an already-failing path.
+  - **The proxy's gated-route list had drifted from `seoRoutes.ts`'s.**
+    `/linesheet` was gated in one and not the other, so the proxy never bounced
+    an unauthenticated visitor there — not a hole (the `(shop)` layout still
+    gated it, and `/linesheet` only redirects to `/quick-order`) but it skipped
+    the `?next=` handoff. `proxy.ts` now imports the list, which is exactly what
+    `seoRoutes.ts` exists for.
+  - **Buyer order detail promised a date that pre-order lines don't have.** The
+    production banner said "see Status below for each item's expected date",
+    but `placeOrder` deliberately stamps no `productionEta` on pre-order lines.
+    Live on every order, since the whole catalogue is currently pre-order. The
+    banner now splits lines by whether they actually carry an ETA.
+  - **`saveAssortment` trusted its request body.** Bare `JSON.parse` plus an
+    unchecked cast on a public server action: malformed JSON threw a 500, and a
+    wrong-shaped body reached the insert. Now validated with zod, matching
+    `placeOrder` a few functions above.
+
+  Also fixed two stale selectors in `e2e/checkout.spec.ts` (a PO field removed
+  in b73ccc7 and an "Add All to Cart" button the linesheet hasn't had since it
+  started writing straight to the cart) — the spec could only ever fail. **The
+  suite was not run**: `playwright.config.ts` points at whatever `.env.local`
+  points at, which is live production, and the checkout spec places a real order
+  and decrements real inventory. See Pending Actions.
 
 - **2026-07-29** — Codebase quality audit (full breakdown below): admin
   Inventory tab's on-hand/reserved stock inputs auto-submitted `onChange`
