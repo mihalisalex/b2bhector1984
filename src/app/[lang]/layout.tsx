@@ -8,6 +8,7 @@ import { buildSiteSchemas } from "@/lib/seoJsonLd";
 import { LOCALES, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/getDictionary";
 import { I18nProvider } from "@/i18n/I18nProvider";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "@/app/globals.css";
 
 /**
@@ -77,6 +78,7 @@ export default async function LocaleLayout({
         </I18nProvider>
         <CookieConsentBanner />
         <JsonLd schema={siteSchemas} />
+        <SpeedInsights />
       </body>
     </html>
   );
