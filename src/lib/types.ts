@@ -315,6 +315,19 @@ export interface OrderLine {
    * existed (order_lines.vat_rate defaults to 0), so old orders show €0 VAT
    * rather than guessing at a rate that didn't apply when they were placed. */
   vatRate: number;
+  /** Resolved once, at order placement, by the atomic stock check in
+   * `decrementInventoryForOrder()`. `"stock"` — the full quantity was on hand and has been
+   * decremented. `"production"` — it wasn't (including zero on hand); `on_hand` was left
+   * untouched (those units aren't coming from this line, so they stay available for a
+   * buyer who can be fulfilled from stock) and this line is on order instead, with
+   * `productionEta` set. Orders placed before this field existed default to `"stock"`
+   * (order_lines.fulfillment defaults to 'stock'), same principle as `vatRate` defaulting
+   * to 0 for pre-existing orders. */
+  fulfillment: "stock" | "production";
+  /** Only set when `fulfillment` is `"production"` — placedAt + the site-wide production
+   * lead time at the moment the order was placed, so it doesn't silently shift if that
+   * setting changes later. */
+  productionEta?: string;
 }
 
 export type OrderStatus =

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
+import { useCatalog } from "@/lib/catalog-context";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { formatEUR, getUnitPrice } from "@/lib/pricing";
 import { VatSuffix } from "@/components/ui/VatSuffix";
@@ -9,6 +10,10 @@ import { pickDefaultBoxType } from "@/lib/productSelectionDefaults";
 import type { StyleInventory } from "@/lib/data/inventory";
 import type { BoxTypeId, Style } from "@/lib/types";
 import { cn } from "@/lib/cn";
+
+/** Ceiling on the stepper when a style allows ordering beyond on-hand stock (the shortfall
+ * goes to production) — not a real business constraint, just a sanity bound on the input. */
+const MAX_BACKORDER_QTY = 999;
 
 /**
  * Add a box straight from a catalogue card — box size and quantity picked inline,
@@ -35,7 +40,9 @@ export function QuickAdd({
   colorwayId: string;
 }) {
   const { addLines, lines } = useCart();
+  const { productionLeadTimeDays } = useCatalog();
   const boxTypes = getAvailableBoxTypes(style);
+  const allowBackorder = style.allowBackorder;
 
   const [open, setOpen] = useState(false);
   const [boxTypeId, setBoxTypeId] = useState<BoxTypeId>(() => pickDefaultBoxType(style, inventory, colorwayId));
@@ -58,6 +65,8 @@ export function QuickAdd({
   const inCart =
     lines.find((l) => l.styleId === style.id && l.colorwayId === colorwayId && l.boxTypeId === boxTypeId)?.qty ?? 0;
   const remaining = Math.max(0, onHand - inCart);
+  const maxSelectable = allowBackorder ? MAX_BACKORDER_QTY : remaining;
+  const willBeProduction = allowBackorder && inCart + qty > onHand;
   const box = boxTypes.find((b) => b.id === boxTypeId) ?? boxTypes[0];
   const unitPrice = getUnitPrice(style, "net60", priceMultiplier);
   const anyStock = Object.values(inventory).some((byBox) =>
@@ -65,14 +74,14 @@ export function QuickAdd({
   );
 
   function add() {
-    if (remaining <= 0) return;
+    if (remaining <= 0 && !allowBackorder) return;
     addLines(style.id, [{ colorwayId, boxTypeId, qty: inCart + qty }]);
     setJustAdded(true);
     setQty(1);
     setTimeout(() => setJustAdded(false), 2000);
   }
 
-  if (!anyStock) {
+  if (!anyStock && !allowBackorder) {
     return (
       <p className="mt-3 border-t border-stone-200 pt-3 text-[11px] font-medium text-ink-soft">
         Out of stock — check back or ask your rep
@@ -116,8 +125,12 @@ export function QuickAdd({
         </div>
       )}
 
-      <p className={cn("mb-2 text-[11px] font-medium", remaining > 0 ? "text-ink-soft" : "text-ember")}>
-        {remaining > 0 ? `${remaining} box${remaining === 1 ? "" : "es"} available` : "None left in this combination"}
+      <p className={cn("mb-2 text-[11px] font-medium", remaining > 0 && !willBeProduction ? "text-ink-soft" : "text-ember")}>
+        {willBeProduction
+          ? `Production upon request — ~${productionLeadTimeDays} days`
+          : remaining > 0
+            ? `${remaining} box${remaining === 1 ? "" : "es"} available`
+            : "None left in this combination"}
         {inCart > 0 && <span className="text-ink-soft"> · {inCart} in cart</span>}
       </p>
 
@@ -137,8 +150,8 @@ export function QuickAdd({
           </span>
           <button
             type="button"
-            onClick={() => setQty((q) => Math.min(remaining, q + 1))}
-            disabled={qty >= remaining}
+            onClick={() => setQty((q) => Math.min(maxSelectable, q + 1))}
+            disabled={qty >= maxSelectable}
             aria-label="Increase quantity"
             className="flex h-9 w-8 items-center justify-center text-ink hover:bg-stone-100 disabled:opacity-30"
           >
@@ -148,7 +161,7 @@ export function QuickAdd({
         <button
           type="button"
           onClick={add}
-          disabled={remaining <= 0}
+          disabled={remaining <= 0 && !allowBackorder}
           className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 bg-ink px-2 py-2 leading-none text-white transition-colors hover:bg-ink/85 disabled:cursor-not-allowed disabled:bg-cinder-300"
         >
           <span className="text-xs font-semibold uppercase tracking-wide">{justAdded ? "Added ✓" : "Add"}</span>

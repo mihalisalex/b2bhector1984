@@ -24,6 +24,9 @@ export interface HomepageHero {
   /** The free-text closing line appended to the WhatsApp proforma-invoice notification
    * (migration 0026) — the one part of that message that isn't a computed order figure. */
   whatsappClosingNote: string;
+  /** Site-wide production lead time in days (migration 0030) — used to stamp
+   * `production_eta` on any order line that couldn't be fulfilled from stock. */
+  productionLeadTimeDays: number;
 }
 
 interface HeroRow {
@@ -39,6 +42,7 @@ interface HeroRow {
   announcement_text?: string | null;
   announcement_href?: string | null;
   whatsapp_closing_note?: string | null;
+  production_lead_time_days?: number | null;
 }
 
 function mapHero(row: HeroRow): HomepageHero {
@@ -55,6 +59,7 @@ function mapHero(row: HeroRow): HomepageHero {
     announcementText: row.announcement_text ?? "",
     announcementHref: row.announcement_href ?? "/catalogue",
     whatsappClosingNote: row.whatsapp_closing_note ?? "Thank you for your business — we'll confirm stock and production shortly.",
+    productionLeadTimeDays: row.production_lead_time_days ?? 40,
   };
 }
 
@@ -83,6 +88,7 @@ export async function updateHomepageHero(input: {
   announcementText: string;
   announcementHref: string;
   whatsappClosingNote: string;
+  productionLeadTimeDays: number;
 }): Promise<void> {
   const { error } = await supabaseAdmin
     .from("site_content")
@@ -98,6 +104,7 @@ export async function updateHomepageHero(input: {
       announcement_text: input.announcementText,
       whatsapp_closing_note: input.whatsappClosingNote,
       announcement_href: input.announcementHref,
+      production_lead_time_days: input.productionLeadTimeDays,
       updated_at: new Date().toISOString(),
     })
     .eq("id", HERO_ID);

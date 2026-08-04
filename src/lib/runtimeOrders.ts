@@ -25,6 +25,8 @@ interface OrderLineRow {
   qty: number;
   unit_price: number | string;
   vat_rate: number | string | null;
+  fulfillment?: string | null;
+  production_eta?: string | null;
 }
 
 function mapOrder(accountId: string, row: OrderRow, lineRows: OrderLineRow[]): Order {
@@ -41,6 +43,10 @@ function mapOrder(accountId: string, row: OrderRow, lineRows: OrderLineRow[]): O
       // pre-migration 0026 (select("*") just omits an unknown column rather
       // than erroring) — either way, no VAT is the correct pre-migration answer.
       vatRate: toNumber(l.vat_rate ?? 0),
+      // Same graceful-default principle for orders placed (or read) before migration
+      // 0030 — no column yet means every line was, definitionally, fulfilled from stock.
+      fulfillment: (l.fulfillment as "stock" | "production" | null | undefined) ?? "stock",
+      productionEta: l.production_eta ?? undefined,
     }));
 
   return {
@@ -118,19 +124,24 @@ export async function addOrder(accountId: string, order: Order): Promise<void> {
 
   // Unlike a read (select("*") just silently omits a column that doesn't
   // exist yet), an INSERT naming an unknown column errors outright — so
-  // writing vat_rate unconditionally would break every checkout the moment
-  // this shipped, not just degrade gracefully, until migration 0026 runs.
-  // Try with it first; if that's the specific reason it failed, fall back to
-  // the pre-migration shape so placing an order never breaks over a column
-  // this feature added.
-  const { error: linesError } = await supabaseAdmin
-    .from("order_lines")
-    .insert(baseRows.map((row, i) => ({ ...row, vat_rate: order.lines[i].vatRate })));
+  // writing vat_rate/fulfillment/production_eta unconditionally would break
+  // every checkout the moment this shipped, not just degrade gracefully,
+  // until the migration that added them runs. Try with them first; if that's
+  // the specific reason it failed, fall back to the pre-migration shape so
+  // placing an order never breaks over a column a feature added.
+  const { error: linesError } = await supabaseAdmin.from("order_lines").insert(
+    baseRows.map((row, i) => ({
+      ...row,
+      vat_rate: order.lines[i].vatRate,
+      fulfillment: order.lines[i].fulfillment,
+      production_eta: order.lines[i].productionEta ?? null,
+    })),
+  );
 
   if (linesError) {
     const message = linesError.message;
-    const isMissingVatColumn = message.includes("schema cache") || message.includes("Could not find") || message.includes("vat_rate");
-    if (!isMissingVatColumn) throw new Error(`order_lines: ${message}`);
+    const isMissingColumn = message.includes("schema cache") || message.includes("Could not find") || message.includes("column");
+    if (!isMissingColumn) throw new Error(`order_lines: ${message}`);
 
     const { error: fallbackError } = await supabaseAdmin.from("order_lines").insert(baseRows);
     if (fallbackError) throw new Error(`order_lines: ${fallbackError.message}`);

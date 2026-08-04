@@ -50,7 +50,12 @@ export function ProductCard({
    * style's default photo when selected — same honest fallback as the product gallery. */
   images?: StyleImage[];
 }) {
-  const soldOut = totalOnHand === 0;
+  // "Sold out" only applies when the style truly can't be ordered further; when it can
+  // (allowBackorder, the new default), zero on-hand is "Made to order" instead — still
+  // purchasable, just not shipping from the shelf. See PrimaryPurchasePanel/QuickAdd for
+  // the same distinction applied to the actual add-to-cart controls.
+  const soldOut = totalOnHand === 0 && !style.allowBackorder;
+  const madeToOrder = totalOnHand === 0 && style.allowBackorder;
   const lowStock = typeof totalOnHand === "number" && totalOnHand > 0 && totalOnHand <= 10;
   const onSale = isOnSale(style);
   const hasMultipleColorways = style.colorways.length > 1;
@@ -78,14 +83,14 @@ export function ProductCard({
         </Link>
         <div className="absolute right-2 top-2 flex flex-col items-end gap-1.5">
           {favorited !== undefined && <FavoriteButton styleId={style.id} initialFavorited={favorited} variant="icon" />}
-          {(soldOut || lowStock || onSale) && (
+          {(soldOut || madeToOrder || lowStock || onSale) && (
             <span
               className={cn(
                 "px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white",
-                soldOut ? "bg-ember" : lowStock ? "bg-ink" : "bg-ember",
+                soldOut ? "bg-ember" : madeToOrder ? "bg-ink" : lowStock ? "bg-ink" : "bg-ember",
               )}
             >
-              {soldOut ? "Sold out" : lowStock ? "Low stock" : "Sale"}
+              {soldOut ? "Sold out" : madeToOrder ? "Made to order" : lowStock ? "Low stock" : "Sale"}
             </span>
           )}
         </div>
@@ -134,7 +139,7 @@ export function ProductCard({
                       e.preventDefault();
                       setActiveColorwayId(c.id);
                     }}
-                    aria-label={stocked ? c.name : `${c.name}, out of stock`}
+                    aria-label={stocked ? c.name : style.allowBackorder ? `${c.name}, made to order` : `${c.name}, out of stock`}
                     aria-pressed={selected}
                     title={c.name}
                     className="relative flex h-8 w-8 items-center justify-center"

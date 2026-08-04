@@ -19,7 +19,11 @@ export function ProductListRow({
   priceMultiplier?: number;
   favorited?: boolean;
 }) {
-  const soldOut = totalOnHand === 0;
+  // See ProductCard for the same soldOut/madeToOrder split — "Sold out" only when the
+  // style genuinely can't be ordered further; zero on-hand with backorders allowed is
+  // "Made to order" instead.
+  const soldOut = totalOnHand === 0 && !style.allowBackorder;
+  const madeToOrder = totalOnHand === 0 && style.allowBackorder;
   const lowStock = typeof totalOnHand === "number" && totalOnHand > 0 && totalOnHand <= 10;
   const onSale = isOnSale(style);
 
@@ -48,8 +52,8 @@ export function ProductListRow({
           {style.name}
         </h3>
         <p className="font-mono-tab text-xs text-ink-soft">{style.styleNumber} · {style.colorways.length} colorways</p>
-        <p className={cn("mt-1 text-xs font-medium", soldOut ? "text-ember" : lowStock ? "text-ember" : "text-positive")}>
-          {soldOut ? "Sold out" : lowStock ? `Low stock — ${totalOnHand} left` : "In stock"}
+        <p className={cn("mt-1 text-xs font-medium", soldOut || lowStock ? "text-ember" : madeToOrder ? "text-ink-soft" : "text-positive")}>
+          {soldOut ? "Sold out" : madeToOrder ? "Made to order" : lowStock ? `Low stock — ${totalOnHand} left` : "In stock"}
         </p>
       </div>
 

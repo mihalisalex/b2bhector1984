@@ -362,6 +362,7 @@ export async function updateHomepageHeroAction(formData: FormData) {
     announcementText: String(formData.get("announcementText") ?? ""),
     announcementHref: String(formData.get("announcementHref") ?? ""),
     whatsappClosingNote: String(formData.get("whatsappClosingNote") ?? ""),
+    productionLeadTimeDays: Math.max(1, Number(formData.get("productionLeadTimeDays")) || 40),
   });
   revalidatePath("/admin/content");
   revalidatePath("/");

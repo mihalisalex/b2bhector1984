@@ -154,6 +154,20 @@ export default async function AdminContentPage() {
           </div>
 
           <Field
+            label="Production lead time (days)"
+            hint="Shown to buyers as the estimated wait ('Production upon request — ships in ~N days') for any order line that isn't fully covered by on-hand stock."
+          >
+            <input
+              type="number"
+              name="productionLeadTimeDays"
+              defaultValue={hero.productionLeadTimeDays}
+              min={1}
+              required
+              className="w-32 border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
+            />
+          </Field>
+
+          <Field
             label="WhatsApp order message — closing note"
             hint="The one free-text line in the automatic WhatsApp message sent to a buyer's phone when they request a proforma invoice — appended after the order figures (pairs, subtotal, VAT, total)."
           >

@@ -52,6 +52,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       qty: line.qty,
       unitPrice: line.unitPrice,
       lineTotal: line.qty * box.totalPairs * line.unitPrice,
+      fulfillment: line.fulfillment,
+      productionEta: line.productionEta,
     };
   });
 

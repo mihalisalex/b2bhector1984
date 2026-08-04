@@ -576,7 +576,7 @@ export const ORDERS: Record<string, Order[]> = {
       shipToId: "ship-1",
       notes: "Please hold for combined ship with any Grosgrain Oxford backorder.",
       lines: [
-        { styleId: "st-01", colorwayId: "c1", boxTypeId: "box10", qty: 2, unitPrice: 43.7, vatRate: 0 },
+        { styleId: "st-01", colorwayId: "c1", boxTypeId: "box10", qty: 2, unitPrice: 43.7, vatRate: 0, fulfillment: "stock" },
       ],
     },
     {
@@ -586,7 +586,7 @@ export const ORDERS: Record<string, Order[]> = {
       terms: "net30",
       shipToId: "ship-1",
       lines: [
-        { styleId: "st-05", colorwayId: "c1", boxTypeId: "box8", qty: 2, unitPrice: 32.3, vatRate: 0 },
+        { styleId: "st-05", colorwayId: "c1", boxTypeId: "box8", qty: 2, unitPrice: 32.3, vatRate: 0, fulfillment: "stock" },
       ],
       invoiceUrl: "#",
     },
@@ -597,9 +597,9 @@ export const ORDERS: Record<string, Order[]> = {
       terms: "net30",
       shipToId: "ship-2",
       lines: [
-        { styleId: "st-13", colorwayId: "c1", boxTypeId: "box8", qty: 1, unitPrice: 54.15, vatRate: 0 },
-        { styleId: "st-13", colorwayId: "c1", boxTypeId: "box10", qty: 1, unitPrice: 54.15, vatRate: 0 },
-        { styleId: "st-13", colorwayId: "c2", boxTypeId: "box12", qty: 1, unitPrice: 54.15, vatRate: 0 },
+        { styleId: "st-13", colorwayId: "c1", boxTypeId: "box8", qty: 1, unitPrice: 54.15, vatRate: 0, fulfillment: "stock" },
+        { styleId: "st-13", colorwayId: "c1", boxTypeId: "box10", qty: 1, unitPrice: 54.15, vatRate: 0, fulfillment: "stock" },
+        { styleId: "st-13", colorwayId: "c2", boxTypeId: "box12", qty: 1, unitPrice: 54.15, vatRate: 0, fulfillment: "stock" },
       ],
       invoiceUrl: "#",
     },
@@ -610,11 +610,11 @@ export const ORDERS: Record<string, Order[]> = {
       terms: "net30",
       shipToId: "ship-1",
       lines: [
-        { styleId: "st-01", colorwayId: "c1", boxTypeId: "box10", qty: 1, unitPrice: 43.7, vatRate: 0 },
-        { styleId: "st-01", colorwayId: "c1", boxTypeId: "box12", qty: 1, unitPrice: 43.7, vatRate: 0 },
-        { styleId: "st-01", colorwayId: "c2", boxTypeId: "box10", qty: 1, unitPrice: 43.7, vatRate: 0 },
-        { styleId: "st-02", colorwayId: "c2", boxTypeId: "box8", qty: 1, unitPrice: 46.55, vatRate: 0 },
-        { styleId: "st-02", colorwayId: "c2", boxTypeId: "box10", qty: 1, unitPrice: 46.55, vatRate: 0 },
+        { styleId: "st-01", colorwayId: "c1", boxTypeId: "box10", qty: 1, unitPrice: 43.7, vatRate: 0, fulfillment: "stock" },
+        { styleId: "st-01", colorwayId: "c1", boxTypeId: "box12", qty: 1, unitPrice: 43.7, vatRate: 0, fulfillment: "stock" },
+        { styleId: "st-01", colorwayId: "c2", boxTypeId: "box10", qty: 1, unitPrice: 43.7, vatRate: 0, fulfillment: "stock" },
+        { styleId: "st-02", colorwayId: "c2", boxTypeId: "box8", qty: 1, unitPrice: 46.55, vatRate: 0, fulfillment: "stock" },
+        { styleId: "st-02", colorwayId: "c2", boxTypeId: "box10", qty: 1, unitPrice: 46.55, vatRate: 0, fulfillment: "stock" },
       ],
     },
   ],
@@ -626,7 +626,7 @@ export const ORDERS: Record<string, Order[]> = {
       terms: "net60",
       shipToId: "ship-1",
       lines: [
-        { styleId: "st-11", colorwayId: "c1", boxTypeId: "box12", qty: 3, unitPrice: 44, vatRate: 0 },
+        { styleId: "st-11", colorwayId: "c1", boxTypeId: "box12", qty: 3, unitPrice: 44, vatRate: 0, fulfillment: "stock" },
       ],
       invoiceUrl: "#",
     },
@@ -639,7 +639,7 @@ export const ORDERS: Record<string, Order[]> = {
       terms: "prepay",
       shipToId: "ship-1",
       lines: [
-        { styleId: "st-16", colorwayId: "c1", boxTypeId: "box8", qty: 1, unitPrice: 43.2, vatRate: 0 },
+        { styleId: "st-16", colorwayId: "c1", boxTypeId: "box8", qty: 1, unitPrice: 43.2, vatRate: 0, fulfillment: "stock" },
       ],
     },
   ],

@@ -30,12 +30,21 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
   const styleById = new Map(styleEntries);
 
   const emailBody = buildOrderStatusEmailBody(order, order.contactName);
+  const productionLines = order.lines.filter((l) => l.fulfillment === "production");
 
   return (
     <div>
       <nav className="mb-6 text-xs text-ink-soft">
         <Link href="/admin" className="hover:text-ink">Orders</Link> / {order.id}
       </nav>
+
+      {productionLines.length > 0 && (
+        <div className="mb-6 border border-ember/40 bg-ember-100 px-4 py-3 text-sm text-ember">
+          {productionLines.length} of {order.lines.length} line{order.lines.length === 1 ? "" : "s"} on this order{" "}
+          {productionLines.length === 1 ? "wasn't" : "weren't"}{" "}
+          fully in stock at placement and went to production — see the Status column below for each line.
+        </div>
+      )}
 
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-stone-300 pb-6">
         <div>
@@ -123,6 +132,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
                 <th className="px-3 py-2.5 text-right">Qty</th>
                 <th className="px-3 py-2.5 text-right">Unit (per pair)</th>
                 <th className="px-4 py-2.5 text-right">Total</th>
+                <th className="px-3 py-2.5">Status</th>
                 <th className="px-3 py-2.5" />
               </tr>
             </thead>
@@ -144,6 +154,8 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
                     unitPrice={line.unitPrice}
                     lineTotal={lineTotal}
                     canDelete={order.lines.length > 1}
+                    fulfillment={line.fulfillment}
+                    productionEta={line.productionEta}
                   />
                 );
               })}

@@ -155,18 +155,31 @@ export interface StockLine {
   colorwayId: string; // local id
   boxTypeId: BoxTypeId;
   qty: number;
+  /** From the style's `allowBackorder` flag — whether this line is allowed to fall back to
+   * production when the full quantity isn't on hand, instead of failing the order. */
+  allowBackorder: boolean;
 }
 
+export type LineFulfillment = "stock" | "production";
+
 /**
- * Atomically decrements stock for every line via the `adjust_inventory` DB
- * function (race-safe: the update's WHERE clause guards against going
- * negative). If any line fails — insufficient stock, or no inventory row
- * exists yet for that combination — every line already decremented in this
- * call is rolled back before returning, so a partial order never silently
- * reserves stock for lines that didn't actually get ordered.
+ * Resolves stock for every line via the atomic `adjust_inventory` DB function (race-safe:
+ * its update only touches a row when the full requested quantity is actually on hand).
+ *
+ * A line whose full quantity *is* on hand gets decremented and resolves `"stock"`. A line
+ * that isn't fully covered resolves `"production"` instead of failing, as long as its style
+ * allows backorders — `on_hand` is left completely untouched for that line (nothing was
+ * decremented, since `adjust_inventory`'s guard is all-or-nothing), so those units stay
+ * available for a buyer who *can* be fulfilled from stock. A line that isn't covered and
+ * whose style doesn't allow backorders still fails the whole order exactly as before: every
+ * line already decremented earlier in this same call is rolled back before returning, so a
+ * partial order never silently reserves stock for lines that didn't actually get ordered.
  */
-export async function decrementInventoryForOrder(lines: StockLine[]): Promise<{ ok: true } | { ok: false; failedLine: StockLine }> {
+export async function decrementInventoryForOrder(
+  lines: StockLine[],
+): Promise<{ ok: true; fulfillments: LineFulfillment[] } | { ok: false; failedLine: StockLine }> {
   const succeeded: StockLine[] = [];
+  const fulfillments: LineFulfillment[] = [];
   for (const line of lines) {
     const { data, error } = await supabaseAdmin.rpc("adjust_inventory", {
       p_style_id: line.styleId,
@@ -177,6 +190,10 @@ export async function decrementInventoryForOrder(lines: StockLine[]): Promise<{ 
     });
     if (error) throw new Error(`adjust_inventory: ${error.message}`);
     if (!data) {
+      if (line.allowBackorder) {
+        fulfillments.push("production");
+        continue;
+      }
       for (const done of succeeded) {
         await supabaseAdmin.rpc("adjust_inventory", {
           p_style_id: done.styleId,
@@ -191,8 +208,9 @@ export async function decrementInventoryForOrder(lines: StockLine[]): Promise<{ 
     }
     await logInventoryMovement(line.styleId, toDbId(line.styleId, line.colorwayId), line.boxTypeId, "main", -line.qty, "order_placed", null);
     succeeded.push(line);
+    fulfillments.push("stock");
   }
-  return { ok: true };
+  return { ok: true, fulfillments };
 }
 
 /**

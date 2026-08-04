@@ -12,9 +12,17 @@ export function buildOrderStatusEmailBody(order: { id: string; status: string },
   return `Hi ${firstName},\n\nWriting about your order ${order.id}, currently ${order.status.replace("_", " ")}.\n\n\n\nBest,\nHector Footwear Wholesale`;
 }
 
-export function buildOrderConfirmationEmailBody(order: { id: string }, contactName: string): string {
+/**
+ * `productionLeadTimeDays` is only passed when the order includes at least one line that
+ * wasn't fully covered by on-hand stock ("production upon request") — omit it to get the
+ * plain confirmation body for an all-in-stock order.
+ */
+export function buildOrderConfirmationEmailBody(order: { id: string }, contactName: string, productionLeadTimeDays?: number): string {
   const firstName = contactName.split(" ")[0] || "there";
-  return `Hi ${firstName},\n\nWe've received your order ${order.id}. We'll be in touch as it moves through production.\n\nBest,\nHector Footwear Wholesale`;
+  const productionNote = productionLeadTimeDays
+    ? ` Some items in this order weren't in stock and have gone into production — expect those in about ${productionLeadTimeDays} days; anything on hand ships right away.`
+    : "";
+  return `Hi ${firstName},\n\nWe've received your order ${order.id}. We'll be in touch as it moves through production.${productionNote}\n\nBest,\nHector Footwear Wholesale`;
 }
 
 export function orderStatusEmailSubject(order: { id: string; status: string }): string {

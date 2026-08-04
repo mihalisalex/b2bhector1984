@@ -80,6 +80,7 @@ export default async function DashboardPage() {
             <div className="mt-3 flex flex-col gap-3">
               {orders.map((order) => {
                 const { grandTotal, totalPairs } = summarizeOrder(order);
+                const productionCount = order.lines.filter((l) => l.fulfillment === "production").length;
                 return (
                   <div key={order.id} className="flex flex-wrap items-center justify-between gap-3 border border-stone-300 bg-white p-4">
                     <div>
@@ -88,6 +89,11 @@ export default async function DashboardPage() {
                           {order.id}
                         </Link>
                         <StatusBadge status={order.status} />
+                        {productionCount > 0 && (
+                          <span className="border border-ember/40 bg-ember-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ember">
+                            {productionCount} in production
+                          </span>
+                        )}
                       </div>
                       <p className="mt-1 text-xs text-ink-soft">
                         {formatDate(order.placedAt)} · {totalPairs} pairs

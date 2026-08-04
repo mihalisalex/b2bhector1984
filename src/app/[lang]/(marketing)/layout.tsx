@@ -36,8 +36,12 @@ export default async function MarketingLayout({
   if (!account) return content;
 
   const styles = await getStorefrontStyles();
+  // Empty, not fetched: nothing under the marketing tree reads live stock through this
+  // context (product-bearing marketing pages pass their own `inventory` prop directly,
+  // same as the catalogue) — checkout (the one consumer of context inventory) only ever
+  // renders under the shop tree, which fetches the real thing in its own layout.
   return (
-    <CatalogProvider styles={styles}>
+    <CatalogProvider styles={styles} productionLeadTimeDays={hero.productionLeadTimeDays} inventory={{}}>
       <CartProvider accountId={account.id} priceMultiplier={account.priceMultiplier}>
         {content}
       </CartProvider>

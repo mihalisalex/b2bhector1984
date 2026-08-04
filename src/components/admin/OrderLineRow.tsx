@@ -2,6 +2,7 @@
 
 import { updateOrderLineQtyAction, deleteOrderLineAction } from "@/lib/adminActions";
 import { formatEUR } from "@/lib/pricing";
+import { formatDate } from "@/lib/format";
 
 export function OrderLineRow({
   orderId,
@@ -13,6 +14,8 @@ export function OrderLineRow({
   unitPrice,
   lineTotal,
   canDelete,
+  fulfillment,
+  productionEta,
 }: {
   orderId: string;
   lineId: string;
@@ -23,6 +26,8 @@ export function OrderLineRow({
   unitPrice: number;
   lineTotal: number;
   canDelete: boolean;
+  fulfillment: "stock" | "production";
+  productionEta?: string;
 }) {
   return (
     <tr className="border-b border-stone-200 last:border-b-0">
@@ -44,6 +49,15 @@ export function OrderLineRow({
       </td>
       <td className="px-3 py-2 text-right tabular-nums text-ink-soft">{formatEUR(unitPrice)}</td>
       <td className="px-4 py-2 text-right font-semibold tabular-nums text-ink">{formatEUR(lineTotal)}</td>
+      <td className="px-3 py-2">
+        {fulfillment === "production" ? (
+          <span className="whitespace-nowrap text-xs font-medium text-ember">
+            Production{productionEta ? ` · ETA ${formatDate(productionEta)}` : ""}
+          </span>
+        ) : (
+          <span className="text-xs text-ink-soft">In stock</span>
+        )}
+      </td>
       <td className="px-3 py-2 text-right">
         <form
           action={deleteOrderLineAction.bind(null, orderId, lineId)}

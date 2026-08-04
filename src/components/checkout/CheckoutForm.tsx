@@ -20,7 +20,7 @@ const initialState: CheckoutState = {};
 
 export function CheckoutForm({ account }: { account: Account }) {
   const { lines } = useCart();
-  const { getStyleById } = useCatalog();
+  const { getStyleById, inventory, productionLeadTimeDays } = useCatalog();
   const [terms, setTerms] = useState<CreditTerms>(account.creditTerms);
 
   const [state, formAction, pending] = useActionState(async (prev: CheckoutState, formData: FormData) => {
@@ -56,6 +56,25 @@ export function CheckoutForm({ account }: { account: Account }) {
 
   const availableNow = styleGroups.filter((g) => g.style.availability === "available");
   const prebook = styleGroups.filter((g) => g.style.availability === "prebook");
+
+  // Preview only — mirrors the same on-hand comparison PrimaryPurchasePanel/QuickAdd/
+  // OrderableLinesheet already show per line, just rolled up per style here. The real,
+  // authoritative fulfillment decision is made server-side in placeOrder()'s atomic stock
+  // check; this can't guarantee it (stock can move between this render and submission),
+  // it's just an honest heads-up before the buyer clicks submit.
+  const madeToOrder = useMemo(
+    () =>
+      styleGroups.filter((g) => {
+        if (!g.style.allowBackorder) return false;
+        const styleInventory = inventory[g.style.id] ?? {};
+        return lines.some((l) => {
+          if (l.styleId !== g.style.id) return false;
+          const onHand = styleInventory[l.colorwayId]?.[l.boxTypeId] ?? 0;
+          return l.qty > onHand;
+        });
+      }),
+    [styleGroups, inventory, lines],
+  );
 
   if (lines.length === 0) {
     return (
@@ -112,7 +131,7 @@ export function CheckoutForm({ account }: { account: Account }) {
           />
         </Section>
 
-        {(availableNow.length > 0 || prebook.length > 0) && (
+        {(availableNow.length > 0 || prebook.length > 0 || madeToOrder.length > 0) && (
           <Section title="Estimated Shipping">
             <div className="flex flex-col gap-2 text-sm text-ink-soft">
               {availableNow.length > 0 && (
@@ -126,7 +145,16 @@ export function CheckoutForm({ account }: { account: Account }) {
                   <span className="font-medium text-ink">{g.style.name} (pre-book):</span> {g.style.shipWindow}.
                 </p>
               ))}
-              {prebook.length > 0 && availableNow.length > 0 && (
+              {madeToOrder.length > 0 && (
+                <p>
+                  <span className="font-medium text-ink">
+                    Made to order ({madeToOrder.length} style{madeToOrder.length > 1 ? "s" : ""}):
+                  </span>{" "}
+                  not fully in stock — ships in about {productionLeadTimeDays} days. Exact per-item status is
+                  confirmed after you submit.
+                </p>
+              )}
+              {[availableNow.length > 0, prebook.length > 0, madeToOrder.length > 0].filter(Boolean).length > 1 && (
                 <p className="text-xs">This order will ship in multiple shipments.</p>
               )}
             </div>

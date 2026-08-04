@@ -38,7 +38,7 @@ import { MIN_PASSWORD_LENGTH } from "@/lib/passwordPolicy";
 import { formatEUR, getOrderMinimumError, getUnitPrice, summarizeOrder, validateMatrix } from "@/lib/pricing";
 import { createSavedAssortment, deleteSavedAssortment as deleteSavedAssortmentData } from "@/lib/data/assortments";
 import { addFavorite, removeFavorite } from "@/lib/data/favorites";
-import { decrementInventoryForOrder } from "@/lib/data/inventory";
+import { decrementInventoryForOrder, type StockLine } from "@/lib/data/inventory";
 import { sendEmail } from "@/lib/email";
 import { sendWhatsAppTemplate, buildProformaInvoiceParams } from "@/lib/whatsapp";
 import { getHomepageHero } from "@/lib/data/siteContent";
@@ -335,7 +335,11 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
     const vatRate = style.vatRate ?? 0;
     for (const [colorwayId, boxes] of Object.entries(qtyMap)) {
       for (const [boxTypeId, qty] of Object.entries(boxes)) {
-        if (qty && qty > 0) orderLines.push({ styleId, colorwayId, boxTypeId: boxTypeId as BoxTypeId, qty, unitPrice, vatRate });
+        if (qty && qty > 0) {
+          // "stock" is a starting assumption, corrected below once the actual stock
+          // check runs — every line needs a value here since `fulfillment` isn't optional.
+          orderLines.push({ styleId, colorwayId, boxTypeId: boxTypeId as BoxTypeId, qty, unitPrice, vatRate, fulfillment: "stock" });
+        }
       }
     }
   }
@@ -359,7 +363,19 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
     };
   }
 
-  const stockResult = await decrementInventoryForOrder(orderLines);
+  // Lines whose full quantity isn't on hand fall back to production instead of failing,
+  // as long as the style allows it (`allowBackorder` — on by default, admin can opt a
+  // style out). Fetched once here, ahead of the stock check, so the ETA it feeds and the
+  // WhatsApp closing note later both read the same site-wide lead-time setting.
+  const hero = await getHomepageHero();
+  const stockLines: StockLine[] = orderLines.map((line) => ({
+    styleId: line.styleId,
+    colorwayId: line.colorwayId,
+    boxTypeId: line.boxTypeId,
+    qty: line.qty,
+    allowBackorder: styleById.get(line.styleId)?.allowBackorder ?? false,
+  }));
+  const stockResult = await decrementInventoryForOrder(stockLines);
   if (!stockResult.ok) {
     const style = styleById.get(stockResult.failedLine.styleId);
     const boxLabel = { box8: "8-pair", box10: "10-pair", box12: "12-pair" }[stockResult.failedLine.boxTypeId];
@@ -367,6 +383,15 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
       error: `Not enough stock for ${style?.name ?? "that style"} (${boxLabel} box) to cover this order. Reduce the quantity or contact ${account.rep.name}.`,
     };
   }
+
+  const productionEta = new Date(Date.now() + hero.productionLeadTimeDays * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  stockResult.fulfillments.forEach((fulfillment, i) => {
+    orderLines[i].fulfillment = fulfillment;
+    if (fulfillment === "production") orderLines[i].productionEta = productionEta;
+  });
+  const hasProductionLines = orderLines.some((l) => l.fulfillment === "production");
 
   const order: Order = {
     id: `ORD-${Date.now().toString().slice(-5)}`,
@@ -383,7 +408,10 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
   await sendEmail({
     to: account.email,
     subject: confirmationSubject,
-    html: textToHtml(buildOrderConfirmationEmailBody(order, account.contactName), confirmationSubject),
+    html: textToHtml(
+      buildOrderConfirmationEmailBody(order, account.contactName, hasProductionLines ? hero.productionLeadTimeDays : undefined),
+      confirmationSubject,
+    ),
   });
 
   // WhatsApp notification for the proforma invoice request — no-ops safely
@@ -392,7 +420,9 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
   // to the order confirmation page happens regardless of whether this send
   // succeeded, exactly like the email above.
   if (account.phone) {
-    const hero = await getHomepageHero();
+    const productionNote = hasProductionLines
+      ? `Some items in this order are made to order and will ship in about ${hero.productionLeadTimeDays} days. `
+      : "";
     await sendWhatsAppTemplate({
       to: account.phone,
       params: buildProformaInvoiceParams({
@@ -402,7 +432,7 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
         subtotal: formatEUR(orderTotal),
         vatAmount: formatEUR(orderVat),
         grandTotal: formatEUR(orderGrandTotal),
-        extraNote: hero.whatsappClosingNote,
+        extraNote: productionNote + hero.whatsappClosingNote,
       }),
     });
   } else {

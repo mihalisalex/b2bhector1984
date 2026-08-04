@@ -61,12 +61,14 @@ const styles = StyleSheet.create({
   th: { fontSize: 7.5, fontFamily: "Helvetica-Bold", color: "#6b6b6b", letterSpacing: 0.75 },
   td: { fontSize: 9.5 },
   tdMuted: { fontSize: 9, color: "#6b6b6b" },
-  colStyle: { width: "32%" },
-  colColorway: { width: "20%" },
-  colBox: { width: "16%" },
-  colQty: { width: "8%", textAlign: "right" },
-  colUnit: { width: "12%", textAlign: "right" },
-  colTotal: { width: "12%", textAlign: "right", fontFamily: "Helvetica-Bold" },
+  colStyle: { width: "23%" },
+  colColorway: { width: "14%" },
+  colBox: { width: "12%" },
+  colQty: { width: "7%", textAlign: "right" },
+  colUnit: { width: "11%", textAlign: "right" },
+  colTotal: { width: "14%", textAlign: "right", fontFamily: "Helvetica-Bold", paddingRight: 8 },
+  colStatus: { width: "19%" },
+  statusProduction: { color: "#7a2e22" },
 
   summaryWrap: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginTop: 22 },
   summaryMeta: { fontSize: 9, color: "#6b6b6b" },
@@ -106,6 +108,8 @@ export interface InvoiceLineView {
   qty: number;
   unitPrice: number;
   lineTotal: number;
+  fulfillment: "stock" | "production";
+  productionEta?: string;
 }
 
 export interface InvoiceDocumentProps {
@@ -199,6 +203,7 @@ export function InvoiceDocument({
               <Text style={[styles.th, styles.colQty]}>QTY</Text>
               <Text style={[styles.th, styles.colUnit]}>UNIT</Text>
               <Text style={[styles.th, styles.colTotal]}>TOTAL</Text>
+              <Text style={[styles.th, styles.colStatus]}>STATUS</Text>
             </View>
             {lines.map((line, i) => (
               <View key={i} style={i % 2 === 1 ? [styles.tableRow, styles.tableRowAlt] : styles.tableRow}>
@@ -208,6 +213,17 @@ export function InvoiceDocument({
                 <Text style={[styles.td, styles.colQty]}>{line.qty}</Text>
                 <Text style={[styles.tdMuted, styles.colUnit]}>{formatEUR(line.unitPrice)}</Text>
                 <Text style={[styles.td, styles.colTotal]}>{formatEUR(line.lineTotal)}</Text>
+                <Text
+                  style={
+                    line.fulfillment === "production"
+                      ? [styles.tdMuted, styles.colStatus, styles.statusProduction]
+                      : [styles.tdMuted, styles.colStatus]
+                  }
+                >
+                  {line.fulfillment === "production"
+                    ? `Production${line.productionEta ? ` · ${formatDate(line.productionEta)}` : ""}`
+                    : "In stock"}
+                </Text>
               </View>
             ))}
           </View>

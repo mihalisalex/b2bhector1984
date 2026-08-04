@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
+import { useCatalog } from "@/lib/catalog-context";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { formatEUR, getUnitPrice, isOnSale, validateMatrix } from "@/lib/pricing";
 import { VatSuffix } from "@/components/ui/VatSuffix";
@@ -13,6 +14,10 @@ import { AvailabilityBadge } from "@/components/ui/Badge";
 import { LinkButton } from "@/components/ui/Button";
 import { StylePlate } from "@/components/product/StylePlate";
 import { cn } from "@/lib/cn";
+
+/** Ceiling on a stepper when a style allows ordering beyond on-hand stock (the shortfall
+ * goes to production) — not a real business constraint, just a sanity bound on the input. */
+const MAX_BACKORDER_QTY = 999;
 
 /**
  * Every +/- writes straight to the cart via `setLineQty` — there is no local staging
@@ -30,6 +35,8 @@ export function OrderableLinesheet({
   priceMultiplier?: number;
 }) {
   const { lines, setLineQty } = useCart();
+  const { productionLeadTimeDays } = useCatalog();
+  const styleById = useMemo(() => new Map(styles.map((s) => [s.id, s])), [styles]);
 
   function qtyFor(styleId: string, colorwayId: string, boxTypeId: BoxTypeId): number {
     return lines.find((l) => l.styleId === styleId && l.colorwayId === colorwayId && l.boxTypeId === boxTypeId)?.qty ?? 0;
@@ -37,7 +44,9 @@ export function OrderableLinesheet({
 
   function setQty(styleId: string, colorwayId: string, boxTypeId: BoxTypeId, value: number) {
     const onHand = inventory[styleId]?.[colorwayId]?.[boxTypeId] ?? 0;
-    setLineQty(styleId, colorwayId, boxTypeId, Math.min(onHand, Math.max(0, Math.floor(value) || 0)));
+    const allowBackorder = styleById.get(styleId)?.allowBackorder ?? false;
+    const maxSelectable = allowBackorder ? MAX_BACKORDER_QTY : onHand;
+    setLineQty(styleId, colorwayId, boxTypeId, Math.min(maxSelectable, Math.max(0, Math.floor(value) || 0)));
   }
 
   function step(styleId: string, colorwayId: string, boxTypeId: BoxTypeId, delta: number) {
@@ -121,7 +130,9 @@ export function OrderableLinesheet({
                             onChange={(v) => setQty(style.id, colorway.id, box.id, v)}
                             onStep={(d) => step(style.id, colorway.id, box.id, d)}
                             label={`${box.label} for ${style.name} ${colorway.name}`}
-                            max={inventory[style.id]?.[colorway.id]?.[box.id] ?? 0}
+                            onHand={inventory[style.id]?.[colorway.id]?.[box.id] ?? 0}
+                            allowBackorder={style.allowBackorder}
+                            productionLeadTimeDays={productionLeadTimeDays}
                           />
                         </div>
                       ))}
@@ -213,7 +224,9 @@ export function OrderableLinesheet({
                           onChange={(v) => setQty(style.id, colorway.id, boxTypeId, v)}
                           onStep={(d) => step(style.id, colorway.id, boxTypeId, d)}
                           label={`${boxTypeId} for ${style.name} ${colorway.name}`}
-                          max={inventory[style.id]?.[colorway.id]?.[boxTypeId] ?? 0}
+                          onHand={inventory[style.id]?.[colorway.id]?.[boxTypeId] ?? 0}
+                          allowBackorder={style.allowBackorder}
+                          productionLeadTimeDays={productionLeadTimeDays}
                         />
                       ) : (
                         <span className="text-ink-soft">—</span>
@@ -271,15 +284,21 @@ function Stepper({
   onChange,
   onStep,
   label,
-  max,
+  onHand,
+  allowBackorder,
+  productionLeadTimeDays,
 }: {
   value: number;
   onChange: (value: number) => void;
   onStep: (delta: number) => void;
   label: string;
-  max: number;
+  onHand: number;
+  allowBackorder: boolean;
+  productionLeadTimeDays: number;
 }) {
-  const outOfStock = max === 0;
+  const outOfStock = onHand === 0 && !allowBackorder;
+  const maxSelectable = allowBackorder ? MAX_BACKORDER_QTY : onHand;
+  const willBeProduction = allowBackorder && value > onHand;
   return (
     <div className="flex flex-col items-center gap-0.5">
       <div
@@ -300,7 +319,7 @@ function Stepper({
         <input
           type="number"
           min={0}
-          max={max}
+          max={maxSelectable}
           inputMode="numeric"
           value={value || ""}
           placeholder="0"
@@ -314,14 +333,14 @@ function Stepper({
           type="button"
           aria-label={`Increase ${label} quantity`}
           onClick={() => onStep(1)}
-          disabled={value >= max}
+          disabled={value >= maxSelectable}
           className="flex h-6 w-6 items-center justify-center text-ink hover:text-signal disabled:opacity-30"
         >
           +
         </button>
       </div>
-      <span className={cn("font-mono-tab text-[9px]", outOfStock ? "text-ember" : "text-ink-soft/70")}>
-        {outOfStock ? "out" : `${max} avail.`}
+      <span className={cn("font-mono-tab text-[9px]", outOfStock || willBeProduction ? "text-ember" : "text-ink-soft/70")}>
+        {outOfStock ? "out" : willBeProduction ? `~${productionLeadTimeDays}d` : `${onHand} avail.`}
       </span>
     </div>
   );

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
+import { useCatalog } from "@/lib/catalog-context";
 import { useI18n } from "@/i18n/I18nProvider";
 import { withLocale } from "@/i18n/paths";
 import { useColorwaySelection } from "@/lib/colorway-selection-context";
@@ -23,6 +24,10 @@ import { cn } from "@/lib/cn";
  */
 export const BUY_BAR_RELEASE_ID = "product-buybar-release";
 
+/** Ceiling on the stepper when a style allows ordering beyond on-hand stock (the shortfall
+ * goes to production) — not a real business constraint, just a sanity bound on the input. */
+const MAX_BACKORDER_QTY = 999;
+
 export function PrimaryPurchasePanel({
   style,
   inventory,
@@ -35,6 +40,7 @@ export function PrimaryPurchasePanel({
   initialFavorited: boolean;
 }) {
   const { addLines, lines, itemCount } = useCart();
+  const { productionLeadTimeDays } = useCatalog();
   const { locale } = useI18n();
   const boxTypes = getAvailableBoxTypes(style);
 
@@ -76,8 +82,18 @@ export function PrimaryPurchasePanel({
   const onHand = inventory[colorwayId]?.[boxTypeId] ?? 0;
   const existingQty = lines.find((l) => l.styleId === style.id && l.colorwayId === colorwayId && l.boxTypeId === boxTypeId)?.qty ?? 0;
   const remaining = Math.max(0, onHand - existingQty);
-  const outOfStock = onHand === 0;
-  const lowStock = onHand > 0 && onHand <= 4;
+  // Whether this style can be ordered past its on-hand stock at all (the shortfall goes
+  // to production instead of blocking the order) — an admin-editable per-style flag, on by
+  // default. `outOfStock` alone (no backorder allowed) is the only case that still hard-blocks.
+  const allowBackorder = style.allowBackorder;
+  const outOfStock = onHand === 0 && !allowBackorder;
+  const lowStock = !allowBackorder && onHand > 0 && onHand <= 4;
+  // The stepper's real ceiling: uncapped (well, sanity-capped) when backorder is allowed,
+  // otherwise exactly what's left on the shelf, same as before this feature existed.
+  const maxSelectable = allowBackorder ? MAX_BACKORDER_QTY : remaining;
+  // What placeOrder() will actually decide for this line if added right now — the full
+  // quantity for this colorway/box, cart + pending add, compared against on-hand.
+  const willBeProduction = allowBackorder && existingQty + addQty > onHand;
 
   const unitPrice = getUnitPrice(style, "net60", priceMultiplier);
   const pairsPerBox = box.totalPairs;
@@ -94,16 +110,16 @@ export function PrimaryPurchasePanel({
   // Re-clamp the pending add-qty whenever the selected colorway/box combo changes stock.
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- clamping local qty to the newly-selected combo's stock, not derived render state
-    setAddQty((prev) => Math.min(Math.max(1, prev), Math.max(1, remaining)));
-  }, [colorwayId, boxTypeId, remaining]);
+    setAddQty((prev) => Math.min(Math.max(1, prev), Math.max(1, maxSelectable)));
+  }, [colorwayId, boxTypeId, maxSelectable]);
 
   function step(delta: number) {
     setJustAdded(false);
-    setAddQty((prev) => Math.min(remaining, Math.max(1, prev + delta)));
+    setAddQty((prev) => Math.min(maxSelectable, Math.max(1, prev + delta)));
   }
 
   function handleAddToCart() {
-    if (remaining <= 0) return;
+    if (remaining <= 0 && !allowBackorder) return;
     addLines(style.id, [{ colorwayId, boxTypeId, qty: existingQty + addQty }]);
     setJustAdded(true);
     setAddQty(1);
@@ -144,7 +160,7 @@ export function PrimaryPurchasePanel({
                       className={cn(
                         "px-3.5 py-2 text-xs font-semibold tabular-nums transition-colors duration-150",
                         active ? "bg-ink text-white" : "bg-stone-100 text-ink-soft hover:bg-stone-200",
-                        stock === 0 && "opacity-45",
+                        stock === 0 && !allowBackorder && "opacity-45",
                       )}
                     >
                       {b.totalPairs}-Pair Box
@@ -161,12 +177,14 @@ export function PrimaryPurchasePanel({
             <p className="mb-0 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">
               Boxes
             </p>
-            <p className={cn("text-xs font-medium", outOfStock || lowStock ? "text-ember" : "text-ink-soft")}>
+            <p className={cn("text-xs font-medium", outOfStock || lowStock || willBeProduction ? "text-ember" : "text-ink-soft")}>
               {outOfStock
                 ? "Out of stock in this combination"
-                : lowStock
-                  ? `Only ${onHand} left`
-                  : `${onHand} in stock`}
+                : willBeProduction
+                  ? `Production upon request — ships in ~${productionLeadTimeDays} days`
+                  : lowStock
+                    ? `Only ${onHand} left`
+                    : `${onHand} in stock`}
               {existingQty > 0 && <span className="text-ink-soft"> · {existingQty} in cart</span>}
             </p>
           </div>
@@ -246,11 +264,11 @@ export function PrimaryPurchasePanel({
           </div>
 
           <div className="mt-2.5 flex items-stretch gap-2">
-            <Stepper qty={addQty} max={remaining} disabled={outOfStock} onStep={step} />
+            <Stepper qty={addQty} max={maxSelectable} disabled={outOfStock} onStep={step} />
             <button
               type="button"
               onClick={handleAddToCart}
-              disabled={remaining <= 0}
+              disabled={outOfStock}
               className="flex-1 bg-ink px-3 text-xs font-semibold uppercase tracking-[0.08em] text-white transition-transform active:scale-[0.99] disabled:bg-cinder-300 disabled:text-white/70"
             >
               {outOfStock

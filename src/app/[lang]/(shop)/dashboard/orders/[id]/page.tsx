@@ -36,6 +36,7 @@ export default async function OrderDetailPage({
   const uniqueStyleIds = Array.from(new Set(order.lines.map((l) => l.styleId)));
   const styleEntries = await Promise.all(uniqueStyleIds.map(async (sid) => [sid, await getStyleById(sid)] as const));
   const styleById = new Map(styleEntries);
+  const productionLines = order.lines.filter((l) => l.fulfillment === "production");
 
   return (
     <div className="mx-auto max-w-[1000px] px-6 py-8 lg:px-10">
@@ -49,6 +50,15 @@ export default async function OrderDetailPage({
         <div className="mb-6 border border-positive/40 bg-positive-100 px-4 py-3 text-sm text-positive print:hidden">
           Proforma invoice generated — this isn&rsquo;t a charge. {account.rep.name} will confirm stock and
           production before it proceeds.
+        </div>
+      )}
+
+      {productionLines.length > 0 && (
+        <div className="mb-6 border border-ember/40 bg-ember-100 px-4 py-3 text-sm text-ember">
+          {productionLines.length === 1 ? "One line in this order wasn't" : `${productionLines.length} lines in this order weren't`}{" "}
+          fully in stock and {productionLines.length === 1 ? "is" : "are"}{" "}
+          in production — see &ldquo;Status&rdquo; below for each item&rsquo;s expected date. Anything not marked is
+          shipping from stock as normal.
         </div>
       )}
 
@@ -104,6 +114,7 @@ export default async function OrderDetailPage({
               <th className="px-3 py-2.5 text-right">Qty</th>
               <th className="px-3 py-2.5 text-right">Unit (per pair)</th>
               <th className="px-4 py-2.5 text-right">Total</th>
+              <th className="px-3 py-2.5">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -121,6 +132,15 @@ export default async function OrderDetailPage({
                   <td className="px-3 py-2 text-right tabular-nums text-ink-soft">{formatEUR(line.unitPrice)}</td>
                   <td className="px-4 py-2 text-right font-semibold tabular-nums text-ink">
                     {formatEUR(lineTotal)}
+                  </td>
+                  <td className="px-3 py-2">
+                    {line.fulfillment === "production" ? (
+                      <span className="whitespace-nowrap text-xs font-medium text-ember">
+                        Production{line.productionEta ? ` · ETA ${formatDate(line.productionEta)}` : ""}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-ink-soft">In stock</span>
+                    )}
                   </td>
                 </tr>
               );
