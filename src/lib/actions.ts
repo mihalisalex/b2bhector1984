@@ -40,7 +40,8 @@ import { createSavedAssortment, deleteSavedAssortment as deleteSavedAssortmentDa
 import { addFavorite, removeFavorite } from "@/lib/data/favorites";
 import { decrementInventoryForOrder, restoreInventoryForLines, type StockLine } from "@/lib/data/inventory";
 import { getBoxType } from "@/lib/data/boxTypes";
-import { sendEmail } from "@/lib/email";
+import { buildInvoicePdf } from "@/lib/pdf/buildInvoicePdf";
+import { sendEmail, type EmailAttachment } from "@/lib/email";
 import { sendWhatsAppTemplate, buildProformaInvoiceParams } from "@/lib/whatsapp";
 import { getHomepageHero } from "@/lib/data/siteContent";
 import {
@@ -446,6 +447,32 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
     };
   }
 
+  // Best-effort, same posture as the email/WhatsApp sends below: a buyer's order is
+  // fully placed the moment addOrder() above returns, so nothing past this point may
+  // ever fail the checkout. A photo that 404s or is in a format react-pdf's <Image>
+  // can't decode fails the whole render (see buildInvoicePdf's doc comment), which
+  // would otherwise take the confirmation email down with it — so on any failure here,
+  // the buyer still gets their confirmation, just without the PDF attached.
+  let invoiceAttachment: EmailAttachment | undefined;
+  try {
+    const shipTo = account.shipTo.find((s) => s.id === shipToId);
+    const pdfBuffer = await buildInvoicePdf({
+      order: { id: order.id, placedAt: order.placedAt, status: order.status, terms: order.terms },
+      businessName: account.businessName,
+      contactName: account.contactName,
+      shipTo,
+      lines: orderLines,
+      styleById,
+    });
+    invoiceAttachment = {
+      filename: `${order.id}-proforma-invoice.pdf`,
+      contentBase64: pdfBuffer.toString("base64"),
+      contentType: "application/pdf",
+    };
+  } catch (err) {
+    console.error(`[checkout] Failed to build invoice PDF for ${order.id} — confirmation email will go out without it:`, err);
+  }
+
   const confirmationSubject = orderConfirmationEmailSubject(order);
   await sendEmail({
     to: account.email,
@@ -456,9 +483,11 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
         account.contactName,
         hasMadeToOrderLines ? hero.productionLeadTimeDays : undefined,
         hasPreOrderLines,
+        invoiceAttachment !== undefined,
       ),
       confirmationSubject,
     ),
+    attachments: invoiceAttachment ? [invoiceAttachment] : undefined,
   });
 
   // WhatsApp notification for the proforma invoice request — no-ops safely

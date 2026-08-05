@@ -16,17 +16,21 @@ export function buildOrderStatusEmailBody(order: { id: string; status: string },
  * `madeToOrderLeadTimeDays` is only passed when the order includes at least one line that
  * wasn't fully covered by on-hand stock and whose style is in "made to order" mode (a fixed
  * ETA). `hasPreOrderLines` flags lines in "pre-order" mode instead — no fixed ETA, timing
- * confirmed later. Both are independently omittable/false to get the plain confirmation body
- * for an all-in-stock order.
+ * confirmed later. `attachedInvoice` reflects whether the proforma PDF actually made it onto
+ * this send — PDF generation is best-effort (see placeOrder), so the body must not claim an
+ * attachment exists when it doesn't. All three are independently omittable/false to get the
+ * plain confirmation body for an all-in-stock order with no PDF.
  */
 export function buildOrderConfirmationEmailBody(
   order: { id: string },
   contactName: string,
   madeToOrderLeadTimeDays?: number,
   hasPreOrderLines = false,
+  attachedInvoice = false,
 ): string {
   const firstName = contactName.split(" ")[0] || "there";
   const notes: string[] = [];
+  if (attachedInvoice) notes.push("Your proforma invoice is attached as a PDF.");
   if (madeToOrderLeadTimeDays) {
     notes.push(
       `Some items in this order weren't in stock and are made to order — expect those in about ${madeToOrderLeadTimeDays} days.`,
@@ -37,7 +41,7 @@ export function buildOrderConfirmationEmailBody(
       `Some items are on pre-order — they weren't in stock, and we'll confirm ship timing with you once production is scheduled.`,
     );
   }
-  if (notes.length > 0) notes.push("Anything on hand ships right away.");
+  if (madeToOrderLeadTimeDays || hasPreOrderLines) notes.push("Anything on hand ships right away.");
   const productionNote = notes.length > 0 ? ` ${notes.join(" ")}` : "";
   return `Hi ${firstName},\n\nWe've received your order ${order.id}. We'll be in touch as it moves through production.${productionNote}\n\nBest,\nHector Footwear Wholesale`;
 }

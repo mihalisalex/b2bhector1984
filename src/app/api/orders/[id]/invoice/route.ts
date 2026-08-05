@@ -1,11 +1,8 @@
-import { renderToBuffer } from "@react-pdf/renderer";
 import { getCurrentAccount } from "@/lib/session";
 import { getOrderById, getOrderByIdAdmin } from "@/lib/runtimeOrders";
 import { getAccountById } from "@/lib/data/accounts";
 import { getStyleById } from "@/lib/data/styles";
-import { getBoxType } from "@/lib/data/boxTypes";
-import { summarizeOrder } from "@/lib/pricing";
-import { InvoiceDocument, type InvoiceLineView } from "@/lib/pdf/InvoiceDocument";
+import { buildInvoicePdf } from "@/lib/pdf/buildInvoicePdf";
 import type { Order } from "@/lib/types";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -41,26 +38,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const styleEntries = await Promise.all(uniqueStyleIds.map(async (sid) => [sid, await getStyleById(sid)] as const));
   const styleById = new Map(styleEntries);
 
-  const lines: InvoiceLineView[] = order.lines.map((line) => {
-    const style = styleById.get(line.styleId);
-    const colorway = style?.colorways.find((c) => c.id === line.colorwayId);
-    const box = getBoxType(line.boxTypeId);
-    return {
-      styleName: style?.name ?? line.styleId,
-      colorwayName: colorway?.name ?? line.colorwayId,
-      boxLabel: box.label,
-      qty: line.qty,
-      unitPrice: line.unitPrice,
-      lineTotal: line.qty * box.totalPairs * line.unitPrice,
-      fulfillment: line.fulfillment,
-      productionEta: line.productionEta,
-    };
-  });
-
-  const { total, vatTotal, grandTotal, totalBoxes, totalPairs } = summarizeOrder(order);
-
-  const buffer = await renderToBuffer(
-    InvoiceDocument({
+  let buffer: Buffer;
+  try {
+    buffer = await buildInvoicePdf({
       order: {
         id: order.id,
         placedAt: order.placedAt,
@@ -72,14 +52,17 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       businessName,
       contactName,
       shipTo,
-      lines,
-      totalBoxes,
-      totalPairs,
-      total,
-      vatTotal,
-      grandTotal,
-    }),
-  );
+      lines: order.lines,
+      styleById,
+    });
+  } catch (err) {
+    // New failure mode since product photography was added to this document: a photo
+    // that 404s, or is in a format react-pdf's <Image> can't decode (it only handles
+    // JPEG/PNG; uploaded style photos are validated against a wider extension list, see
+    // uploadValidation.ts), fails the whole render. A clear 500 beats an unhandled crash.
+    console.error(`[invoice] Failed to render PDF for order ${order.id}:`, err);
+    return new Response("Could not generate this invoice right now — please try again shortly.", { status: 500 });
+  }
 
   return new Response(new Uint8Array(buffer), {
     headers: {

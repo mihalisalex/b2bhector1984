@@ -1,4 +1,4 @@
-import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import { formatEUR } from "@/lib/pricing";
 import { formatDate } from "@/lib/format";
 
@@ -22,6 +22,12 @@ const STATUS_LABEL: Record<string, string> = {
  * fragility for a look the layout/color treatment below already carries on its own.
  * The two-weight "HECTOR" (bold) / "FOOTWEAR" (light, tracked) split mirrors the
  * real wordmark (`Logo.tsx`) as closely as Helvetica allows.
+ *
+ * Color palette matches the storefront's tokens (`globals.css`) by value, not by
+ * reference — react-pdf styles are plain objects, not CSS, so there's nothing to
+ * import: `#121212` is `--color-ink`, `#404040`/`#e5e5e5` is the `--color-court`
+ * pair (in-production status, reused here for the same meaning), `#f7f7f5` is
+ * roughly `--color-stone-100`.
  */
 const styles = StyleSheet.create({
   page: { fontSize: 10, fontFamily: "Helvetica", color: "#121212" },
@@ -38,37 +44,86 @@ const styles = StyleSheet.create({
   wordmark: { fontSize: 16, fontFamily: "Helvetica-Bold", color: "#ffffff", letterSpacing: 1.5 },
   wordmarkSub: { fontSize: 8, color: "#a3a3a3", letterSpacing: 2 },
   tagline: { fontSize: 7.5, color: "#a3a3a3", marginTop: 4, letterSpacing: 1 },
-  docTitle: { fontSize: 11, fontFamily: "Helvetica-Bold", color: "#ffffff", textAlign: "right", letterSpacing: 0.75 },
-  docMeta: { fontSize: 8.5, color: "#a3a3a3", textAlign: "right", marginTop: 4 },
+  docTitleBadge: {
+    backgroundColor: "#ffffff",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 3,
+    alignSelf: "flex-end",
+  },
+  docTitle: { fontSize: 10, fontFamily: "Helvetica-Bold", color: "#121212", textAlign: "right", letterSpacing: 0.75 },
+  docMeta: { fontSize: 8.5, color: "#a3a3a3", textAlign: "right", marginTop: 6 },
 
-  body: { paddingHorizontal: 40, paddingTop: 32, paddingBottom: 90 },
+  body: { paddingHorizontal: 40, paddingTop: 28, paddingBottom: 92 },
 
-  infoRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 30, gap: 24 },
+  infoCard: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 24,
+    marginBottom: 26,
+    padding: 16,
+    backgroundColor: "#f7f7f5",
+    borderRadius: 4,
+  },
   infoBlock: { flexGrow: 1 },
-  infoLabel: { fontSize: 7.5, fontFamily: "Helvetica-Bold", color: "#a3a3a3", letterSpacing: 1.25, marginBottom: 6 },
+  infoLabel: { fontSize: 7.5, fontFamily: "Helvetica-Bold", color: "#8a8a8a", letterSpacing: 1.25, marginBottom: 6 },
   infoValue: { fontSize: 10, lineHeight: 1.5 },
 
-  table: { marginTop: 4 },
+  sectionLabel: {
+    fontSize: 8,
+    fontFamily: "Helvetica-Bold",
+    color: "#8a8a8a",
+    letterSpacing: 1.25,
+    marginBottom: 8,
+  },
+
+  table: { marginTop: 2 },
   tableHeaderRow: {
     flexDirection: "row",
+    alignItems: "center",
     borderBottom: "1.25pt solid #121212",
-    paddingHorizontal: 6,
     paddingBottom: 7,
-    marginBottom: 2,
+    marginBottom: 4,
   },
-  tableRow: { flexDirection: "row", alignItems: "center", paddingVertical: 8, paddingHorizontal: 6 },
-  tableRowAlt: { backgroundColor: "#fafafa" },
+  tableRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    borderBottom: "0.75pt solid #ececea",
+  },
   th: { fontSize: 7.5, fontFamily: "Helvetica-Bold", color: "#6b6b6b", letterSpacing: 0.75 },
-  td: { fontSize: 9.5 },
-  tdMuted: { fontSize: 9, color: "#6b6b6b" },
-  colStyle: { width: "23%" },
-  colColorway: { width: "14%" },
-  colBox: { width: "12%" },
-  colQty: { width: "7%", textAlign: "right" },
-  colUnit: { width: "11%", textAlign: "right" },
-  colTotal: { width: "14%", textAlign: "right", fontFamily: "Helvetica-Bold", paddingRight: 8 },
-  colStatus: { width: "19%" },
-  statusProduction: { color: "#7a2e22" },
+
+  colItem: { flexGrow: 1, flexDirection: "row", alignItems: "center", gap: 10, paddingRight: 10 },
+  thumb: { width: 40, height: 40, borderRadius: 4, objectFit: "cover" },
+  thumbFallback: {
+    width: 40,
+    height: 40,
+    borderRadius: 4,
+    backgroundColor: "#121212",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  thumbFallbackText: { fontSize: 13, fontFamily: "Helvetica-Bold", color: "#ffffff" },
+  itemText: { flexShrink: 1 },
+  itemName: { fontSize: 9.5, fontFamily: "Helvetica-Bold" },
+  itemSub: { fontSize: 8.5, color: "#8a8a8a", marginTop: 2 },
+
+  statusPill: {
+    alignSelf: "flex-start",
+    marginTop: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 2,
+  },
+  statusPillText: { fontSize: 7.5, fontFamily: "Helvetica-Bold", letterSpacing: 0.4 },
+  statusPillStock: { backgroundColor: "#eef4ee" },
+  statusPillStockText: { color: "#2f6e43" },
+  statusPillProduction: { backgroundColor: "#e5e5e5" },
+  statusPillProductionText: { color: "#404040" },
+
+  colQty: { width: 34, textAlign: "right", fontSize: 9.5 },
+  colUnit: { width: 58, textAlign: "right", fontSize: 9, color: "#6b6b6b" },
+  colTotal: { width: 68, textAlign: "right", fontSize: 9.5, fontFamily: "Helvetica-Bold" },
 
   summaryWrap: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginTop: 22 },
   summaryMeta: { fontSize: 9, color: "#6b6b6b" },
@@ -82,6 +137,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: "#121212",
+    borderRadius: 3,
     paddingVertical: 11,
     paddingHorizontal: 14,
     marginTop: 8,
@@ -110,6 +166,12 @@ export interface InvoiceLineView {
   lineTotal: number;
   fulfillment: "stock" | "production";
   productionEta?: string;
+  /** Absolute URL — react-pdf's `<Image>` fetches over the network, so a site-relative
+   * path (the local category placeholder) has to be resolved to one before it gets here;
+   * see buildInvoicePdf.ts. Omitted entirely (not just a broken link) when the line's
+   * style couldn't be resolved at all, in which case the thumbnail falls back to a plain
+   * monogram square instead of attempting a request that was never going to succeed. */
+  imageUrl?: string;
 }
 
 export interface InvoiceDocumentProps {
@@ -158,14 +220,16 @@ export function InvoiceDocument({
             <Text style={styles.tagline}>WHOLESALE — EST. 1984</Text>
           </View>
           <View>
-            <Text style={styles.docTitle}>{(STATUS_LABEL[order.status] ?? "Invoice").toUpperCase()}</Text>
+            <View style={styles.docTitleBadge}>
+              <Text style={styles.docTitle}>{(STATUS_LABEL[order.status] ?? "Invoice").toUpperCase()}</Text>
+            </View>
             <Text style={styles.docMeta}>{order.id}</Text>
             <Text style={styles.docMeta}>{formatDate(order.placedAt)}</Text>
           </View>
         </View>
 
         <View style={styles.body}>
-          <View style={styles.infoRow}>
+          <View style={styles.infoCard}>
             <View style={styles.infoBlock}>
               <Text style={styles.infoLabel}>BILL TO</Text>
               <Text style={styles.infoValue}>{businessName}</Text>
@@ -195,35 +259,50 @@ export function InvoiceDocument({
             </View>
           </View>
 
+          <Text style={styles.sectionLabel}>ORDER DETAIL</Text>
           <View style={styles.table}>
             <View style={styles.tableHeaderRow}>
-              <Text style={[styles.th, styles.colStyle]}>STYLE</Text>
-              <Text style={[styles.th, styles.colColorway]}>COLORWAY</Text>
-              <Text style={[styles.th, styles.colBox]}>BOX</Text>
+              <Text style={[styles.th, styles.colItem]}>ITEM</Text>
               <Text style={[styles.th, styles.colQty]}>QTY</Text>
               <Text style={[styles.th, styles.colUnit]}>UNIT</Text>
               <Text style={[styles.th, styles.colTotal]}>TOTAL</Text>
-              <Text style={[styles.th, styles.colStatus]}>STATUS</Text>
             </View>
             {lines.map((line, i) => (
-              <View key={i} style={i % 2 === 1 ? [styles.tableRow, styles.tableRowAlt] : styles.tableRow}>
-                <Text style={[styles.td, styles.colStyle]}>{line.styleName}</Text>
-                <Text style={[styles.tdMuted, styles.colColorway]}>{line.colorwayName}</Text>
-                <Text style={[styles.tdMuted, styles.colBox]}>{line.boxLabel}</Text>
-                <Text style={[styles.td, styles.colQty]}>{line.qty}</Text>
-                <Text style={[styles.tdMuted, styles.colUnit]}>{formatEUR(line.unitPrice)}</Text>
-                <Text style={[styles.td, styles.colTotal]}>{formatEUR(line.lineTotal)}</Text>
-                <Text
-                  style={
-                    line.fulfillment === "production"
-                      ? [styles.tdMuted, styles.colStatus, styles.statusProduction]
-                      : [styles.tdMuted, styles.colStatus]
-                  }
-                >
-                  {line.fulfillment === "production"
-                    ? `Production${line.productionEta ? ` · ${formatDate(line.productionEta)}` : ""}`
-                    : "In stock"}
-                </Text>
+              <View key={i} style={styles.tableRow} wrap={false}>
+                <View style={styles.colItem}>
+                  {line.imageUrl ? (
+                    // This is react-pdf's <Image> (a PDF drawing primitive), not an HTML <img> —
+                    // it has no alt prop to give. The disable has to sit on the line directly
+                    // above the JSX it targets; a comment block above *that* doesn't reach it.
+                    // eslint-disable-next-line jsx-a11y/alt-text
+                    <Image src={line.imageUrl} style={styles.thumb} />
+                  ) : (
+                    <View style={styles.thumbFallback}>
+                      <Text style={styles.thumbFallbackText}>H</Text>
+                    </View>
+                  )}
+                  <View style={styles.itemText}>
+                    <Text style={styles.itemName}>{line.styleName}</Text>
+                    <Text style={styles.itemSub}>{line.colorwayName} · {line.boxLabel}</Text>
+                    <View
+                      style={[styles.statusPill, line.fulfillment === "production" ? styles.statusPillProduction : styles.statusPillStock]}
+                    >
+                      <Text
+                        style={[
+                          styles.statusPillText,
+                          line.fulfillment === "production" ? styles.statusPillProductionText : styles.statusPillStockText,
+                        ]}
+                      >
+                        {line.fulfillment === "production"
+                          ? `PRODUCTION${line.productionEta ? ` · ETA ${formatDate(line.productionEta)}` : ""}`
+                          : "IN STOCK"}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+                <Text style={styles.colQty}>{line.qty}</Text>
+                <Text style={styles.colUnit}>{formatEUR(line.unitPrice)}</Text>
+                <Text style={styles.colTotal}>{formatEUR(line.lineTotal)}</Text>
               </View>
             ))}
           </View>
@@ -249,7 +328,10 @@ export function InvoiceDocument({
           </View>
         </View>
 
-        <View style={styles.footer}>
+        {/* `fixed` so this repeats on every page of a long order instead of only wherever
+            it happens to land on the last one — react-pdf only repeats an absolutely
+            positioned element across pages when told to. */}
+        <View style={styles.footer} fixed>
           <Text style={styles.footerText}>
             This is a proforma invoice, not a charge — it reflects stock and production check before your order is
             confirmed.
