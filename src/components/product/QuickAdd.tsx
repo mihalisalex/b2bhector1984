@@ -4,16 +4,12 @@ import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import { useCatalog } from "@/lib/catalog-context";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
-import { formatEUR, getUnitPrice } from "@/lib/pricing";
+import { formatEUR, getUnitPrice, MAX_BACKORDER_QTY } from "@/lib/pricing";
 import { VatSuffix } from "@/components/ui/VatSuffix";
 import { pickDefaultBoxType } from "@/lib/productSelectionDefaults";
 import type { StyleInventory } from "@/lib/data/inventory";
 import type { BoxTypeId, Style } from "@/lib/types";
 import { cn } from "@/lib/cn";
-
-/** Ceiling on the stepper when a style allows ordering beyond on-hand stock (the shortfall
- * goes to production) — not a real business constraint, just a sanity bound on the input. */
-const MAX_BACKORDER_QTY = 999;
 
 /**
  * Add a box straight from a catalogue card — box size and quantity picked inline,

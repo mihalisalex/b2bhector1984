@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styles";
+import { backorderLabel, CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styleLabels";
 import { formatEUR, getUnitPrice, isOnSale } from "@/lib/pricing";
 import { VatSuffix } from "@/components/ui/VatSuffix";
 import type { Style } from "@/lib/types";
@@ -24,7 +24,7 @@ export function ProductListRow({
   // "Made to order" instead.
   const soldOut = totalOnHand === 0 && !style.allowBackorder;
   const madeToOrder = totalOnHand === 0 && style.allowBackorder;
-  const backorderLabel = style.backorderMode === "pre_order" ? "Pre-order" : "Made to order";
+  const backorderText = backorderLabel(style);
   const lowStock = typeof totalOnHand === "number" && totalOnHand > 0 && totalOnHand <= 10;
   const onSale = isOnSale(style);
 
@@ -54,7 +54,7 @@ export function ProductListRow({
         </h3>
         <p className="font-mono-tab text-xs text-ink-soft">{style.styleNumber} · {style.colorways.length} colorways</p>
         <p className={cn("mt-1 text-xs font-medium", soldOut || lowStock ? "text-ember" : madeToOrder ? "text-ink-soft" : "text-positive")}>
-          {soldOut ? "Sold out" : madeToOrder ? backorderLabel : lowStock ? `Low stock — ${totalOnHand} left` : "In stock"}
+          {soldOut ? "Sold out" : madeToOrder ? backorderText : lowStock ? `Low stock — ${totalOnHand} left` : "In stock"}
         </p>
       </div>
 

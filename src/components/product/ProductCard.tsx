@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styleLabels";
+import { backorderLabel, CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styleLabels";
 import { formatEUR, getUnitPrice, isOnSale } from "@/lib/pricing";
 import { VatSuffix } from "@/components/ui/VatSuffix";
 import type { Style } from "@/lib/types";
@@ -56,7 +56,7 @@ export function ProductCard({
   // the same distinction applied to the actual add-to-cart controls.
   const soldOut = totalOnHand === 0 && !style.allowBackorder;
   const madeToOrder = totalOnHand === 0 && style.allowBackorder;
-  const backorderLabel = style.backorderMode === "pre_order" ? "Pre-order" : "Made to order";
+  const backorderText = backorderLabel(style);
   const lowStock = typeof totalOnHand === "number" && totalOnHand > 0 && totalOnHand <= 10;
   const onSale = isOnSale(style);
   const hasMultipleColorways = style.colorways.length > 1;
@@ -91,7 +91,7 @@ export function ProductCard({
                 soldOut ? "bg-ember" : madeToOrder ? "bg-ink" : lowStock ? "bg-ink" : "bg-ember",
               )}
             >
-              {soldOut ? "Sold out" : madeToOrder ? backorderLabel : lowStock ? "Low stock" : "Sale"}
+              {soldOut ? "Sold out" : madeToOrder ? backorderText : lowStock ? "Low stock" : "Sale"}
             </span>
           )}
         </div>
@@ -140,7 +140,7 @@ export function ProductCard({
                       e.preventDefault();
                       setActiveColorwayId(c.id);
                     }}
-                    aria-label={stocked ? c.name : style.allowBackorder ? `${c.name}, ${backorderLabel.toLowerCase()}` : `${c.name}, out of stock`}
+                    aria-label={stocked ? c.name : style.allowBackorder ? `${c.name}, ${backorderText.toLowerCase()}` : `${c.name}, out of stock`}
                     aria-pressed={selected}
                     title={c.name}
                     className="relative flex h-8 w-8 items-center justify-center"

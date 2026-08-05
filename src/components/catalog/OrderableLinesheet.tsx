@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
 import { useCatalog } from "@/lib/catalog-context";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
-import { formatEUR, getUnitPrice, isOnSale, validateMatrix } from "@/lib/pricing";
+import { formatEUR, getUnitPrice, isOnSale, MAX_BACKORDER_QTY, validateMatrix } from "@/lib/pricing";
 import { VatSuffix } from "@/components/ui/VatSuffix";
 import { CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styleLabels";
 import type { StyleInventory } from "@/lib/data/inventory";
@@ -14,10 +14,6 @@ import { AvailabilityBadge } from "@/components/ui/Badge";
 import { LinkButton } from "@/components/ui/Button";
 import { StylePlate } from "@/components/product/StylePlate";
 import { cn } from "@/lib/cn";
-
-/** Ceiling on a stepper when a style allows ordering beyond on-hand stock (the shortfall
- * goes to production) — not a real business constraint, just a sanity bound on the input. */
-const MAX_BACKORDER_QTY = 999;
 
 /**
  * Every +/- writes straight to the cart via `setLineQty` — there is no local staging

@@ -6,7 +6,7 @@ import { useCart } from "@/lib/cart-context";
 import { useCatalog } from "@/lib/catalog-context";
 import { getBoxType } from "@/lib/data/boxTypes";
 import { getStyleImageUrl } from "@/lib/data/styleLabels";
-import { formatEUR, getOrderMinimumError, validateMatrix } from "@/lib/pricing";
+import { formatEUR, getOrderMinimumError, MAX_BACKORDER_QTY, validateMatrix } from "@/lib/pricing";
 import type { BoxTypeId } from "@/lib/types";
 import type { StyleInventory } from "@/lib/data/inventory";
 import type { BoxOption } from "@/lib/orderMinimum";
@@ -16,11 +16,6 @@ import { StylePlate } from "@/components/product/StylePlate";
 import { SaveAssortmentButton } from "@/components/dashboard/SaveAssortmentButton";
 import { CompleteMinimum } from "@/components/cart/CompleteMinimum";
 import { cn } from "@/lib/cn";
-
-/** Ceiling on the stepper when a style allows ordering beyond on-hand stock (the shortfall
- * goes to production) — not a real business constraint, just a sanity bound on the input.
- * Mirrors PrimaryPurchasePanel/QuickAdd/OrderableLinesheet's constant of the same name. */
-const MAX_BACKORDER_QTY = 999;
 
 export function CartView({
   inStockOptions,

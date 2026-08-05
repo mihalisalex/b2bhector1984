@@ -90,6 +90,15 @@ export function summarizeOrder(order: {
 /** The only minimum that applies — no more per-style box minimums. */
 export const MIN_ORDER_PAIRS = 40;
 
+/**
+ * Ceiling on a quantity stepper when the style allows ordering beyond on-hand stock (the
+ * shortfall goes into production). Not a real business constraint — just a sanity bound so
+ * an input can't run away — which is exactly why it belongs in one place: it was declared
+ * separately, with the same value and near-identical comment, in all four surfaces that
+ * can add to cart (product panel, quick add, linesheet, cart).
+ */
+export const MAX_BACKORDER_QTY = 999;
+
 export function getOrderMinimumError(totalPairs: number): string | undefined {
   if (totalPairs === 0 || totalPairs >= MIN_ORDER_PAIRS) return undefined;
   return `Orders require a minimum of ${MIN_ORDER_PAIRS} pairs total. Add ${MIN_ORDER_PAIRS - totalPairs} more pairs to check out.`;

@@ -4,6 +4,16 @@ import type { Style } from "@/lib/types";
  * Plain static label maps — kept out of styles.ts (which is `server-only`)
  * so client components can import them without pulling in the Supabase reads.
  */
+/**
+ * What to call a style that can be ordered past its on-hand stock. Shared by the
+ * catalogue card and the list row, which had the same ternary inline — the wording here
+ * has already been revised once across several files at once, so it belongs in one place.
+ * Only meaningful when the style actually allows backorders; callers check that first.
+ */
+export function backorderLabel(style: Style): string {
+  return style.backorderMode === "pre_order" ? "Pre-order" : "Made to order";
+}
+
 export const CATEGORY_LABEL: Record<Style["category"], string> = {
   loafers: "Loafers",
   wedding: "Wedding",

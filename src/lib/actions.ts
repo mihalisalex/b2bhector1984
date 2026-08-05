@@ -39,6 +39,7 @@ import { formatEUR, getOrderMinimumError, getUnitPrice, summarizeOrder, validate
 import { createSavedAssortment, deleteSavedAssortment as deleteSavedAssortmentData } from "@/lib/data/assortments";
 import { addFavorite, removeFavorite } from "@/lib/data/favorites";
 import { decrementInventoryForOrder, restoreInventoryForLines, type StockLine } from "@/lib/data/inventory";
+import { getBoxType } from "@/lib/data/boxTypes";
 import { sendEmail } from "@/lib/email";
 import { sendWhatsAppTemplate, buildProformaInvoiceParams } from "@/lib/whatsapp";
 import { getHomepageHero } from "@/lib/data/siteContent";
@@ -389,7 +390,9 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
   const stockResult = await decrementInventoryForOrder(stockLines);
   if (!stockResult.ok) {
     const style = styleById.get(stockResult.failedLine.styleId);
-    const boxLabel = { box8: "8-pair", box10: "10-pair", box12: "12-pair" }[stockResult.failedLine.boxTypeId];
+    // Derived from the box-type registry rather than a hard-coded id->label map, which
+    // would silently go stale if a box size were ever added or resized.
+    const boxLabel = `${getBoxType(stockResult.failedLine.boxTypeId).totalPairs}-pair`;
     return {
       error: `Not enough stock for ${style?.name ?? "that style"} (${boxLabel} box) to cover this order. Reduce the quantity or contact ${account.rep.name}.`,
     };

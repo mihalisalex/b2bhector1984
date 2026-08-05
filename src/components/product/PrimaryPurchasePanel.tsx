@@ -9,7 +9,7 @@ import { withLocale } from "@/i18n/paths";
 import { useColorwaySelection } from "@/lib/colorway-selection-context";
 import { pickDefaultBoxType } from "@/lib/productSelectionDefaults";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
-import { formatEUR, getUnitPrice, MIN_ORDER_PAIRS } from "@/lib/pricing";
+import { formatEUR, getUnitPrice, MAX_BACKORDER_QTY, MIN_ORDER_PAIRS } from "@/lib/pricing";
 import { VatSuffix, vatSuffixText } from "@/components/ui/VatSuffix";
 import { ColorwayPicker } from "@/components/product/ColorwayPicker";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
@@ -23,10 +23,6 @@ import { cn } from "@/lib/cn";
  * The mobile buy bar watches it to know when to release.
  */
 export const BUY_BAR_RELEASE_ID = "product-buybar-release";
-
-/** Ceiling on the stepper when a style allows ordering beyond on-hand stock (the shortfall
- * goes to production) — not a real business constraint, just a sanity bound on the input. */
-const MAX_BACKORDER_QTY = 999;
 
 export function PrimaryPurchasePanel({
   style,
