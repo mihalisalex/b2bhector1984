@@ -6,13 +6,13 @@ diffs; this file is the narrative index.
 
 ## Pending Actions (need your credentials/approval — everything else proceeds without you)
 
-- **2026-08-04 — Push/deploy the maintenance pass.** Seven commits are on `main`
-  locally and **not pushed**. They include a fix to `placeOrder` (the money path)
-  and two to `proxy.ts` (every request). Routing was verified live and
-  typecheck/lint/build are green, but the authenticated flows — login, checkout,
-  order placement — could not be exercised, because the E2E suite runs against
-  live production and there is no test account. Recommend a quick manual
-  checkout on a preview deploy before promoting.
+- **2026-08-04 — RESOLVED (pushed).** The maintenance-pass commits are all on
+  `origin/main` now. The verification caveat still stands and is the reason the
+  E2E item below matters: the authenticated flows — login, checkout, order
+  placement — were never exercised, because the E2E suite runs against live
+  production and there is no test account. **Still recommend a manual checkout
+  on a preview deploy**, since `placeOrder` (the money path) and `proxy.ts`
+  (every request) both changed.
 - **2026-08-04 — The E2E suite cannot run.** It points at whatever `.env.local`
   points at (live production), places a real order and decrements real
   inventory, and still defaults to `buyer@unionsupply.com`, one of the demo
@@ -20,19 +20,18 @@ diffs; this file is the narrative index.
   either a separate Supabase test project or a dedicated test buyer account
   before it can pass. Recommend a test project — it also unblocks wiring the
   suite into CI, which is currently impossible for the same reason.
-- **2026-08-04 — "Complete your minimum" is now silently dead.** The cart helper
-  that suggests boxes to close the 40-pair gap only offers **in-stock** boxes,
-  and the whole catalogue is now pre-order at zero stock, so it renders nothing.
-  It degrades cleanly (no crash) but buyers short of the minimum get no help.
-  Options: (a) let it suggest pre-order boxes too, dropping "these are in stock
-  now" from the copy; (b) leave it dormant until stock returns. Recommend (a) —
-  it matches how the rest of the site now sells. Behaviour change, so not done
-  unilaterally.
-- **2026-08-04 — The production banner is styled as an error on every order.**
-  With the catalogue fully pre-order, every order now shows the red/ember
-  "in production" banner on the buyer's order page. It's accurate but reads as
-  an alarm for what is now the normal path. Recommend restyling it as neutral
-  info. Purely a design call.
+- **2026-08-04 — RESOLVED (approved and applied).** "Complete your minimum" no
+  longer dies at zero stock: it now suggests backorderable boxes too, option (a)
+  above. Each suggestion carries a `fulfillment` (`stock` / `made_to_order` /
+  `pre_order`) so the card labels itself instead of implying shelf stock, the
+  "these are in stock now" copy is gone, on-hand stays a ceiling only for stock
+  boxes, and ranking prefers stock when two options close the gap equally.
+- **2026-08-04 — RESOLVED (approved and applied).** Production is no longer
+  styled as an error. Swapped `--color-ember` (reserved for error/danger in
+  `globals.css`) for `--color-court`, the token the in-production `StatusBadge`
+  already used, across the buyer order page, admin order page, dashboard
+  "N in production" chip and per-line status label. Ember stays on the
+  destructive "Remove line" action beside it.
 - **2026-08-04 — Dependency updates available, none security-critical.**
   `npm audit` is clean (0 vulnerabilities). Minor/patch bumps are waiting
   (`@supabase/supabase-js` 2.110.8 → 2.112.0, `tsx`, `@types/*`,
@@ -690,6 +689,25 @@ diffs; this file is the narrative index.
 
 ## Refactors
 
+- **2026-08-04** — Maintenance pass, continuation: three duplicated
+  constants/labels consolidated, no behaviour change.
+  - `MAX_BACKORDER_QTY` (999) was declared four times — once in each surface
+    that can add to cart (`PrimaryPurchasePanel`, `QuickAdd`,
+    `OrderableLinesheet`, `CartView`), each with its own near-identical
+    comment. Moved to `pricing.ts` beside `MIN_ORDER_PAIRS`, which all four
+    already imported.
+  - `placeOrder`'s out-of-stock message built its box label from a hard-coded
+    `{box8:"8-pair", …}` map shadowing the `BOX_TYPES` registry — it would have
+    gone stale if a box size were added or resized. Now derived from
+    `getBoxType().totalPairs`; wording unchanged.
+  - `ProductCard` and `ProductListRow` each carried the identical
+    `backorderMode === "pre_order" ? "Pre-order" : "Made to order"` ternary.
+    Extracted as `backorderLabel()` in `styleLabels.ts` — that wording already
+    had to be revised across several files at once earlier the same day, which
+    is the argument for it living in one place. `ProductListRow` now imports
+    its label helpers from `styleLabels.ts` directly rather than through the
+    `server-only` `styles.ts` re-export.
+
 - **2026-08-04** — Maintenance pass: dead code, duplication, validation.
   Removed eight exports verified unreferenced by a word-boundary search across
   every file in the repo (not just the import graph): `entityMetadata`
@@ -758,6 +776,36 @@ diffs; this file is the narrative index.
   relying solely on the caller to handle it.
 
 ## Bugs Fixed
+
+- **2026-08-04** — Maintenance pass, continuation. Two more, plus the two
+  approved product fixes recorded under Pending Actions above:
+  - **`getDictionary` could 500 the entire site.** It indexed its loader map
+    directly, so any `[lang]` outside `LOCALES` threw `loaders[locale] is not a
+    function` — and because that call sits in the *root* layout, it takes down
+    every page rather than one. Nothing enforced the value at runtime: `[lang]`
+    arrives as a raw string and is cast to `Locale`, because the route layouts
+    have to type it that way to satisfy Next's generated route validator. Now
+    guarded with `isLocale()` falling back to `DEFAULT_LOCALE`, matching how the
+    rest of the codebase degrades. Defence in depth — the proxy does normalise
+    it today, so this was not a live break. Guard verified against valid
+    locales, unknown values, empty string, `null`/`undefined`, wrong case and
+    `de-DE`.
+  - **Buyer order page promised an expected date that pre-order lines don't
+    have.** The production banner said "see Status below for each item's
+    expected date", but `placeOrder` deliberately stamps `productionEta` only
+    for made-to-order lines, so a pre-order line's Status column just reads
+    "Production". Live on every order once the catalogue went pre-order. The
+    banner now splits lines by whether an ETA actually exists and words itself
+    for dated-only, undated-only, or mixed.
+  - **Worth knowing for future verification passes:** two alarming server
+    errors seen while testing (`loaders[locale] is not a function`, then a
+    `JSON.parse` "Unexpected end of JSON input" on `/en`) turned out to be
+    `.next` contamination from running `npm run build` against the directory a
+    live `next dev` was reading — not real defects. Clearing `.next` and
+    restarting gave zero errors. **Don't run a production build while the dev
+    server is up in this repo**; it produces convincing false alarms (and kills
+    the dev server). The first one did point at genuine fragility, which is the
+    `getDictionary` fix above.
 
 - **2026-08-04** — Maintenance pass (see also Refactors). Four real defects:
   - **Inventory leaked whenever an order failed to save.** `placeOrder`
