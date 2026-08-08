@@ -12,14 +12,19 @@ import type { Locale } from "@/i18n/config";
 import { withLocale } from "@/i18n/paths";
 import { t } from "@/i18n/format";
 
-/** Title/description match the root layout's defaults; declared here so the homepage
- * gets its own canonical and a self-referencing og:url like every other indexed page. */
-export function generateMetadata() {
+/** Declared here (not inherited from the root layout's defaults) so the homepage gets its
+ * own canonical, hreflang set, and a self-referencing og:url like every other indexed page.
+ * Locale-aware since 2026-08-09 — title/description now come from each locale's own
+ * `dict.seo` copy instead of a single hardcoded English string reused under every prefix. */
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const locale = lang as Locale;
+  const dict = await getDictionary(locale);
   return pageMetadata({
-    title: "Hector Footwear — Wholesale",
-    description:
-      "Full-grain leather footwear, wholesaled the way serious retailers expect. Apply for a Hector Footwear wholesale account — matrix ordering, terms-based pricing, net terms.",
+    title: dict.seo.homeTitle,
+    description: dict.seo.homeDescription,
     path: "/",
+    locale,
   });
 }
 
@@ -39,10 +44,20 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   ]);
   const h = dict.home;
   const seasonOptions = toSeasonOptions(seasonSettings);
+  // The hero's eyebrow/heading/body are admin-edited via /admin/content, but that editor
+  // only ever writes one (English) row — there's no per-locale content model for it yet
+  // (Phase 2 of the i18n work, deferred — see the i18n Phase 1 write-up). Rather than show
+  // the same English hero copy under /de, /fr and /el, non-English locales get dictionary-
+  // authored hero copy instead; English keeps using the admin's live DB content exactly as
+  // before, so the admin's editing workflow is completely unaffected.
+  const isEnglishHero = lang === "en";
+  const displayEyebrow = isEnglishHero ? hero.eyebrow : h.heroEyebrow;
+  const displayHeadingRaw = isEnglishHero ? hero.heading : h.heroHeading;
+  const displayBody = isEnglishHero ? hero.body : h.heroBody;
   // Admin-edited content occasionally carries a stray blank line between sentences; filtered
   // here so it can't open up an oversized gap in the middle of the headline (a blank line
   // still renders as a full leading-height row even though there's nothing on it).
-  const headingLines = hero.heading.split("\n").filter((line) => line.trim() !== "");
+  const headingLines = displayHeadingRaw.split("\n").filter((line) => line.trim() !== "");
 
   return (
     <div>
@@ -54,7 +69,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
       <section className="relative overflow-hidden border-b border-stone-300 bg-ink">
         <Image
           src={hero.heroImageUrl}
-          alt=""
+          alt={h.heroImageAlt}
           fill
           priority
           sizes="100vw"
@@ -70,7 +85,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         <div className="relative mx-auto flex min-h-[520px] max-w-[1440px] items-center px-6 py-16 sm:min-h-[560px] lg:min-h-[640px] lg:px-10 2xl:min-h-[720px]">
           <div className="max-w-xl lg:max-w-2xl">
             <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-stone-300/70">
-              {hero.eyebrow}
+              {displayEyebrow}
             </span>
             <h1 className="font-display mt-4 text-4xl font-bold uppercase leading-[1.05] text-white sm:text-5xl lg:text-6xl">
               {headingLines.map((line, i) => (
@@ -94,7 +109,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
               </LinkButton>
             </div>
             <p className="mt-6 max-w-md text-sm leading-relaxed text-stone-300/80">
-              {hero.body}
+              {displayBody}
             </p>
             <Link
               href={withLocale(lang, "/collections")}

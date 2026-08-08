@@ -1,50 +1,63 @@
 import Link from "next/link";
 import { LinkButton } from "@/components/ui/Button";
 import { pageMetadata } from "@/lib/seo";
+import { getDictionary } from "@/i18n/getDictionary";
+import type { Locale } from "@/i18n/config";
+import { withLocale } from "@/i18n/paths";
 
-export function generateMetadata() {
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const locale = lang as Locale;
+  const dict = await getDictionary(locale);
   return pageMetadata({
-    title: "Contact",
-    description:
-      "Get in touch with Hector Footwear Wholesale — general inquiries, new wholesale accounts, and existing buyer support.",
+    title: dict.seo.contactTitle,
+    description: dict.seo.contactDescription,
     path: "/contact",
+    locale,
+    // Fully translated now (dict.contact) across all four locales.
   });
 }
 
-export default function ContactPage() {
+export default async function ContactPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const locale = lang as Locale;
+  const dict = await getDictionary(locale);
+  const c = dict.contact;
+  const headingLines = c.heading.split("\n");
+
   return (
     <div>
       <section className="border-b border-stone-300 bg-stone-100 px-6 py-20 lg:px-10">
         <div className="mx-auto max-w-3xl text-center">
-          <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">Get in touch</span>
+          <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">{c.eyebrow}</span>
           <h1 className="font-display mt-4 text-4xl font-bold uppercase leading-[1.02] tracking-tight text-ink sm:text-5xl">
-            Talk to a real person,
-            <br />
-            not a bot.
+            {headingLines.map((line, i) => (
+              <span key={i}>
+                {line}
+                {i < headingLines.length - 1 && <br />}
+              </span>
+            ))}
           </h1>
-          <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-ink-soft">
-            Every inquiry is answered by someone on the Hector Footwear team — usually within two
-            business days.
-          </p>
+          <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-ink-soft">{c.intro}</p>
         </div>
       </section>
 
       <section className="mx-auto max-w-[1200px] px-6 py-20 lg:px-10">
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
           <ContactCard
-            title="General Inquiries"
-            body="Questions about the brand, existing orders, or anything else."
+            title={c.generalTitle}
+            body={c.generalBody}
             lines={[{ href: "mailto:info@hectorfootwear.gr", label: "info@hectorfootwear.gr" }]}
           />
           <ContactCard
-            title="New Wholesale Accounts"
-            body="Ready to apply, or have questions before you do? Reach the accounts team directly."
+            title={c.newAccountsTitle}
+            body={c.newAccountsBody}
             lines={[{ href: "mailto:info@hectorfootwear.gr", label: "info@hectorfootwear.gr" }]}
           />
           <ContactCard
-            title="Existing Buyers"
-            body="Already have an account? Your territory rep is listed on your dashboard and is the fastest way to reach us."
-            lines={[{ href: "/dashboard", label: "Go to your dashboard" }]}
+            title={c.existingBuyersTitle}
+            body={c.existingBuyersBody}
+            lines={[{ href: withLocale(locale, "/dashboard"), label: c.goToDashboard }]}
           />
         </div>
       </section>
@@ -53,21 +66,21 @@ export default function ContactPage() {
         <div className="mx-auto flex max-w-[1440px] flex-col items-start justify-between gap-6 px-6 sm:flex-row sm:items-center lg:px-10">
           <div>
             <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-white">
-              Not a wholesale account yet?
+              {dict.collections.notWholesaleYet}
             </h2>
-            <p className="mt-1 text-sm text-stone-300/80">Applications reviewed by a real person, not a bot.</p>
+            <p className="mt-1 text-sm text-stone-300/80">{c.applicationsReviewed}</p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <LinkButton href="/apply" size="lg" className="!bg-white !text-ink hover:!bg-stone-200">
-              Apply for Wholesale Access
+            <LinkButton href={withLocale(locale, "/apply")} size="lg" className="!bg-white !text-ink hover:!bg-stone-200">
+              {dict.nav.applyForAccess}
             </LinkButton>
             <LinkButton
-              href="/login"
+              href={withLocale(locale, "/login")}
               variant="secondary"
               size="lg"
               className="!border-white !text-white hover:!bg-white hover:!text-ink"
             >
-              Buyer Login
+              {dict.nav.buyerLogin}
             </LinkButton>
           </div>
         </div>

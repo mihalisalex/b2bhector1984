@@ -73,7 +73,88 @@ const de: Dictionary = {
   languageSwitcher: {
     label: "Sprache",
   },
+  seo: {
+    homeTitle: "Herren Lederschuhe Großhandel | Hector Footwear",
+    homeDescription:
+      "Hector Footwear ist ein Großhändler für Herren-Lederschuhe, seit 1984 — Loafer, Stiefel, elegante Schuhe und Sneaker aus Vollnarbenleder für den unabhängigen Einzelhandel. Bestellung nur im Karton, konditionsbasierte Preise.",
+    collectionsTitle: "Herren Lederschuhe im Großhandel",
+    collectionsDescription:
+      "Herren-Lederschuhe im Großhandel — Loafer, Stiefel, elegante Schuhe, Sneaker und Sandalen aus Vollnarbenleder. Melden Sie sich für Großhandelspreise an oder beantragen Sie ein Händlerkonto.",
+    brandStoryTitle: "Über uns — Großhändler für Herren-Lederschuhe seit 1984",
+    brandStoryDescription:
+      "Hector Footwear fertigt seit 1984 Herren-Lederschuhe aus Vollnarbenleder — Loafer, Stiefel, elegante Schuhe und mehr — für unabhängige Einzelhändler. Nur Großhandel, kein Direktvertrieb.",
+    faqTitle: "Großhandel-FAQ — Bestellung, Preise & Versand",
+    faqDescription:
+      "Antworten für Großhandelskunden, die Herren-Lederschuhe bei Hector Footwear bestellen — Kartonpolitik, konditionsbasierte Preise, Konten und Versand.",
+    contactTitle: "Kontakt — Großhandelsanfragen",
+    contactDescription:
+      "Kontaktieren Sie Hector Footwear zu einem Großhandelskonto für Herren-Lederschuhe — allgemeine Anfragen, neue Konten und Support für bestehende Kunden.",
+    journalTitle: "Journal — Einkaufsratgeber für den Schuh-Großhandel",
+    journalDescription:
+      "Einkaufsratgeber, Beschaffungstipps und Markteinblicke für Händler, die Herren-Lederschuhe im Großhandel kaufen — von Hector Footwear.",
+    applyTitle: "Großhandelskonto beantragen",
+    applyDescription:
+      "Beantragen Sie ein Großhandelskonto bei Hector Footwear, um Herren-Lederschuhe zu Handelspreisen zu kaufen. Die meisten Anträge werden innerhalb von 2 Werktagen geprüft.",
+    loginTitle: "Händler-Login",
+    loginDescription:
+      "Melden Sie sich bei Ihrem Hector Footwear Großhandelskonto an — volle Preise für Herren-Lederschuhe, Matrixbestellung und Bestellhistorie.",
+  },
+  contact: {
+    eyebrow: "Kontakt aufnehmen",
+    heading: "Sprechen Sie mit einem echten Menschen,\nnicht mit einem Bot.",
+    intro: "Jede Anfrage wird von einem echten Mitglied des Hector-Footwear-Teams beantwortet — meist innerhalb von zwei Werktagen.",
+    generalTitle: "Allgemeine Anfragen",
+    generalBody: "Fragen zur Marke, zu bestehenden Bestellungen oder alles andere.",
+    newAccountsTitle: "Neue Großhandelskonten",
+    newAccountsBody: "Bereit für den Antrag, oder haben Sie vorher Fragen? Erreichen Sie das Kontenteam direkt.",
+    existingBuyersTitle: "Bestehende Kunden",
+    existingBuyersBody: "Haben Sie bereits ein Konto? Ihr Gebietsvertreter ist in Ihrem Dashboard aufgeführt und der schnellste Weg, uns zu erreichen.",
+    goToDashboard: "Zu Ihrem Dashboard",
+    applicationsReviewed: "Anträge werden von einer echten Person geprüft, nicht von einem Bot.",
+  },
+  faq: {
+    heading: "Fragen, beantwortet.",
+    intro: "Alles rund um Bestellung, Preise und Großhandelskonten. Nicht gefunden, wonach Sie suchen? Wir sind ein echtes Team, kein Bot.",
+    stillHaveQuestions: "Noch Fragen?",
+    contactLinkText: "Kontaktieren Sie uns",
+    contactSuffix: "— jede Anfrage wird von einem echten Teammitglied beantwortet, meist innerhalb von zwei Werktagen.",
+  },
+  brandStory: {
+    estSince: "Seit 1984",
+    heroHeading: "Gebaut für die Prüfung.\nGebaut, um eine Saison voller\nNachbestellungen zu überstehen.",
+    intro1:
+      "Hector Footwear begann in einem gemeinsam genutzten Werkstattraum hinter einer Schuhmacherei in der Innenstadt, drei Wochen vor der Fachmesse jenes Jahres. Das erste Paar vom Leisten war ein handgezwickter Loafer, gefertigt für einen lokalen Einzelhändler, der einen Schuh brauchte, der seine Form hält — beim Budget eines kleinen Ladens. Er war zweimal ausverkauft, bevor die Saison endete.",
+    intro2:
+      "Vier Jahrzehnte später haben sich die Fertigungsstandards nicht verändert: Vollnarbenleder und Velours von Gerbereien, mit denen wir seit über zwanzig Jahren zusammenarbeiten, und Laufsohlen, die für den Verkaufsboden gebaut sind, nicht fürs Lookbook. Was sich geändert hat, ist die Kollektion — eine Sommerkollektion (Loafer, Hochzeit, Sneaker, Sandalen) und eine Winterkollektion (Stiefel, Sneaker, elegant, anatomisch), jeweils auf derselben Leisten-Philosophie und demselben Qualitätsstandard aufgebaut.",
+    intro3:
+      "Wir verkaufen ausschließlich im Großhandel, direkt an unabhängige und regionale Einzelhändler, die ihren Laden und ihre Kunden kennen. Kein Direktvertrieb, der die Konten unterbietet, die uns das ganze Jahr über führen. Das ist die Abmachung, die wir seit 1984 halten.",
+    materialsHeading: "Materialien & Handwerk",
+    material1Title: "Vollnarbenleder & Velours",
+    material1Body: "Von Gerbereien, mit denen wir seit zwei Jahrzehnten zusammenarbeiten. Gleichbleibende Haptik, gleichbleibendes Eintragverhalten, bei jeder Charge.",
+    material2Title: "Wedge-Cupsole-Konstruktion",
+    material2Body: "Dieselbe Zwischen-zu-Laufsohlen-Geometrie der ursprünglichen Form von 1984, aktualisiert mit modernen EVA- und Gummimischungen.",
+    material3Title: "Nach Qualitätsstandard gebaut, nicht nach Saison",
+    material3Body: "Jedes Modell durchläuft dieselben Flex-, Abriebs- und Klebefestigkeitstests, bevor es an Ihr Geschäft ausgeliefert wird.",
+    ctaHeading: "Aktuelle Kollektion ansehen",
+    ctaBody: "Volle Preise werden mit einem freigeschalteten Großhandelskonto sichtbar.",
+    ctaButton: "Lookbook ansehen",
+  },
+  collections: {
+    eyebrow: "Großhandels-Lookbook",
+    heading: "Herren Lederschuhe im Großhandel",
+    intro:
+      "Herren-Lederschuhe aus Vollnarbenleder — Loafer, Stiefel, elegante Schuhe, Sneaker und Sandalen — ausschließlich im Großhandel, in festen Kartongrößen, für unabhängige und regionale Einzelhändler. Melden Sie sich mit einem freigeschalteten Konto an für volle Preise und Matrixbestellung.",
+    allSeasons: "Alle Saisons",
+    allCategories: "Alle Kategorien",
+    signInForPricing: "Für Großhandelspreise anmelden",
+    notWholesaleYet: "Noch kein Großhandelskonto?",
+  },
   home: {
+    heroEyebrow: "Nur Großhandel — Seit 1984",
+    heroHeading: "Herren-Lederschuhe.\nGroßhandel, seit 1984.",
+    heroBody:
+      "Herren-Lederschuhe aus Vollnarbenleder — vom Loafer bis zum Stiefel — im Großhandel, so wie es unabhängige Einzelhändler erwarten. Bestellung nur im Karton, konditionsbasierte Preise, kein Direktvertrieb-Rabatt.",
+    heroImageAlt: "Herren-Lederschuhe aus Vollnarbenleder aus der Großhandelskollektion von Hector Footwear",
     viewCollectionFirst: "Zuerst die Kollektion ansehen",
     step1Title: "Bewerben",
     step1Body: "Erzählen Sie uns von Ihrem Geschäft — dauert nur 2 Minuten.",

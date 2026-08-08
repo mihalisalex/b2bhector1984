@@ -8,13 +8,25 @@ import { LinkButton } from "@/components/ui/Button";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { pageMetadata } from "@/lib/seo";
 import { buildCollectionSchema } from "@/lib/seoJsonLd";
+import { getDictionary } from "@/i18n/getDictionary";
+import type { Locale } from "@/i18n/config";
+import { withLocale } from "@/i18n/paths";
 
-export function generateMetadata() {
+/**
+ * This is the site's primary public "men's leather shoes wholesale" page — the one
+ * un-gated page that actually lists real products — so it carries real per-locale H1/intro
+ * copy (not just translated chrome), which is why `hasLocaleVariants` isn't set to `false`
+ * here the way it is on brand-story/faq/contact.
+ */
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const locale = lang as Locale;
+  const dict = await getDictionary(locale);
   return pageMetadata({
-    title: "Collections",
-    description:
-      "Browse the current Hector Footwear collection — Summer and Winter, seven categories. Wholesale pricing and matrix ordering unlock with an approved buyer account.",
+    title: dict.seo.collectionsTitle,
+    description: dict.seo.collectionsDescription,
     path: "/collections",
+    locale,
   });
 }
 
@@ -25,12 +37,21 @@ const SEASON_CATEGORIES: Record<Season, Category[]> = {
 };
 
 export default async function CollectionsPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ lang: string }>;
   searchParams: Promise<{ category?: string; season?: string }>;
 }) {
+  const { lang } = await params;
+  const locale = lang as Locale;
   const { category, season } = await searchParams;
-  const [styles, seasonSettings] = await Promise.all([getStorefrontStyles(), getSeasonSettings()]);
+  const [styles, seasonSettings, dict] = await Promise.all([
+    getStorefrontStyles(),
+    getSeasonSettings(),
+    getDictionary(locale),
+  ]);
+  const d = dict.collections;
   const seasonOptions = toSeasonOptions(seasonSettings);
   const enabledSeasons = seasonOptions.map((s) => s.value);
   const activeSeason = enabledSeasons.includes(season as Season) ? (season as Season) : null;
@@ -42,18 +63,20 @@ export default async function CollectionsPage({
   const results = styles.filter(
     (s) => (!activeCategory || s.category === activeCategory) && (!activeSeason || s.season === activeSeason),
   );
+  const collectionsHref = withLocale(locale, "/collections");
+  const buildHref = (query: string) => `${collectionsHref}${query}`;
 
   // CollectionPage + ItemList for the public lookbook. Members link to
   // /collections itself rather than to /product/* — those product URLs are
   // gated and noindex, and pointing structured data at pages Google is told not
   // to crawl produces Search Console errors rather than rich results.
   const collectionSchema = buildCollectionSchema({
-    name: activeCategory ? CATEGORY_LABEL[activeCategory] : "Collections",
+    name: activeCategory ? CATEGORY_LABEL[activeCategory] : d.heading,
     description: `${results.length} styles from the Hector Footwear ${activeSeason ?? "current"} collection.`,
-    path: "/collections",
+    path: collectionsHref,
     items: results.map((style) => ({
       name: style.name,
-      path: "/collections",
+      path: collectionsHref,
       imageUrl: getStyleImageUrl(style),
     })),
   });
@@ -62,17 +85,14 @@ export default async function CollectionsPage({
     <div className="mx-auto max-w-[1440px] px-6 py-12 lg:px-10">
       <JsonLd schema={collectionSchema} />
       <div className="border-b border-stone-300 pb-8">
-        <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">Lookbook</span>
+        <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">{d.eyebrow}</span>
         <h1 className="font-display mt-2 text-3xl font-bold uppercase tracking-tight text-ink sm:text-4xl">
-          Current Collection
+          {d.heading}
         </h1>
-        <p className="mt-2 max-w-lg text-sm text-ink-soft">
-          Browse the full range. Wholesale pricing and matrix ordering are visible once
-          you&rsquo;re signed in with an approved account.
-        </p>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">{d.intro}</p>
 
         <div className="mt-6 flex flex-wrap gap-2">
-          <CategoryPill href="/collections" active={!activeSeason} label="All seasons" />
+          <CategoryPill href={collectionsHref} active={!activeSeason} label={d.allSeasons} />
           {seasonOptions.map(({ value: s, label }) => {
             // Dropping category when it isn't part of the target season keeps the
             // category pills (and results) from silently going stale/empty.
@@ -80,7 +100,7 @@ export default async function CollectionsPage({
             return (
               <CategoryPill
                 key={s}
-                href={`/collections?season=${s}${keepCategory ? `&category=${activeCategory}` : ""}`}
+                href={buildHref(`?season=${s}${keepCategory ? `&category=${activeCategory}` : ""}`)}
                 active={activeSeason === s}
                 label={label}
               />
@@ -90,14 +110,14 @@ export default async function CollectionsPage({
 
         <div className="mt-3 flex flex-wrap gap-2">
           <CategoryPill
-            href={activeSeason ? `/collections?season=${activeSeason}` : "/collections"}
+            href={activeSeason ? buildHref(`?season=${activeSeason}`) : collectionsHref}
             active={!activeCategory}
-            label="All categories"
+            label={d.allCategories}
           />
           {visibleCategories.map((c) => (
             <CategoryPill
               key={c}
-              href={`/collections?category=${c}${activeSeason ? `&season=${activeSeason}` : ""}`}
+              href={buildHref(`?category=${c}${activeSeason ? `&season=${activeSeason}` : ""}`)}
               active={activeCategory === c}
               label={CATEGORY_LABEL[c]}
             />
@@ -109,7 +129,7 @@ export default async function CollectionsPage({
         {results.map((style) => (
           <Link
             key={style.id}
-            href={`/product/${style.slug}`}
+            href={withLocale(locale, `/product/${style.slug}`)}
             className="group block border border-stone-300 bg-white transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(26,29,34,0.12)]"
           >
             <div className="overflow-hidden">
@@ -144,7 +164,7 @@ export default async function CollectionsPage({
                 ))}
               </div>
               <p className="mt-4 border-t border-stone-200 pt-3 text-xs font-medium uppercase tracking-wide text-signal">
-                Sign in for wholesale pricing →
+                {d.signInForPricing} →
               </p>
             </div>
           </Link>
@@ -152,8 +172,10 @@ export default async function CollectionsPage({
       </div>
 
       <div className="mt-16 flex flex-col items-center gap-3 border-t border-stone-300 pt-10 text-center">
-        <p className="text-sm text-ink-soft">Not a wholesale account yet?</p>
-        <LinkButton href="/apply" size="lg">Apply for Wholesale Access</LinkButton>
+        <p className="text-sm text-ink-soft">{d.notWholesaleYet}</p>
+        <LinkButton href={withLocale(locale, "/apply")} size="lg">
+          {dict.nav.applyForAccess}
+        </LinkButton>
       </div>
     </div>
   );

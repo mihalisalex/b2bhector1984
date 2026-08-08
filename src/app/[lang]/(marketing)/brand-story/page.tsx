@@ -1,54 +1,52 @@
 import { LinkButton } from "@/components/ui/Button";
 import { StylePlate } from "@/components/product/StylePlate";
 import { pageMetadata } from "@/lib/seo";
+import { getDictionary } from "@/i18n/getDictionary";
+import type { Locale } from "@/i18n/config";
+import { withLocale } from "@/i18n/paths";
 
-export function generateMetadata() {
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const locale = lang as Locale;
+  const dict = await getDictionary(locale);
   return pageMetadata({
-    title: "The Brand",
-    description:
-      "Hector Footwear has built full-grain leather footwear — loafers, boots, formal, and more, across a Summer and Winter collection — since the year we were founded, wholesale only.",
+    title: dict.seo.brandStoryTitle,
+    description: dict.seo.brandStoryDescription,
     path: "/brand-story",
+    locale,
+    // Body copy is now genuinely translated (not just chrome) across all four locales —
+    // see dict.brandStory — so this can carry real hreflang alternates.
   });
 }
 
-export default function BrandStoryPage() {
+export default async function BrandStoryPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const locale = lang as Locale;
+  const dict = await getDictionary(locale);
+  const b = dict.brandStory;
+  const heroLines = b.heroHeading.split("\n");
+
   return (
     <div>
       <section className="border-b border-stone-300 bg-stone-100 px-6 py-20 lg:px-10">
         <div className="mx-auto max-w-3xl text-center">
-          <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">Est. 1984</span>
+          <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">{b.estSince}</span>
           <h1 className="font-display mt-4 text-4xl font-bold uppercase leading-[1.02] tracking-tight text-ink sm:text-5xl">
-            Built for the trials.
-            <br />
-            Built to last a season
-            <br />
-            of reorders.
+            {heroLines.map((line, i) => (
+              <span key={i}>
+                {line}
+                {i < heroLines.length - 1 && <br />}
+              </span>
+            ))}
           </h1>
         </div>
       </section>
 
       <section className="mx-auto grid max-w-[1200px] grid-cols-1 gap-12 px-6 py-20 lg:grid-cols-2 lg:px-10">
         <div className="flex flex-col gap-6 text-sm leading-relaxed text-ink-soft">
-          <p>
-            Hector Footwear started in a shared shop space behind a downtown shoemaker, three weeks
-            before that year&rsquo;s trade show. The first pair off the last was a hand-lasted
-            loafer built for a local retailer who needed a shoe that could hold its shape on a
-            shop-owner&rsquo;s budget — and it sold out of the store that carried it twice before
-            the season ended.
-          </p>
-          <p>
-            Four decades later, the construction standards haven&rsquo;t moved: full-grain leathers
-            and suedes sourced from tanneries we&rsquo;ve worked with for over twenty years, and
-            outsole compounds built for a floor, not a lookbook. What has changed is the range —
-            a Summer collection (loafers, wedding, sneakers, sandals) and a Winter collection
-            (boots, sneakers, formal, anatomic), each built on the same last philosophy and QC
-            standard.
-          </p>
-          <p>
-            We sell wholesale only, direct to independent and regional retailers who know their
-            floor and their customer. No DTC discounting undercutting the accounts who carry us
-            all year. That&rsquo;s the deal we&rsquo;ve kept since 1984.
-          </p>
+          <p>{b.intro1}</p>
+          <p>{b.intro2}</p>
+          <p>{b.intro3}</p>
         </div>
         <StylePlate swatch={["#1a1d22", "#c1451e"]} styleNumber="HL-1001" className="aspect-square w-full" />
       </section>
@@ -56,21 +54,12 @@ export default function BrandStoryPage() {
       <section id="materials" className="border-t border-stone-300 bg-stone-100 px-6 py-20 lg:px-10">
         <div className="mx-auto max-w-[1200px]">
           <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-ink sm:text-3xl">
-            Materials &amp; Craft
+            {b.materialsHeading}
           </h2>
           <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-3">
-            <Material
-              title="Full-grain leather & suede"
-              body="Sourced from tanneries we've worked with for two decades. Consistent hand, consistent break-in, every case."
-            />
-            <Material
-              title="Wedge-cupsole construction"
-              body="The same midsole-to-outsole geometry from the original 1984 mold, updated with modern EVA and rubber compounds."
-            />
-            <Material
-              title="Built to a QC standard, not a season"
-              body="Every style passes the same flex, abrasion, and bond-strength testing before it ships to your floor."
-            />
+            <Material title={b.material1Title} body={b.material1Body} />
+            <Material title={b.material2Title} body={b.material2Body} />
+            <Material title={b.material3Title} body={b.material3Body} />
           </div>
         </div>
       </section>
@@ -78,13 +67,11 @@ export default function BrandStoryPage() {
       <section className="border-t border-stone-300 bg-ink py-16">
         <div className="mx-auto flex max-w-[1440px] flex-col items-start justify-between gap-6 px-6 sm:flex-row sm:items-center lg:px-10">
           <div>
-            <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-white">
-              See the current collection
-            </h2>
-            <p className="mt-1 text-sm text-stone-300/80">Full pricing unlocks with an approved wholesale account.</p>
+            <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-white">{b.ctaHeading}</h2>
+            <p className="mt-1 text-sm text-stone-300/80">{b.ctaBody}</p>
           </div>
-          <LinkButton href="/collections" size="lg" className="!bg-white !text-ink hover:!bg-stone-200">
-            View the Lookbook
+          <LinkButton href={withLocale(locale, "/collections")} size="lg" className="!bg-white !text-ink hover:!bg-stone-200">
+            {b.ctaButton}
           </LinkButton>
         </div>
       </section>
