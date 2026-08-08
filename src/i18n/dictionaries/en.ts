@@ -71,7 +71,88 @@ const en = {
   languageSwitcher: {
     label: "Language",
   },
+  seo: {
+    homeTitle: "Men's Leather Shoes Wholesale | Hector Footwear",
+    homeDescription:
+      "Hector Footwear is a men's leather footwear wholesaler, est. 1984 — full-grain loafers, boots, formal shoes and sneakers for independent retailers. Box-only ordering, terms-based pricing.",
+    collectionsTitle: "Men's Leather Shoes Wholesale",
+    collectionsDescription:
+      "Men's leather loafers, boots, formal shoes, sneakers and sandals, wholesale — full-grain leather, box-only ordering. Sign in for wholesale pricing or apply for a trade account.",
+    brandStoryTitle: "About Us — Men's Leather Footwear Wholesaler Since 1984",
+    brandStoryDescription:
+      "Hector Footwear has built full-grain men's leather footwear — loafers, boots, formal and more — for independent retailers since 1984. Wholesale only, no DTC.",
+    faqTitle: "Wholesale FAQ — Ordering, Pricing & Shipping",
+    faqDescription:
+      "Answers for wholesale buyers ordering men's leather footwear from Hector Footwear — box policy, terms-based pricing, accounts, and shipping.",
+    contactTitle: "Contact — Wholesale Inquiries",
+    contactDescription:
+      "Get in touch with Hector Footwear about a men's leather footwear wholesale account — general inquiries, new accounts, and existing buyer support.",
+    journalTitle: "Journal — Wholesale Footwear Buying Guides",
+    journalDescription:
+      "Buyer guides, sourcing advice and market insights for retailers buying men's leather footwear wholesale, from Hector Footwear.",
+    applyTitle: "Apply for a Wholesale Account",
+    applyDescription:
+      "Apply for a Hector Footwear wholesale account to buy men's leather footwear at trade pricing. Most applications are reviewed within 2 business days.",
+    loginTitle: "Buyer Login",
+    loginDescription:
+      "Sign in to your Hector Footwear wholesale account for full men's leather footwear pricing, matrix ordering, and order history.",
+  },
+  contact: {
+    eyebrow: "Get in touch",
+    heading: "Talk to a real person,\nnot a bot.",
+    intro: "Every inquiry is answered by someone on the Hector Footwear team — usually within two business days.",
+    generalTitle: "General Inquiries",
+    generalBody: "Questions about the brand, existing orders, or anything else.",
+    newAccountsTitle: "New Wholesale Accounts",
+    newAccountsBody: "Ready to apply, or have questions before you do? Reach the accounts team directly.",
+    existingBuyersTitle: "Existing Buyers",
+    existingBuyersBody: "Already have an account? Your territory rep is listed on your dashboard and is the fastest way to reach us.",
+    goToDashboard: "Go to your dashboard",
+    applicationsReviewed: "Applications reviewed by a real person, not a bot.",
+  },
+  faq: {
+    heading: "Questions, answered.",
+    intro: "Everything about ordering, pricing, and wholesale accounts. Can’t find it here? We’re a real team, not a bot.",
+    stillHaveQuestions: "Still have questions?",
+    contactLinkText: "Contact us",
+    contactSuffix: "— every inquiry is answered by someone on the team, usually within two business days.",
+  },
+  brandStory: {
+    estSince: "Est. 1984",
+    heroHeading: "Built for the trials.\nBuilt to last a season\nof reorders.",
+    intro1:
+      "Hector Footwear started in a shared shop space behind a downtown shoemaker, three weeks before that year’s trade show. The first pair off the last was a hand-lasted loafer built for a local retailer who needed a shoe that could hold its shape on a shop-owner’s budget — and it sold out of the store that carried it twice before the season ended.",
+    intro2:
+      "Four decades later, the construction standards haven’t moved: full-grain leathers and suedes sourced from tanneries we’ve worked with for over twenty years, and outsole compounds built for a floor, not a lookbook. What has changed is the range — a Summer collection (loafers, wedding, sneakers, sandals) and a Winter collection (boots, sneakers, formal, anatomic), each built on the same last philosophy and QC standard.",
+    intro3:
+      "We sell wholesale only, direct to independent and regional retailers who know their floor and their customer. No DTC discounting undercutting the accounts who carry us all year. That’s the deal we’ve kept since 1984.",
+    materialsHeading: "Materials & Craft",
+    material1Title: "Full-grain leather & suede",
+    material1Body: "Sourced from tanneries we’ve worked with for two decades. Consistent hand, consistent break-in, every case.",
+    material2Title: "Wedge-cupsole construction",
+    material2Body: "The same midsole-to-outsole geometry from the original 1984 mold, updated with modern EVA and rubber compounds.",
+    material3Title: "Built to a QC standard, not a season",
+    material3Body: "Every style passes the same flex, abrasion, and bond-strength testing before it ships to your floor.",
+    ctaHeading: "See the current collection",
+    ctaBody: "Full pricing unlocks with an approved wholesale account.",
+    ctaButton: "View the Lookbook",
+  },
+  collections: {
+    eyebrow: "Wholesale Lookbook",
+    heading: "Men's Leather Shoes, Wholesale",
+    intro:
+      "Full-grain men's leather footwear across loafers, boots, formal shoes, sneakers and sandals — sold wholesale only, in fixed box packs, to independent and regional retailers. Sign in with an approved account for full pricing and matrix ordering.",
+    allSeasons: "All Seasons",
+    allCategories: "All Categories",
+    signInForPricing: "Sign in for wholesale pricing",
+    notWholesaleYet: "Not a wholesale account yet?",
+  },
   home: {
+    heroEyebrow: "Wholesale Only — Est. 1984",
+    heroHeading: "Men's Leather Footwear\nWholesale, Since 1984.",
+    heroBody:
+      "Full-grain men's leather footwear — loafers to boots — wholesaled the way independent retailers expect. Box-only ordering, terms-based pricing, no DTC discounting.",
+    heroImageAlt: "Full-grain leather men's shoes from the Hector Footwear wholesale collection",
     viewCollectionFirst: "View the collection first",
     step1Title: "Apply",
     step1Body: "Tell us about your store — takes 2 minutes.",

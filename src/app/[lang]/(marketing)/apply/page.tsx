@@ -3,13 +3,18 @@ import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
 import { ApplyForm } from "@/components/auth/ApplyForm";
 import { pageMetadata } from "@/lib/seo";
+import { getDictionary } from "@/i18n/getDictionary";
+import type { Locale } from "@/i18n/config";
 
-export function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const locale = lang as Locale;
+  const dict = await getDictionary(locale);
   return pageMetadata({
-    title: "Apply for Wholesale Access",
-    description:
-      "Apply for a Hector Footwear wholesale account. Tell us about your store — resale certificate, expected volume, and location. Most applications are reviewed within 2 business days.",
+    title: dict.seo.applyTitle,
+    description: dict.seo.applyDescription,
     path: "/apply",
+    locale,
   });
 }
 

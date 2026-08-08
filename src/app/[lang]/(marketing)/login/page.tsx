@@ -4,12 +4,18 @@ import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { pageMetadata } from "@/lib/seo";
+import { getDictionary } from "@/i18n/getDictionary";
+import type { Locale } from "@/i18n/config";
 
-export function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const locale = lang as Locale;
+  const dict = await getDictionary(locale);
   return pageMetadata({
-    title: "Buyer Login",
-    description: "Sign in to your Hector Footwear wholesale account for full pricing, matrix ordering, and order history.",
+    title: dict.seo.loginTitle,
+    description: dict.seo.loginDescription,
     path: "/login",
+    locale,
   });
 }
 

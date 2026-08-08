@@ -73,7 +73,88 @@ const fr: Dictionary = {
   languageSwitcher: {
     label: "Langue",
   },
+  seo: {
+    homeTitle: "Chaussures en Cuir Homme en Gros | Hector Footwear",
+    homeDescription:
+      "Hector Footwear est un grossiste en chaussures en cuir pour homme depuis 1984 — mocassins, bottes, chaussures habillées et sneakers en cuir pleine fleur pour détaillants indépendants. Commande par carton, tarification selon les conditions de paiement.",
+    collectionsTitle: "Chaussures en Cuir Homme, en Gros",
+    collectionsDescription:
+      "Chaussures en cuir homme en gros — mocassins, bottes, chaussures habillées, sneakers et sandales en cuir pleine fleur. Connectez-vous pour les tarifs grossistes ou demandez un compte professionnel.",
+    brandStoryTitle: "À propos — Grossiste en Chaussures en Cuir Homme depuis 1984",
+    brandStoryDescription:
+      "Hector Footwear fabrique des chaussures en cuir pleine fleur pour homme — mocassins, bottes, chaussures habillées et plus — pour détaillants indépendants depuis 1984. Vente en gros uniquement.",
+    faqTitle: "FAQ Grossiste — Commande, Tarifs & Livraison",
+    faqDescription:
+      "Réponses pour les acheteurs professionnels qui commandent des chaussures en cuir homme chez Hector Footwear — politique de cartons, tarification, comptes et livraison.",
+    contactTitle: "Contact — Demandes Grossistes",
+    contactDescription:
+      "Contactez Hector Footwear au sujet d'un compte grossiste pour chaussures en cuir homme — demandes générales, nouveaux comptes et support aux clients existants.",
+    journalTitle: "Journal — Guides d'Achat en Gros pour la Chaussure",
+    journalDescription:
+      "Guides d'achat, conseils d'approvisionnement et tendances de marché pour les détaillants qui achètent des chaussures en cuir homme en gros, par Hector Footwear.",
+    applyTitle: "Demander un Compte Grossiste",
+    applyDescription:
+      "Demandez un compte grossiste Hector Footwear pour acheter des chaussures en cuir homme à prix professionnel. La plupart des candidatures sont examinées sous 2 jours ouvrés.",
+    loginTitle: "Connexion Acheteur",
+    loginDescription:
+      "Connectez-vous à votre compte grossiste Hector Footwear pour les tarifs complets des chaussures en cuir homme, la commande matricielle et l'historique des commandes.",
+  },
+  contact: {
+    eyebrow: "Contactez-nous",
+    heading: "Parlez à une vraie personne,\npas à un robot.",
+    intro: "Chaque demande reçoit une réponse d’un membre de l’équipe Hector Footwear — généralement sous deux jours ouvrés.",
+    generalTitle: "Demandes Générales",
+    generalBody: "Questions sur la marque, des commandes existantes, ou toute autre chose.",
+    newAccountsTitle: "Nouveaux Comptes Grossistes",
+    newAccountsBody: "Prêt à postuler, ou des questions avant de le faire ? Contactez directement l’équipe des comptes.",
+    existingBuyersTitle: "Clients Existants",
+    existingBuyersBody: "Vous avez déjà un compte ? Votre représentant régional est indiqué sur votre tableau de bord, c’est le moyen le plus rapide de nous joindre.",
+    goToDashboard: "Accéder à votre tableau de bord",
+    applicationsReviewed: "Les candidatures sont examinées par une vraie personne, pas par un robot.",
+  },
+  faq: {
+    heading: "Vos questions, nos réponses.",
+    intro: "Tout sur les commandes, les tarifs et les comptes grossistes. Vous ne trouvez pas ce que vous cherchez ? Nous sommes une vraie équipe, pas un robot.",
+    stillHaveQuestions: "Encore des questions ?",
+    contactLinkText: "Contactez-nous",
+    contactSuffix: "— chaque demande reçoit une réponse d’un membre de l’équipe, généralement sous deux jours ouvrés.",
+  },
+  brandStory: {
+    estSince: "Depuis 1984",
+    heroHeading: "Conçues pour l’épreuve.\nConçues pour tenir une saison\nde réassorts.",
+    intro1:
+      "Hector Footwear a commencé dans un atelier partagé derrière l’échoppe d’un cordonnier du centre-ville, trois semaines avant le salon professionnel de cette année-là. La première paire sortie de la forme était un mocassin cousu à la main, conçu pour un détaillant local qui avait besoin d’une chaussure capable de garder sa forme avec le budget d’un petit commerce — elle s’est vendue deux fois en rupture de stock avant la fin de la saison.",
+    intro2:
+      "Quatre décennies plus tard, les standards de fabrication n’ont pas changé : cuirs pleine fleur et daims provenant de tanneries avec lesquelles nous travaillons depuis plus de vingt ans, et semelles conçues pour le terrain, pas pour le lookbook. Ce qui a changé, c’est la gamme — une collection Été (mocassins, mariage, sneakers, sandales) et une collection Hiver (bottes, sneakers, habillé, anatomique), toutes deux construites sur la même philosophie de forme et le même standard de contrôle qualité.",
+    intro3:
+      "Nous vendons exclusivement en gros, directement aux détaillants indépendants et régionaux qui connaissent leur magasin et leur clientèle. Aucune vente directe au consommateur qui viendrait concurrencer les comptes qui nous distribuent toute l’année. C’est l’engagement que nous tenons depuis 1984.",
+    materialsHeading: "Matières & Savoir-faire",
+    material1Title: "Cuir pleine fleur & daim",
+    material1Body: "Provenant de tanneries avec lesquelles nous travaillons depuis deux décennies. Toucher constant, assouplissement constant, à chaque lot.",
+    material2Title: "Construction semelle wedge-cupsole",
+    material2Body: "La même géométrie semelle intermédiaire-extérieure que la forme originale de 1984, actualisée avec des composés EVA et caoutchouc modernes.",
+    material3Title: "Construites selon un standard qualité, pas selon une saison",
+    material3Body: "Chaque modèle passe les mêmes tests de flexion, d’abrasion et de résistance du collage avant d’être expédié vers votre magasin.",
+    ctaHeading: "Voir la collection actuelle",
+    ctaBody: "Les tarifs complets sont débloqués avec un compte grossiste approuvé.",
+    ctaButton: "Voir le Lookbook",
+  },
+  collections: {
+    eyebrow: "Lookbook Grossiste",
+    heading: "Chaussures en Cuir Homme, en Gros",
+    intro:
+      "Chaussures en cuir pleine fleur pour homme — mocassins, bottes, chaussures habillées, sneakers et sandales — vendues exclusivement en gros, par cartons fixes, aux détaillants indépendants et régionaux. Connectez-vous avec un compte approuvé pour les tarifs complets et la commande matricielle.",
+    allSeasons: "Toutes les saisons",
+    allCategories: "Toutes les catégories",
+    signInForPricing: "Se connecter pour les tarifs grossistes",
+    notWholesaleYet: "Pas encore de compte grossiste ?",
+  },
   home: {
+    heroEyebrow: "Vente en Gros Uniquement — Depuis 1984",
+    heroHeading: "Chaussures en Cuir Homme.\nEn Gros, Depuis 1984.",
+    heroBody:
+      "Chaussures en cuir pleine fleur pour homme — du mocassin à la botte — vendues en gros comme l'attendent les détaillants indépendants. Commande par carton, tarification selon les conditions de paiement, aucune remise directe au consommateur.",
+    heroImageAlt: "Chaussures en cuir pleine fleur pour homme de la collection grossiste Hector Footwear",
     viewCollectionFirst: "Voir d'abord la collection",
     step1Title: "Postuler",
     step1Body: "Parlez-nous de votre boutique — cela prend 2 minutes.",

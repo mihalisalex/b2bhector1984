@@ -7,13 +7,22 @@ import { getPublishedJournalPosts } from "@/lib/data/journalPosts";
 import { ArticleCard } from "@/components/journal/ArticleCard";
 import { JournalFilters } from "@/components/journal/JournalFilters";
 import { JOURNAL_CATEGORIES } from "@/lib/types";
+import { getDictionary } from "@/i18n/getDictionary";
+import type { Locale } from "@/i18n/config";
 
-export function generateMetadata() {
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const locale = lang as Locale;
+  const dict = await getDictionary(locale);
   return pageMetadata({
-    title: "Journal",
-    description:
-      "Wholesale buying guides, supplier sourcing advice, and footwear industry insights from Hector Footwear — practical reading for retail buyers before they place an order.",
+    title: dict.seo.journalTitle,
+    description: dict.seo.journalDescription,
     path: "/journal",
+    locale,
+    // Every post is a single un-translated row (no per-locale content yet — see migration
+    // 0027's header comment) — the exact same article renders under every locale prefix, so
+    // hreflang alternates here would claim translated siblings that don't actually exist.
+    hasLocaleVariants: false,
   });
 }
 

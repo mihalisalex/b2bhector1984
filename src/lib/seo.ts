@@ -1,6 +1,7 @@
 import "server-only";
 import type { Metadata } from "next";
 import { SITE_URL } from "@/lib/siteUrl";
+import { LOCALES, DEFAULT_LOCALE, type Locale, withLocale } from "@/i18n/paths";
 import { getSeoSettings, type SeoSettings } from "@/lib/data/seoSettings";
 import { getEntityMeta } from "@/lib/data/seoEntityMeta";
 import {
@@ -42,6 +43,10 @@ export function absoluteUrl(path: string): string {
  * into the object Next expects. Unknown/empty values fall back to indexable,
  * because a malformed override should never silently deindex a page.
  */
+/** og:locale wants the `language_TERRITORY` form (e.g. `el_GR`), not the bare ISO code the
+ * rest of this module (and hreflang) uses — Facebook's crawler in particular is picky about it. */
+const OG_LOCALE: Record<Locale, string> = { en: "en_US", de: "de_DE", fr: "fr_FR", el: "el_GR" };
+
 export function parseRobots(value: string | undefined): Metadata["robots"] {
   const tokens = (value ?? "").toLowerCase().split(",").map((t) => t.trim());
   const index = !tokens.includes("noindex");
@@ -70,6 +75,15 @@ export interface BuildMetadataInput {
   twitterImageUrl?: string;
   twitterCard?: string;
   keywords?: string[];
+  /** Which locale this render is for — drives the canonical's locale prefix and the
+   * hreflang alternate set (see the block below). Defaults to the site's default locale
+   * (English, unprefixed) so every existing call site keeps its current behavior untouched. */
+  locale?: Locale;
+  /** Set to `false` for pages whose content doesn't actually vary per locale yet (e.g. the
+   * journal, whose posts have no per-locale rows) — suppresses hreflang alternates so the
+   * tag set never claims a translated sibling that doesn't really exist. The canonical still
+   * gets the current locale's own prefix either way. Defaults to `true`. */
+  hasLocaleVariants?: boolean;
 }
 
 function buildMetadata(input: BuildMetadataInput, settings: SeoSettings): Metadata {
@@ -83,13 +97,33 @@ function buildMetadata(input: BuildMetadataInput, settings: SeoSettings): Metada
 
   const ogImage = input.ogImageUrl ?? settings.defaultOgImageUrl;
   const twitterImage = input.twitterImageUrl ?? ogImage;
-  const canonical = input.canonicalPath ?? input.path;
+  const locale = input.locale ?? DEFAULT_LOCALE;
+  // An admin-entered canonical override is respected verbatim — it may deliberately point
+  // cross-domain or at a different path, and silently layering an auto-computed locale
+  // prefix on top of someone's explicit choice would rewrite it into something they never
+  // set. Only the auto-computed canonical (the common, no-override case) gets prefixed —
+  // this is also what makes every locale variant of a page self-canonical instead of every
+  // one of them pointing back at the English URL, which used to tell Google there was only
+  // ever one indexable version and the /de, /fr, /el pages didn't need a look.
+  const canonical = input.canonicalPath ? input.canonicalPath : withLocale(locale, input.path);
+
+  // hreflang: every locale's URL for this same logical page, plus x-default pointing at the
+  // site's default-locale (English, unprefixed) version — the standard pattern once one
+  // locale is unprefixed. Skipped when an admin canonical override is in play (see above,
+  // same reasoning) or when the page has no real per-locale variants to point at.
+  const languages =
+    !input.canonicalPath && input.hasLocaleVariants !== false
+      ? (Object.fromEntries([
+          ...LOCALES.map((loc) => [loc, absoluteUrl(withLocale(loc, input.path))]),
+          ["x-default", absoluteUrl(withLocale(DEFAULT_LOCALE, input.path))],
+        ]) as Record<string, string>)
+      : undefined;
 
   return {
     title: isHome ? { absolute: input.title } : input.title,
     description: input.description,
     keywords: input.keywords?.length ? input.keywords : undefined,
-    alternates: { canonical },
+    alternates: { canonical, languages },
     robots: parseRobots(input.robots),
     openGraph: {
       title: input.ogTitle?.trim() || fullTitle,
@@ -97,6 +131,7 @@ function buildMetadata(input: BuildMetadataInput, settings: SeoSettings): Metada
       url: canonical,
       siteName: settings.siteName,
       type: input.ogType ?? "website",
+      locale: OG_LOCALE[locale],
       images: ogImage ? [{ url: absoluteUrl(ogImage) }] : undefined,
     },
     twitter: {
@@ -124,10 +159,16 @@ export async function pageMetadata({
   title,
   description,
   path,
+  locale,
+  hasLocaleVariants,
 }: {
   title: string;
   description: string;
   path: string;
+  /** Which locale this render is for — see `BuildMetadataInput.locale`. Defaults to English. */
+  locale?: Locale;
+  /** See `BuildMetadataInput.hasLocaleVariants`. Defaults to `true`. */
+  hasLocaleVariants?: boolean;
 }): Promise<Metadata> {
   const [settings, override] = await Promise.all([getSeoSettings(), getEntityMeta("page", path)]);
   return buildMetadata(
@@ -135,7 +176,14 @@ export async function pageMetadata({
       title: override?.seoTitle?.trim() || title,
       description: override?.metaDescription?.trim() || description,
       path,
-      canonicalPath: override?.canonicalUrl?.trim() || path,
+      // Only a *real* admin override goes here — leaving this `undefined` in the common case
+      // (no override) is what lets `buildMetadata` auto-prefix the canonical with the current
+      // locale and generate hreflang alternates. This used to unconditionally fall back to
+      // `path`, which made every call site's canonicalPath permanently non-empty and silently
+      // disabled that logic entirely.
+      canonicalPath: override?.canonicalUrl?.trim() || undefined,
+      locale,
+      hasLocaleVariants,
       robots: override?.robots,
       ogTitle: override?.ogTitle,
       ogDescription: override?.ogDescription,
