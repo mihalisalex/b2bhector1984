@@ -10,6 +10,7 @@ import { CartDrawer } from "@/components/layout/CartDrawer";
 import { AccountIcon } from "@/components/layout/icons";
 import { AccountMenu } from "@/components/layout/AccountMenu";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
+import { LinkButton } from "@/components/ui/Button";
 import { withLocale } from "@/i18n/paths";
 
 export function MarketingHeader({
@@ -24,16 +25,39 @@ export function MarketingHeader({
   return (
     <header className="sticky top-0 z-40 overflow-hidden border-b border-stone-300 bg-stone-50/95 backdrop-blur">
       <HWatermark className="-top-16 right-6 text-[13rem] text-ink/[0.1]" />
-      <div className="relative mx-auto grid h-(--shell-header-h) max-w-[1440px] grid-cols-[1fr_auto_1fr] items-center gap-4 px-6 lg:px-10">
+      {/* Flex, not a 1fr/auto/1fr grid — the desktop nav on the left and the icon cluster
+          on the right are different widths, and a grid's equal-fr columns would drag the
+          logo off true center. `justify-between` plus an absolutely centered logo keeps it
+          centered regardless of how wide either side is. */}
+      <div className="relative mx-auto flex h-(--shell-header-h) max-w-[1440px] items-center justify-between px-6 lg:px-10">
         <div className="flex items-center">
           <MainNav account={account} />
         </div>
 
-        <Link href={withLocale(locale, "/")} className="flex items-center justify-center" aria-label={dict.nav.homeAriaLabel}>
+        <Link
+          href={withLocale(locale, "/")}
+          aria-label={dict.nav.homeAriaLabel}
+          className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center"
+        >
           <Logo />
         </Link>
 
         <div className="flex items-center justify-end gap-1 sm:gap-2">
+          {/* Anonymous desktop visitors previously had no way to reach this without opening
+              the hamburger drawer; now that the drawer is mobile-only, give it a quiet,
+              explicit entry point next to the account icon. */}
+          {/* The wrapping div (not a `hidden`/`lg:` class on the button itself) carries the
+              responsive display — LinkButton's own base classes already set `inline-flex`
+              unconditionally, and `cn` here is plain clsx with no conflict resolution, so an
+              unprefixed `hidden` alongside it would race that base class for the `display`
+              property instead of reliably losing below `lg`. */}
+          {!account && (
+            <div className="hidden lg:block">
+              <LinkButton href={withLocale(locale, "/apply")} variant="secondary" size="sm">
+                {dict.nav.applyForAccess}
+              </LinkButton>
+            </div>
+          )}
           <LanguageSwitcher />
           {/* Search previews wholesale pricing and Cart needs its provider — both stay
               behind login here, same as the catalog itself; anonymous visitors get the

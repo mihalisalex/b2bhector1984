@@ -39,7 +39,10 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   ]);
   const h = dict.home;
   const seasonOptions = toSeasonOptions(seasonSettings);
-  const headingLines = hero.heading.split("\n");
+  // Admin-edited content occasionally carries a stray blank line between sentences; filtered
+  // here so it can't open up an oversized gap in the middle of the headline (a blank line
+  // still renders as a full leading-height row even though there's nothing on it).
+  const headingLines = hero.heading.split("\n").filter((line) => line.trim() !== "");
 
   return (
     <div>
@@ -65,11 +68,11 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent" aria-hidden />
 
         <div className="relative mx-auto flex min-h-[520px] max-w-[1440px] items-center px-6 py-16 sm:min-h-[560px] lg:min-h-[640px] lg:px-10 2xl:min-h-[720px]">
-          <div className="max-w-xl">
+          <div className="max-w-xl lg:max-w-2xl">
             <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-stone-300/70">
               {hero.eyebrow}
             </span>
-            <h1 className="font-display mt-3 text-4xl font-bold uppercase leading-[0.95] tracking-tight text-white sm:text-5xl">
+            <h1 className="font-display mt-4 text-4xl font-bold uppercase leading-[1.05] text-white sm:text-5xl lg:text-6xl">
               {headingLines.map((line, i) => (
                 <span key={i}>
                   {line}
@@ -248,7 +251,7 @@ function QuickStep({
     <div className="relative">
       <span
         aria-hidden
-        className="font-display pointer-events-none absolute -top-8 left-0 select-none text-7xl font-extrabold leading-none text-stone-200 sm:-top-9 sm:text-8xl"
+        className="font-display pointer-events-none absolute -top-7 left-0 select-none text-6xl font-semibold leading-none text-stone-200 sm:-top-8 sm:text-7xl"
       >
         {n}
       </span>
