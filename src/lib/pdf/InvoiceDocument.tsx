@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
   headerBand: {
     backgroundColor: "#121212",
     paddingHorizontal: 40,
-    paddingVertical: 26,
+    paddingVertical: 20,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -54,14 +54,18 @@ const styles = StyleSheet.create({
   docTitle: { fontSize: 10, fontFamily: "Helvetica-Bold", color: "#121212", textAlign: "right", letterSpacing: 0.75 },
   docMeta: { fontSize: 8.5, color: "#a3a3a3", textAlign: "right", marginTop: 6 },
 
-  body: { paddingHorizontal: 40, paddingTop: 28, paddingBottom: 92 },
+  // paddingBottom is just breathing room before the footer now, not reserved space for a
+  // `fixed` element repeating on every page (the footer isn't `fixed` — see its own
+  // comment). It used to be 92pt for that purpose; left that large, it was dead space
+  // pushing an 8-9-line order onto a mostly-blank second page for no reason.
+  body: { paddingHorizontal: 40, paddingTop: 20, paddingBottom: 16 },
 
   infoCard: {
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 24,
-    marginBottom: 26,
-    padding: 16,
+    marginBottom: 18,
+    padding: 14,
     backgroundColor: "#f7f7f5",
     borderRadius: 4,
   },
@@ -88,16 +92,16 @@ const styles = StyleSheet.create({
   tableRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
+    paddingVertical: 8,
     borderBottom: "0.75pt solid #ececea",
   },
   th: { fontSize: 7.5, fontFamily: "Helvetica-Bold", color: "#6b6b6b", letterSpacing: 0.75 },
 
   colItem: { flexGrow: 1, flexDirection: "row", alignItems: "center", gap: 10, paddingRight: 10 },
-  thumb: { width: 40, height: 40, borderRadius: 4, objectFit: "cover" },
+  thumb: { width: 34, height: 34, borderRadius: 4, objectFit: "cover" },
   thumbFallback: {
-    width: 40,
-    height: 40,
+    width: 34,
+    height: 34,
     borderRadius: 4,
     backgroundColor: "#121212",
     alignItems: "center",
@@ -125,7 +129,7 @@ const styles = StyleSheet.create({
   colUnit: { width: 58, textAlign: "right", fontSize: 9, color: "#6b6b6b" },
   colTotal: { width: 68, textAlign: "right", fontSize: 9.5, fontFamily: "Helvetica-Bold" },
 
-  summaryWrap: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginTop: 22 },
+  summaryWrap: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginTop: 14 },
   summaryMeta: { fontSize: 9, color: "#6b6b6b" },
   summaryBox: { width: 230 },
   summaryRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 6 },
@@ -328,10 +332,16 @@ export function InvoiceDocument({
           </View>
         </View>
 
-        {/* `fixed` so this repeats on every page of a long order instead of only wherever
-            it happens to land on the last one — react-pdf only repeats an absolutely
-            positioned element across pages when told to. */}
-        <View style={styles.footer} fixed>
+        {/* Deliberately NOT `fixed` (tried once, reverted): pairing a fixed footer with
+            the per-line product photos above caused a real bug — page-break math went
+            wrong under load and the footer ended up overlapping the summary block, plus
+            dozens of extra blank pages on a real order. Absolutely positioned but page-
+            local, same as this document behaved before photos were added: it lands at
+            the bottom of whichever page the content naturally ends on. Fine for the
+            realistic case (a wholesale order's line count fits one page); an order long
+            enough to spill past page 1 just doesn't get a footer repeated on page 1,
+            which is a far smaller cost than the bug this replaced. */}
+        <View style={styles.footer}>
           <Text style={styles.footerText}>
             This is a proforma invoice, not a charge — it reflects stock and production check before your order is
             confirmed.
