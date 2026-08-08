@@ -15,14 +15,21 @@ export function ShopHeader({ account, locale, dict }: { account: Account; locale
   return (
     <header className="sticky top-0 z-40 overflow-hidden border-b border-stone-300 bg-stone-50/97 backdrop-blur print:hidden">
       <HWatermark className="-top-16 right-6 text-[13rem] text-ink/[0.1]" />
-      <div className="relative mx-auto grid h-(--shell-header-h) max-w-[1600px] grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 sm:px-6 lg:px-10">
+      {/* Flex + an absolutely centered logo, not a 1fr/auto/1fr grid — see MarketingHeader
+          for why: the desktop nav and the icon cluster are different widths, and equal-fr
+          grid columns would drag the logo off true center. */}
+      <div className="relative mx-auto flex h-(--shell-header-h) max-w-[1600px] items-center justify-between px-4 sm:px-6 lg:px-10">
         <div className="flex items-center">
           <MainNav account={account} />
         </div>
 
         {/* The homepage, matching the marketing header's logo and the nav's "Home" —
             the buyer's dashboard is reachable from the account menu instead. */}
-        <Link href={withLocale(locale, "/")} aria-label={dict.nav.homeAriaLabel} className="flex items-center justify-center">
+        <Link
+          href={withLocale(locale, "/")}
+          aria-label={dict.nav.homeAriaLabel}
+          className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center"
+        >
           <Logo />
         </Link>
 

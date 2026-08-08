@@ -28,6 +28,19 @@ export function MainNav({ account }: { account: Account | null }) {
     [dict],
   );
 
+  /** The always-visible desktop row — deliberately shorter than the mobile drawer's full
+   * list. The logo already routes home, and the company/reference pages below live in the
+   * footer on every page, so the header stays a few confident words wide instead of packing
+   * in every route it's possible to reach from here. */
+  const DESKTOP_LINKS = useMemo(
+    () => [
+      { href: "/quick-order", label: dict.nav.quickOrder },
+      { href: "/catalogue", label: dict.nav.catalogue },
+      { href: "/brand-story", label: dict.nav.theBrand },
+    ],
+    [dict],
+  );
+
   /** Company/reference pages. Same typographic treatment, set apart at the foot of the
    * drawer so they don't compete with the ordering routes above. */
   const SECONDARY_LINKS = useMemo(
@@ -67,12 +80,32 @@ export function MainNav({ account }: { account: Account | null }) {
 
   return (
     <>
+      {/* Desktop: a normal, visible text nav — no drawer involved. Understated weight and
+          wide tracking keep it quiet next to the centered logo. */}
+      <nav className="hidden items-center gap-9 lg:flex" aria-label="Primary">
+        {DESKTOP_LINKS.map((item) => (
+          <Link
+            key={item.href}
+            href={withLocale(locale, item.href)}
+            aria-current={activePath === item.href ? "page" : undefined}
+            className={cn(
+              "text-[13px] font-medium uppercase tracking-[0.08em] transition-colors",
+              activePath === item.href ? "text-ink" : "text-ink-soft hover:text-ink",
+            )}
+          >
+            {item.label}
+          </Link>
+        ))}
+      </nav>
+
+      {/* Mobile/tablet: unchanged hamburger + drawer, just scoped below the desktop nav's
+          breakpoint instead of showing at every width. */}
       <button
         type="button"
         onClick={() => setOpen(true)}
         aria-label={dict.nav.openMenu}
         aria-expanded={open}
-        className="group flex h-9 w-9 shrink-0 flex-col items-center justify-center gap-[6px]"
+        className="group flex h-9 w-9 shrink-0 flex-col items-center justify-center gap-[6px] lg:hidden"
       >
         <span className="h-[1.5px] w-5 bg-ink transition-colors group-hover:bg-signal" aria-hidden />
         <span className="h-[1.5px] w-5 bg-ink transition-colors group-hover:bg-signal" aria-hidden />
