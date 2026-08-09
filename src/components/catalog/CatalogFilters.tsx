@@ -150,13 +150,13 @@ export function CatalogFilters({
             onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Search style name or number"
             aria-label="Search styles"
-            className="w-full border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal"
+            className="w-full rounded-full border border-stone-300 bg-white px-4 py-2 text-sm outline-none focus-visible:border-signal"
           />
           <button
             type="button"
             onClick={() => setOpen((o) => !o)}
             aria-expanded={open}
-            className="flex shrink-0 items-center gap-2 border border-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide lg:hidden"
+            className="flex shrink-0 items-center gap-2 rounded-full border border-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide lg:hidden"
           >
             Filters {activeCount > 0 && `(${activeCount})`}
           </button>
@@ -170,7 +170,7 @@ export function CatalogFilters({
               onClick={() => toggle("category", opt.value)}
               aria-pressed={isChecked("category", opt.value)}
               className={cn(
-                "shrink-0 whitespace-nowrap border px-3 py-1.5 text-xs font-medium uppercase tracking-wide transition-colors",
+                "shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium uppercase tracking-wide transition-colors",
                 isChecked("category", opt.value) ? "border-ink bg-ink text-white" : "border-stone-300 bg-white text-ink-soft",
               )}
             >
@@ -260,8 +260,8 @@ function SortSelect({ value, onChange, compact }: { value: string; onChange: (v:
       onChange={(e) => onChange(e.target.value)}
       aria-label="Sort by"
       className={cn(
-        "border border-stone-300 bg-white text-ink-soft outline-none focus-visible:border-signal",
-        compact ? "px-2 py-1.5 text-[11px] uppercase tracking-wide" : "px-3 py-2 text-xs uppercase tracking-wide",
+        "rounded-full border border-stone-300 bg-white text-ink-soft outline-none focus-visible:border-signal",
+        compact ? "px-3 py-1.5 text-[11px] uppercase tracking-wide" : "px-4 py-2 text-xs uppercase tracking-wide",
       )}
     >
       {SORT_OPTIONS.map((o) => (
@@ -273,13 +273,13 @@ function SortSelect({ value, onChange, compact }: { value: string; onChange: (v:
 
 function ViewToggle({ view, onChange }: { view: string; onChange: (v: "grid" | "list") => void }) {
   return (
-    <div className="flex items-center border border-stone-300 text-xs font-semibold uppercase tracking-wide">
+    <div className="flex items-center overflow-hidden rounded-full border border-stone-300 text-xs font-semibold uppercase tracking-wide">
       <button
         type="button"
         onClick={() => onChange("grid")}
         aria-pressed={view === "grid"}
         aria-label="Grid view"
-        className={cn("px-2.5 py-1.5", view === "grid" ? "bg-ink text-white" : "bg-white text-ink-soft hover:text-ink")}
+        className={cn("px-2.5 py-1.5 transition-colors", view === "grid" ? "bg-ink text-white" : "bg-white text-ink-soft hover:text-ink")}
       >
         <GridIcon />
       </button>
@@ -288,7 +288,10 @@ function ViewToggle({ view, onChange }: { view: string; onChange: (v: "grid" | "
         onClick={() => onChange("list")}
         aria-pressed={view === "list"}
         aria-label="List view"
-        className={cn("border-l border-stone-300 px-2.5 py-1.5", view === "list" ? "bg-ink text-white" : "bg-white text-ink-soft hover:text-ink")}
+        className={cn(
+          "border-l border-stone-300 px-2.5 py-1.5 transition-colors",
+          view === "list" ? "bg-ink text-white" : "bg-white text-ink-soft hover:text-ink",
+        )}
       >
         <ListIcon />
       </button>

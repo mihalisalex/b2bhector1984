@@ -72,7 +72,7 @@ export default async function CatalogPage({
       </nav>
       <div className="mb-6 flex flex-col gap-3 border-b border-stone-300 pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink">Catalog</h1>
+          <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink sm:text-3xl">Catalog</h1>
         </div>
         <div className="flex items-center gap-2">
           <Suspense fallback={null}>

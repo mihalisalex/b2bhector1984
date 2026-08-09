@@ -64,7 +64,11 @@ export default async function AssortmentsPage() {
                   const style = styleById.get(id);
                   if (!style) return null;
                   return (
-                    <Link key={id} href={`/product/${style.slug}`} className="group border border-stone-300 bg-white">
+                    <Link
+                      key={id}
+                      href={`/product/${style.slug}`}
+                      className="group border border-stone-300 bg-white transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-ink"
+                    >
                       <StylePlate
                         swatch={style.colorways[0].swatch}
                         imageUrl={getStyleImageUrl(style)}

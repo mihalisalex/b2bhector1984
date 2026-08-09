@@ -243,36 +243,37 @@ export default async function FaqPage({ params }: { params: Promise<{ lang: stri
   return (
     <div>
       <JsonLd schema={faqSchema} />
-      {/* Flat, left-aligned header — matches /collections instead of the centered
-          stone-100 card this used to open with. */}
-      <div className="mx-auto max-w-[900px] px-6 pb-4 pt-12 lg:px-10">
+      {/* Bigger, more confident header — same flat left-aligned treatment as /collections,
+          sized up rather than a modest text-3xl. */}
+      <div className="mx-auto max-w-[900px] px-6 pb-6 pt-16 lg:px-10 lg:pt-24">
         <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">{dict.nav.faq}</span>
-        <h1 className="font-display mt-2 text-3xl font-bold uppercase leading-[1.05] tracking-tight text-ink sm:text-4xl">
+        <h1 className="font-display mt-4 text-5xl font-bold uppercase leading-[0.98] tracking-tight text-ink sm:text-6xl">
           {f.heading}
         </h1>
-        <p className="mt-2 max-w-lg text-sm leading-relaxed text-ink-soft">{f.intro}</p>
+        <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-ink-soft">{f.intro}</p>
       </div>
 
-      <section className="mx-auto max-w-[900px] px-6 py-12 lg:px-10">
-        <div className="flex flex-col gap-12">
+      <section className="mx-auto max-w-[900px] px-6 py-16 lg:py-20 lg:px-10">
+        <div className="flex flex-col gap-16">
           {groups.map((group) => (
             <div key={group.title}>
-              <h2 className="font-display border-b border-stone-300 pb-4 text-xl font-bold uppercase tracking-tight text-ink">
+              <h2 className="font-display border-b border-stone-300 pb-4 text-2xl font-bold uppercase tracking-tight text-ink">
                 {group.title}
               </h2>
               <div className="mt-2 divide-y divide-stone-200">
                 {group.items.map((item) => (
-                  <details key={item.q} className="group py-4">
-                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-ink marker:content-none">
+                  <details key={item.q} className="group py-5 transition-colors hover:bg-stone-50">
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-1 text-[15px] font-semibold text-ink marker:content-none">
                       {item.q}
                       <span
                         aria-hidden
-                        className="shrink-0 font-mono-tab text-lg text-ink-soft transition-transform duration-200 group-open:rotate-45"
+                        className="relative flex h-6 w-6 shrink-0 items-center justify-center text-ink-soft"
                       >
-                        +
+                        <span className="absolute h-[1.5px] w-3.5 bg-current transition-transform duration-200 group-open:rotate-180" />
+                        <span className="absolute h-3.5 w-[1.5px] bg-current transition-transform duration-200 group-open:rotate-90 group-open:opacity-0" />
                       </span>
                     </summary>
-                    <p className="mt-3 max-w-[65ch] text-sm leading-relaxed text-ink-soft">{item.a}</p>
+                    <p className="mt-3 max-w-[65ch] px-1 text-sm leading-relaxed text-ink-soft">{item.a}</p>
                   </details>
                 ))}
               </div>

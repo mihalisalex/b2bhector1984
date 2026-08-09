@@ -50,7 +50,7 @@ export default async function QuickOrderPage({
     <div className="mx-auto max-w-[1800px] px-6 py-8 lg:px-10 print:px-0 print:py-0">
       <div className="mb-6 flex flex-col gap-3 border-b border-stone-300 pb-6 sm:flex-row sm:items-end sm:justify-between print:hidden">
         <div>
-          <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink">Quick Order</h1>
+          <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink sm:text-3xl">Quick Order</h1>
           <p className="mt-1 max-w-xl text-sm text-ink-soft">
             The full collection at list price — press + or − on any box size to add it straight to your
             cart. Payment terms (and any discount) are set at checkout.

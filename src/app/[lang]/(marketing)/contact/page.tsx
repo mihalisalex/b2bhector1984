@@ -27,11 +27,11 @@ export default async function ContactPage({ params }: { params: Promise<{ lang: 
 
   return (
     <div>
-      {/* Flat, left-aligned header — matches /collections instead of the centered
-          stone-100 card this used to open with. */}
-      <div className="mx-auto max-w-[1200px] px-6 pb-4 pt-12 lg:px-10">
+      {/* Bigger, more confident header — same flat left-aligned treatment as /collections,
+          sized up rather than a modest text-3xl. */}
+      <div className="mx-auto max-w-[1200px] px-6 pb-6 pt-16 lg:px-10 lg:pt-24">
         <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">{c.eyebrow}</span>
-        <h1 className="font-display mt-2 text-3xl font-bold uppercase leading-[1.05] tracking-tight text-ink sm:text-4xl">
+        <h1 className="font-display mt-4 text-5xl font-bold uppercase leading-[0.98] tracking-tight text-ink sm:text-6xl">
           {headingLines.map((line, i) => (
             <span key={i}>
               {line}
@@ -39,22 +39,25 @@ export default async function ContactPage({ params }: { params: Promise<{ lang: 
             </span>
           ))}
         </h1>
-        <p className="mt-2 max-w-lg text-sm leading-relaxed text-ink-soft">{c.intro}</p>
+        <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-ink-soft">{c.intro}</p>
       </div>
 
-      <section className="mx-auto max-w-[1200px] px-6 py-12 lg:px-10">
+      <section className="mx-auto max-w-[1200px] px-6 py-16 lg:py-24 lg:px-10">
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
           <ContactCard
+            n="01"
             title={c.generalTitle}
             body={c.generalBody}
             lines={[{ href: "mailto:info@hectorfootwear.gr", label: "info@hectorfootwear.gr" }]}
           />
           <ContactCard
+            n="02"
             title={c.newAccountsTitle}
             body={c.newAccountsBody}
             lines={[{ href: "mailto:info@hectorfootwear.gr", label: "info@hectorfootwear.gr" }]}
           />
           <ContactCard
+            n="03"
             title={c.existingBuyersTitle}
             body={c.existingBuyersBody}
             lines={[{ href: withLocale(locale, "/dashboard"), label: c.goToDashboard }]}
@@ -90,17 +93,20 @@ export default async function ContactPage({ params }: { params: Promise<{ lang: 
 }
 
 function ContactCard({
+  n,
   title,
   body,
   lines,
 }: {
+  n: string;
   title: string;
   body: string;
   lines: { href: string; label: string }[];
 }) {
   return (
-    <div className="flex flex-col border border-stone-300 bg-white p-6 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(26,29,34,0.1)]">
-      <h3 className="font-display text-base font-bold uppercase tracking-tight text-ink">{title}</h3>
+    <div className="relative flex flex-col border border-stone-300 bg-white p-8 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(26,29,34,0.1)]">
+      <span className="font-mono-tab text-xs text-ink-soft/60">{n}</span>
+      <h3 className="font-display mt-3 text-base font-bold uppercase tracking-tight text-ink">{title}</h3>
       <p className="mt-2 flex-1 text-sm leading-relaxed text-ink-soft">{body}</p>
       <div className="mt-4 flex flex-col gap-1.5 border-t border-stone-200 pt-4">
         {lines.map((l) => (

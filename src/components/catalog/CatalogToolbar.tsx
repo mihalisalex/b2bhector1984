@@ -68,7 +68,7 @@ export function CatalogSearchInput() {
       onChange={(e) => handleSearchChange(e.target.value)}
       placeholder="Search style name or number"
       aria-label="Search styles"
-      className="w-full border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal sm:w-64"
+      className="w-full rounded-full border border-stone-300 bg-white px-4 py-2 text-sm outline-none focus-visible:border-signal sm:w-64"
     />
   );
 }
@@ -162,7 +162,7 @@ export function CatalogFiltersPanel({
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         className={cn(
-          "flex items-center gap-2 border px-4 py-2 text-xs font-semibold uppercase tracking-wide",
+          "flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-wide transition-colors",
           activeCount > 0 || open ? "border-ink bg-ink text-white" : "border-ink text-ink hover:bg-ink hover:text-white",
         )}
       >
@@ -273,7 +273,7 @@ function SortSelect({ value, onChange }: { value: string; onChange: (v: string) 
       value={value}
       onChange={(e) => onChange(e.target.value)}
       aria-label="Sort by"
-      className="border border-stone-300 bg-white px-3 py-2 text-xs uppercase tracking-wide text-ink-soft outline-none focus-visible:border-signal"
+      className="rounded-full border border-stone-300 bg-white px-4 py-2 text-xs uppercase tracking-wide text-ink-soft outline-none focus-visible:border-signal"
     >
       {SORT_OPTIONS.map((o) => (
         <option key={o.value} value={o.value}>{`Sort: ${o.label}`}</option>
@@ -284,13 +284,13 @@ function SortSelect({ value, onChange }: { value: string; onChange: (v: string) 
 
 function ViewToggle({ view, onChange }: { view: string; onChange: (v: "grid" | "list") => void }) {
   return (
-    <div className="flex items-center border border-stone-300 text-xs font-semibold uppercase tracking-wide">
+    <div className="flex items-center overflow-hidden rounded-full border border-stone-300 text-xs font-semibold uppercase tracking-wide">
       <button
         type="button"
         onClick={() => onChange("grid")}
         aria-pressed={view === "grid"}
         aria-label="Grid view"
-        className={cn("px-2.5 py-1.5", view === "grid" ? "bg-ink text-white" : "bg-white text-ink-soft hover:text-ink")}
+        className={cn("px-2.5 py-1.5 transition-colors", view === "grid" ? "bg-ink text-white" : "bg-white text-ink-soft hover:text-ink")}
       >
         <GridIcon />
       </button>
@@ -299,7 +299,10 @@ function ViewToggle({ view, onChange }: { view: string; onChange: (v: "grid" | "
         onClick={() => onChange("list")}
         aria-pressed={view === "list"}
         aria-label="List view"
-        className={cn("border-l border-stone-300 px-2.5 py-1.5", view === "list" ? "bg-ink text-white" : "bg-white text-ink-soft hover:text-ink")}
+        className={cn(
+          "border-l border-stone-300 px-2.5 py-1.5 transition-colors",
+          view === "list" ? "bg-ink text-white" : "bg-white text-ink-soft hover:text-ink",
+        )}
       >
         <ListIcon />
       </button>
