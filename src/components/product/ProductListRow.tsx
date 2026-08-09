@@ -31,7 +31,7 @@ export function ProductListRow({
   return (
     <Link
       href={`/product/${style.slug}`}
-      className="group flex items-center gap-4 border border-stone-300 bg-white p-3 transition-colors hover:border-ink sm:gap-5 sm:p-4"
+      className="group flex items-center gap-4 border border-stone-300 bg-white p-3 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-ink sm:gap-5 sm:p-4"
     >
       <div className="relative shrink-0 overflow-hidden">
         <StylePlate
