@@ -3,10 +3,10 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 import { getAllStyles } from "@/lib/data/styles";
 import { createBrand, getAllBrands } from "@/lib/data/brands";
 import { sanitizeProductDescription } from "@/lib/sanitizeHtml";
-import type { Category, Gender, Season } from "@/lib/types";
+import type { Category, Gender, StyleSeason } from "@/lib/types";
 
 const CATEGORIES: Category[] = ["loafers", "wedding", "sneakers", "sandals", "boots", "formal", "anatomic"];
-const SEASONS: Season[] = ["summer", "winter"];
+const SEASONS: StyleSeason[] = ["summer", "winter", "both"];
 const GENDERS: Gender[] = ["mens", "womens", "unisex"];
 
 export interface ImportRow {
@@ -36,7 +36,7 @@ function validateRow(row: ImportRow): string[] {
   if (!row.styleNumber?.trim()) errors.push("Style number is required.");
   if (!row.name?.trim()) errors.push("Name is required.");
   if (row.category && !CATEGORIES.includes(row.category as Category)) errors.push(`Unknown category "${row.category}".`);
-  if (row.season && !SEASONS.includes(row.season as Season)) errors.push(`Unknown season "${row.season}".`);
+  if (row.season && !SEASONS.includes(row.season as StyleSeason)) errors.push(`Unknown season "${row.season}".`);
   if (row.gender && !GENDERS.includes(row.gender as Gender)) errors.push(`Unknown gender "${row.gender}".`);
   if (row.basePrice && !Number.isFinite(Number(row.basePrice))) errors.push(`Wholesale price "${row.basePrice}" isn't a number.`);
   if (row.msrp && !Number.isFinite(Number(row.msrp))) errors.push(`MSRP "${row.msrp}" isn't a number.`);

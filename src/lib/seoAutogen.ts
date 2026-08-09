@@ -103,7 +103,7 @@ export function generateProductDescription(product: ProductSeoSource): string {
   const parts = [
     product.name,
     product.materials?.length ? `in ${product.materials.slice(0, 2).join(" and ")}` : "",
-    product.season ? `for the ${product.season} collection` : "",
+    product.season ? `for the ${product.season === "both" ? "Summer and Winter" : product.season} collection` : "",
   ].filter(Boolean);
   return truncate(`${parts.join(" ")}. Wholesale ordering by the box, trade terms available.`, DESCRIPTION_MAX);
 }

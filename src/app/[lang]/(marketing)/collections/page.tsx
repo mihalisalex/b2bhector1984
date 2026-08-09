@@ -61,7 +61,10 @@ export default async function CollectionsPage({
       ? (category as Category)
       : null;
   const results = styles.filter(
-    (s) => (!activeCategory || s.category === activeCategory) && (!activeSeason || s.season === activeSeason),
+    (s) =>
+      (!activeCategory || s.category === activeCategory) &&
+      // A "both" style shows up regardless of which season tab is active.
+      (!activeSeason || s.season === activeSeason || s.season === "both"),
   );
   const collectionsHref = withLocale(locale, "/collections");
   const buildHref = (query: string) => `${collectionsHref}${query}`;

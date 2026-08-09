@@ -17,10 +17,16 @@ export function ShopHeader({ account, locale, dict }: { account: Account; locale
       <HWatermark className="-top-16 right-6 text-[13rem] text-ink/[0.1]" />
       {/* Flex + an absolutely centered logo, not a 1fr/auto/1fr grid — see MarketingHeader
           for why: the desktop nav and the icon cluster are different widths, and equal-fr
-          grid columns would drag the logo off true center. */}
+          grid columns would drag the logo off true center. Below `lg` the logo sits inline
+          next to the hamburger instead — this header's icon cluster is always full (search
+          + account + cart, every buyer is signed in), wide enough that a dead-centered logo
+          can still collide with it on a narrow phone; see MarketingHeader's longer note. */}
       <div className="relative mx-auto flex h-(--shell-header-h) max-w-[1600px] items-center justify-between px-4 sm:px-6 lg:px-10">
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
           <MainNav account={account} />
+          <Link href={withLocale(locale, "/")} aria-label={dict.nav.homeAriaLabel} className="flex items-center lg:hidden">
+            <Logo />
+          </Link>
         </div>
 
         {/* The homepage, matching the marketing header's logo and the nav's "Home" —
@@ -28,7 +34,7 @@ export function ShopHeader({ account, locale, dict }: { account: Account; locale
         <Link
           href={withLocale(locale, "/")}
           aria-label={dict.nav.homeAriaLabel}
-          className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center"
+          className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center justify-center lg:flex"
         >
           <Logo />
         </Link>

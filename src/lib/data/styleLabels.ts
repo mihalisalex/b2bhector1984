@@ -27,6 +27,7 @@ export const CATEGORY_LABEL: Record<Style["category"], string> = {
 export const SEASON_LABEL: Record<Style["season"], string> = {
   summer: "Summer",
   winter: "Winter",
+  both: "Both Seasons",
 };
 
 export const GENDER_LABEL: Record<Style["gender"], string> = {

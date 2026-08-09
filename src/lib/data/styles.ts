@@ -266,7 +266,12 @@ export const getAllStyles = cache(async (): Promise<Style[]> => {
     getEnabledSeasons(),
   ]);
   if (error) throw new Error(`styles: ${error.message}`);
-  const visible = (data ?? []).filter((row) => enabledSeasons.has(row.season));
+  // A "both" style belongs to neither season specifically, so `enabledSeasons.has(...)`
+  // alone would always miss it — treat it as visible whenever at least one real season is
+  // still enabled (matching what "both" means: show it in Summer and in Winter).
+  const visible = (data ?? []).filter(
+    (row) => enabledSeasons.has(row.season) || (row.season === "both" && enabledSeasons.size > 0),
+  );
   return fetchStyles(visible);
 });
 

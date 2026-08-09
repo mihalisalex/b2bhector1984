@@ -73,7 +73,9 @@ export function filterStyles(
       }
     }
     if (filters.category.length && !filters.category.includes(s.category)) return false;
-    if (filters.season.length && !filters.season.includes(s.season)) return false;
+    // A "both" style belongs to Summer and Winter at once, so it should survive a
+    // season-filter checkbox regardless of which one(s) are checked.
+    if (filters.season.length && s.season !== "both" && !filters.season.includes(s.season)) return false;
     if (filters.gender.length && !filters.gender.includes(s.gender)) return false;
     if (filters.availability.length && !filters.availability.includes(s.availability)) return false;
     if (filters.color.length) {

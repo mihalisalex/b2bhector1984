@@ -7,7 +7,18 @@ export type Category =
   | "formal"
   | "anatomic";
 
+/** The two real merchandising seasons — used for `season_settings` (admin enable/disable,
+ * labels, homepage teaser photos) and anywhere a value has to be one specific season. Kept
+ * deliberately narrower than `StyleSeason` below: a season *setting* only ever means one of
+ * these two, even though an individual *style* can belong to both. */
 export type Season = "summer" | "winter";
+
+/** A style's own season assignment — either one specific season, or `"both"` for a style
+ * that should appear in the Summer and Winter spotlights/filters simultaneously. Every
+ * place that matches a style against a specific `Season` needs to treat `"both"` as a match
+ * regardless of which season is asked for (see `filterStyles` in `catalogFilters.ts` and
+ * the homepage/collections season filtering for the two live examples). */
+export type StyleSeason = Season | "both";
 
 export type Gender = "mens" | "womens" | "unisex";
 
@@ -162,7 +173,7 @@ export interface Style {
   styleNumber: string;
   name: string;
   category: Category;
-  season: Season;
+  season: StyleSeason;
   gender: Gender;
   availability: Availability;
   shipWindow?: string;

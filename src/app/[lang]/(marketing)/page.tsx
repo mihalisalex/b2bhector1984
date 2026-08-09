@@ -136,7 +136,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           text/image sides, instead of a 2-up grid that left a dead cell whenever a season
           had no styles yet (see the homepage redesign discussion for why). */}
       {seasonOptions.map(({ value: season, label }, index) => {
-        const seasonStyles = styles.filter((s) => s.season === season);
+        // A "both" style belongs to Summer and Winter at once, so it counts toward each
+        // season's spotlight row regardless of which one is being rendered.
+        const seasonStyles = styles.filter((s) => s.season === season || s.season === "both");
         const rep = seasonStyles[0];
         if (!rep) return null;
         const imageUrl = seasonSettings[season].teaserImageUrl || getStyleImageUrl(rep);

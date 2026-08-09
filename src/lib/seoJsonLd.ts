@@ -195,7 +195,9 @@ export function buildProductSchema(
   });
 
   const additionalProperty = [
-    style.season ? { "@type": "PropertyValue", name: "Season", value: style.season } : null,
+    style.season
+      ? { "@type": "PropertyValue", name: "Season", value: style.season === "both" ? "Summer, Winter" : style.season }
+      : null,
     style.materials?.length
       ? { "@type": "PropertyValue", name: "Materials", value: style.materials.join(", ") }
       : null,
