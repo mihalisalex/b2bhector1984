@@ -33,7 +33,7 @@ export function MarketingHeader({
           account + cart) is wide enough that a dead-centered logo can still run into it on
           a narrow phone even though nothing moved. Below `lg` the logo instead sits inline
           next to the hamburger — its own natural width, no collision math required. */}
-      <div className="relative mx-auto flex h-(--shell-header-h) max-w-[1440px] items-center justify-between px-6 lg:px-10">
+      <div className="relative mx-auto flex h-(--shell-header-h) max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-10">
         <div className="flex items-center gap-2">
           <MainNav account={account} />
           <Link href={withLocale(locale, "/")} aria-label={dict.nav.homeAriaLabel} className="flex items-center lg:hidden">

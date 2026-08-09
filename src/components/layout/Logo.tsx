@@ -2,15 +2,14 @@ import { cn } from "@/lib/cn";
 
 export function Logo({ inverted = false, className }: { inverted?: boolean; className?: string }) {
   return (
-    // Stacked below `sm` — inline "Hector Footwear" is wide enough that on a narrow phone
-    // (or once a signed-in header adds a cart icon next to the account icon) it can run
-    // into the header's right-hand icon cluster. Stacking "Footwear" under "Hector" keeps
-    // the centered logo's footprint narrow regardless of screen width or icon count; back
-    // to the original inline wordmark from `sm:` up, where there's always been room.
-    <span className={cn("flex flex-col items-center gap-0.5 sm:flex-row sm:items-baseline sm:gap-2", className)}>
+    // Inline at every width — stacking "Footwear" under "Hector" on mobile (tried
+    // previously) read wrong. Instead both words scale down below `sm`, since the header
+    // it sits in there now groups the logo with the hamburger rather than centering it —
+    // a narrower wordmark just leaves more breathing room, not a collision fix on its own.
+    <span className={cn("flex items-baseline gap-1.5 sm:gap-2", className)}>
       <span
         className={cn(
-          "font-display text-[23px] font-bold uppercase leading-none tracking-[0.08em]",
+          "font-display text-base font-bold uppercase leading-none tracking-[0.06em] sm:text-[23px] sm:tracking-[0.08em]",
           inverted ? "text-white" : "text-ink",
         )}
       >
@@ -18,7 +17,7 @@ export function Logo({ inverted = false, className }: { inverted?: boolean; clas
       </span>
       <span
         className={cn(
-          "font-display text-[11px] font-normal uppercase leading-none tracking-[0.18em]",
+          "font-display text-[8px] font-normal uppercase leading-none tracking-[0.14em] sm:text-[11px] sm:tracking-[0.18em]",
           inverted ? "text-stone-300" : "text-ink-soft",
         )}
       >
