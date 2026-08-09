@@ -28,21 +28,21 @@ export default async function BrandStoryPage({ params }: { params: Promise<{ lan
 
   return (
     <div>
-      <section className="border-b border-stone-300 bg-stone-100 px-6 py-20 lg:px-10">
-        <div className="mx-auto max-w-3xl text-center">
-          <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">{b.estSince}</span>
-          <h1 className="font-display mt-4 text-4xl font-bold uppercase leading-[1.02] tracking-tight text-ink sm:text-5xl">
-            {heroLines.map((line, i) => (
-              <span key={i}>
-                {line}
-                {i < heroLines.length - 1 && <br />}
-              </span>
-            ))}
-          </h1>
-        </div>
-      </section>
+      {/* Flat, left-aligned header — matches /collections' header treatment (no boxed/
+          shaded hero block) instead of the centered stone-100 card this used to open with. */}
+      <div className="mx-auto max-w-[1200px] px-6 pb-4 pt-12 lg:px-10">
+        <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">{b.estSince}</span>
+        <h1 className="font-display mt-2 max-w-2xl text-3xl font-bold uppercase leading-[1.05] tracking-tight text-ink sm:text-4xl">
+          {heroLines.map((line, i) => (
+            <span key={i}>
+              {line}
+              {i < heroLines.length - 1 && <br />}
+            </span>
+          ))}
+        </h1>
+      </div>
 
-      <section className="mx-auto grid max-w-[1200px] grid-cols-1 gap-12 px-6 py-20 lg:grid-cols-2 lg:px-10">
+      <section className="mx-auto grid max-w-[1200px] grid-cols-1 gap-12 px-6 py-12 lg:grid-cols-2 lg:px-10">
         <div className="flex flex-col gap-6 text-sm leading-relaxed text-ink-soft">
           <p>{b.intro1}</p>
           <p>{b.intro2}</p>

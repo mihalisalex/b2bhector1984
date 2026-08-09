@@ -64,21 +64,21 @@ export default async function JournalPage({
     <div>
       <JsonLd schema={[breadcrumbSchema, collectionSchema].filter((s): s is NonNullable<typeof s> => s !== null)} />
 
-      <section className="border-b border-stone-300 bg-stone-100 px-6 py-20 lg:px-10">
-        <div className="mx-auto max-w-3xl text-center">
-          <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">Journal</span>
-          <h1 className="font-display mt-4 text-4xl font-bold uppercase leading-[1.02] tracking-tight text-ink sm:text-5xl">
-            Wholesale, decoded.
-          </h1>
-          <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-ink-soft">
-            Sourcing guides, market trends, and procurement insight for buyers and suppliers in the footwear trade —
-            written by the same team that runs the marketplace.
-          </p>
-        </div>
-      </section>
+      {/* Flat, left-aligned header — matches /collections instead of the centered
+          stone-100 card this used to open with. */}
+      <div className="mx-auto max-w-[1200px] px-6 pb-4 pt-12 lg:px-10">
+        <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">Journal</span>
+        <h1 className="font-display mt-2 text-3xl font-bold uppercase leading-[1.05] tracking-tight text-ink sm:text-4xl">
+          Wholesale, decoded.
+        </h1>
+        <p className="mt-2 max-w-lg text-sm leading-relaxed text-ink-soft">
+          Sourcing guides, market trends, and procurement insight for buyers and suppliers in the footwear trade —
+          written by the same team that runs the marketplace.
+        </p>
+      </div>
 
       {featured.length > 0 && (
-        <section className="mx-auto max-w-[1200px] px-6 pt-16 lg:px-10">
+        <section className="mx-auto max-w-[1200px] px-6 pt-8 lg:px-10">
           <h2 className="font-display border-b border-stone-300 pb-4 text-xl font-bold uppercase tracking-tight text-ink">
             Featured
           </h2>

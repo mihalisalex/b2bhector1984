@@ -29,20 +29,20 @@ const COOKIES: CookieRow[] = [
 export default function CookiesPage() {
   return (
     <div>
-      <section className="border-b border-stone-300 bg-stone-100 px-6 py-20 lg:px-10">
-        <div className="mx-auto max-w-3xl text-center">
-          <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">Legal</span>
-          <h1 className="font-display mt-4 text-4xl font-bold uppercase leading-[1.02] tracking-tight text-ink sm:text-5xl">
-            Cookie Notice
-          </h1>
-          <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-ink-soft">
-            This page is illustrative, demo-appropriate boilerplate — it is not real legal advice and
-            shouldn&rsquo;t be relied on as such.
-          </p>
-        </div>
-      </section>
+      {/* Flat, left-aligned header — matches /collections instead of the centered
+          stone-100 card this used to open with. */}
+      <div className="mx-auto max-w-[900px] px-6 pb-4 pt-12 lg:px-10">
+        <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">Legal</span>
+        <h1 className="font-display mt-2 text-3xl font-bold uppercase leading-[1.05] tracking-tight text-ink sm:text-4xl">
+          Cookie Notice
+        </h1>
+        <p className="mt-2 max-w-lg text-sm leading-relaxed text-ink-soft">
+          This page is illustrative, demo-appropriate boilerplate — it is not real legal advice and
+          shouldn&rsquo;t be relied on as such.
+        </p>
+      </div>
 
-      <section className="mx-auto max-w-[900px] px-6 py-16 lg:px-10">
+      <section className="mx-auto max-w-[900px] px-6 py-12 lg:px-10">
         <p className="max-w-[65ch] text-sm leading-relaxed text-ink-soft">
           Hector Footwear Wholesale uses a small number of essential cookies to run the ordering portal.
           We don&rsquo;t use advertising or third-party tracking cookies.

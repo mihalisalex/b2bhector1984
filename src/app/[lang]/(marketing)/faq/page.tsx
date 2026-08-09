@@ -243,17 +243,17 @@ export default async function FaqPage({ params }: { params: Promise<{ lang: stri
   return (
     <div>
       <JsonLd schema={faqSchema} />
-      <section className="border-b border-stone-300 bg-stone-100 px-6 py-20 lg:px-10">
-        <div className="mx-auto max-w-3xl text-center">
-          <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">{dict.nav.faq}</span>
-          <h1 className="font-display mt-4 text-4xl font-bold uppercase leading-[1.02] tracking-tight text-ink sm:text-5xl">
-            {f.heading}
-          </h1>
-          <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-ink-soft">{f.intro}</p>
-        </div>
-      </section>
+      {/* Flat, left-aligned header — matches /collections instead of the centered
+          stone-100 card this used to open with. */}
+      <div className="mx-auto max-w-[900px] px-6 pb-4 pt-12 lg:px-10">
+        <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">{dict.nav.faq}</span>
+        <h1 className="font-display mt-2 text-3xl font-bold uppercase leading-[1.05] tracking-tight text-ink sm:text-4xl">
+          {f.heading}
+        </h1>
+        <p className="mt-2 max-w-lg text-sm leading-relaxed text-ink-soft">{f.intro}</p>
+      </div>
 
-      <section className="mx-auto max-w-[900px] px-6 py-16 lg:px-10">
+      <section className="mx-auto max-w-[900px] px-6 py-12 lg:px-10">
         <div className="flex flex-col gap-12">
           {groups.map((group) => (
             <div key={group.title}>
