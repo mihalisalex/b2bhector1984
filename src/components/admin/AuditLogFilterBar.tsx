@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export function AuditLogFilterBar() {
@@ -9,6 +9,10 @@ export function AuditLogFilterBar() {
   const searchParams = useSearchParams();
   const [searchValue, setSearchValue] = useState(searchParams.get("q") ?? "");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  // Cancel a still-pending debounce on unmount — otherwise navigating away mid-typing
+  // fires a router.push from a component that no longer exists.
+  useEffect(() => () => clearTimeout(debounceRef.current), []);
 
   function handleSearchChange(value: string) {
     setSearchValue(value);

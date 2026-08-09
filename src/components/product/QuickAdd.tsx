@@ -11,6 +11,7 @@ import type { StyleInventory } from "@/lib/data/inventory";
 import type { BoxTypeId, Style } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { StepIcon } from "@/components/ui/StepIcon";
+import { useCancelableTimeout } from "@/lib/useCancelableTimeout";
 import { cn } from "@/lib/cn";
 
 /**
@@ -46,6 +47,7 @@ export function QuickAdd({
   const [boxTypeId, setBoxTypeId] = useState<BoxTypeId>(() => pickDefaultBoxType(style, inventory, colorwayId));
   const [qty, setQty] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
+  const scheduleReset = useCancelableTimeout();
 
   // The card's swatch row can change `colorwayId` out from under this panel — re-pick a
   // box type that's actually in stock for the newly selected colour. Adjusted during
@@ -76,7 +78,7 @@ export function QuickAdd({
     addLines(style.id, [{ colorwayId, boxTypeId, qty: inCart + qty }]);
     setJustAdded(true);
     setQty(1);
-    setTimeout(() => setJustAdded(false), 2000);
+    scheduleReset(() => setJustAdded(false), 2000);
   }
 
   if (!anyStock && !allowBackorder) {

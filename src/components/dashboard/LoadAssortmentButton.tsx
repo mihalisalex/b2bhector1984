@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
+import { useCancelableTimeout } from "@/lib/useCancelableTimeout";
 import { textActionClassNames } from "@/components/ui/TextAction";
 import type { BoxTypeId, SavedAssortmentLine } from "@/lib/types";
 
@@ -12,6 +13,7 @@ export function LoadAssortmentButton({ lines, className }: { lines: SavedAssortm
   const { addLines, lines: cartLines } = useCart();
   const router = useRouter();
   const [done, setDone] = useState(false);
+  const scheduleRedirect = useCancelableTimeout();
 
   const loadable = lines.filter((l) => l.colorwayId && l.boxTypeId);
   if (loadable.length === 0) return null;
@@ -31,7 +33,7 @@ export function LoadAssortmentButton({ lines, className }: { lines: SavedAssortm
     }
     for (const [styleId, entries] of byStyle.entries()) addLines(styleId, entries);
     setDone(true);
-    setTimeout(() => router.push("/cart"), 350);
+    scheduleRedirect(() => router.push("/cart"), 350);
   }
 
   return (

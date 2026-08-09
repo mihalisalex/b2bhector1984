@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { IconButton } from "@/components/ui/IconButton";
+import { useCancelableTimeout } from "@/lib/useCancelableTimeout";
 
 export function ShareButton({ title }: { title: string }) {
   const [copied, setCopied] = useState(false);
+  const scheduleReset = useCancelableTimeout();
 
   async function share() {
     const url = window.location.href;
@@ -19,7 +21,7 @@ export function ShareButton({ title }: { title: string }) {
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      scheduleReset(() => setCopied(false), 2000);
     } catch {
       // clipboard unavailable — silently no-op, nothing else reasonable to do
     }

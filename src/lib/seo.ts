@@ -32,6 +32,13 @@ import type { JournalPost, Style } from "@/lib/types";
  * only then to generated copy. Nothing here ever needs a deploy to change.
  */
 
+/**
+ * The generated share card served by `src/app/opengraph-image.tsx` (1200x630 PNG).
+ * Referenced explicitly rather than relying on Next's file-convention pickup — see the
+ * note in `buildMetadata`, which always emits an explicit `openGraph` object.
+ */
+const DEFAULT_OG_IMAGE_PATH = "/opengraph-image";
+
 /** Absolute URL for a site-relative path. Absolute inputs pass through untouched. */
 export function absoluteUrl(path: string): string {
   if (/^https?:\/\//i.test(path)) return path;
@@ -95,7 +102,14 @@ function buildMetadata(input: BuildMetadataInput, settings: SeoSettings): Metada
   // append would render "… Wholesale — … Wholesale".
   const fullTitle = isHome ? input.title : settings.titleTemplate.replace("%s", input.title);
 
-  const ogImage = input.ogImageUrl ?? settings.defaultOgImageUrl;
+  // Final fallback to the app's own generated card (`src/app/opengraph-image.tsx`, 1200x630).
+  // Without it the site shipped *no* og:image/twitter:image at all: `defaultOgImageUrl` is an
+  // admin setting that has never been filled in (it isn't even in DEFAULT_SEO_SETTINGS), and
+  // because this builder always emits an explicit `openGraph` object, Next never applied its
+  // file-convention image either — the two mechanisms don't merge. Every share of every page
+  // rendered with a blank preview while `twitter:card` promised `summary_large_image`.
+  // Per-page (`input.ogImageUrl`) and admin (`settings.defaultOgImageUrl`) overrides still win.
+  const ogImage = input.ogImageUrl ?? settings.defaultOgImageUrl ?? DEFAULT_OG_IMAGE_PATH;
   const twitterImage = input.twitterImageUrl ?? ogImage;
   const locale = input.locale ?? DEFAULT_LOCALE;
   // An admin-entered canonical override is respected verbatim — it may deliberately point

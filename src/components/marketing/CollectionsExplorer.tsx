@@ -217,13 +217,20 @@ export function CollectionsExplorer({
         key={`${season}-${activeCategory ?? "all"}-${sort}`}
         className="mt-8 grid grid-cols-2 gap-x-3 gap-y-8 [animation:grid-fade-up_400ms_ease-out] sm:gap-x-6 sm:gap-y-10 lg:grid-cols-3"
       >
-        {results.map((style) => (
+        {results.map((style, i) => (
           <Link key={style.id} href={withLocale(locale, `/product/${style.slug}`)} className="group block">
             <div className="relative overflow-hidden bg-stone-100">
               <StylePlate
                 swatch={style.colorways[0].swatch}
                 imageUrl={getStyleImageUrl(style)}
                 alt={style.name}
+                // The first row is this page's Largest Contentful Paint element, and
+                // /collections is the main public landing page for the wholesale search
+                // terms — lazy-loading it costs an extra round trip before anything paints.
+                // 3 covers the full first row at `lg:grid-cols-3` (and 1.5 rows on the
+                // 2-column mobile grid). Same treatment the catalogue already gives its
+                // first row via `priority={i < 2}`.
+                priority={i < 3}
                 className="aspect-[4/5] w-full transition-transform duration-700 ease-out group-hover:scale-[1.03]"
               />
               <div className="absolute left-2 top-2">

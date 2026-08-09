@@ -25,6 +25,7 @@
     "react-dom": "19.2.4",
     "sanitize-html": "^2.17.6",
     "server-only": "^0.0.1",
+    "tailwind-merge": "^3.6.0",
     "zod": "^4.4.3"
   },
   "comment:overrides": "sharp/postcss are pinned above the versions Next 16.2.12 pulls in, to clear high-severity advisories (libvips CVEs in sharp <0.35, postcss sourcemap path traversal). Next declares sharp as an optionalDependency at ^0.34.5, so this intentionally forces a newer minor than it asks for — verified working: build, image optimization and the E2E suite all pass. Revisit when Next bumps its own range. Deliberately NOT overriding brace-expansion: v5 changed to named exports and breaks minimatch/ESLint, and the advisory is a dev-only tooling DoS that never reaches the deployed app.",

@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { checkRateLimit, formatRetryAfter, resetRateLimit } from "@/lib/rateLimit";
 import { addOrder, getOrdersForAccount } from "@/lib/runtimeOrders";
 import {
   APPLICATION_COOKIE,
@@ -79,6 +80,14 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
+  // Every attempt counts, but a successful sign-in clears the window below — so the only
+  // way to reach the cap is to actually fail 10 times in 15 minutes, and a buyer who
+  // mistypes their password a few times is never locked out of their own account.
+  const limited = await checkRateLimit("login", { limit: 10, windowMs: 15 * 60_000 });
+  if (!limited.allowed) {
+    return { error: `Too many sign-in attempts. Try again in ${formatRetryAfter(limited.retryAfterSeconds)}.` };
+  }
+
   const account = await getAccountByEmail(email);
   // Always run a full password verification, even when no account matched, so the
   // response time doesn't reveal whether the email is registered. Short-circuiting on a
@@ -93,6 +102,10 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   if (account.status !== "active") {
     return { error: "This account has not been activated yet. Contact your sales rep." };
   }
+
+  // Cleared before the redirect below, which throws — a genuine sign-in shouldn't leave
+  // earlier mistyped attempts counting against this client.
+  await resetRateLimit("login");
 
   const token = await createSession(account.id);
   await setSessionCookie(token);
@@ -112,6 +125,15 @@ export async function requestPasswordReset(_prev: FormState, formData: FormData)
     success: "If an account exists for that email, we've sent a link to reset your password.",
   };
   if (!email) return { error: "Enter the email address on your wholesale account." };
+
+  // This endpoint sends mail to an address the caller supplies, so it is an email-bombing
+  // tool if left unbounded. The cap is per-IP and independent of the email submitted, so
+  // this message reveals nothing about which addresses have accounts — the generic-success
+  // contract above is preserved.
+  const limited = await checkRateLimit("password-reset", { limit: 5, windowMs: 15 * 60_000 });
+  if (!limited.allowed) {
+    return { error: `Too many reset requests. Try again in ${formatRetryAfter(limited.retryAfterSeconds)}.` };
+  }
 
   try {
     const account = await getAccountByEmail(email);
@@ -170,6 +192,13 @@ export async function logout() {
 }
 
 export async function submitApplication(_prev: FormState, formData: FormData): Promise<FormState> {
+  // Writes a row and notifies the admin on every call — unbounded, it's a spam funnel into
+  // the applications queue. A real wholesale buyer applies once.
+  const limited = await checkRateLimit("apply", { limit: 5, windowMs: 60 * 60_000 });
+  if (!limited.allowed) {
+    return { error: `Too many applications from this connection. Try again in ${formatRetryAfter(limited.retryAfterSeconds)}.` };
+  }
+
   const required = [
     "businessName",
     "contactName",

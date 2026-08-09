@@ -15,6 +15,7 @@ import { ColorwayPicker } from "@/components/product/ColorwayPicker";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
 import { ShareButton } from "@/components/product/ShareButton";
 import { StepIcon } from "@/components/ui/StepIcon";
+import { useCancelableTimeout } from "@/lib/useCancelableTimeout";
 import type { BoxTypeId, Style } from "@/lib/types";
 import type { StyleInventory } from "@/lib/data/inventory";
 import { cn } from "@/lib/cn";
@@ -46,6 +47,7 @@ export function PrimaryPurchasePanel({
   const [addQty, setAddQty] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
   const [reachedBrowsing, setReachedBrowsing] = useState(false);
+  const scheduleReset = useCancelableTimeout();
 
   // Re-pick the best-stocked box type whenever the shared colorway selection changes
   // (a swatch click here, but the colorway can now also be driven from elsewhere).
@@ -120,7 +122,7 @@ export function PrimaryPurchasePanel({
     addLines(style.id, [{ colorwayId, boxTypeId, qty: existingQty + addQty }]);
     setJustAdded(true);
     setAddQty(1);
-    setTimeout(() => setJustAdded(false), 2500);
+    scheduleReset(() => setJustAdded(false), 2500);
   }
 
   const selectedColorway = style.colorways.find((c) => c.id === colorwayId) ?? style.colorways[0];

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
 type ToastKind = "success" | "error";
 interface Toast {
@@ -37,11 +37,27 @@ export function useToastResult() {
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const idRef = useRef(0);
+  // Several toasts can be on screen at once, each with its own 4s dismissal timer, so
+  // these are tracked as a set rather than a single handle — cancelling "the" pending
+  // timer would strand every toast but the newest. Cleared together on unmount.
+  const timersRef = useRef(new Set<ReturnType<typeof setTimeout>>());
+
+  useEffect(() => {
+    const timers = timersRef.current;
+    return () => {
+      for (const t of timers) clearTimeout(t);
+      timers.clear();
+    };
+  }, []);
 
   const showToast = useCallback((message: string, kind: ToastKind = "success") => {
     const id = ++idRef.current;
     setToasts((prev) => [...prev, { id, message, kind }]);
-    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4000);
+    const timer = setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+      timersRef.current.delete(timer);
+    }, 4000);
+    timersRef.current.add(timer);
   }, []);
 
   return (

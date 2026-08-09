@@ -52,9 +52,7 @@ import {
   finalizeStyleDocumentUpload,
   deleteStyleDocument,
 } from "@/lib/data/styleDocuments";
-import { createBrand } from "@/lib/data/brands";
 import { createSupplier, updateSupplier, deleteSupplier, type SupplierInput } from "@/lib/data/suppliers";
-import { createCollection } from "@/lib/data/collections";
 import { createWarehouse } from "@/lib/data/warehouses";
 import { setPermission } from "@/lib/data/permissions";
 import { importProductRows, validateImportRows, type ImportRow, type ImportRowPreview, type ImportRowResult } from "@/lib/data/productImport";
@@ -900,19 +898,6 @@ export async function bulkAddTagAction(styleIds: string[], tag: string): Promise
 // Reference data (brand/supplier/collection quick-create)
 // ---------------------------------------------------------------------------
 
-export async function createBrandAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requirePermission("products.edit");
-  const name = String(formData.get("name") ?? "").trim();
-  if (!name) return { error: "Brand name is required." };
-  try {
-    await createBrand(name);
-  } catch (err) {
-    return { error: friendlyDbError(err) };
-  }
-  revalidatePath("/admin/products");
-  return { success: "Brand added." };
-}
-
 export async function createSupplierAction(_prev: FormState, formData: FormData): Promise<FormState> {
   await requirePermission("products.edit");
   const input: SupplierInput = {
@@ -964,19 +949,6 @@ export async function deleteSupplierAction(supplierId: string, _prev: FormState,
   if (result.error) return { error: result.error };
   revalidatePath("/admin/suppliers");
   return { success: "Supplier removed." };
-}
-
-export async function createCollectionAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requirePermission("products.edit");
-  const name = String(formData.get("name") ?? "").trim();
-  if (!name) return { error: "Collection name is required." };
-  try {
-    await createCollection(name);
-  } catch (err) {
-    return { error: friendlyDbError(err) };
-  }
-  revalidatePath("/admin/products");
-  return { success: "Collection added." };
 }
 
 // ---------------------------------------------------------------------------

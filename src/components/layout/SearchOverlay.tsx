@@ -52,6 +52,10 @@ export function SearchOverlay() {
   const inputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  // The focus timer below is already cleaned up by the open-effect; this covers the
+  // search debounce, which outlives a close/unmount and would otherwise run a server
+  // action for a query nobody is waiting on any more.
+  useEffect(() => () => clearTimeout(debounceRef.current), []);
   const requestIdRef = useRef(0);
   const router = useRouter();
 

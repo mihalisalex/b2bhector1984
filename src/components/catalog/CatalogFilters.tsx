@@ -56,6 +56,10 @@ export function CatalogFilters({
   const [searchValue, setSearchValue] = useState(searchParams.get("q") ?? "");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
+  // Cancel a still-pending debounce on unmount — otherwise navigating away mid-typing
+  // fires a router.push from a component that no longer exists.
+  useEffect(() => () => clearTimeout(debounceRef.current), []);
+
   // Keep the input in sync if the URL changes from elsewhere (back/forward nav).
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing local input state from an external source (the URL), not derived from React state

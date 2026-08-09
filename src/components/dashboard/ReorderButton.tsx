@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
+import { useCancelableTimeout } from "@/lib/useCancelableTimeout";
 import { textActionClassNames } from "@/components/ui/TextAction";
 import type { BoxTypeId, Order } from "@/lib/types";
 
@@ -10,6 +11,7 @@ export function ReorderButton({ order, className }: { order: Order; className?: 
   const { addLines, lines } = useCart();
   const router = useRouter();
   const [done, setDone] = useState(false);
+  const scheduleRedirect = useCancelableTimeout();
 
   function handleReorder() {
     const byStyle = new Map<string, { colorwayId: string; boxTypeId: BoxTypeId; qty: number }[]>();
@@ -26,7 +28,7 @@ export function ReorderButton({ order, className }: { order: Order; className?: 
     }
     for (const [styleId, entries] of byStyle.entries()) addLines(styleId, entries);
     setDone(true);
-    setTimeout(() => router.push("/cart"), 350);
+    scheduleRedirect(() => router.push("/cart"), 350);
   }
 
   return (
