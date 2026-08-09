@@ -1,11 +1,9 @@
-import Link from "next/link";
-import { getStorefrontStyles, CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styles";
+import { getStorefrontStyles, CATEGORY_LABEL } from "@/lib/data/styles";
 import { getSeasonSettings, toSeasonOptions } from "@/lib/data/seasonSettings";
 import type { Category, Season } from "@/lib/types";
-import { AvailabilityBadge } from "@/components/ui/Badge";
-import { StylePlate } from "@/components/product/StylePlate";
 import { LinkButton } from "@/components/ui/Button";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { CollectionsExplorer } from "@/components/marketing/CollectionsExplorer";
 import { pageMetadata } from "@/lib/seo";
 import { buildCollectionSchema } from "@/lib/seoJsonLd";
 import { getDictionary } from "@/i18n/getDictionary";
@@ -30,12 +28,14 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   });
 }
 
-const CATEGORIES: Category[] = ["loafers", "wedding", "sneakers", "sandals", "boots", "formal", "anatomic"];
-const SEASON_CATEGORIES: Record<Season, Category[]> = {
-  summer: ["loafers", "wedding", "sneakers", "sandals"],
-  winter: ["boots", "sneakers", "formal", "anatomic"],
-};
-
+/**
+ * Redesigned 2026-08-09: minimal-copy, image-led editorial grid, replacing the previous
+ * text-heavy pill-filter layout. Scoped to this one page only — every interactive part
+ * (season toggle, category filter, sort) lives in `CollectionsExplorer`, a client
+ * component that filters/sorts the already-fetched style list instantly in the browser;
+ * this file stays a server component responsible only for the initial data fetch,
+ * metadata/schema, and the small amount of static copy around the explorer.
+ */
 export default async function CollectionsPage({
   params,
   searchParams,
@@ -53,146 +53,57 @@ export default async function CollectionsPage({
   ]);
   const d = dict.collections;
   const seasonOptions = toSeasonOptions(seasonSettings);
-  const enabledSeasons = seasonOptions.map((s) => s.value);
-  const activeSeason = enabledSeasons.includes(season as Season) ? (season as Season) : null;
-  const visibleCategories = activeSeason ? SEASON_CATEGORIES[activeSeason] : CATEGORIES;
-  const activeCategory =
-    CATEGORIES.includes(category as Category) && visibleCategories.includes(category as Category)
-      ? (category as Category)
-      : null;
-  const results = styles.filter(
-    (s) =>
-      (!activeCategory || s.category === activeCategory) &&
-      // A "both" style shows up regardless of which season tab is active.
-      (!activeSeason || s.season === activeSeason || s.season === "both"),
-  );
-  const collectionsHref = withLocale(locale, "/collections");
-  const buildHref = (query: string) => `${collectionsHref}${query}`;
+  const enabledSeasonValues = seasonOptions.map((s) => s.value);
+  const initialSeason = enabledSeasonValues.includes(season as Season)
+    ? (season as Season)
+    : seasonOptions[0]?.value;
+  const initialCategory = (Object.keys(CATEGORY_LABEL) as Category[]).includes(category as Category)
+    ? (category as Category)
+    : undefined;
 
-  // CollectionPage + ItemList for the public lookbook. Members link to
-  // /collections itself rather than to /product/* — those product URLs are
-  // gated and noindex, and pointing structured data at pages Google is told not
-  // to crawl produces Search Console errors rather than rich results.
+  // CollectionPage + ItemList for the public lookbook, seeded from whichever season/
+  // category the URL actually landed on — the explorer below re-filters instantly beyond
+  // that, but a crawler only ever sees this one server-rendered snapshot per URL anyway.
+  const seeded = styles.filter(
+    (s) =>
+      (!initialSeason || s.season === initialSeason || s.season === "both") &&
+      (!initialCategory || s.category === initialCategory),
+  );
   const collectionSchema = buildCollectionSchema({
-    name: activeCategory ? CATEGORY_LABEL[activeCategory] : d.heading,
-    description: `${results.length} styles from the Hector Footwear ${activeSeason ?? "current"} collection.`,
-    path: collectionsHref,
-    items: results.map((style) => ({
-      name: style.name,
-      path: collectionsHref,
-      imageUrl: getStyleImageUrl(style),
-    })),
+    name: initialCategory ? CATEGORY_LABEL[initialCategory] : d.heading,
+    description: `${seeded.length} styles from the Hector Footwear ${initialSeason ?? "current"} collection.`,
+    path: withLocale(locale, "/collections"),
+    items: seeded.map((style) => ({ name: style.name, path: withLocale(locale, "/collections") })),
   });
 
   return (
     <div className="mx-auto max-w-[1440px] px-6 py-12 lg:px-10">
       <JsonLd schema={collectionSchema} />
-      <div className="border-b border-stone-300 pb-8">
+
+      <div className="mb-8">
         <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">{d.eyebrow}</span>
         <h1 className="font-display mt-2 text-3xl font-bold uppercase tracking-tight text-ink sm:text-4xl">
           {d.heading}
         </h1>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">{d.intro}</p>
-
-        <div className="mt-6 flex flex-wrap gap-2">
-          <CategoryPill href={collectionsHref} active={!activeSeason} label={d.allSeasons} />
-          {seasonOptions.map(({ value: s, label }) => {
-            // Dropping category when it isn't part of the target season keeps the
-            // category pills (and results) from silently going stale/empty.
-            const keepCategory = activeCategory && SEASON_CATEGORIES[s].includes(activeCategory);
-            return (
-              <CategoryPill
-                key={s}
-                href={buildHref(`?season=${s}${keepCategory ? `&category=${activeCategory}` : ""}`)}
-                active={activeSeason === s}
-                label={label}
-              />
-            );
-          })}
-        </div>
-
-        <div className="mt-3 flex flex-wrap gap-2">
-          <CategoryPill
-            href={activeSeason ? buildHref(`?season=${activeSeason}`) : collectionsHref}
-            active={!activeCategory}
-            label={d.allCategories}
-          />
-          {visibleCategories.map((c) => (
-            <CategoryPill
-              key={c}
-              href={buildHref(`?category=${c}${activeSeason ? `&season=${activeSeason}` : ""}`)}
-              active={activeCategory === c}
-              label={CATEGORY_LABEL[c]}
-            />
-          ))}
-        </div>
+        <p className="mt-2 max-w-xl text-sm text-ink-soft">{d.intro}</p>
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {results.map((style) => (
-          <Link
-            key={style.id}
-            href={withLocale(locale, `/product/${style.slug}`)}
-            className="group block border border-stone-300 bg-white transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(26,29,34,0.12)]"
-          >
-            <div className="overflow-hidden">
-              <StylePlate
-                swatch={style.colorways[0].swatch}
-                styleNumber={style.styleNumber}
-                imageUrl={getStyleImageUrl(style)}
-                alt={style.name}
-                className="aspect-[4/3] w-full transition-transform duration-500 ease-out group-hover:scale-[1.04]"
-              />
-            </div>
-            <div className="p-5">
-              <AvailabilityBadge style={style} />
-              <h3 className="font-display mt-2 text-lg font-bold uppercase tracking-tight text-ink group-hover:underline">
-                {style.name}
-              </h3>
-              <p className="mt-1 text-xs text-ink-soft">
-                {CATEGORY_LABEL[style.category]} · {GENDER_LABEL[style.gender]}
-              </p>
-              <div className="mt-3 flex items-center gap-1.5">
-                {style.colorways.map((c) => (
-                  <span
-                    key={c.id}
-                    role="img"
-                    aria-label={c.name}
-                    title={c.name}
-                    className="flex h-4 w-6 overflow-hidden border border-stone-300"
-                  >
-                    <span aria-hidden className="h-full w-1/2" style={{ background: c.swatch[0] }} />
-                    <span aria-hidden className="h-full w-1/2" style={{ background: c.swatch[1] ?? c.swatch[0] }} />
-                  </span>
-                ))}
-              </div>
-              <p className="mt-4 border-t border-stone-200 pt-3 text-xs font-medium uppercase tracking-wide text-signal">
-                {d.signInForPricing} →
-              </p>
-            </div>
-          </Link>
-        ))}
-      </div>
+      <CollectionsExplorer
+        styles={styles}
+        seasonOptions={seasonOptions}
+        categoryLabel={CATEGORY_LABEL}
+        locale={locale}
+        dict={d}
+        initialSeason={initialSeason}
+        initialCategory={initialCategory}
+      />
 
-      <div className="mt-16 flex flex-col items-center gap-3 border-t border-stone-300 pt-10 text-center">
+      <div className="mt-20 flex flex-col items-center gap-3 border-t border-stone-300 pt-10 text-center">
         <p className="text-sm text-ink-soft">{d.notWholesaleYet}</p>
         <LinkButton href={withLocale(locale, "/apply")} size="lg">
           {dict.nav.applyForAccess}
         </LinkButton>
       </div>
     </div>
-  );
-}
-
-function CategoryPill({ href, active, label }: { href: string; active: boolean; label: string }) {
-  return (
-    <Link
-      href={href}
-      className={`border px-4 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
-        active ? "border-ink bg-ink text-white" : "border-stone-300 text-ink-soft hover:border-ink hover:text-ink"
-      }`}
-    >
-      {label}
-    </Link>
   );
 }

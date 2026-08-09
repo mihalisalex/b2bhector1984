@@ -142,12 +142,19 @@ const de: Dictionary = {
   collections: {
     eyebrow: "Großhandels-Lookbook",
     heading: "Herren Lederschuhe im Großhandel",
-    intro:
-      "Herren-Lederschuhe aus Vollnarbenleder — Loafer, Stiefel, elegante Schuhe, Sneaker und Sandalen — ausschließlich im Großhandel, in festen Kartongrößen, für unabhängige und regionale Einzelhändler. Melden Sie sich mit einem freigeschalteten Konto an für volle Preise und Matrixbestellung.",
+    intro: "Herren-Lederschuhe aus Vollnarbenleder für unabhängige Einzelhändler.",
     allSeasons: "Alle Saisons",
     allCategories: "Alle Kategorien",
     signInForPricing: "Für Großhandelspreise anmelden",
     notWholesaleYet: "Noch kein Großhandelskonto?",
+    filterLabel: "Filter",
+    filterAll: "Alle Modelle",
+    sortLabel: "Sortieren",
+    sortNewest: "Neueste",
+    sortFeatured: "Empfohlen",
+    sortNameAsc: "Name A–Z",
+    resultsCount: "{count} Modelle",
+    noResults: "Keine Modelle entsprechen diesem Filter.",
   },
   home: {
     heroEyebrow: "Nur Großhandel — Seit 1984",

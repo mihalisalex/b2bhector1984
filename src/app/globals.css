@@ -147,3 +147,18 @@ body {
     opacity: 1;
   }
 }
+
+/* Consumed via Tailwind's arbitrary-animation syntax on the /collections product grid
+   (CollectionsExplorer.tsx) — replayed by changing the grid's `key` whenever the season/
+   category/sort selection changes, so switching filters gets a quiet fade+lift instead of
+   the grid just snapping to new content. */
+@keyframes grid-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

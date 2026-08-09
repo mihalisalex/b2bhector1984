@@ -142,12 +142,19 @@ const fr: Dictionary = {
   collections: {
     eyebrow: "Lookbook Grossiste",
     heading: "Chaussures en Cuir Homme, en Gros",
-    intro:
-      "Chaussures en cuir pleine fleur pour homme — mocassins, bottes, chaussures habillées, sneakers et sandales — vendues exclusivement en gros, par cartons fixes, aux détaillants indépendants et régionaux. Connectez-vous avec un compte approuvé pour les tarifs complets et la commande matricielle.",
+    intro: "Chaussures en cuir pleine fleur pour homme, pour détaillants indépendants.",
     allSeasons: "Toutes les saisons",
     allCategories: "Toutes les catégories",
     signInForPricing: "Se connecter pour les tarifs grossistes",
     notWholesaleYet: "Pas encore de compte grossiste ?",
+    filterLabel: "Filtrer",
+    filterAll: "Tous les modèles",
+    sortLabel: "Trier",
+    sortNewest: "Nouveautés",
+    sortFeatured: "En vedette",
+    sortNameAsc: "Nom A–Z",
+    resultsCount: "{count} modèles",
+    noResults: "Aucun modèle ne correspond à ce filtre.",
   },
   home: {
     heroEyebrow: "Vente en Gros Uniquement — Depuis 1984",

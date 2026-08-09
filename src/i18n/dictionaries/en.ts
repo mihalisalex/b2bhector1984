@@ -140,12 +140,19 @@ const en = {
   collections: {
     eyebrow: "Wholesale Lookbook",
     heading: "Men's Leather Shoes, Wholesale",
-    intro:
-      "Full-grain men's leather footwear across loafers, boots, formal shoes, sneakers and sandals — sold wholesale only, in fixed box packs, to independent and regional retailers. Sign in with an approved account for full pricing and matrix ordering.",
+    intro: "Full-grain men's leather footwear for independent retailers.",
     allSeasons: "All Seasons",
     allCategories: "All Categories",
     signInForPricing: "Sign in for wholesale pricing",
     notWholesaleYet: "Not a wholesale account yet?",
+    filterLabel: "Filter",
+    filterAll: "All Styles",
+    sortLabel: "Sort",
+    sortNewest: "Newest",
+    sortFeatured: "Featured",
+    sortNameAsc: "Name A–Z",
+    resultsCount: "{count} styles",
+    noResults: "No styles match this filter.",
   },
   home: {
     heroEyebrow: "Wholesale Only — Est. 1984",
