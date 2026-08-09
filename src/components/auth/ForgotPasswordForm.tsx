@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import Link from "next/link";
 import { requestPasswordReset, type FormState } from "@/lib/actions";
 import { Button } from "@/components/ui/Button";
+import { TextField, FormMessage } from "@/components/ui/FormField";
 
 const initialState: FormState = {};
 
@@ -18,26 +19,14 @@ export function ForgotPasswordForm() {
       </p>
 
       {state.success ? (
-        <p role="status" className="mt-6 border border-positive/40 bg-positive-100 px-3 py-2 text-sm text-positive">
-          {state.success}
-        </p>
+        <div className="mt-6">
+          <FormMessage variant="success">{state.success}</FormMessage>
+        </div>
       ) : (
         <form action={formAction} className="mt-8 flex flex-col gap-4">
-          <label className="flex flex-col gap-1.5">
-            <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Email</span>
-            <input
-              name="email"
-              type="email"
-              required
-              className="border border-stone-300 bg-white px-3 py-2.5 text-sm text-ink outline-none focus-visible:border-signal"
-            />
-          </label>
+          <TextField label="Email" name="email" type="email" required />
 
-          {state.error && (
-            <p role="alert" className="border border-ember/40 bg-ember-100 px-3 py-2 text-sm text-ember">
-              {state.error}
-            </p>
-          )}
+          {state.error && <FormMessage variant="error">{state.error}</FormMessage>}
 
           <Button type="submit" size="lg" className="mt-2 w-full" disabled={pending}>
             {pending ? "Sending…" : "Send reset link"}

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { resetPassword, type ResetPasswordState } from "@/lib/actions";
 import { MIN_PASSWORD_LENGTH } from "@/lib/passwordPolicy";
 import { Button } from "@/components/ui/Button";
+import { TextField, FormMessage } from "@/components/ui/FormField";
 
 const initialState: ResetPasswordState = {};
 
@@ -14,9 +15,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
   if (state.done) {
     return (
       <div className="mx-auto flex min-h-[calc(100vh-var(--shell-header-h))] max-w-md flex-col justify-center px-6 py-16">
-        <p role="status" className="border border-positive/40 bg-positive-100 px-3 py-2 text-sm text-positive">
-          {state.success}
-        </p>
+        <FormMessage variant="success">{state.success}</FormMessage>
         <Link href="/login" className="mt-6 text-sm text-signal underline underline-offset-2">
           Go to sign in
         </Link>
@@ -31,32 +30,16 @@ export function ResetPasswordForm({ token }: { token: string }) {
 
       <form action={formAction} className="mt-8 flex flex-col gap-4">
         <input type="hidden" name="token" value={token} />
-        <label className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">New password</span>
-          <input
-            name="password"
-            type="password"
-            required
-            minLength={MIN_PASSWORD_LENGTH}
-            className="border border-stone-300 bg-white px-3 py-2.5 text-sm text-ink outline-none focus-visible:border-signal"
-          />
-        </label>
-        <label className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Confirm password</span>
-          <input
-            name="confirmPassword"
-            type="password"
-            required
-            minLength={MIN_PASSWORD_LENGTH}
-            className="border border-stone-300 bg-white px-3 py-2.5 text-sm text-ink outline-none focus-visible:border-signal"
-          />
-        </label>
+        <TextField label="New password" name="password" type="password" required minLength={MIN_PASSWORD_LENGTH} />
+        <TextField
+          label="Confirm password"
+          name="confirmPassword"
+          type="password"
+          required
+          minLength={MIN_PASSWORD_LENGTH}
+        />
 
-        {state.error && (
-          <p role="alert" className="border border-ember/40 bg-ember-100 px-3 py-2 text-sm text-ember">
-            {state.error}
-          </p>
-        )}
+        {state.error && <FormMessage variant="error">{state.error}</FormMessage>}
 
         <Button type="submit" size="lg" className="mt-2 w-full" disabled={pending}>
           {pending ? "Saving…" : "Reset password"}

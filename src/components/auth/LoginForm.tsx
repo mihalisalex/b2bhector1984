@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { login, type FormState } from "@/lib/actions";
 import { Button } from "@/components/ui/Button";
+import { TextField, FormMessage } from "@/components/ui/FormField";
 
 const initialState: FormState = {};
 
@@ -48,19 +49,15 @@ export function LoginForm() {
 
           <form action={formAction} className="mt-8 flex flex-col gap-4">
             {next && <input type="hidden" name="next" value={next} />}
-            <Field label="Email" name="email" type="email" required />
+            <TextField label="Email" name="email" type="email" required />
             <div>
-              <Field label="Password" name="password" type="password" required />
+              <TextField label="Password" name="password" type="password" required />
               <Link href="/forgot-password" className="mt-1.5 inline-block text-xs text-signal underline underline-offset-2">
                 Forgot password?
               </Link>
             </div>
 
-            {state.error && (
-              <p role="alert" className="border border-ember/40 bg-ember-100 px-3 py-2 text-sm text-ember">
-                {state.error}
-              </p>
-            )}
+            {state.error && <FormMessage variant="error">{state.error}</FormMessage>}
 
             <Button type="submit" size="lg" className="mt-2 w-full" disabled={pending}>
               {pending ? "Signing in…" : "Sign In"}
@@ -69,32 +66,5 @@ export function LoginForm() {
         </div>
       </div>
     </div>
-  );
-}
-
-function Field({
-  label,
-  name,
-  type,
-  defaultValue,
-  required,
-}: {
-  label: string;
-  name: string;
-  type: string;
-  defaultValue?: string;
-  required?: boolean;
-}) {
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{label}</span>
-      <input
-        name={name}
-        type={type}
-        defaultValue={defaultValue}
-        required={required}
-        className="border border-stone-300 bg-white px-3 py-2.5 text-sm text-ink outline-none focus-visible:border-signal"
-      />
-    </label>
   );
 }

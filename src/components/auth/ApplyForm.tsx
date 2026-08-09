@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { submitApplication, type FormState } from "@/lib/actions";
 import { Button } from "@/components/ui/Button";
+import { TextField as Field, SelectField, FormMessage } from "@/components/ui/FormField";
 
 const initialState: FormState = {};
 
@@ -72,11 +73,7 @@ export function ApplyForm() {
           <Field label="Email *" name="email" required type="email" />
         </fieldset>
 
-        {state.error && (
-          <p role="alert" className="border border-ember/40 bg-ember-100 px-3 py-2 text-sm text-ember">
-            {state.error}
-          </p>
-        )}
+        {state.error && <FormMessage variant="error">{state.error}</FormMessage>}
 
         <div className="flex items-center gap-4">
           <Button type="submit" size="lg" disabled={pending}>
@@ -96,66 +93,5 @@ function Legend({ children }: { children: React.ReactNode }) {
 function Row({ children, cols = 2 }: { children: React.ReactNode; cols?: 2 | 3 }) {
   return (
     <div className={`grid grid-cols-1 gap-4 ${cols === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>{children}</div>
-  );
-}
-
-function Field({
-  label,
-  name,
-  type = "text",
-  required,
-  placeholder,
-  mono,
-  maxLength,
-}: {
-  label: string;
-  name: string;
-  type?: string;
-  required?: boolean;
-  placeholder?: string;
-  mono?: boolean;
-  maxLength?: number;
-}) {
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{label}</span>
-      <input
-        name={name}
-        type={type}
-        required={required}
-        placeholder={placeholder}
-        maxLength={maxLength}
-        className={`border border-stone-300 bg-white px-3 py-2.5 text-sm text-ink outline-none focus-visible:border-signal ${mono ? "font-mono-tab" : ""}`}
-      />
-    </label>
-  );
-}
-
-function SelectField({
-  label,
-  name,
-  options,
-  required,
-}: {
-  label: string;
-  name: string;
-  options: string[];
-  required?: boolean;
-}) {
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{label}</span>
-      <select
-        name={name}
-        required={required}
-        defaultValue=""
-        className="border border-stone-300 bg-white px-3 py-2.5 text-sm text-ink outline-none focus-visible:border-signal"
-      >
-        <option value="" disabled>Select one</option>
-        {options.map((opt) => (
-          <option key={opt} value={opt}>{opt}</option>
-        ))}
-      </select>
-    </label>
   );
 }
