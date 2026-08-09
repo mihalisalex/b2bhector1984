@@ -12,6 +12,7 @@ import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
 import { QuickAdd } from "@/components/product/QuickAdd";
+import { ColorSwatchButton } from "@/components/product/ColorSwatchButton";
 import { pickDefaultColorway } from "@/lib/productSelectionDefaults";
 import { cn } from "@/lib/cn";
 
@@ -131,32 +132,16 @@ export function ProductCard({
             <div className="flex flex-wrap gap-1.5">
               {style.colorways.map((c) => {
                 const stocked = inventory ? Object.values(inventory[c.id] ?? {}).some((n) => (n ?? 0) > 0) : true;
-                const selected = c.id === activeColorwayId;
                 return (
-                  <button
+                  <ColorSwatchButton
                     key={c.id}
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setActiveColorwayId(c.id);
-                    }}
-                    aria-label={stocked ? c.name : style.allowBackorder ? `${c.name}, ${backorderText.toLowerCase()}` : `${c.name}, out of stock`}
-                    aria-pressed={selected}
-                    title={c.name}
-                    className="relative flex h-8 w-8 items-center justify-center"
-                  >
-                    <span
-                      className={cn(
-                        "flex h-6 w-6 overflow-hidden rounded-full transition-all duration-150",
-                        selected ? "ring-2 ring-ink ring-offset-1" : "ring-1 ring-stone-300 hover:ring-cinder-300",
-                        !stocked && "opacity-35",
-                      )}
-                    >
-                      <span aria-hidden className="h-full w-1/2" style={{ background: c.swatch[0] }} />
-                      <span aria-hidden className="h-full w-1/2" style={{ background: c.swatch[1] ?? c.swatch[0] }} />
-                    </span>
-                    {!stocked && <span aria-hidden className="pointer-events-none absolute h-[1px] w-5 rotate-45 bg-ink/70" />}
-                  </button>
+                    swatch={c.swatch}
+                    selected={c.id === activeColorwayId}
+                    stocked={stocked}
+                    size="sm"
+                    label={stocked ? c.name : style.allowBackorder ? `${c.name}, ${backorderText.toLowerCase()}` : `${c.name}, out of stock`}
+                    onClick={() => setActiveColorwayId(c.id)}
+                  />
                 );
               })}
             </div>

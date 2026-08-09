@@ -6,6 +6,7 @@ import { useCatalog } from "@/lib/catalog-context";
 import { formatEUR, MIN_ORDER_PAIRS } from "@/lib/pricing";
 import { suggestBoxesToCloseGap, type BoxOption } from "@/lib/orderMinimum";
 import { StylePlate } from "@/components/product/StylePlate";
+import { Button } from "@/components/ui/Button";
 
 /**
  * The 40-pair minimum is the one hard gate on every order in this business, and
@@ -124,13 +125,9 @@ export function CompleteMinimum({
                   : `Leaves ${shortfall - option.pairs} to go`}
               </p>
 
-              <button
-                type="button"
-                onClick={() => add(option)}
-                className="mt-2 w-full border border-ink px-3 py-2 text-xs font-semibold uppercase tracking-wide text-ink transition-colors hover:bg-ink hover:text-white"
-              >
+              <Button type="button" variant="secondary" size="sm" onClick={() => add(option)} className="mt-2 w-full">
                 Add box
-              </button>
+              </Button>
             </li>
           );
         })}

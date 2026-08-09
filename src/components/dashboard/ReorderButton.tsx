@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
+import { textActionClassNames } from "@/components/ui/TextAction";
 import type { BoxTypeId, Order } from "@/lib/types";
 
 export function ReorderButton({ order, className }: { order: Order; className?: string }) {
@@ -32,7 +33,7 @@ export function ReorderButton({ order, className }: { order: Order; className?: 
     <button
       type="button"
       onClick={handleReorder}
-      className={className ?? "text-xs font-semibold uppercase tracking-wide text-signal hover:underline"}
+      className={className ?? textActionClassNames("accent")}
     >
       {done ? "Added — opening cart…" : "Reorder"}
     </button>

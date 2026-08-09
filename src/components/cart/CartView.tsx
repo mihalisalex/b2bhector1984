@@ -11,6 +11,8 @@ import type { BoxTypeId } from "@/lib/types";
 import type { StyleInventory } from "@/lib/data/inventory";
 import type { BoxOption } from "@/lib/orderMinimum";
 import { LinkButton } from "@/components/ui/Button";
+import { StepIcon } from "@/components/ui/StepIcon";
+import { TextAction, TextActionLink } from "@/components/ui/TextAction";
 import { VatSuffix } from "@/components/ui/VatSuffix";
 import { StylePlate } from "@/components/product/StylePlate";
 import { SaveAssortmentButton } from "@/components/dashboard/SaveAssortmentButton";
@@ -116,18 +118,17 @@ export function CartView({
           Cart
         </h1>
         <div className="flex items-center gap-4">
-          <button
-            type="button"
+          <TextAction
+            tone="neutralDanger"
             onClick={() => {
               if (confirm("Empty your entire cart? This removes every line item.")) clearCart();
             }}
-            className="text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-ember"
           >
             Empty cart
-          </button>
-          <Link href="/catalogue" className="text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-ink">
+          </TextAction>
+          <TextActionLink href="/catalogue" tone="neutral">
             ← Continue shopping
-          </Link>
+          </TextActionLink>
         </div>
       </div>
 
@@ -151,13 +152,9 @@ export function CartView({
                   <span className="text-xs text-ink-soft">
                     <span className="font-mono-tab text-ink">{styleId}</span> · {pairs} pair{pairs === 1 ? "" : "s"}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => removeStyle(styleId)}
-                    className="text-xs font-semibold uppercase tracking-wide text-ember hover:underline"
-                  >
+                  <TextAction tone="danger" onClick={() => removeStyle(styleId)}>
                     Remove
-                  </button>
+                  </TextAction>
                 </li>
               );
             })}
@@ -192,13 +189,9 @@ export function CartView({
                   </Link>
                   <p className="font-mono-tab text-xs text-ink-soft">{style.styleNumber}</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => removeStyle(styleId)}
-                  className="text-xs font-medium uppercase tracking-wide text-ember hover:underline"
-                >
+                <TextAction tone="danger" onClick={() => removeStyle(styleId)}>
                   Remove
-                </button>
+                </TextAction>
               </div>
 
               {/* Mobile/tablet: one stacked row per line, full-width controls — no
@@ -226,7 +219,7 @@ export function CartView({
                           onClick={() => setLineQty(styleId, l.colorwayId, l.boxTypeId, Math.max(0, l.qty - 1))}
                           className="flex h-9 w-9 items-center justify-center text-ink hover:bg-stone-100"
                         >
-                          −
+                          <StepIcon kind="minus" />
                         </button>
                         <input
                           type="number"
@@ -244,7 +237,7 @@ export function CartView({
                           disabled={l.qty >= max}
                           className="flex h-9 w-9 items-center justify-center text-ink hover:bg-stone-100 disabled:opacity-30 disabled:hover:bg-transparent"
                         >
-                          +
+                          <StepIcon kind="plus" />
                         </button>
                       </div>
                       <button
@@ -289,7 +282,7 @@ export function CartView({
                                 onClick={() => setLineQty(styleId, l.colorwayId, l.boxTypeId, Math.max(0, l.qty - 1))}
                                 className="flex h-9 w-9 items-center justify-center text-ink hover:bg-stone-100"
                               >
-                                −
+                                <StepIcon kind="minus" />
                               </button>
                               <input
                                 type="number"
@@ -309,7 +302,7 @@ export function CartView({
                                 disabled={l.qty >= max}
                                 className="flex h-9 w-9 items-center justify-center text-ink hover:bg-stone-100 disabled:opacity-30 disabled:hover:bg-transparent"
                               >
-                                +
+                                <StepIcon kind="plus" />
                               </button>
                             </div>
                             <p className={cn("mt-1 text-[11px]", overStock ? "font-medium text-ember" : willBeProduction ? "text-ink" : "text-ink-soft")}>

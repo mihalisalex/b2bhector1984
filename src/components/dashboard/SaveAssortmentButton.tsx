@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { saveAssortment, type FormState } from "@/lib/actions";
 import { Button } from "@/components/ui/Button";
+import { TextAction } from "@/components/ui/TextAction";
 import type { CartLine } from "@/lib/cart-context";
 
 const initialState: FormState = {};
@@ -17,13 +18,9 @@ export function SaveAssortmentButton({ lines }: { lines: CartLine[] }) {
 
   if (!open) {
     return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="text-xs font-semibold uppercase tracking-wide text-ink-soft underline underline-offset-2 hover:text-ink"
-      >
+      <TextAction tone="neutral" underline onClick={() => setOpen(true)}>
         Save as assortment
-      </button>
+      </TextAction>
     );
   }
 

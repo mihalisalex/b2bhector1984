@@ -8,6 +8,7 @@ import { searchStylesAction, type SearchResult } from "@/lib/searchActions";
 import { formatEUR } from "@/lib/pricing";
 import { cn } from "@/lib/cn";
 import { useFocusTrap } from "@/lib/useFocusTrap";
+import { IconButton } from "@/components/ui/IconButton";
 
 const RECENT_KEY = "hector_recent_searches";
 const MAX_RECENT = 6;
@@ -139,14 +140,9 @@ export function SearchOverlay() {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label="Search products"
-        className="flex h-9 w-9 items-center justify-center text-ink transition-colors hover:text-signal"
-      >
+      <IconButton onClick={() => setOpen(true)} aria-label="Search products">
         <SearchIcon />
-      </button>
+      </IconButton>
 
       {mounted &&
         createPortal(
@@ -193,14 +189,9 @@ export function SearchOverlay() {
                   aria-controls="search-results-list"
                   className="w-full bg-transparent px-1 py-1.5 text-base text-ink outline-none placeholder:text-ink-soft"
                 />
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  aria-label="Close search"
-                  className="shrink-0 px-2 text-ink-soft hover:text-ink"
-                >
+                <IconButton size="sm" onClick={() => setOpen(false)} aria-label="Close search">
                   ✕
-                </button>
+                </IconButton>
               </div>
 
               <div className="scroll-thin overflow-y-auto p-3">
@@ -215,7 +206,7 @@ export function SearchOverlay() {
                               key={r}
                               type="button"
                               onClick={() => runSearch(r)}
-                              className="border border-stone-300 bg-white px-3 py-1.5 text-xs text-ink hover:border-ink"
+                              className="rounded-full border border-stone-300 bg-white px-3 py-1.5 text-xs text-ink hover:border-ink"
                             >
                               {r}
                             </button>
@@ -234,7 +225,7 @@ export function SearchOverlay() {
                               setOpen(false);
                               router.push(`/catalogue?category=${c.value}`);
                             }}
-                            className="border border-stone-300 bg-white px-3 py-1.5 text-xs text-ink hover:border-ink"
+                            className="rounded-full border border-stone-300 bg-white px-3 py-1.5 text-xs text-ink hover:border-ink"
                           >
                             {c.label}
                           </button>
@@ -258,7 +249,7 @@ export function SearchOverlay() {
                             setOpen(false);
                             router.push(`/catalogue?category=${c.value}`);
                           }}
-                          className="border border-stone-300 bg-white px-3 py-1.5 text-xs text-ink hover:border-ink"
+                          className="rounded-full border border-stone-300 bg-white px-3 py-1.5 text-xs text-ink hover:border-ink"
                         >
                           Browse {c.label}
                         </button>

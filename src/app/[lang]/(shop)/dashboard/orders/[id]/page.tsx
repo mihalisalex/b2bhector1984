@@ -7,6 +7,7 @@ import { getBoxType } from "@/lib/data/boxTypes";
 import { formatEUR, summarizeOrder } from "@/lib/pricing";
 import { formatDate } from "@/lib/format";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { buttonClassNames } from "@/components/ui/Button";
 import { ReorderButton } from "@/components/dashboard/ReorderButton";
 import { ClearCartOnMount } from "@/components/dashboard/ClearCartOnMount";
 import { PrintButton } from "@/components/dashboard/PrintButton";
@@ -90,11 +91,8 @@ export default async function OrderDetailPage({
           <p className="mt-1 text-sm text-ink-soft">Placed {formatDate(order.placedAt)}</p>
         </div>
         <div className="flex items-center gap-3 print:hidden">
-          <ReorderButton order={order} className="border border-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-white" />
-          <a
-            href={`/api/orders/${order.id}/invoice`}
-            className="border border-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-white"
-          >
+          <ReorderButton order={order} className={buttonClassNames("secondary", "sm")} />
+          <a href={`/api/orders/${order.id}/invoice`} className={buttonClassNames("secondary", "sm")}>
             Download Invoice
           </a>
           <PrintButton />

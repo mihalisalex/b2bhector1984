@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { COLOR_FAMILIES, FLAG_OPTIONS, PRICE_BANDS } from "@/lib/catalogFilters";
 import { SORT_OPTIONS } from "@/lib/catalogSort";
+import { TextAction } from "@/components/ui/TextAction";
 import { cn } from "@/lib/cn";
 
 const DEFAULT_SEASON_OPTIONS = [
@@ -221,9 +222,9 @@ export function CatalogFiltersPanel({
           </FilterGroup>
 
           {activeCount > 0 && (
-            <button type="button" onClick={clearAll} className="text-left text-xs font-medium uppercase tracking-wide text-signal hover:underline">
+            <TextAction tone="accent" onClick={clearAll} className="text-left">
               Clear all filters
-            </button>
+            </TextAction>
           )}
         </div>
       )}

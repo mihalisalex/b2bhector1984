@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { toggleFavoriteAction } from "@/lib/actions";
+import { IconButton } from "@/components/ui/IconButton";
 import { cn } from "@/lib/cn";
 
 export function FavoriteButton({
@@ -30,16 +31,16 @@ export function FavoriteButton({
 
   if (variant === "icon") {
     return (
-      <button
-        type="button"
+      <IconButton
+        variant="bordered"
         onClick={toggle}
         disabled={isPending}
         aria-pressed={favorited}
         aria-label={favorited ? "Remove from favorites" : "Add to favorites"}
-        className="flex h-9 w-9 items-center justify-center border border-stone-300 bg-white/90 text-ink backdrop-blur transition-colors hover:border-ink disabled:opacity-60"
+        className="bg-white/90 backdrop-blur"
       >
         <HeartIcon filled={favorited} />
-      </button>
+      </IconButton>
     );
   }
 

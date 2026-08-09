@@ -7,6 +7,8 @@ import { usePathname } from "next/navigation";
 import type { Account } from "@/lib/types";
 import { cn } from "@/lib/cn";
 import { HWatermark } from "@/components/layout/HWatermark";
+import { LinkButton } from "@/components/ui/Button";
+import { IconButton } from "@/components/ui/IconButton";
 import { useFocusTrap } from "@/lib/useFocusTrap";
 import { useI18n } from "@/i18n/I18nProvider";
 import { stripLocale, withLocale } from "@/i18n/paths";
@@ -141,14 +143,9 @@ export function MainNav({ account }: { account: Account | null }) {
 
               <div className="relative flex items-center justify-between border-b border-stone-300 px-5 py-4">
                 <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">{dict.nav.menu}</span>
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  aria-label={dict.nav.closeMenu}
-                  className="flex h-8 w-8 items-center justify-center text-ink hover:text-signal"
-                >
+                <IconButton size="sm" onClick={() => setOpen(false)} aria-label={dict.nav.closeMenu}>
                   ✕
-                </button>
+                </IconButton>
               </div>
 
               <nav className="relative flex flex-1 flex-col gap-1 px-5 py-6" aria-label="Primary">
@@ -169,18 +166,12 @@ export function MainNav({ account }: { account: Account | null }) {
 
                 {!account && (
                   <div className="mt-4 flex flex-col gap-2.5">
-                    <Link
-                      href={withLocale(locale, "/apply")}
-                      className="bg-ink px-4 py-2.5 text-center text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85"
-                    >
+                    <LinkButton href={withLocale(locale, "/apply")} className="w-full justify-center">
                       {dict.nav.applyForAccess}
-                    </Link>
-                    <Link
-                      href={withLocale(locale, "/login")}
-                      className="border border-ink px-4 py-2.5 text-center text-xs font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-white"
-                    >
+                    </LinkButton>
+                    <LinkButton href={withLocale(locale, "/login")} variant="secondary" className="w-full justify-center">
                       {dict.nav.buyerLogin}
-                    </Link>
+                    </LinkButton>
                   </div>
                 )}
               </div>

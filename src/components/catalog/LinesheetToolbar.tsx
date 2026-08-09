@@ -4,6 +4,7 @@ import type { Style } from "@/lib/types";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { getUnitPrice } from "@/lib/pricing";
 import { toCsv } from "@/lib/csv";
+import { Button } from "@/components/ui/Button";
 
 export function LinesheetToolbar({ styles, priceMultiplier = 1 }: { styles: Style[]; priceMultiplier?: number }) {
   function exportCsv() {
@@ -41,20 +42,12 @@ export function LinesheetToolbar({ styles, priceMultiplier = 1 }: { styles: Styl
 
   return (
     <div className="flex items-center gap-2 print:hidden">
-      <button
-        type="button"
-        onClick={() => window.print()}
-        className="border border-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-white"
-      >
+      <Button type="button" variant="secondary" size="sm" onClick={() => window.print()}>
         Print
-      </button>
-      <button
-        type="button"
-        onClick={exportCsv}
-        className="bg-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85"
-      >
+      </Button>
+      <Button type="button" size="sm" onClick={exportCsv}>
         Export CSV
-      </button>
+      </Button>
     </div>
   );
 }

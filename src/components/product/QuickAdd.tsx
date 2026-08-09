@@ -9,6 +9,8 @@ import { VatSuffix } from "@/components/ui/VatSuffix";
 import { pickDefaultBoxType } from "@/lib/productSelectionDefaults";
 import type { StyleInventory } from "@/lib/data/inventory";
 import type { BoxTypeId, Style } from "@/lib/types";
+import { Button } from "@/components/ui/Button";
+import { StepIcon } from "@/components/ui/StepIcon";
 import { cn } from "@/lib/cn";
 
 /**
@@ -87,13 +89,9 @@ export function QuickAdd({
 
   if (!open) {
     return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="mt-3 w-full border border-ink px-3 py-2 text-xs font-semibold uppercase tracking-wide text-ink transition-colors hover:bg-ink hover:text-white"
-      >
+      <Button type="button" variant="secondary" size="sm" onClick={() => setOpen(true)} className="mt-3 w-full">
         Quick add
-      </button>
+      </Button>
     );
   }
 
@@ -141,7 +139,7 @@ export function QuickAdd({
             aria-label="Decrease quantity"
             className="flex h-9 w-8 items-center justify-center text-ink hover:bg-stone-100 disabled:opacity-30"
           >
-            −
+            <StepIcon kind="minus" />
           </button>
           <span className="font-mono-tab flex h-9 w-8 items-center justify-center text-sm font-semibold text-ink">
             {qty}
@@ -153,7 +151,7 @@ export function QuickAdd({
             aria-label="Increase quantity"
             className="flex h-9 w-8 items-center justify-center text-ink hover:bg-stone-100 disabled:opacity-30"
           >
-            +
+            <StepIcon kind="plus" />
           </button>
         </div>
         <button

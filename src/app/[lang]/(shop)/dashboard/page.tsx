@@ -9,6 +9,7 @@ import { cn } from "@/lib/cn";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { ReorderButton } from "@/components/dashboard/ReorderButton";
 import { LinkButton } from "@/components/ui/Button";
+import { TextActionLink } from "@/components/ui/TextAction";
 
 export const metadata = { title: "Dashboard", robots: { index: false, follow: false } };
 
@@ -102,9 +103,9 @@ export default async function DashboardPage() {
                     <div className="flex items-center gap-4">
                       <span className="text-sm font-semibold tabular-nums text-ink">{formatEUR(grandTotal)}</span>
                       <ReorderButton order={order} />
-                      <Link href={`/dashboard/orders/${order.id}`} className="text-xs font-medium text-ink-soft hover:text-ink">
+                      <TextActionLink href={`/dashboard/orders/${order.id}`} tone="neutral">
                         Details
-                      </Link>
+                      </TextActionLink>
                     </div>
                   </div>
                 );
@@ -129,9 +130,9 @@ export default async function DashboardPage() {
               ))}
             </div>
           )}
-          <Link href="/dashboard/assortments" className="mt-3 inline-block text-xs font-semibold uppercase tracking-wide text-signal hover:underline">
+          <TextActionLink href="/dashboard/assortments" tone="accent" className="mt-3 inline-block">
             View all assortments
-          </Link>
+          </TextActionLink>
         </div>
       </div>
     </div>

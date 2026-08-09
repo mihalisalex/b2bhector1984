@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
+import { textActionClassNames } from "@/components/ui/TextAction";
 import type { BoxTypeId, SavedAssortmentLine } from "@/lib/types";
 
 /** Only lines saved after migration 0021 carry colorway/box detail — older
@@ -37,7 +38,7 @@ export function LoadAssortmentButton({ lines, className }: { lines: SavedAssortm
     <button
       type="button"
       onClick={handleLoad}
-      className={className ?? "text-xs font-semibold uppercase tracking-wide text-signal hover:underline"}
+      className={className ?? textActionClassNames("accent")}
     >
       {done ? "Added — opening cart…" : "Load into cart"}
     </button>

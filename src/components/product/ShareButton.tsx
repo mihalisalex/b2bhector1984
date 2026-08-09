@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { IconButton } from "@/components/ui/IconButton";
 
 export function ShareButton({ title }: { title: string }) {
   const [copied, setCopied] = useState(false);
@@ -25,12 +26,7 @@ export function ShareButton({ title }: { title: string }) {
   }
 
   return (
-    <button
-      type="button"
-      onClick={share}
-      aria-label="Share this product"
-      className="relative flex h-12 w-12 shrink-0 items-center justify-center border border-stone-300 text-ink transition-colors hover:border-ink"
-    >
+    <IconButton variant="bordered" size="lg" onClick={share} aria-label="Share this product">
       <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.75} aria-hidden>
         <path strokeLinecap="round" strokeLinejoin="round" d="M8.7 10.7 15.3 7M8.7 13.3l6.6 3.7" />
         <circle cx="6" cy="12" r="2.5" />
@@ -42,6 +38,6 @@ export function ShareButton({ title }: { title: string }) {
           Link copied
         </span>
       )}
-    </button>
+    </IconButton>
   );
 }

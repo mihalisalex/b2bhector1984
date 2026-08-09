@@ -21,6 +21,17 @@ const SIZE_CLASSES: Record<Size, string> = {
 const base =
   "inline-flex items-center justify-center font-medium uppercase tracking-wide transition-all duration-200 ease-out disabled:opacity-40 disabled:pointer-events-none whitespace-nowrap";
 
+/**
+ * The same class recipe `Button`/`LinkButton` render, exposed for the handful of spots that
+ * can't use either component directly — a plain `<a>` triggering a file download (not a
+ * `next/link` navigation) or a custom interactive control that owns its own element but
+ * wants to *look* like a button. Keeps every button-shaped thing on one recipe instead of
+ * each call site hand-copying `Button`'s classes and drifting from it over time.
+ */
+export function buttonClassNames(variant: Variant = "primary", size: Size = "md", className?: string) {
+  return cn(base, VARIANT_CLASSES[variant], SIZE_CLASSES[size], className);
+}
+
 export function Button({
   variant = "primary",
   size = "md",

@@ -12,6 +12,7 @@ import { formatEUR } from "@/lib/pricing";
 import { CartIcon } from "@/components/layout/icons";
 import { StylePlate } from "@/components/product/StylePlate";
 import { LinkButton } from "@/components/ui/Button";
+import { IconButton } from "@/components/ui/IconButton";
 import { useFocusTrap } from "@/lib/useFocusTrap";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -70,13 +71,11 @@ export function CartDrawer() {
 
   return (
     <>
-      <button
-        type="button"
+      <IconButton
         onClick={() => setOpen(true)}
         aria-label={`${cart.title}, ${itemCount} ${itemCount === 1 ? cart.pair : cart.pairs}`}
         aria-haspopup="dialog"
         aria-expanded={open}
-        className="relative flex h-9 w-9 items-center justify-center text-ink transition-colors hover:text-signal"
       >
         <CartIcon />
         {itemCount > 0 && (
@@ -87,7 +86,7 @@ export function CartDrawer() {
             {itemCount > 99 ? "99+" : itemCount}
           </span>
         )}
-      </button>
+      </IconButton>
 
       {mounted &&
         createPortal(
@@ -119,14 +118,9 @@ export function CartDrawer() {
                   {cart.title}
                   {itemCount > 0 ? ` · ${itemCount} ${itemCount === 1 ? cart.pair : cart.pairs}` : ""}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  aria-label={cart.close}
-                  className="flex h-8 w-8 items-center justify-center text-ink hover:text-signal"
-                >
+                <IconButton size="sm" onClick={() => setOpen(false)} aria-label={cart.close}>
                   ✕
-                </button>
+                </IconButton>
               </div>
 
               <div className="scroll-thin flex-1 overflow-y-auto">

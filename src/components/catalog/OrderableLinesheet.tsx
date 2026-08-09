@@ -12,6 +12,7 @@ import type { StyleInventory } from "@/lib/data/inventory";
 import type { BoxTypeId, Style } from "@/lib/types";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { LinkButton } from "@/components/ui/Button";
+import { StepIcon } from "@/components/ui/StepIcon";
 import { StylePlate } from "@/components/product/StylePlate";
 import { cn } from "@/lib/cn";
 
@@ -314,7 +315,7 @@ function Stepper({
           disabled={value === 0}
           className="flex h-6 w-6 items-center justify-center text-ink hover:text-signal disabled:opacity-30"
         >
-          −
+          <StepIcon kind="minus" className="h-2.5 w-2.5" />
         </button>
         <input
           type="number"
@@ -336,7 +337,7 @@ function Stepper({
           disabled={value >= maxSelectable}
           className="flex h-6 w-6 items-center justify-center text-ink hover:text-signal disabled:opacity-30"
         >
-          +
+          <StepIcon kind="plus" className="h-2.5 w-2.5" />
         </button>
       </div>
       <span className={cn("font-mono-tab text-[9px]", outOfStock || willBeProduction ? "text-ember" : "text-ink-soft/70")}>

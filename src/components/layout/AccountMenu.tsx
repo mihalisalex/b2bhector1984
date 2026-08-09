@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { logout } from "@/lib/actions";
 import type { Account } from "@/lib/types";
 import { AccountIcon } from "@/components/layout/icons";
+import { IconButton } from "@/components/ui/IconButton";
 import { useI18n } from "@/i18n/I18nProvider";
 import { withLocale } from "@/i18n/paths";
 
@@ -86,17 +87,15 @@ export function AccountMenu({ account }: { account: Account }) {
 
   return (
     <>
-      <button
+      <IconButton
         ref={buttonRef}
-        type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label={dict.account.accountMenu}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex h-9 w-9 items-center justify-center text-ink transition-colors hover:text-signal"
       >
         <AccountIcon />
-      </button>
+      </IconButton>
 
       {mounted &&
         open &&

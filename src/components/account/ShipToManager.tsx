@@ -9,6 +9,7 @@ import {
   type FormState,
 } from "@/lib/actions";
 import { Button } from "@/components/ui/Button";
+import { TextAction } from "@/components/ui/TextAction";
 import type { ShipToAddress } from "@/lib/types";
 
 const initialState: FormState = {};
@@ -74,24 +75,24 @@ function AddressCard({
           {address.city}, {address.state} {address.zip}
         </p>
       </div>
-      <div className="flex items-center gap-3 text-xs font-medium">
-        <button type="button" onClick={onEdit} className="text-ink-soft hover:text-ink">
+      <div className="flex items-center gap-3">
+        <TextAction tone="neutral" onClick={onEdit}>
           Edit
-        </button>
+        </TextAction>
         {!address.isDefault && (
           <form action={setDefaultShipToAddress}>
             <input type="hidden" name="shipToId" value={address.id} />
-            <button type="submit" className="text-ink-soft hover:text-ink">
+            <TextAction type="submit" tone="neutral">
               Set default
-            </button>
+            </TextAction>
           </form>
         )}
         {canDelete && (
           <form action={deleteShipToAddress}>
             <input type="hidden" name="shipToId" value={address.id} />
-            <button type="submit" className="text-ember hover:underline">
+            <TextAction type="submit" tone="danger">
               Delete
-            </button>
+            </TextAction>
           </form>
         )}
       </div>

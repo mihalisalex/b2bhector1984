@@ -8,6 +8,7 @@ import { formatDate } from "@/lib/format";
 import { StylePlate } from "@/components/product/StylePlate";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { LoadAssortmentButton } from "@/components/dashboard/LoadAssortmentButton";
+import { TextAction } from "@/components/ui/TextAction";
 
 export const metadata = { title: "Saved Assortments", robots: { index: false, follow: false } };
 
@@ -47,9 +48,9 @@ export default async function AssortmentsPage() {
                   <LoadAssortmentButton lines={a.lines} />
                   <form action={deleteAssortment}>
                     <input type="hidden" name="assortmentId" value={a.id} />
-                    <button type="submit" className="text-xs font-medium text-ember hover:underline">
+                    <TextAction type="submit" tone="danger">
                       Delete
-                    </button>
+                    </TextAction>
                   </form>
                 </div>
               </div>

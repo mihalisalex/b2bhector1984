@@ -14,6 +14,7 @@ import { VatSuffix, vatSuffixText } from "@/components/ui/VatSuffix";
 import { ColorwayPicker } from "@/components/product/ColorwayPicker";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
 import { ShareButton } from "@/components/product/ShareButton";
+import { StepIcon } from "@/components/ui/StepIcon";
 import type { BoxTypeId, Style } from "@/lib/types";
 import type { StyleInventory } from "@/lib/data/inventory";
 import { cn } from "@/lib/cn";
@@ -325,14 +326,5 @@ function Stepper({
         <StepIcon kind="plus" />
       </button>
     </div>
-  );
-}
-
-function StepIcon({ kind }: { kind: "minus" | "plus" }) {
-  return (
-    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="currentColor" aria-hidden>
-      <rect x="1.5" y="7.25" width="13" height="1.5" />
-      {kind === "plus" && <rect x="7.25" y="1.5" width="1.5" height="13" />}
-    </svg>
   );
 }
