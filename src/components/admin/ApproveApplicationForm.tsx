@@ -56,7 +56,7 @@ export function ApproveApplicationForm({
         <input
           name="priceMultiplier"
           type="number"
-          step="0.05"
+          step="0.01"
           min="0.01"
           max="5"
           defaultValue="1"

@@ -25,9 +25,10 @@ export function CompleteMinimum({
   options: BoxOption[];
   totalPairs: number;
 }) {
-  const { addLines, lines } = useCart();
+  const { addLines, lines, minOrderPairs: accountMinOrderPairs } = useCart();
   const { productionLeadTimeDays } = useCatalog();
-  const shortfall = MIN_ORDER_PAIRS - totalPairs;
+  const minimum = accountMinOrderPairs ?? MIN_ORDER_PAIRS;
+  const shortfall = minimum - totalPairs;
   if (shortfall <= 0) return null;
 
   // Don't offer a box the buyer already has maxed out against available stock —
@@ -74,7 +75,7 @@ export function CompleteMinimum({
           {shortfall} more {shortfall === 1 ? "pair" : "pairs"} to check out
         </h2>
         <p className="mt-1 text-xs text-ink-soft">
-          Orders ship at a {MIN_ORDER_PAIRS}-pair minimum, mixable across styles. These are sized to close
+          Orders ship at a {minimum}-pair minimum, mixable across styles. These are sized to close
           the gap — one tap adds a box.
         </p>
       </div>

@@ -99,9 +99,12 @@ export const MIN_ORDER_PAIRS = 40;
  */
 export const MAX_BACKORDER_QTY = 999;
 
-export function getOrderMinimumError(totalPairs: number): string | undefined {
-  if (totalPairs === 0 || totalPairs >= MIN_ORDER_PAIRS) return undefined;
-  return `Orders require a minimum of ${MIN_ORDER_PAIRS} pairs total. Add ${MIN_ORDER_PAIRS - totalPairs} more pairs to check out.`;
+/** `minimum` defaults to the sitewide `MIN_ORDER_PAIRS` — pass `account?.minOrderPairs` at
+ * every real call site so an account with a lower override is actually held to it, rather
+ * than silently falling back to 40 for everyone. */
+export function getOrderMinimumError(totalPairs: number, minimum: number = MIN_ORDER_PAIRS): string | undefined {
+  if (totalPairs === 0 || totalPairs >= minimum) return undefined;
+  return `Orders require a minimum of ${minimum} pairs total. Add ${minimum - totalPairs} more pairs to check out.`;
 }
 
 export interface MatrixValidation {

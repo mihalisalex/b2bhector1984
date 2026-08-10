@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { checkRateLimit, formatRetryAfter, resetRateLimit } from "@/lib/rateLimit";
-import { addOrder, getOrdersForAccount } from "@/lib/runtimeOrders";
+import { addOrder } from "@/lib/runtimeOrders";
 import {
   APPLICATION_COOKIE,
   SESSION_COOKIE,
@@ -391,24 +391,15 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
     }
   }
 
-  const minimumError = getOrderMinimumError(totalPairs);
+  const minimumError = getOrderMinimumError(totalPairs, account.minOrderPairs);
   if (minimumError) return { error: minimumError };
 
-  // Credit is checked against grandTotal (net + VAT) — the real amount this
-  // order will add to the buyer's outstanding balance, not just the pre-tax
-  // figure. Existing outstanding orders are summed the same way, so a buyer
-  // can't be pushed over their real credit limit once VAT applies.
+  // No automatic credit-limit gate here (removed 2026-08-10) — every order already routes
+  // through a rep as a proforma-invoice request before anything is confirmed (see the
+  // "isn't a charge" copy on the checkout button), so an automated hard block at submission
+  // time fought against that conversation rather than supporting it. `creditLimit` stays on
+  // the account as an admin reference/tracking field; it just isn't enforced here anymore.
   const { total: orderTotal, vatTotal: orderVat, grandTotal: orderGrandTotal } = summarizeOrder({ lines: orderLines });
-  const existingOrders = await getOrdersForAccount(account.id);
-  const outstanding = existingOrders
-    .filter((o) => o.status !== "delivered")
-    .reduce((sum, o) => sum + summarizeOrder(o).grandTotal, 0);
-  const availableCredit = account.creditLimit - outstanding;
-  if (orderGrandTotal > availableCredit) {
-    return {
-      error: `This order (${formatEUR(orderGrandTotal)} incl. VAT) exceeds your available credit (${formatEUR(Math.max(availableCredit, 0))} of a ${formatEUR(account.creditLimit)} limit). Contact ${account.rep.name} to raise your limit or reduce the order.`,
-    };
-  }
 
   // Lines whose full quantity isn't on hand fall back to production instead of failing,
   // as long as the style allows it (`allowBackorder` — on by default, admin can opt a

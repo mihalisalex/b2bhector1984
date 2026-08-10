@@ -52,7 +52,7 @@ export function CheckoutForm({ account }: { account: Account }) {
   );
   const grandTotal = useMemo(() => Math.round((cartTotal + vatTotal) * 100) / 100, [cartTotal, vatTotal]);
   const totalPairs = useMemo(() => styleGroups.reduce((sum, g) => sum + g.totalPairs, 0), [styleGroups]);
-  const minimumError = getOrderMinimumError(totalPairs);
+  const minimumError = getOrderMinimumError(totalPairs, account.minOrderPairs);
 
   // Preview only — mirrors the same on-hand comparison PrimaryPurchasePanel/QuickAdd/
   // OrderableLinesheet already show per line, just rolled up per style here. The real,

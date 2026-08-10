@@ -37,7 +37,8 @@ export function PrimaryPurchasePanel({
   priceMultiplier?: number;
   initialFavorited: boolean;
 }) {
-  const { addLines, lines, itemCount } = useCart();
+  const { addLines, lines, itemCount, minOrderPairs: accountMinOrderPairs } = useCart();
+  const minOrderPairs = accountMinOrderPairs ?? MIN_ORDER_PAIRS;
   const { productionLeadTimeDays } = useCatalog();
   const { locale } = useI18n();
   const boxTypes = getAvailableBoxTypes(style);
@@ -104,7 +105,7 @@ export function PrimaryPurchasePanel({
   // mixable across styles, so this projects the total *after* this add rather than per-style.
   const pendingPairs = addQty * pairsPerBox;
   const pairsAfterAdd = itemCount + pendingPairs;
-  const pairsShort = Math.max(0, MIN_ORDER_PAIRS - pairsAfterAdd);
+  const pairsShort = Math.max(0, minOrderPairs - pairsAfterAdd);
 
   // Re-clamp the pending add-qty whenever the selected colorway/box combo changes stock.
   useEffect(() => {
@@ -207,10 +208,10 @@ export function PrimaryPurchasePanel({
                 {pairsShort > 0 ? (
                   <>
                     Takes your order to <span className="font-semibold text-ink">{pairsAfterAdd} pairs</span> —{" "}
-                    {pairsShort} short of the {MIN_ORDER_PAIRS}-pair minimum, mixable across any styles.
+                    {pairsShort} short of the {minOrderPairs}-pair minimum, mixable across any styles.
                   </>
                 ) : (
-                  <>Meets the {MIN_ORDER_PAIRS}-pair order minimum ({pairsAfterAdd} pairs after adding).</>
+                  <>Meets the {minOrderPairs}-pair order minimum ({pairsAfterAdd} pairs after adding).</>
                 )}
               </p>
             )}

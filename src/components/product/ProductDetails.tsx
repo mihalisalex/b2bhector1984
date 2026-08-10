@@ -13,7 +13,7 @@ import type { Style } from "@/lib/types";
  * and this content is long-tail — most buyers only open one section, so paying
  * for hydration to render all of it eagerly would be backwards.
  */
-export function ProductDetails({ style }: { style: Style }) {
+export function ProductDetails({ style, minOrderPairs = MIN_ORDER_PAIRS }: { style: Style; minOrderPairs?: number }) {
   const boxTypes = getAvailableBoxTypes(style);
   const docs = style.documents ?? [];
   const attributes = style.attributes ?? [];
@@ -69,7 +69,7 @@ export function ProductDetails({ style }: { style: Style }) {
 
       <Section title="Ordering, shipping &amp; returns">
         <dl className="grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
-          <Spec label="Order minimum" value={`${MIN_ORDER_PAIRS} pairs, mixable across any styles`} />
+          <Spec label="Order minimum" value={`${minOrderPairs} pairs, mixable across any styles`} />
           <Spec
             label="Availability"
             value={

@@ -40,6 +40,10 @@ interface CartContextValue {
   /** What checkout will actually charge — cartTotal + cartVatTotal. */
   cartGrandTotal: number;
   priceMultiplier: number;
+  /** This account's override of `MIN_ORDER_PAIRS` (src/lib/pricing.ts), if an admin has set
+   * one — undefined means no override, so every consumer should fall back to
+   * `MIN_ORDER_PAIRS` itself rather than treating undefined as "no minimum". */
+  minOrderPairs?: number;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -55,10 +59,12 @@ function pairsInLine(line: CartLine): number {
 export function CartProvider({
   accountId,
   priceMultiplier = 1,
+  minOrderPairs,
   children,
 }: {
   accountId: string;
   priceMultiplier?: number;
+  minOrderPairs?: number;
   children: ReactNode;
 }) {
   const { getStyleById } = useCatalog();
@@ -203,6 +209,7 @@ export function CartProvider({
       cartVatTotal,
       cartGrandTotal,
       priceMultiplier,
+      minOrderPairs,
     }),
     [
       lines,
@@ -218,6 +225,7 @@ export function CartProvider({
       cartVatTotal,
       cartGrandTotal,
       priceMultiplier,
+      minOrderPairs,
     ],
   );
 

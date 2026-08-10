@@ -300,6 +300,12 @@ export interface Account {
   creditLimit: number;
   /** Negotiated-pricing lever: multiplies the terms-discounted unit price. 1 = no adjustment. */
   priceMultiplier: number;
+  /** Per-account override of `MIN_ORDER_PAIRS` (src/lib/pricing.ts) — undefined for every
+   * account until an admin sets a real number on /admin/accounts, including brand-new ones,
+   * so a new buyer is always bound by the standard 40-pair minimum. Only ever set to
+   * something lower, for an established account earning easier reorders — see the doc
+   * comment on migration 0034. */
+  minOrderPairs?: number;
   resaleCertId: string;
   businessType: string;
   storeLocation: string;

@@ -29,7 +29,7 @@ export function CartView({
    * to production rather than blocking the buyer). */
   inventory: Record<string, StyleInventory>;
 }) {
-  const { lines, unavailableLines, setLineQty, removeStyle, clearCart, cartTotal, cartVatTotal, cartGrandTotal, priceMultiplier } = useCart();
+  const { lines, unavailableLines, setLineQty, removeStyle, clearCart, cartTotal, cartVatTotal, cartGrandTotal, priceMultiplier, minOrderPairs } = useCart();
   const { getStyleById, productionLeadTimeDays } = useCatalog();
 
   function onHandFor(styleId: string, colorwayId: string, boxTypeId: BoxTypeId): number {
@@ -82,7 +82,7 @@ export function CartView({
     () => sellableLines.reduce((sum, l) => sum + l.qty * getBoxType(l.boxTypeId).totalPairs, 0),
     [sellableLines],
   );
-  const minimumError = getOrderMinimumError(grandTotalPairs);
+  const minimumError = getOrderMinimumError(grandTotalPairs, minOrderPairs);
   // Belt-and-suspenders alongside the disabled "+" button: also gate the actual checkout
   // hand-off, so a line that's over its real ceiling for any reason (a stale cart from
   // before this fix, stock dropping after the line was added) can't slip through. A line

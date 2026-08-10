@@ -162,7 +162,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </div>
         </ColorwaySelectionProvider>
 
-        <ProductDetails style={style} />
+        <ProductDetails style={style} minOrderPairs={account?.minOrderPairs} />
       </div>
 
       {/* Watched by the mobile buy bar: once this scrolls into view the buyer has moved

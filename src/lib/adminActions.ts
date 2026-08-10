@@ -9,10 +9,12 @@ import {
   updateAccountPriceMultiplier,
   updateAccountCreditTerms,
   updateAccountCreditLimit,
+  updateAccountMinOrderPairs,
   updateAccountRep,
   updateAccountPhoneAdmin,
   getAccountByEmail,
 } from "@/lib/data/accounts";
+import { MIN_ORDER_PAIRS } from "@/lib/pricing";
 import { createSalesRep, updateSalesRep, deleteSalesRep, getSalesRepById } from "@/lib/data/salesReps";
 import { logAudit } from "@/lib/data/auditLog";
 import { updateHomepageHero, createHeroImageUploadTarget, finalizeHeroImageUpload } from "@/lib/data/siteContent";
@@ -289,6 +291,31 @@ export async function updateAccountPriceMultiplierAction(accountId: string, _pre
   await logAudit(admin.id, "account.price_multiplier_updated", "account", accountId, String(priceMultiplier));
   revalidatePath("/admin/accounts");
   return { success: "Price multiplier saved." };
+}
+
+/**
+ * Bound to `.bind(null, accountId)` — a <form action> per account row's minimum-order
+ * input on /admin/accounts. An empty field clears the override (back to the standard
+ * `MIN_ORDER_PAIRS`); this is deliberately not exposed at application approval time — it's
+ * meant for an account that's already been trading a while, not a decision made on day one.
+ */
+export async function updateAccountMinOrderPairsAction(accountId: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  const admin = await requireAdmin();
+  const raw = String(formData.get("minOrderPairs") ?? "").trim();
+  if (!raw) {
+    await updateAccountMinOrderPairs(accountId, null);
+    await logAudit(admin.id, "account.min_order_pairs_updated", "account", accountId, "cleared");
+    revalidatePath("/admin/accounts");
+    return { success: `Minimum order reset to the standard ${MIN_ORDER_PAIRS} pairs.` };
+  }
+  const minOrderPairs = Number(raw);
+  if (!Number.isInteger(minOrderPairs) || minOrderPairs <= 0 || minOrderPairs > MIN_ORDER_PAIRS) {
+    return { error: `Minimum order must be a whole number between 1 and ${MIN_ORDER_PAIRS} pairs.` };
+  }
+  await updateAccountMinOrderPairs(accountId, minOrderPairs);
+  await logAudit(admin.id, "account.min_order_pairs_updated", "account", accountId, String(minOrderPairs));
+  revalidatePath("/admin/accounts");
+  return { success: "Minimum order saved." };
 }
 
 /** Backfills/corrects the WhatsApp number for accounts that predate this feature or never went through the application flow. */

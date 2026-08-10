@@ -30,7 +30,7 @@ export default async function ShopLayout({
 
   return (
     <CatalogProvider styles={styles} productionLeadTimeDays={hero.productionLeadTimeDays} inventory={inventory}>
-      <CartProvider accountId={account.id} priceMultiplier={account.priceMultiplier}>
+      <CartProvider accountId={account.id} priceMultiplier={account.priceMultiplier} minOrderPairs={account.minOrderPairs}>
         <ShopHeader account={account} locale={lang} dict={dict} />
         <main className="flex-1 bg-stone-50">{children}</main>
         <ShopFooter account={account} locale={lang} dict={dict} />

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { PriceMultiplierInput } from "@/components/admin/PriceMultiplierInput";
 import { CreditTermsSelect } from "@/components/admin/CreditTermsSelect";
 import { CreditLimitInput } from "@/components/admin/CreditLimitInput";
+import { MinOrderPairsInput } from "@/components/admin/MinOrderPairsInput";
 import { RepSelect } from "@/components/admin/RepSelect";
 import { PhoneInput } from "@/components/admin/PhoneInput";
 import { ListPager } from "@/components/admin/ListPager";
@@ -60,6 +61,7 @@ export function AccountsTable({ accounts, reps }: { accounts: Account[]; reps: A
                   <th className="px-4 py-2.5 font-semibold">Credit limit</th>
                   <th className="px-4 py-2.5 font-semibold">Rep</th>
                   <th className="px-4 py-2.5 text-right font-semibold">Price multiplier</th>
+                  <th className="px-4 py-2.5 text-right font-semibold">Min order</th>
                 </tr>
               </thead>
               <tbody>
@@ -83,6 +85,9 @@ export function AccountsTable({ accounts, reps }: { accounts: Account[]; reps: A
                     </td>
                     <td className="px-4 py-2.5 text-right">
                       <PriceMultiplierInput accountId={account.id} priceMultiplier={account.priceMultiplier} businessName={account.businessName} />
+                    </td>
+                    <td className="px-4 py-2.5 text-right">
+                      <MinOrderPairsInput accountId={account.id} minOrderPairs={account.minOrderPairs} businessName={account.businessName} />
                     </td>
                   </tr>
                 ))}

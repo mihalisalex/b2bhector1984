@@ -25,6 +25,9 @@ interface AccountRow {
   credit_terms: Account["creditTerms"];
   credit_limit: number | string;
   price_multiplier: number | string;
+  /** Absent entirely pre-migration 0034, null for every account until an admin sets one —
+   * see `Account.minOrderPairs`'s doc comment. */
+  min_order_pairs?: number | string | null;
   resale_cert_id: string;
   business_type: string;
   store_location: string;
@@ -85,6 +88,7 @@ async function mapAccount(row: AccountRow): Promise<Account> {
     creditTerms: row.credit_terms,
     creditLimit: toNumber(row.credit_limit),
     priceMultiplier: toNumber(row.price_multiplier),
+    minOrderPairs: row.min_order_pairs == null ? undefined : toNumber(row.min_order_pairs),
     resaleCertId: row.resale_cert_id,
     businessType: row.business_type,
     storeLocation: row.store_location,
@@ -132,6 +136,14 @@ export async function getAllAccounts(): Promise<Account[]> {
 
 export async function updateAccountPriceMultiplier(id: string, priceMultiplier: number): Promise<void> {
   const { error } = await supabaseAdmin.from("accounts").update({ price_multiplier: priceMultiplier }).eq("id", id);
+  if (error) throw new Error(`accounts: ${error.message}`);
+}
+
+/** `minOrderPairs: null` clears the override — the account falls back to the standard
+ * `MIN_ORDER_PAIRS` again, same "unset means use the sitewide default" contract it started
+ * with. */
+export async function updateAccountMinOrderPairs(id: string, minOrderPairs: number | null): Promise<void> {
+  const { error } = await supabaseAdmin.from("accounts").update({ min_order_pairs: minOrderPairs }).eq("id", id);
   if (error) throw new Error(`accounts: ${error.message}`);
 }
 
