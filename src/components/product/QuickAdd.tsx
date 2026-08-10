@@ -111,7 +111,8 @@ export function QuickAdd({
               }}
               aria-pressed={b.id === boxTypeId}
               className={cn(
-                "flex-1 border px-1.5 py-1 text-[11px] font-semibold transition-colors",
+                // EXPERIMENTAL rounded-full, 2026-08-10 — see Button.tsx's `base` comment for the revert path.
+                "flex-1 rounded-full border px-1.5 py-1 text-[11px] font-semibold transition-colors",
                 b.id === boxTypeId ? "border-ink bg-signal-100/40 text-ink" : "border-stone-300 text-ink-soft hover:border-cinder-300",
               )}
             >
@@ -132,8 +133,11 @@ export function QuickAdd({
         {inCart > 0 && <span className="text-ink-soft"> · {inCart} in cart</span>}
       </p>
 
+      {/* EXPERIMENTAL rounded-full, 2026-08-10 — see Button.tsx's `base` comment for the
+          revert path. The stepper's `overflow-hidden` is what caps its square inner buttons
+          into a pill shape, rather than rounding each one individually. */}
       <div className="flex items-center gap-2">
-        <div className="flex items-center border border-stone-300">
+        <div className="flex items-center overflow-hidden rounded-full border border-stone-300">
           <button
             type="button"
             onClick={() => setQty((q) => Math.max(1, q - 1))}
@@ -160,7 +164,7 @@ export function QuickAdd({
           type="button"
           onClick={add}
           disabled={remaining <= 0 && !allowBackorder}
-          className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 bg-ink px-2 py-2 leading-none text-white transition-colors hover:bg-ink/85 disabled:cursor-not-allowed disabled:bg-cinder-300"
+          className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full bg-ink px-2 py-2 leading-none text-white transition-colors hover:bg-ink/85 disabled:cursor-not-allowed disabled:bg-cinder-300"
         >
           <span className="text-xs font-semibold uppercase tracking-wide">{justAdded ? "Added ✓" : "Add"}</span>
           {!justAdded && (

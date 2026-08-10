@@ -18,8 +18,16 @@ const SIZE_CLASSES: Record<Size, string> = {
   lg: "text-sm px-6 py-3.5 gap-2",
 };
 
+// EXPERIMENTAL — rounded-full sitewide, flipped on 2026-08-10 at the user's explicit
+// request to see the whole app rounded before deciding ("i might go back again to sharp").
+// This is the ONE line to revert everything back to the sharp-cornered rule the rest of the
+// design-system memory documents as settled — change `rounded-full` back to nothing (or
+// delete the line) and every Button/LinkButton call site reverts with it. Steppers and a
+// few bespoke Add-to-cart buttons that don't route through this component were rounded
+// separately (QuickAdd.tsx, PrimaryPurchasePanel.tsx, OrderableLinesheet.tsx, CartView.tsx)
+// and need their own reverts if this goes back — see the same date's comment in each.
 const base =
-  "inline-flex items-center justify-center font-medium uppercase tracking-wide transition-all duration-200 ease-out disabled:opacity-40 disabled:pointer-events-none whitespace-nowrap";
+  "inline-flex items-center justify-center rounded-full font-medium uppercase tracking-wide transition-all duration-200 ease-out disabled:opacity-40 disabled:pointer-events-none whitespace-nowrap";
 
 /**
  * The same class recipe `Button`/`LinkButton` render, exposed for the handful of spots that

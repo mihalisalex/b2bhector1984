@@ -304,7 +304,8 @@ function Stepper({
     <div className="flex flex-col items-center gap-0.5">
       <div
         className={cn(
-          "mx-auto flex w-24 items-center justify-between border px-1 py-1",
+          // EXPERIMENTAL rounded-full, 2026-08-10 — see Button.tsx's `base` comment for the revert path.
+          "mx-auto flex w-24 items-center justify-between rounded-full border px-1 py-1",
           outOfStock ? "border-stone-300 opacity-60" : value > 0 ? "border-ink bg-signal-100/40" : "border-stone-300",
         )}
       >

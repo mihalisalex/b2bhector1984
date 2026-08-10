@@ -10,9 +10,8 @@ type Size = "sm" | "md" | "lg";
  * cart, search triggers; drawer/overlay close ✕). "bordered" = stands alone on a photo or
  * white card and needs a visible edge to read as a control (share, favorite-icon-on-card).
  * Extend via `className` for a variant-specific tweak (e.g. favorite's overlay backdrop) —
- * safe here since neither variant sets a `bg-*` utility for an addition to collide with;
- * `cn` is plain `clsx` with no Tailwind conflict resolution (see MarketingHeader's note),
- * so don't use `className` to override a property either variant already sets.
+ * `cn` resolves Tailwind conflicts (via `tailwind-merge`), so a caller's `className` reliably
+ * overrides a property either variant already sets, last-one-wins.
  */
 const VARIANT_CLASSES: Record<Variant, string> = {
   chrome: "text-ink hover:text-signal",
@@ -25,8 +24,12 @@ const SIZE_CLASSES: Record<Size, string> = {
   lg: "h-12 w-12",
 };
 
+// EXPERIMENTAL — rounded-full, same 2026-08-10 flip as Button.tsx's `base`; see that file's
+// comment for the revert path. Turns the "bordered" variant into a circle (share, favorite);
+// "chrome" has no visible box either way so the shape doesn't show, but it inherits the same
+// class so nothing here quietly reverts on its own.
 const base =
-  "relative flex shrink-0 items-center justify-center transition-colors disabled:opacity-40 disabled:pointer-events-none";
+  "relative flex shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-40 disabled:pointer-events-none";
 
 /** Shared square icon-only button — every standalone icon trigger/close control (account,
  * cart, search, drawer/overlay close, share, favorite) renders through this one recipe

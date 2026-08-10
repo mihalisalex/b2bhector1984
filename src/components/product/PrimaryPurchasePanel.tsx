@@ -157,7 +157,8 @@ export function PrimaryPurchasePanel({
                       onClick={() => setBoxTypeId(b.id)}
                       aria-pressed={active}
                       className={cn(
-                        "px-3.5 py-2 text-xs font-semibold tabular-nums transition-colors duration-150",
+                        // EXPERIMENTAL rounded-full, 2026-08-10 — see Button.tsx's `base` comment for the revert path.
+                        "rounded-full px-3.5 py-2 text-xs font-semibold tabular-nums transition-colors duration-150",
                         active ? "bg-ink text-white" : "bg-stone-100 text-ink-soft hover:bg-stone-200",
                         stock === 0 && !allowBackorder && "opacity-45",
                       )}
@@ -264,13 +265,14 @@ export function PrimaryPurchasePanel({
             <ColorwayPicker style={style} inventory={inventory} className="-mr-1 shrink-0" />
           </div>
 
+          {/* EXPERIMENTAL rounded-full, 2026-08-10 — see Button.tsx's `base` comment for the revert path. */}
           <div className="mt-2.5 flex items-stretch gap-2">
             <Stepper qty={addQty} max={maxSelectable} disabled={outOfStock} onStep={step} />
             <button
               type="button"
               onClick={handleAddToCart}
               disabled={outOfStock}
-              className="flex-1 bg-ink px-3 text-xs font-semibold uppercase tracking-[0.08em] text-white transition-transform active:scale-[0.99] disabled:bg-cinder-300 disabled:text-white/70"
+              className="flex-1 rounded-full bg-ink px-3 text-xs font-semibold uppercase tracking-[0.08em] text-white transition-transform active:scale-[0.99] disabled:bg-cinder-300 disabled:text-white/70"
             >
               {outOfStock
                 ? "Sold out"
@@ -305,7 +307,9 @@ function Stepper({
   onStep: (delta: number) => void;
 }) {
   return (
-    <div className="flex shrink-0 items-center bg-stone-100">
+    // EXPERIMENTAL rounded-full, 2026-08-10 — see Button.tsx's `base` comment for the revert
+    // path. `overflow-hidden` caps the square inner buttons into the pill shape.
+    <div className="flex shrink-0 items-center overflow-hidden rounded-full bg-stone-100">
       <button
         type="button"
         onClick={() => onStep(-1)}

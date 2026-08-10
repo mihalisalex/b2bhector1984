@@ -212,7 +212,8 @@ export function CartView({
                           {label}
                         </p>
                       </div>
-                      <div className="flex shrink-0 items-center border border-stone-300">
+                      {/* EXPERIMENTAL rounded-full, 2026-08-10 — see Button.tsx's `base` comment for the revert path. */}
+                      <div className="flex shrink-0 items-center overflow-hidden rounded-full border border-stone-300">
                         <button
                           type="button"
                           aria-label="Decrease quantity"
@@ -275,7 +276,8 @@ export function CartView({
                           <td className="px-4 py-2 text-ink">{colorway?.name ?? l.colorwayId}</td>
                           <td className="font-mono-tab px-2 py-2 text-ink-soft">{box.label}</td>
                           <td className="px-2 py-2 text-right">
-                            <div className="ml-auto flex w-fit items-center border border-stone-300">
+                            {/* EXPERIMENTAL rounded-full, 2026-08-10 — see Button.tsx's `base` comment for the revert path. */}
+                            <div className="ml-auto flex w-fit items-center overflow-hidden rounded-full border border-stone-300">
                               <button
                                 type="button"
                                 aria-label="Decrease quantity"
