@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
 import { getOrdersForAccount } from "@/lib/runtimeOrders";
 import { getAssortmentsForAccount } from "@/lib/data/assortments";
-import { formatEUR, summarizeOrder, TERMS_LABEL } from "@/lib/pricing";
+import { formatEUR, summarizeOrder, TERMS_LABEL, MIN_ORDER_PAIRS } from "@/lib/pricing";
 import { formatDate, telHref } from "@/lib/format";
 import { cn } from "@/lib/cn";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -41,7 +41,7 @@ export default async function DashboardPage() {
           <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Account</h2>
           <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
             <Stat label="Terms" value={TERMS_LABEL[account.creditTerms]} />
-            <Stat label="Credit limit" value={formatEUR(account.creditLimit)} isPrice />
+            <Stat label="Minimum order" value={`${account.minOrderPairs ?? MIN_ORDER_PAIRS} pairs`} />
             <Stat label="YTD ordered" value={formatEUR(ytdTotal)} isPrice />
           </div>
           <p className="mt-4 border-t border-stone-200 pt-3 text-xs text-ink-soft">

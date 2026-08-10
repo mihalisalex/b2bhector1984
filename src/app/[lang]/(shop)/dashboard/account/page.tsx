@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
-import { formatEUR, TERMS_LABEL } from "@/lib/pricing";
+import { TERMS_LABEL, MIN_ORDER_PAIRS } from "@/lib/pricing";
 import { formatDate, telHref } from "@/lib/format";
 import { cn } from "@/lib/cn";
 import { ProfileForm } from "@/components/account/ProfileForm";
@@ -68,14 +68,14 @@ export default async function AccountPage() {
           <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Billing &amp; Terms</h2>
           <div className="mt-4 grid grid-cols-2 gap-4">
             <Stat label="Payment terms" value={TERMS_LABEL[account.creditTerms]} />
-            <Stat label="Credit limit" value={formatEUR(account.creditLimit)} isPrice />
+            <Stat label="Minimum order" value={`${account.minOrderPairs ?? MIN_ORDER_PAIRS} pairs`} />
             <Stat label="Resale cert." value={account.resaleCertId} />
             <Stat label="Business type" value={account.businessType} />
             <Stat label="Store location" value={account.storeLocation} />
             <Stat label="Applied" value={formatDate(account.appliedAt)} />
           </div>
           <p className="mt-4 border-t border-stone-200 pt-3 text-xs text-ink-soft">
-            Payment terms, credit limit, and compliance fields are managed by your sales rep — contact them below to
+            Payment terms, minimum order, and compliance fields are managed by your sales rep — contact them below to
             request a change.
           </p>
         </section>
