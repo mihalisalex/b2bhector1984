@@ -1,11 +1,12 @@
 import { listApplications } from "@/lib/data/applications";
+import { getAllSalesReps } from "@/lib/data/salesReps";
 import { AdminApplicationsList } from "@/components/admin/AdminApplicationsList";
 import { ApplicationsCsvExportButton } from "@/components/admin/ApplicationsCsvExportButton";
 
 export const metadata = { title: "Applications" };
 
 export default async function AdminApplicationsPage() {
-  const applications = await listApplications();
+  const [applications, reps] = await Promise.all([listApplications(), getAllSalesReps()]);
 
   return (
     <div>
@@ -22,7 +23,7 @@ export default async function AdminApplicationsPage() {
         </div>
       ) : (
         <div className="mt-6">
-          <AdminApplicationsList applications={applications} />
+          <AdminApplicationsList applications={applications} reps={reps} />
         </div>
       )}
     </div>

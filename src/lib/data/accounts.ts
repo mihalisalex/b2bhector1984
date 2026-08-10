@@ -180,6 +180,10 @@ export async function createAccount(input: {
   appliedAt: string;
   approvedAt: string;
   shipTo: { label: string; line1: string; city: string; state: string; zip: string };
+  /** The admin's decision from application review (see `approveApplicationWithAssignment`)
+   * — `undefined`/`null` for `repId` means unassigned, matching the column's own default. */
+  repId?: string | null;
+  priceMultiplier?: number;
 }): Promise<void> {
   const baseRow = {
     id: input.id,
@@ -196,7 +200,8 @@ export async function createAccount(input: {
     expected_volume: input.expectedVolume,
     applied_at: input.appliedAt,
     approved_at: input.approvedAt,
-    rep_id: null,
+    rep_id: input.repId ?? null,
+    price_multiplier: input.priceMultiplier ?? 1,
     role: "buyer",
   };
 

@@ -222,7 +222,7 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
     return { error: "Enter a valid email address." };
   }
 
-  const application: Omit<Application, "id" | "status" | "submittedAt"> = {
+  const application: Omit<Application, "id" | "status" | "submittedAt" | "repId" | "priceMultiplier"> = {
     businessName: String(formData.get("businessName")),
     contactName: String(formData.get("contactName")),
     email: String(formData.get("email")),
@@ -295,6 +295,11 @@ export async function activateAccount(_prev: FormState, formData: FormData): Pro
     expectedVolume: application.expectedVolume,
     appliedAt: application.submittedAt,
     approvedAt: new Date().toISOString(),
+    // Decided by the admin back at approval time (see `approveApplicationWithAssignment`
+    // and `AdminApplicationsList`'s rep-select/multiplier row) — carried onto the account
+    // now rather than re-asked at activation, which the applicant has no reason to see.
+    repId: application.repId,
+    priceMultiplier: application.priceMultiplier,
     shipTo: {
       label: application.businessName,
       line1: application.addressLine1,

@@ -54,9 +54,20 @@ export function orderConfirmationEmailSubject(order: { id: string }): string {
   return `Order confirmation — ${order.id}`;
 }
 
-export function buildApplicationApprovedEmailBody(contactName: string, activationUrl: string): string {
+/**
+ * `rep` is omitted when the admin approved without assigning one (still allowed — rep can
+ * be set later from /admin/accounts) or the assigned rep has since been deleted; the email
+ * reads fine either way, it just doesn't name a contact. `rep.name` is already the sales
+ * rep's full name (first + last, one field — see `AdminSalesRep`), not just a given name.
+ */
+export function buildApplicationApprovedEmailBody(
+  contactName: string,
+  activationUrl: string,
+  rep?: { name: string; phone: string },
+): string {
   const firstName = contactName.split(" ")[0] || "there";
-  return `Hi ${firstName},\n\nGood news — your Hector Footwear wholesale application has been approved. Activate your account to start browsing the full catalog with pricing:\n\n${activationUrl}\n\nBest,\nHector Footwear Wholesale`;
+  const repLine = rep ? `\n\nYour dedicated account rep is ${rep.name} — reach them directly at ${rep.phone}.` : "";
+  return `Hi ${firstName},\n\nGood news — your Hector Footwear wholesale application has been approved. Activate your account to start browsing the full catalog with pricing:\n\n${activationUrl}${repLine}\n\nBest,\nHector Footwear Wholesale`;
 }
 
 export function buildApplicationDeclinedEmailBody(contactName: string): string {

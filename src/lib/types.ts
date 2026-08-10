@@ -390,6 +390,13 @@ export interface Application {
   website?: string;
   status: ApplicationStatus;
   submittedAt: string;
+  /** Set by the admin at approval time (see `AdminApplicationsList`) — carried onto the
+   * new account by `activateAccount` once the applicant sets a password. Undefined for a
+   * still-pending application (no decision made yet). */
+  repId?: string;
+  /** Same "decided at approval" lifecycle as `repId`. Defaults to 1 (no markup) until an
+   * admin sets otherwise — matches `accounts.price_multiplier`'s own default. */
+  priceMultiplier: number;
 }
 
 export interface SavedAssortmentLine {

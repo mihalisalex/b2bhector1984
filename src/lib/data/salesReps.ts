@@ -45,6 +45,14 @@ export async function getAllSalesReps(): Promise<AdminSalesRep[]> {
   return (data ?? []).map(mapRep);
 }
 
+/** Undefined for an unknown/deleted id — callers treat that the same as "no rep". */
+export async function getSalesRepById(id: string): Promise<AdminSalesRep | undefined> {
+  const { data, error } = await supabaseAdmin.from("sales_reps").select("*").eq("id", id).limit(1);
+  if (error) throw new Error(`sales_reps: ${error.message}`);
+  const row = data?.[0] as SalesRepRow | undefined;
+  return row ? mapRep(row) : undefined;
+}
+
 export async function createSalesRep(input: {
   name: string;
   title: string;

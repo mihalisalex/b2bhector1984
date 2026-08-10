@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
-import { getApplicationById, updateApplicationStatus } from "@/lib/data/applications";
+import { getApplicationById, updateApplicationStatus, approveApplicationWithAssignment } from "@/lib/data/applications";
 import { updateAvailableBoxTypes } from "@/lib/data/styles";
 import {
   updateAccountPriceMultiplier,
@@ -13,7 +13,7 @@ import {
   updateAccountPhoneAdmin,
   getAccountByEmail,
 } from "@/lib/data/accounts";
-import { createSalesRep, updateSalesRep, deleteSalesRep } from "@/lib/data/salesReps";
+import { createSalesRep, updateSalesRep, deleteSalesRep, getSalesRepById } from "@/lib/data/salesReps";
 import { logAudit } from "@/lib/data/auditLog";
 import { updateHomepageHero, createHeroImageUploadTarget, finalizeHeroImageUpload } from "@/lib/data/siteContent";
 import { updateSeasonSettings, createSeasonTeaserUploadTarget, finalizeSeasonTeaserUpload } from "@/lib/data/seasonSettings";
@@ -61,11 +61,20 @@ async function notifyApplicationDecision(applicationId: string, decision: "appro
   const application = await getApplicationById(applicationId);
   if (!application) return;
   if (decision === "approved") {
+    // `repId` was just set by `approveApplicationWithAssignment` (or left unset on a bulk
+    // approve) — re-fetched fresh here rather than threaded through as a param, so
+    // `resendActivationEmail` gets the same rep info for free from the application row
+    // instead of needing its own copy of this lookup.
+    const rep = application.repId ? await getSalesRepById(application.repId) : undefined;
     await sendEmail({
       to: application.email,
       subject: APPLICATION_APPROVED_EMAIL_SUBJECT,
       html: textToHtml(
-        buildApplicationApprovedEmailBody(application.contactName, `${SITE_URL}/apply/pending?app=${application.id}`),
+        buildApplicationApprovedEmailBody(
+          application.contactName,
+          `${SITE_URL}/apply/pending?app=${application.id}`,
+          rep ? { name: rep.name, phone: rep.phone } : undefined,
+        ),
         APPLICATION_APPROVED_EMAIL_SUBJECT,
       ),
     });
@@ -154,14 +163,36 @@ export async function deleteOrderLineAction(orderId: string, lineId: string) {
   revalidatePath(`/dashboard/orders/${orderId}`);
 }
 
-export async function approveApplication(applicationId: string) {
+/**
+ * Bound to `.bind(null, applicationId)` — the row's own form (rep select + price-multiplier
+ * input, see `AdminApplicationsList`) submits both alongside the Approve click, so the
+ * decision is made once, here, rather than editable-then-forgotten on /admin/accounts after
+ * the fact. Both are optional to the admin: an empty rep select persists as unassigned
+ * (same as never picking one), and an empty/omitted multiplier defaults to 1 (no markup) —
+ * approving without touching either field behaves exactly like the old plain Approve button.
+ */
+export async function approveApplication(applicationId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requireAdmin();
-  const { changed } = await updateApplicationStatus(applicationId, "approved");
+  const repId = String(formData.get("repId") ?? "").trim() || null;
+  const rawMultiplier = String(formData.get("priceMultiplier") ?? "").trim();
+  const priceMultiplier = rawMultiplier ? Number(rawMultiplier) : 1;
+  if (!Number.isFinite(priceMultiplier) || priceMultiplier <= 0 || priceMultiplier > 5) {
+    return { error: "Price multiplier must be between 0.01 and 5." };
+  }
+
+  const { changed } = await approveApplicationWithAssignment(applicationId, { repId, priceMultiplier });
   if (changed) {
-    await logAudit(admin.id, "application.approved", "application", applicationId);
+    await logAudit(
+      admin.id,
+      "application.approved",
+      "application",
+      applicationId,
+      `rep ${repId ?? "unassigned"}, ${priceMultiplier}x`,
+    );
     await notifyApplicationDecision(applicationId, "approved");
   }
   revalidatePath("/admin/applications");
+  return { success: "Application approved." };
 }
 
 /**

@@ -20,6 +20,8 @@ interface ApplicationRow {
   status: ApplicationStatus;
   submitted_at: string;
   reviewed_at: string | null;
+  rep_id: string | null;
+  price_multiplier: number;
 }
 
 function mapApplication(row: ApplicationRow): Application {
@@ -40,11 +42,19 @@ function mapApplication(row: ApplicationRow): Application {
     website: row.website ?? undefined,
     status: row.status,
     submittedAt: row.submitted_at,
+    repId: row.rep_id ?? undefined,
+    // Same "missing migration" defensive default `friendlyDbError`'s pattern exists for
+    // elsewhere in this codebase — reads on a database that hasn't run migration 0033 yet
+    // just see everyone as unmultiplied, rather than every application list throwing.
+    priceMultiplier: row.price_multiplier ?? 1,
   };
 }
 
 export async function insertApplication(
-  data: Omit<Application, "id" | "status" | "submittedAt">,
+  // repId/priceMultiplier are an admin decision made at approval time, not something the
+  // applicant provides or the DB needs at insert — both columns have sane defaults
+  // (unassigned rep, 1x price) that apply automatically when omitted from the insert.
+  data: Omit<Application, "id" | "status" | "submittedAt" | "repId" | "priceMultiplier">,
 ): Promise<string> {
   const { data: row, error } = await supabaseAdmin
     .from("applications")
@@ -85,6 +95,33 @@ export async function updateApplicationStatus(id: string, status: ApplicationSta
   const { data, error } = await supabaseAdmin
     .from("applications")
     .update({ status, reviewed_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("status", "pending")
+    .select("id");
+  if (error) throw new Error(`applications: ${error.message}`);
+  return { changed: (data?.length ?? 0) > 0 };
+}
+
+/**
+ * Same "only transitions a still-pending row" guard as `updateApplicationStatus`, plus the
+ * rep/multiplier decision the admin makes at the moment of approval — see
+ * `AdminApplicationsList`. Kept as its own function (not an optional param on
+ * `updateApplicationStatus`) because a decline never carries this decision; making it
+ * unconditionally required here means a decline can't accidentally forget to pass it and a
+ * caller reading this function's signature immediately knows it's approval-only.
+ */
+export async function approveApplicationWithAssignment(
+  id: string,
+  input: { repId: string | null; priceMultiplier: number },
+): Promise<{ changed: boolean }> {
+  const { data, error } = await supabaseAdmin
+    .from("applications")
+    .update({
+      status: "approved",
+      reviewed_at: new Date().toISOString(),
+      rep_id: input.repId,
+      price_multiplier: input.priceMultiplier,
+    })
     .eq("id", id)
     .eq("status", "pending")
     .select("id");

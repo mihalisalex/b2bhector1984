@@ -1,11 +1,13 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { approveApplication, declineApplication, bulkApproveApplications, resendActivationEmail } from "@/lib/adminActions";
+import { declineApplication, bulkApproveApplications, resendActivationEmail } from "@/lib/adminActions";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/cn";
 import { ListPager } from "@/components/admin/ListPager";
+import { ApproveApplicationForm } from "@/components/admin/ApproveApplicationForm";
 import type { Application } from "@/lib/types";
+import type { AdminSalesRep } from "@/lib/data/salesReps";
 
 const PAGE_SIZE = 20;
 
@@ -16,7 +18,7 @@ const STATUS_STYLE: Record<string, string> = {
   declined: "border-ember/40 bg-ember-100 text-ember",
 };
 
-export function AdminApplicationsList({ applications }: { applications: Application[] }) {
+export function AdminApplicationsList({ applications, reps }: { applications: Application[]; reps: AdminSalesRep[] }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -132,15 +134,8 @@ export function AdminApplicationsList({ applications }: { applications: Applicat
               </div>
             </div>
             {app.status === "pending" && (
-              <div className="flex shrink-0 items-center gap-2">
-                <form action={approveApplication.bind(null, app.id)}>
-                  <button
-                    type="submit"
-                    className="border border-ink bg-ink px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85"
-                  >
-                    Approve
-                  </button>
-                </form>
+              <div className="flex flex-wrap items-center gap-2">
+                <ApproveApplicationForm applicationId={app.id} businessName={app.businessName} reps={reps} />
                 <form action={declineApplication.bind(null, app.id)}>
                   <button
                     type="submit"
