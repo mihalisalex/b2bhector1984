@@ -11,6 +11,17 @@
   --color-stone-300: #d4d4d4;
   --color-cinder: #737373;
   --color-cinder-300: #a3a3a3;
+  /* The big faint index numerals (01/02/03 on the homepage steps and brand-story
+     materials). DON'T lighten this: at 60-72px these are large text, so WCAG asks 3:1, and
+     this value is already close to the lightest gray that clears it — 3.45:1 on white and
+     3.31:1 on --color-stone-50, the two backgrounds it actually renders against. It was
+     --color-stone-200 (#e0e0e0) until 2026-08-13, which measured 1.32:1 and was the sole
+     remaining Lighthouse accessibility failure. `aria-hidden` does NOT exempt it: that
+     hides the text from screen readers, but sighted users still see it, so axe still
+     audits contrast. Its own token rather than reusing a stone step because those are used
+     as *surfaces* elsewhere, and a future "tidy the palette" pass that nudged stone-200
+     would silently reintroduce the failure. */
+  --color-numeral: #8a8a8a;
   --color-signal: #121212;
   --color-signal-600: #000000;
   --color-signal-100: #ececec;
@@ -48,6 +59,7 @@
   --color-stone-300: var(--color-stone-300);
   --color-cinder: var(--color-cinder);
   --color-cinder-300: var(--color-cinder-300);
+  --color-numeral: var(--color-numeral);
   --color-signal: var(--color-signal);
   --color-signal-600: var(--color-signal-600);
   --color-signal-100: var(--color-signal-100);

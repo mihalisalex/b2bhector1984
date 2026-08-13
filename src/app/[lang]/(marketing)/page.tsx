@@ -288,7 +288,7 @@ function QuickStep({
     <div className="relative">
       <span
         aria-hidden
-        className="font-display pointer-events-none absolute -top-7 left-0 select-none text-6xl font-semibold leading-none text-stone-200 sm:-top-8 sm:text-7xl"
+        className="font-display pointer-events-none absolute -top-7 left-0 select-none text-6xl font-semibold leading-none text-numeral sm:-top-8 sm:text-7xl"
       >
         {n}
       </span>

@@ -94,7 +94,7 @@ function Material({ n, title, body }: { n: string; title: string; body: string }
     <div className="relative">
       <span
         aria-hidden
-        className="font-display pointer-events-none absolute -top-10 left-0 select-none text-6xl font-semibold leading-none text-stone-200"
+        className="font-display pointer-events-none absolute -top-10 left-0 select-none text-6xl font-semibold leading-none text-numeral"
       >
         {n}
       </span>
