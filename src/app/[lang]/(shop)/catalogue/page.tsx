@@ -126,12 +126,15 @@ export default async function CatalogPage({
           ))}
         </div>
       ) : (
-        // Two big columns at every width, not a responsive 1→2→3 ramp — tall photos that
-        // read as "premium fashion editorial" rather than a dense product grid. A hairline
-        // 2px gap is the only separation between products and from the page edges — breaks
-        // out of the page's own horizontal padding (-mx-6/lg:-mx-10) to get there.
+        // Two big columns on phones/tablets, three from `lg` up. Still deliberately not a
+        // 1→2→3 ramp: the point is tall photos that read as "premium fashion editorial"
+        // rather than a dense product grid, so it never drops to a single column and never
+        // goes past three. `lg` (not `md`) is the desktop step used across the rest of the
+        // site, and it keeps tablets on the roomier 2-up. A hairline 2px gap is the only
+        // separation between products and from the page edges — breaks out of the page's
+        // own horizontal padding (-mx-6/lg:-mx-10) to get there.
         <div className="-mx-6 lg:-mx-10">
-          <div className="grid grid-cols-2 gap-0.5 px-0.5">
+          <div className="grid grid-cols-2 gap-0.5 px-0.5 lg:grid-cols-3">
             {results.map((style, i) => (
               <ProductCard
                 key={style.id}
@@ -141,7 +144,12 @@ export default async function CatalogPage({
                 favorited={account ? favoriteIds.has(style.id) : undefined}
                 inventory={account ? inventory[style.id] : undefined}
                 images={imagesByStyle[style.id] ?? []}
-                // First row (2 columns) is above the fold and holds the LCP element.
+                // Deliberately still 2, not 3, even though `lg` now fits three per row: this
+                // preloads, and on a phone (where LCP is actually measured) the third card
+                // is below the fold, so a third preload would compete with the two visible
+                // ones for bandwidth — the same mistake that cost the homepage hero on
+                // 2026-08-13. The desktop third card lazy-loads, but it's in the viewport
+                // on load so the browser fetches it immediately anyway.
                 priority={i < 2}
               />
             ))}
