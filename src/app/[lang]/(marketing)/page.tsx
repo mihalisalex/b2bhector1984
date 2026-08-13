@@ -79,7 +79,20 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             visible again on a narrow/tall viewport, where object-cover shows the image's
             full height with zero vertical crop margin (a fixed fact of this photo's
             landscape proportions, not a tunable crop setting). */}
-        <Image src={hero.heroImageUrl} alt={h.heroImageAlt} fill priority sizes="100vw" className="object-cover object-[50%_60%]" />
+        {/* `preload`, not the `priority` prop: as of Next 16 `priority` is deprecated in
+            favour of `preload` (they throw if combined). `fetchPriority` is a separate
+            pass-through prop that neither one sets for you — without it the browser gives
+            this image default priority, which is what Lighthouse's "LCP request discovery"
+            insight flags, since this is the LCP element on every viewport. */}
+        <Image
+          src={hero.heroImageUrl}
+          alt={h.heroImageAlt}
+          fill
+          preload
+          fetchPriority="high"
+          sizes="100vw"
+          className="object-cover object-[50%_60%]"
+        />
 
         <div className="relative mx-auto max-w-2xl px-6 py-24 text-center [animation:hero-fade-up_900ms_cubic-bezier(0.16,1,0.3,1)_both] lg:px-10">
           <span className="inline-flex items-center gap-2 font-mono-tab text-xs uppercase tracking-[0.25em] text-stone-300/80">
@@ -157,7 +170,10 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
               swatch={rep.colorways[0].swatch}
               imageUrl={imageUrl}
               alt={rep.name}
-              priority={index === 0}
+              // Deliberately NOT preloaded. This panel sits below a 94vh hero, so it is
+              // never the LCP element, but `priority` was emitting a second <link rel=
+              // preload> that competed with the hero image for bandwidth on slow mobile
+              // connections. Lazy (the default) is correct here.
               className="h-full w-full transition-transform duration-500 ease-out group-hover:scale-[1.03]"
             />
             <div
@@ -277,7 +293,11 @@ function QuickStep({
         {n}
       </span>
       <div className="relative mt-10 sm:mt-12">
-        <h3 className="font-display text-lg font-bold uppercase tracking-tight text-ink">{title}</h3>
+        {/* h2, not h3: these cards sit directly under the hero's h1 with no intervening
+            section heading, and every other section on this page uses h2 — an h1 -> h3 jump
+            is a real "heading-order" accessibility failure. Size comes from `text-lg`, so
+            the tag change is semantic only and nothing moves visually. */}
+        <h2 className="font-display text-lg font-bold uppercase tracking-tight text-ink">{title}</h2>
         <p className="mt-2 text-sm leading-relaxed text-ink-soft">{body}</p>
         <Link
           href={href}
