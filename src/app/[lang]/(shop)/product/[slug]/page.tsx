@@ -99,11 +99,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <JsonLd schema={[productSchema, breadcrumbSchema].filter((schema) => schema !== null)} />
       <TrackRecentlyViewed styleId={style.id} />
 
-      {/* The product view is intentionally the SAME single-column layout at every size —
-          no separate desktop two-column arrangement. At lg+ it's simply centered and
-          capped to a comfortable width rather than stretched edge to edge, since a phone
-          layout blown up to a wide monitor unchanged would look broken, not premium. */}
-      <div className="lg:mx-auto lg:max-w-[600px]">
+      {/* Desktop is a 50-50 photo | details split (2026-08-13). This page previously kept a
+          single centred column at every size deliberately; the split was reviewed against
+          the live page and adopted because it puts the whole buying decision — title, box
+          size, lead time, price, trust strip — on one screen instead of below a tall photo.
+          Mobile and tablet are unchanged, still one stacked column; the split starts at lg.
+          The cap widens 600px -> 1200px so each half lands at roughly the old single-column
+          width rather than halving the photo. */}
+      <div className="lg:mx-auto lg:max-w-[1200px]">
         <nav className="mb-4 flex items-center gap-1.5 text-[11px] uppercase tracking-[0.06em] text-ink-soft">
           <Link href="/catalogue" className="hover:text-ink">Catalogue</Link>
           <span>/</span>
@@ -115,50 +118,62 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </nav>
 
         <ColorwaySelectionProvider initialColorwayId={pickDefaultColorway(style, inventory, images)}>
-          <div>
-            {images.length > 0 ? (
-              <ProductGallery images={images} styleName={style.name} styleNumber={style.styleNumber} colorways={style.colorways} />
-            ) : (
-              // Full-bleed below lg: breaking out of the page's own horizontal padding is
-              // what makes the photo feel large rather than inset in a box. Reverts at lg,
-              // where the column above has already capped/centered the width, so there's
-              // nothing left to break out of.
-              <div className="-mx-6 lg:mx-0">
-                <StylePlate
-                  swatch={style.colorways[0].swatch}
-                  styleNumber={style.styleNumber}
-                  imageUrl={getStyleImageUrl(style)}
-                  alt={style.name}
-                  className="aspect-[3/4] w-full"
+          {/* The grid lives INSIDE the provider on purpose: the gallery and the purchase
+              panel are two halves of one colorway selection, so they have to stay under the
+              same provider no matter how they're arranged. `items-start` keeps the details
+              column from stretching to the photo's height. */}
+          <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-12">
+            {/* Photo column. min-w-0 on both halves so a wide gallery can't blow the grid
+                track out past 50% — grid items default to min-width:auto. */}
+            <div className="lg:min-w-0">
+              {images.length > 0 ? (
+                <ProductGallery images={images} styleName={style.name} styleNumber={style.styleNumber} colorways={style.colorways} />
+              ) : (
+                // Full-bleed below lg: breaking out of the page's own horizontal padding is
+                // what makes the photo feel large rather than inset in a box. Reverts at lg,
+                // where the column above has already capped/centered the width, so there's
+                // nothing left to break out of.
+                <div className="-mx-6 lg:mx-0">
+                  <StylePlate
+                    swatch={style.colorways[0].swatch}
+                    styleNumber={style.styleNumber}
+                    imageUrl={getStyleImageUrl(style)}
+                    alt={style.name}
+                    className="aspect-[3/4] w-full"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Details column. `lg:mt-0` on the first child so it aligns with the top of the
+                photo instead of inheriting the stacked-layout gap. */}
+            <div className="lg:min-w-0">
+              <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 lg:mt-0">
+                <AvailabilityBadge style={style} />
+                <span className="font-mono-tab text-[11px] uppercase tracking-[0.14em] text-ink-soft">
+                  {style.styleNumber}
+                </span>
+                <span className="text-[11px] uppercase tracking-[0.14em] text-ink-soft">
+                  {CATEGORY_LABEL[style.category]} · {GENDER_LABEL[style.gender]}
+                </span>
+              </div>
+
+              <h1 className="font-display mt-4 text-[2.25rem] font-bold uppercase leading-[0.95] tracking-[-0.02em] text-ink">
+                {style.name}
+              </h1>
+              <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">{style.tagline}</p>
+
+              <div className="mt-6">
+                <PrimaryPurchasePanel
+                  style={style}
+                  inventory={inventory}
+                  priceMultiplier={priceMultiplier}
+                  initialFavorited={favorited}
                 />
               </div>
-            )}
 
-            <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2">
-              <AvailabilityBadge style={style} />
-              <span className="font-mono-tab text-[11px] uppercase tracking-[0.14em] text-ink-soft">
-                {style.styleNumber}
-              </span>
-              <span className="text-[11px] uppercase tracking-[0.14em] text-ink-soft">
-                {CATEGORY_LABEL[style.category]} · {GENDER_LABEL[style.gender]}
-              </span>
+              <TrustStrip rep={account?.rep} />
             </div>
-
-            <h1 className="font-display mt-4 text-[2.25rem] font-bold uppercase leading-[0.95] tracking-[-0.02em] text-ink">
-              {style.name}
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">{style.tagline}</p>
-
-            <div className="mt-6">
-              <PrimaryPurchasePanel
-                style={style}
-                inventory={inventory}
-                priceMultiplier={priceMultiplier}
-                initialFavorited={favorited}
-              />
-            </div>
-
-            <TrustStrip rep={account?.rep} />
           </div>
         </ColorwaySelectionProvider>
 
