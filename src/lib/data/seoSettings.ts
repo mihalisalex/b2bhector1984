@@ -1,6 +1,8 @@
 import "server-only";
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { CACHE_TAGS, CACHE_TTL_SECONDS } from "@/lib/cacheTags";
 
 /**
  * Global SEO configuration, backed by the single `seo_settings` row added in
@@ -173,11 +175,20 @@ function mapSettings(row: SeoSettingsRow): SeoSettings {
   };
 }
 
-export const getSeoSettings = cache(async (): Promise<SeoSettings> => {
+async function fetchSeoSettings(): Promise<SeoSettings> {
   const { data, error } = await supabaseAdmin.from("seo_settings").select("*").eq("id", "global").maybeSingle();
   if (error || !data) return DEFAULT_SEO_SETTINGS;
   return mapSettings(data as SeoSettingsRow);
-});
+}
+
+/** Read by the root layout's `generateMetadata` on literally every page, for a row that
+ * changes only when an admin edits /admin/seo — see `@/lib/cacheTags`. */
+export const getSeoSettings = cache(
+  unstable_cache(fetchSeoSettings, ["seo-settings"], {
+    tags: [CACHE_TAGS.seo],
+    revalidate: CACHE_TTL_SECONDS,
+  }),
+);
 
 /**
  * Whether migration 0025 has actually been applied.

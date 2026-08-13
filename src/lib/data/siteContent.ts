@@ -1,6 +1,8 @@
 import "server-only";
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { CACHE_TAGS, CACHE_TTL_SECONDS } from "@/lib/cacheTags";
 import { assertAllowedExtension, IMAGE_EXTENSIONS } from "@/lib/uploadValidation";
 
 const BUCKET = "site-content";
@@ -69,10 +71,7 @@ function mapHero(row: HeroRow): HomepageHero {
   };
 }
 
-/** `cache()`-wrapped: the marketing layout (announcement bar) and the homepage (hero
- * content) both need this in the same request's render tree, so they share one fetch
- * instead of querying `site_content` twice. */
-export const getHomepageHero = cache(async (): Promise<HomepageHero> => {
+async function fetchHomepageHero(): Promise<HomepageHero> {
   const { data, error } = await supabaseAdmin
     .from("site_content")
     .select("*")
@@ -80,7 +79,23 @@ export const getHomepageHero = cache(async (): Promise<HomepageHero> => {
     .single();
   if (error) throw new Error(`site_content: ${error.message}`);
   return mapHero(data);
-});
+}
+
+/**
+ * `cache()`-wrapped: the marketing layout (announcement bar) and the homepage (hero
+ * content) both need this in the same request's render tree, so they share one fetch
+ * instead of querying `site_content` twice.
+ *
+ * Also cached *across* requests — this runs on every page under the marketing layout, not
+ * just the homepage, so it was one query per pageview sitewide for a row that changes a few
+ * times a month. See `@/lib/cacheTags`.
+ */
+export const getHomepageHero = cache(
+  unstable_cache(fetchHomepageHero, ["homepage-hero"], {
+    tags: [CACHE_TAGS.siteContent],
+    revalidate: CACHE_TTL_SECONDS,
+  }),
+);
 
 export async function updateHomepageHero(input: {
   eyebrow: string;

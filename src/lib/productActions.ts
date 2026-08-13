@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { invalidateCatalog } from "@/lib/cacheInvalidation";
 import { getCurrentAccount } from "@/lib/session";
 import { logAudit } from "@/lib/data/auditLog";
 import { hasPermission } from "@/lib/data/permissions";
@@ -72,7 +73,14 @@ async function requirePermission(key: ProductPermissionKey) {
   return admin;
 }
 
+/**
+ * The single choke point for "a product changed" — called by all 26 mutations in this file,
+ * which is why the cross-request catalog cache is dropped here rather than at each call site.
+ * Any new mutation added to this file gets correct invalidation for free by calling this,
+ * the same way it already gets correct path revalidation.
+ */
 function revalidateProduct(styleId: string) {
+  invalidateCatalog();
   revalidatePath("/admin/products");
   revalidatePath(`/admin/products/${styleId}`);
   revalidatePath("/catalogue");
@@ -966,6 +974,9 @@ export async function importProductRowsAction(rows: ImportRow[]): Promise<Import
   const created = results.filter((r) => r.action === "created").length;
   const updated = results.filter((r) => r.action === "updated").length;
   await logAudit(admin.id, "product.created", "style", "bulk-import", `imported ${created} created, ${updated} updated, ${rows.length - created - updated} failed`);
+  // Bulk import is the one product mutation that doesn't go through `revalidateProduct`
+  // (there's no single styleId to key it on), so it has to drop the catalog cache itself.
+  invalidateCatalog();
   revalidatePath("/admin/products");
   return results;
 }

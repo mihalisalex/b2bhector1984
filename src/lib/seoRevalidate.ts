@@ -1,5 +1,7 @@
 import "server-only";
 import { revalidatePath } from "next/cache";
+import { invalidateCache } from "@/lib/cacheInvalidation";
+import { CACHE_TAGS } from "@/lib/cacheTags";
 
 /**
  * Flushes the cached SEO surfaces.
@@ -13,6 +15,10 @@ import { revalidatePath } from "next/cache";
  * only export async functions, and this is deliberately synchronous.
  */
 export function revalidateSeoSurfaces(): void {
+  // `getSeoSettings` is now cached across requests and read by the root layout's
+  // generateMetadata on every page, so the cached row has to go too — otherwise an
+  // indexing-policy change would keep serving the old robots/canonical values.
+  invalidateCache(CACHE_TAGS.seo);
   revalidatePath("/robots.txt");
   revalidatePath("/sitemap.xml");
   // Metadata (canonicals, titles, JSON-LD) is baked into every rendered page,

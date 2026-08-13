@@ -1,5 +1,7 @@
 import "server-only";
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
+import { CACHE_TAGS, CACHE_TTL_SECONDS } from "@/lib/cacheTags";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { fromDbId, toNumber } from "@/lib/data/dbIds";
 import { getEnabledSeasons } from "@/lib/data/seasonSettings";
@@ -260,7 +262,7 @@ async function fetchStyles(styleRows: StyleRow[]): Promise<Style[]> {
  * (shop layout + page, which both need the full catalog) share one fetch
  * instead of re-querying the DB once per caller.
  */
-export const getAllStyles = cache(async (): Promise<Style[]> => {
+async function fetchAllStyles(): Promise<Style[]> {
   const [{ data, error }, enabledSeasons] = await Promise.all([
     supabaseAdmin.from("styles").select("*").order("id"),
     getEnabledSeasons(),
@@ -273,7 +275,24 @@ export const getAllStyles = cache(async (): Promise<Style[]> => {
     (row) => enabledSeasons.has(row.season) || (row.season === "both" && enabledSeasons.size > 0),
   );
   return fetchStyles(visible);
-});
+}
+
+/**
+ * The single most expensive read on the site — four Supabase round trips (styles,
+ * colorways, style_images, season settings), measured at roughly 0.33s of the homepage's
+ * TTFB. Cached across requests; see `@/lib/cacheTags` for why that's safe here.
+ *
+ * Tagged with `seasons` as well as `styles`, which is easy to miss: this function doesn't
+ * just read the catalog, it *filters* it by which seasons are enabled. Without the second
+ * tag, an admin toggling a season off would invalidate the season settings but leave this
+ * list still containing that season's styles until the TTL expired.
+ */
+export const getAllStyles = cache(
+  unstable_cache(fetchAllStyles, ["all-styles"], {
+    tags: [CACHE_TAGS.styles, CACHE_TAGS.seasons],
+    revalidate: CACHE_TTL_SECONDS,
+  }),
+);
 
 export const getStyleBySlug = cache(async (slug: string): Promise<Style | undefined> => {
   const { data, error } = await supabaseAdmin.from("styles").select("*").eq("slug", slug).limit(1);

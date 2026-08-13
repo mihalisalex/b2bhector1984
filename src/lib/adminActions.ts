@@ -19,6 +19,8 @@ import { createSalesRep, updateSalesRep, deleteSalesRep, getSalesRepById } from 
 import { logAudit } from "@/lib/data/auditLog";
 import { updateHomepageHero, createHeroImageUploadTarget, finalizeHeroImageUpload } from "@/lib/data/siteContent";
 import { updateSeasonSettings, createSeasonTeaserUploadTarget, finalizeSeasonTeaserUpload } from "@/lib/data/seasonSettings";
+import { invalidateCache } from "@/lib/cacheInvalidation";
+import { CACHE_TAGS } from "@/lib/cacheTags";
 import {
   updateOrderStatus as updateOrderStatusInDb,
   updateOrderDetails as updateOrderDetailsInDb,
@@ -423,6 +425,7 @@ export async function updateHomepageHeroAction(formData: FormData) {
     whatsappClosingNote: String(formData.get("whatsappClosingNote") ?? ""),
     productionLeadTimeDays: Math.max(1, Number(formData.get("productionLeadTimeDays")) || 40),
   });
+  invalidateCache(CACHE_TAGS.siteContent);
   revalidatePath("/admin/content");
   revalidatePath("/");
 }
@@ -439,6 +442,7 @@ export async function updateSeasonSettingsAction(formData: FormData) {
       label: String(formData.get("winterLabel") ?? "").trim() || "Winter",
     },
   });
+  invalidateCache(CACHE_TAGS.seasons);
   revalidatePath("/admin/seasons");
   revalidatePath("/");
   revalidatePath("/catalogue");
@@ -462,6 +466,7 @@ export async function finalizeSeasonTeaserUploadAction(season: Season, path: str
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Upload failed." };
   }
+  invalidateCache(CACHE_TAGS.seasons);
   revalidatePath("/admin/seasons");
   revalidatePath("/");
   return {};
@@ -483,6 +488,7 @@ export async function finalizeHeroImageUploadAction(path: string): Promise<Uploa
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Upload failed." };
   }
+  invalidateCache(CACHE_TAGS.siteContent);
   revalidatePath("/admin/content");
   revalidatePath("/");
   return {};

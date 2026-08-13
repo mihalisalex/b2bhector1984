@@ -1,7 +1,9 @@
 import "server-only";
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { assertAllowedExtension, IMAGE_EXTENSIONS } from "@/lib/uploadValidation";
+import { CACHE_TAGS, CACHE_TTL_SECONDS } from "@/lib/cacheTags";
 import type { Season } from "@/lib/types";
 
 const BUCKET = "site-content";
@@ -39,7 +41,7 @@ function mapSetting(row: SeasonSettingRow): SeasonSetting {
 
 /** Degrades to the defaults (nothing hidden, stock labels, no teaser image) if migration
  * 0022/0028 hasn't run yet or the query fails. */
-export const getSeasonSettings = cache(async (): Promise<SeasonSettings> => {
+async function fetchSeasonSettings(): Promise<SeasonSettings> {
   const { data, error } = await supabaseAdmin.from("season_settings").select("*");
   if (error || !data) return DEFAULTS;
   const bySeason = new Map((data as SeasonSettingRow[]).map((row) => [row.season, mapSetting(row)]));
@@ -47,7 +49,20 @@ export const getSeasonSettings = cache(async (): Promise<SeasonSettings> => {
     summer: bySeason.get("summer") ?? DEFAULTS.summer,
     winter: bySeason.get("winter") ?? DEFAULTS.winter,
   };
-});
+}
+
+/**
+ * Two cache layers, deliberately: `unstable_cache` persists this across requests (see
+ * `@/lib/cacheTags`), and React's `cache()` on the outside still collapses the several
+ * calls made within a single render tree. The `Map` above is local to the fetch and never
+ * crosses the cache boundary — the returned object is plain JSON, so it serializes cleanly.
+ */
+export const getSeasonSettings = cache(
+  unstable_cache(fetchSeasonSettings, ["season-settings"], {
+    tags: [CACHE_TAGS.seasons],
+    revalidate: CACHE_TTL_SECONDS,
+  }),
+);
 
 /**
  * Seasons that should appear in buyer-facing browsing surfaces. Never returns
