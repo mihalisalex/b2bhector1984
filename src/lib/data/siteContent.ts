@@ -21,6 +21,10 @@ export interface HomepageHero {
   announcementEnabled: boolean;
   announcementText: string;
   announcementHref: string;
+  /** Admin-selectable background for the bar itself (migration 0035). Defaults to "black"
+   * on a database that hasn't run it yet, or on any unrecognised stored value — same
+   * defensive-default pattern as `announcementEnabled` above. */
+  announcementColor: "black" | "burgundy";
   /** The free-text closing line appended to the WhatsApp proforma-invoice notification
    * (migration 0026) — the one part of that message that isn't a computed order figure. */
   whatsappClosingNote: string;
@@ -41,6 +45,7 @@ interface HeroRow {
   announcement_enabled?: boolean | null;
   announcement_text?: string | null;
   announcement_href?: string | null;
+  announcement_color?: string | null;
   whatsapp_closing_note?: string | null;
   production_lead_time_days?: number | null;
 }
@@ -58,6 +63,7 @@ function mapHero(row: HeroRow): HomepageHero {
     announcementEnabled: row.announcement_enabled ?? false,
     announcementText: row.announcement_text ?? "",
     announcementHref: row.announcement_href ?? "/catalogue",
+    announcementColor: row.announcement_color === "burgundy" ? "burgundy" : "black",
     whatsappClosingNote: row.whatsapp_closing_note ?? "Thank you for your business — we'll confirm stock and production shortly.",
     productionLeadTimeDays: row.production_lead_time_days ?? 40,
   };
@@ -87,6 +93,7 @@ export async function updateHomepageHero(input: {
   announcementEnabled: boolean;
   announcementText: string;
   announcementHref: string;
+  announcementColor: "black" | "burgundy";
   whatsappClosingNote: string;
   productionLeadTimeDays: number;
 }): Promise<void> {
@@ -102,6 +109,7 @@ export async function updateHomepageHero(input: {
       secondary_cta_href: input.secondaryCtaHref,
       announcement_enabled: input.announcementEnabled,
       announcement_text: input.announcementText,
+      announcement_color: input.announcementColor,
       whatsapp_closing_note: input.whatsappClosingNote,
       announcement_href: input.announcementHref,
       production_lead_time_days: input.productionLeadTimeDays,

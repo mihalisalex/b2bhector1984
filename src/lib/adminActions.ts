@@ -419,6 +419,7 @@ export async function updateHomepageHeroAction(formData: FormData) {
     announcementEnabled: formData.get("announcementEnabled") === "on",
     announcementText: String(formData.get("announcementText") ?? ""),
     announcementHref: String(formData.get("announcementHref") ?? ""),
+    announcementColor: formData.get("announcementColor") === "burgundy" ? "burgundy" : "black",
     whatsappClosingNote: String(formData.get("whatsappClosingNote") ?? ""),
     productionLeadTimeDays: Math.max(1, Number(formData.get("productionLeadTimeDays")) || 40),
   });

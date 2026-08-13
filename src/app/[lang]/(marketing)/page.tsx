@@ -69,29 +69,17 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           needs even contrast on both sides. Taller (`94vh` vs. the old 520-720px) so it
           actually commands the screen on load. */}
       <section className="relative isolate flex min-h-[94vh] items-center justify-center overflow-hidden border-b border-stone-300 bg-ink">
-        {/* object-bottom, not the object-cover default (center): the product sits low in
-            this frame (lower-third), and at this section's wide/short aspect ratio a
-            center crop cuts the shoes out of frame entirely, leaving just the chair legs
-            and floor. */}
+        {/* No dark overlay/scrim — removed on request (2026-08-11). object-bottom rather
+            than the object-cover default (center): the product sits low in this frame
+            (lower-third), and at this section's wide/short aspect ratio a center crop cuts
+            the shoes out of frame entirely, leaving just the chair legs and floor.
+            NOTE: this reopens two things the removed overlay was covering for — white
+            text/button now has no guaranteed contrast against a bright stretch of photo,
+            and the caption baked into the bottom of this photo ("SPRING/SUMMER 2027") is
+            visible again on a narrow/tall viewport, where object-cover shows the image's
+            full height with zero vertical crop margin (a fixed fact of this photo's
+            landscape proportions, not a tunable crop setting). */}
         <Image src={hero.heroImageUrl} alt={h.heroImageAlt} fill priority sizes="100vw" className="object-cover object-[50%_60%]" />
-        <div className="absolute inset-0 bg-ink/40" aria-hidden />
-        {/* Explicit percentage stops (not Tailwind's 3-point from/via/to, which can't pin a
-            stop to a specific position) — a near-solid band across the bottom ~9% hides a
-            caption baked into the source photo ("SPRING/SUMMER 2027") that object-position
-            can't crop out on a narrow/tall viewport (see the Image's own comment above: at
-            that aspect ratio, object-cover shows the full image height with zero vertical
-            crop margin, a fixed fact of this photo's landscape proportions). Kept tight
-            rather than covering the CTA's own zone too — `rgba(18,18,18,*)` is this site's
-            `--color-ink`, the button's own fill color, so a fully solid backdrop there would
-            leave the primary CTA with almost no visible edge against it. */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to top, rgba(18,18,18,1) 0%, rgba(18,18,18,1) 18%, rgba(18,18,18,0.15) 38%, rgba(18,18,18,0.55) 100%)",
-          }}
-          aria-hidden
-        />
 
         <div className="relative mx-auto max-w-2xl px-6 py-24 text-center [animation:hero-fade-up_900ms_cubic-bezier(0.16,1,0.3,1)_both] lg:px-10">
           <span className="inline-flex items-center gap-2 font-mono-tab text-xs uppercase tracking-[0.25em] text-stone-300/80">

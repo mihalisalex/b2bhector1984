@@ -23,7 +23,12 @@ export default async function MarketingLayout({
 
   const content = (
     <>
-      <HomeAnnouncementBar enabled={hero.announcementEnabled} text={hero.announcementText} href={hero.announcementHref} />
+      <HomeAnnouncementBar
+        enabled={hero.announcementEnabled}
+        text={hero.announcementText}
+        href={hero.announcementHref}
+        color={hero.announcementColor}
+      />
       <MarketingHeader account={account} locale={lang} dict={dict} />
       <main className="flex-1">{children}</main>
       <Footer locale={lang} dict={dict} />

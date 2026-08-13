@@ -82,6 +82,16 @@ export default async function AdminContentPage() {
                 />
               </Field>
             </div>
+            <Field label="Bar color">
+              <select
+                name="announcementColor"
+                defaultValue={hero.announcementColor}
+                className="w-full max-w-[180px] border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
+              >
+                <option value="black">Black</option>
+                <option value="burgundy">Burgundy</option>
+              </select>
+            </Field>
           </div>
 
           <Field label="Eyebrow">
