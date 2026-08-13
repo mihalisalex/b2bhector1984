@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { bodySans, displaySerif, mono } from "@/lib/fonts";
+import { BackToTopButton } from "@/components/layout/BackToTopButton";
 import { CookieConsentBanner } from "@/components/layout/CookieConsentBanner";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { SITE_URL } from "@/lib/siteUrl";
@@ -76,6 +77,7 @@ export default async function LocaleLayout({
           {children}
         </I18nProvider>
         <CookieConsentBanner />
+        <BackToTopButton />
         <JsonLd schema={siteSchemas} />
       </body>
     </html>
