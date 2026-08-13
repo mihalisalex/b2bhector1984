@@ -51,8 +51,10 @@ export default async function BrandStoryPage({ params }: { params: Promise<{ lan
         </div>
         <StylePlate
           swatch={["#1a1d22", "#c1451e"]}
-          styleNumber="HL-1001"
+          imageUrl="/images/brand/storefront-1984.png"
+          alt={b.estSince}
           className="aspect-[4/5] w-full lg:order-1"
+          priority
         />
       </section>
 
