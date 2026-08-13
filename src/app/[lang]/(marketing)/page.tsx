@@ -61,64 +61,80 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
 
   return (
     <div>
-      {/* Hero — `min-h-*` (not a fixed `h-*`) on the content wrapper, so the box always grows
-          to fit however tall the admin-edited heading/body actually is (no clipping), while
-          still guaranteeing a floor on short content so `object-cover` never has to crop the
-          photo into a thin strip on a very wide screen. The section itself has no height of
-          its own — it just wraps this div, whose min-height + real content sets it. */}
-      <section className="relative overflow-hidden border-b border-stone-300 bg-ink">
-        <Image
-          src={hero.heroImageUrl}
-          alt={h.heroImageAlt}
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
-        />
+      {/* Hero — redesigned 2026-08-11 (previously two same-weight buttons plus a third
+          "view collection" link, all competing for the first click, with the explanatory
+          sentence appearing *after* the buttons). One button, one quiet link, copy in the
+          order eyebrow → headline → offer → action. Centered rather than left-aligned, with
+          a symmetric top/bottom scrim instead of a one-sided diagonal one — centered text
+          needs even contrast on both sides. Taller (`94vh` vs. the old 520-720px) so it
+          actually commands the screen on load. */}
+      <section className="relative isolate flex min-h-[94vh] items-center justify-center overflow-hidden border-b border-stone-300 bg-ink">
+        {/* object-bottom, not the object-cover default (center): the product sits low in
+            this frame (lower-third), and at this section's wide/short aspect ratio a
+            center crop cuts the shoes out of frame entirely, leaving just the chair legs
+            and floor. */}
+        <Image src={hero.heroImageUrl} alt={h.heroImageAlt} fill priority sizes="100vw" className="object-cover object-[50%_60%]" />
+        <div className="absolute inset-0 bg-ink/40" aria-hidden />
+        {/* Explicit percentage stops (not Tailwind's 3-point from/via/to, which can't pin a
+            stop to a specific position) — a near-solid band across the bottom ~9% hides a
+            caption baked into the source photo ("SPRING/SUMMER 2027") that object-position
+            can't crop out on a narrow/tall viewport (see the Image's own comment above: at
+            that aspect ratio, object-cover shows the full image height with zero vertical
+            crop margin, a fixed fact of this photo's landscape proportions). Kept tight
+            rather than covering the CTA's own zone too — `rgba(18,18,18,*)` is this site's
+            `--color-ink`, the button's own fill color, so a fully solid backdrop there would
+            leave the primary CTA with almost no visible edge against it. */}
         <div
           className="absolute inset-0"
-          style={{ background: "linear-gradient(105deg, rgba(8,9,11,0.75) 0%, rgba(8,9,11,0.55) 32%, rgba(8,9,11,0.15) 60%, rgba(8,9,11,0.4) 100%)" }}
+          style={{
+            background:
+              "linear-gradient(to top, rgba(18,18,18,1) 0%, rgba(18,18,18,1) 18%, rgba(18,18,18,0.15) 38%, rgba(18,18,18,0.55) 100%)",
+          }}
           aria-hidden
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent" aria-hidden />
 
-        <div className="relative mx-auto flex min-h-[520px] max-w-[1440px] items-center px-6 py-16 sm:min-h-[560px] lg:min-h-[640px] lg:px-10 2xl:min-h-[720px]">
-          <div className="max-w-xl lg:max-w-2xl">
-            <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-stone-300/70">
-              {displayEyebrow}
-            </span>
-            <h1 className="font-display mt-4 text-4xl font-bold uppercase leading-[1.05] text-white sm:text-5xl lg:text-6xl">
-              {headingLines.map((line, i) => (
-                <span key={i}>
-                  {line}
-                  {i < headingLines.length - 1 && <br />}
-                </span>
-              ))}
-            </h1>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <LinkButton href={withLocale(lang, hero.primaryCtaHref)} size="lg">
-                {hero.primaryCtaLabel}
-              </LinkButton>
-              <LinkButton
-                href={withLocale(lang, hero.secondaryCtaHref)}
-                variant="secondary"
-                size="lg"
-                className="!border-white !text-white hover:!bg-white hover:!text-ink"
-              >
-                {hero.secondaryCtaLabel}
-              </LinkButton>
-            </div>
-            <p className="mt-6 max-w-md text-sm leading-relaxed text-stone-300/80">
-              {displayBody}
-            </p>
-            <Link
-              href={withLocale(lang, "/collections")}
-              className="mt-3 inline-block text-sm font-medium text-stone-300 underline underline-offset-2 hover:text-white"
+        <div className="relative mx-auto max-w-2xl px-6 py-24 text-center [animation:hero-fade-up_900ms_cubic-bezier(0.16,1,0.3,1)_both] lg:px-10">
+          <span className="inline-flex items-center gap-2 font-mono-tab text-xs uppercase tracking-[0.25em] text-stone-300/80">
+            <span className="h-1 w-1 shrink-0 rounded-full bg-leather" aria-hidden />
+            {displayEyebrow}
+          </span>
+          <h1 className="font-display mt-6 text-4xl font-bold uppercase leading-[1.02] text-white sm:text-6xl lg:text-7xl">
+            {headingLines.map((line, i) => (
+              <span key={i}>
+                {line}
+                {i < headingLines.length - 1 && <br />}
+              </span>
+            ))}
+          </h1>
+          <p className="mx-auto mt-6 max-w-md text-base leading-relaxed text-stone-300/85">{displayBody}</p>
+          <div className="mt-10 flex flex-col items-center gap-4">
+            {/* ring-1 ring-white/20: a bare edge that doesn't depend on the backdrop for
+                contrast — the button's own fill (bg-ink) is this site's --color-ink, the
+                same near-black the bottom scrim is built from, so on a dark stretch of the
+                photo the two could otherwise blend into each other with only the shadow
+                left to separate them. */}
+            <LinkButton
+              href={withLocale(lang, hero.primaryCtaHref)}
+              size="lg"
+              className="px-10 shadow-[0_10px_36px_rgba(0,0,0,0.35)] ring-1 ring-white/20 transition-shadow hover:shadow-[0_16px_48px_rgba(0,0,0,0.45)]"
             >
-              {h.viewCollectionFirst} →
+              {hero.primaryCtaLabel}
+            </LinkButton>
+            <Link
+              href={withLocale(lang, hero.secondaryCtaHref)}
+              className="text-xs font-medium uppercase tracking-[0.15em] text-stone-300/80 underline underline-offset-4 hover:text-white"
+            >
+              {hero.secondaryCtaLabel}
             </Link>
           </div>
         </div>
+
+        <span
+          aria-hidden
+          className="absolute inset-x-0 bottom-8 mx-auto w-fit font-mono-tab text-[10px] uppercase tracking-[0.3em] text-white/50"
+        >
+          Scroll
+        </span>
       </section>
 
       {/* Easy steps to order, right up top for first-time buyers */}
