@@ -3,6 +3,8 @@ const en = {
     home: "Home",
     quickOrder: "Quick Order",
     catalogue: "Catalogue",
+    collections: "Collections",
+    accountRequired: "Account required",
     theBrand: "The Brand",
     journal: "Journal",
     faq: "FAQ",

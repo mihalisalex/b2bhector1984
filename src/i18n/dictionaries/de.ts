@@ -5,6 +5,8 @@ const de: Dictionary = {
     home: "Startseite",
     quickOrder: "Schnellbestellung",
     catalogue: "Katalog",
+    collections: "Kollektionen",
+    accountRequired: "Konto erforderlich",
     theBrand: "Die Marke",
     journal: "Journal",
     faq: "FAQ",

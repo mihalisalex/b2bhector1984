@@ -11,6 +11,18 @@ export function AccountIcon({ className }: { className?: string }) {
   );
 }
 
+/** Minimal closed-padlock glyph. Used in the mobile drawer to mark the routes that need a
+ * buyer account (see MainNav) — small and low-contrast on purpose, a hint rather than a
+ * warning. Same flat unboxed language as the icons above. */
+export function LockIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={cn("h-3.5 w-3.5", className)} fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden>
+      <rect x="5" y="10.5" width="14" height="9.5" rx="1.6" />
+      <path strokeLinecap="round" d="M8.5 10.5V7.75a3.5 3.5 0 0 1 7 0v2.75" />
+    </svg>
+  );
+}
+
 /** Minimal shopping-bag glyph for the cart trigger. */
 export function CartIcon({ className }: { className?: string }) {
   return (

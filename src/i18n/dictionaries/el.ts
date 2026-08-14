@@ -5,6 +5,8 @@ const el: Dictionary = {
     home: "Αρχική",
     quickOrder: "Γρήγορη παραγγελία",
     catalogue: "Κατάλογος",
+    collections: "Συλλογές",
+    accountRequired: "Απαιτείται λογαριασμός",
     theBrand: "Η μάρκα",
     journal: "Journal",
     faq: "Συχνές ερωτήσεις",

@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import type { Account } from "@/lib/types";
 import { cn } from "@/lib/cn";
 import { HWatermark } from "@/components/layout/HWatermark";
+import { LockIcon } from "@/components/layout/icons";
 import { LinkButton } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { useFocusTrap } from "@/lib/useFocusTrap";
@@ -20,12 +21,20 @@ export function MainNav({ account }: { account: Account | null }) {
   const pathname = usePathname();
   const { locale, dict } = useI18n();
 
-  /** Where a buyer goes to place an order — the drawer's main menu. */
+  /** Where a buyer goes to place an order — the drawer's main menu.
+   *
+   * `locked` marks the routes that redirect to /login without a session (the real list lives
+   * in GATED_PREFIXES in lib/seoRoutes.ts — /catalogue and /quick-order are both on it).
+   * It only ever renders for signed-out visitors, and only in this drawer: a padlock next to
+   * a link a buyer can already open would be noise. /collections is deliberately unlocked —
+   * it's a genuinely public page, which is what makes it worth offering here as the way to
+   * see the range before applying. */
   const LINKS = useMemo(
     () => [
       { href: "/", label: dict.nav.home },
-      { href: "/quick-order", label: dict.nav.quickOrder },
-      { href: "/catalogue", label: dict.nav.catalogue },
+      { href: "/collections", label: dict.nav.collections },
+      { href: "/quick-order", label: dict.nav.quickOrder, locked: true },
+      { href: "/catalogue", label: dict.nav.catalogue, locked: true },
     ],
     [dict],
   );
@@ -150,7 +159,14 @@ export function MainNav({ account }: { account: Account | null }) {
 
               <nav className="relative flex flex-1 flex-col gap-1 px-5 py-6" aria-label="Primary">
                 {LINKS.map((item) => (
-                  <DrawerLink key={item.href} item={item} locale={locale} active={activePath === item.href} />
+                  <DrawerLink
+                    key={item.href}
+                    item={item}
+                    locale={locale}
+                    active={activePath === item.href}
+                    locked={!account && item.locked === true}
+                    lockedLabel={dict.nav.accountRequired}
+                  />
                 ))}
               </nav>
 
@@ -189,10 +205,16 @@ function DrawerLink({
   item,
   active,
   locale,
+  locked = false,
+  lockedLabel,
 }: {
   item: { href: string; label: string };
   active: boolean;
   locale: Parameters<typeof withLocale>[0];
+  /** Signed-out visitor + a gated route. Still a real link — following it lands on /login
+   * with a `next` param, which is a better introduction than an unclickable row. */
+  locked?: boolean;
+  lockedLabel?: string;
 }) {
   return (
     <Link
@@ -209,6 +231,15 @@ function DrawerLink({
       <span className="flex items-center gap-2">
         {active && <span className="h-1.5 w-1.5 rounded-full bg-signal" aria-hidden />}
         {item.label}
+        {locked && (
+          // Discreet by design: ink-soft rather than the link's own weight, so it reads as a
+          // quiet annotation on the label instead of competing with it. The label text is
+          // for screen readers only — the padlock itself is decorative.
+          <span className="inline-flex items-center text-ink-soft/70" title={lockedLabel}>
+            <LockIcon />
+            <span className="sr-only">{lockedLabel}</span>
+          </span>
+        )}
       </span>
       <span
         aria-hidden
