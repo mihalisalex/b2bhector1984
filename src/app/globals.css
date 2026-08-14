@@ -22,6 +22,11 @@
      as *surfaces* elsewhere, and a future "tidy the palette" pass that nudged stone-200
      would silently reintroduce the failure. */
   --color-numeral: #8a8a8a;
+  /* "Live" green for DARK surfaces only (the homepage order-activity strip). Deliberately
+     not --color-positive (#3d5c3a): that one is tuned for green-on-white badges and measures
+     just 2.49:1 against --color-ink, which would fail contrast on a dark band. This sits at
+     ~9:1 on ink. Don't use it on white — it's too light there. */
+  --color-live: #6ec88a;
   --color-signal: #121212;
   --color-signal-600: #000000;
   --color-signal-100: #ececec;
@@ -60,6 +65,7 @@
   --color-cinder: var(--color-cinder);
   --color-cinder-300: var(--color-cinder-300);
   --color-numeral: var(--color-numeral);
+  --color-live: var(--color-live);
   --color-signal: var(--color-signal);
   --color-signal-600: var(--color-signal-600);
   --color-signal-100: var(--color-signal-100);

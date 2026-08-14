@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getStorefrontStyles, CATEGORY_LABEL, getStyleImageUrl } from "@/lib/data/styles";
 import { getHomepageHero } from "@/lib/data/siteContent";
 import { getSeasonSettings, toSeasonOptions } from "@/lib/data/seasonSettings";
+import { getOrderPulse } from "@/lib/data/orderPulse";
+import { OrderPulse } from "@/components/marketing/OrderPulse";
 import type { Category, Season } from "@/lib/types";
 import { LinkButton } from "@/components/ui/Button";
 import { StylePlate } from "@/components/product/StylePlate";
@@ -36,11 +38,12 @@ const SEASON_CATEGORIES: Record<Season, Category[]> = {
 export default async function HomePage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang: rawLang } = await params;
   const lang = rawLang as Locale;
-  const [styles, hero, seasonSettings, dict] = await Promise.all([
+  const [styles, hero, seasonSettings, dict, pulse] = await Promise.all([
     getStorefrontStyles(),
     getHomepageHero(),
     getSeasonSettings(),
     getDictionary(lang),
+    getOrderPulse(),
   ]);
   const h = dict.home;
   const seasonOptions = toSeasonOptions(seasonSettings);
@@ -137,6 +140,11 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           Scroll
         </span>
       </section>
+
+      {/* Live order-activity strip (2026-08-14). Every figure is a real query — it renders
+          nothing at all when there isn't enough genuine activity to report, rather than
+          padding itself out. See OrderPulse / lib/data/orderPulse. */}
+      <OrderPulse pulse={pulse} locale={lang} />
 
       {/* Easy steps to order, right up top for first-time buyers */}
       <section className="border-b border-stone-300 bg-white py-16">
