@@ -63,7 +63,7 @@ export function ProductListRow({
         <div>
           <p className="text-[11px] uppercase tracking-wide text-ink-soft">Wholesale</p>
           <p className="flex items-baseline justify-end gap-1.5">
-            <span className="text-lg font-semibold tabular-nums text-ink">
+            <span className={cn("text-lg font-semibold tabular-nums", onSale ? "text-burgundy" : "text-ink")}>
               {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
               <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
             </span>

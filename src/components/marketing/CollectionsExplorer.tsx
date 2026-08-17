@@ -6,6 +6,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode }
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { AvailabilityBadge } from "@/components/ui/Badge";
+import { SaleBadge } from "@/components/product/SaleBadge";
 import { StylePlate } from "@/components/product/StylePlate";
 import { getStyleImageUrl } from "@/lib/data/styleLabels";
 import { withLocale } from "@/i18n/paths";
@@ -235,6 +236,12 @@ export function CollectionsExplorer({
               />
               <div className="absolute left-2 top-2">
                 <AvailabilityBadge style={style} />
+              </div>
+              {/* Discount is visible to signed-out visitors here, prices are not — this page
+                  is public. Showing "−10% Sale" without a figure is the point: it's a reason
+                  to apply for an account, not a trade-pricing leak. */}
+              <div className="absolute right-2 top-2">
+                <SaleBadge style={style} />
               </div>
             </div>
             <div className="mt-3">

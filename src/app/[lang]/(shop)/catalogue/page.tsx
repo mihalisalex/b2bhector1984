@@ -10,6 +10,7 @@ import { getCurrentAccount } from "@/lib/session";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { getSeasonSettings, toSeasonOptions } from "@/lib/data/seasonSettings";
 import { CatalogSearchInput, CatalogFiltersPanel, CatalogResultsToolbar } from "@/components/catalog/CatalogToolbar";
+import { SaleBanner } from "@/components/catalog/SaleBanner";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductListRow } from "@/components/product/ProductListRow";
 import { commerceMetadata } from "@/lib/seo";
@@ -89,6 +90,11 @@ export default async function CatalogPage({
           <CatalogResultsToolbar resultCount={results.length} />
         </Suspense>
       </div>
+
+      {/* Reads the currently-visible results, not the whole catalogue, so the figures always
+          describe what's actually on screen — and it disappears on its own when no discounted
+          style is in view. */}
+      <SaleBanner styles={results} seasonFiltered={filters.season.length > 0} />
 
       {results.length === 0 ? (
         <div className="border border-dashed border-stone-300 bg-stone-100 px-6 py-20 text-center">

@@ -11,6 +11,7 @@ import type { StyleImage } from "@/lib/data/styleImages";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
+import { SaleBadge } from "@/components/product/SaleBadge";
 import { QuickAdd } from "@/components/product/QuickAdd";
 import { ColorSwatchButton } from "@/components/product/ColorSwatchButton";
 import { pickDefaultColorway } from "@/lib/productSelectionDefaults";
@@ -85,16 +86,21 @@ export function ProductCard({
         </Link>
         <div className="absolute right-2 top-2 flex flex-col items-end gap-1.5">
           {favorited !== undefined && <FavoriteButton styleId={style.id} initialFavorited={favorited} variant="icon" />}
-          {(soldOut || madeToOrder || lowStock || onSale) && (
+          {/* Availability and discount are independent facts, so they get independent badges.
+              They used to share one slot in a single ternary chain, which meant a discounted
+              style that was also made-to-order silently lost its Sale flag — the common case
+              here, since the winter sale styles are largely made to order. */}
+          {(soldOut || madeToOrder || lowStock) && (
             <span
               className={cn(
                 "px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white",
-                soldOut ? "bg-ember" : madeToOrder ? "bg-ink" : lowStock ? "bg-ink" : "bg-ember",
+                soldOut ? "bg-ember" : "bg-ink",
               )}
             >
-              {soldOut ? "Sold out" : madeToOrder ? backorderText : lowStock ? "Low stock" : "Sale"}
+              {soldOut ? "Sold out" : madeToOrder ? backorderText : "Low stock"}
             </span>
           )}
+          <SaleBadge style={style} />
         </div>
       </div>
       <div className="flex flex-1 flex-col gap-2 px-4 pb-4 pt-3">
@@ -112,7 +118,9 @@ export function ProductCard({
         <div className="mt-auto border-t border-stone-200 pt-3">
           <p className="text-[11px] uppercase tracking-wide text-ink-soft">Wholesale</p>
           <p className="flex items-baseline gap-2">
-            <span className="text-lg font-semibold tabular-nums text-ink">
+            {/* Burgundy only while discounted — the promotional accent, deliberately not
+                --color-ember, which reads as danger/error everywhere else in this app. */}
+            <span className={cn("text-lg font-semibold tabular-nums", onSale ? "text-burgundy" : "text-ink")}>
               {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
               <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
             </span>

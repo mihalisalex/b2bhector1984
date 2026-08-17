@@ -97,12 +97,12 @@ export function OrderableLinesheet({
                   </p>
                   <div className="mt-1 flex flex-wrap items-center gap-2">
                     <AvailabilityBadge style={style} />
-                    <span className="text-sm font-semibold tabular-nums text-ink">
+                    <span className={cn("text-sm font-semibold tabular-nums", isOnSale(style) ? "text-burgundy" : "text-ink")}>
                       {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
                       <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
                     </span>
                     {isOnSale(style) && (
-                      <span className="bg-ember px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">Sale</span>
+                      <span className="bg-burgundy px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">Sale</span>
                     )}
                   </div>
                 </div>
@@ -206,11 +206,14 @@ export function OrderableLinesheet({
                     </td>
                   ) : null}
                   {i === 0 ? (
-                    <td className="px-3 py-2.5 text-right align-top tabular-nums text-ink" rowSpan={style.colorways.length}>
+                    <td
+                      className={cn("px-3 py-2.5 text-right align-top tabular-nums", isOnSale(style) ? "text-burgundy" : "text-ink")}
+                      rowSpan={style.colorways.length}
+                    >
                       {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
                       <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
                       {isOnSale(style) && (
-                        <span className="ml-1.5 bg-ember px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">Sale</span>
+                        <span className="ml-1.5 bg-burgundy px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">Sale</span>
                       )}
                     </td>
                   ) : null}
