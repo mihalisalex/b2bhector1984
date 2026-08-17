@@ -36,7 +36,7 @@ import {
 import { z } from "zod";
 import { hashPassword, verifyPassword } from "@/lib/passwords";
 import { MIN_PASSWORD_LENGTH } from "@/lib/passwordPolicy";
-import { formatEUR, getOrderMinimumError, getUnitPrice, summarizeOrder, validateMatrix } from "@/lib/pricing";
+import { formatEUR, getOrderMinimumError, getUnitPrice, summarizeOrder, TERMS_LABEL, validateMatrix } from "@/lib/pricing";
 import { createSavedAssortment, deleteSavedAssortment as deleteSavedAssortmentData } from "@/lib/data/assortments";
 import { addFavorite, removeFavorite } from "@/lib/data/favorites";
 import { decrementInventoryForOrder, restoreInventoryForLines, type StockLine } from "@/lib/data/inventory";
@@ -50,6 +50,8 @@ import {
   buildPasswordResetEmailBody,
   buildApplicationReceivedEmailBody,
   buildNewApplicationAdminEmailBody,
+  buildNewOrderAdminEmailBody,
+  newOrderAdminEmailSubject,
   orderConfirmationEmailSubject,
   PASSWORD_RESET_EMAIL_SUBJECT,
   APPLICATION_RECEIVED_EMAIL_SUBJECT,
@@ -514,6 +516,42 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
     ),
     attachments: invoiceAttachment ? [invoiceAttachment] : undefined,
   });
+
+  // Tell the business it has an order. Without this an order sits unseen in the dashboard
+  // until someone happens to log in — the same gap the new-application notification above
+  // already closes, which is why this reuses that pattern exactly (ADMIN_EMAIL env var,
+  // warn-and-continue when unset).
+  //
+  // Safe to await: sendEmail never throws (failures are logged inside it), so a bounced
+  // notification can't fail a checkout that has already been written to the database.
+  // Reuses the same `invoiceAttachment` buffer as the buyer's copy rather than rebuilding
+  // the PDF — it may be undefined if generation failed, which the body accounts for.
+  const adminOrderEmail = process.env.ADMIN_EMAIL;
+  if (adminOrderEmail) {
+    const adminSubject = newOrderAdminEmailSubject({ orderId: order.id, businessName: account.businessName });
+    await sendEmail({
+      to: adminOrderEmail,
+      subject: adminSubject,
+      html: textToHtml(
+        buildNewOrderAdminEmailBody({
+          orderId: order.id,
+          businessName: account.businessName,
+          contactName: account.contactName,
+          email: account.email,
+          totalPairs,
+          grandTotal: formatEUR(orderGrandTotal),
+          terms: TERMS_LABEL[terms] ?? terms,
+          hasMadeToOrderLines,
+          hasPreOrderLines,
+          attachedInvoice: invoiceAttachment !== undefined,
+        }),
+        adminSubject,
+      ),
+      attachments: invoiceAttachment ? [invoiceAttachment] : undefined,
+    });
+  } else {
+    console.warn(`[email] ADMIN_EMAIL not set — skipping new-order admin notification for ${order.id}`);
+  }
 
   // WhatsApp notification for the proforma invoice request — no-ops safely
   // (with a console warning) until both WHATSAPP_* env vars are set AND the

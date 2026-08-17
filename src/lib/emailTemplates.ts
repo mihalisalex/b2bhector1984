@@ -103,6 +103,40 @@ export function buildNewApplicationAdminEmailBody(application: {
 
 export const NEW_APPLICATION_ADMIN_EMAIL_SUBJECT = "You got a new wholesale application";
 
+/**
+ * Sent to the business's own inbox (ADMIN_EMAIL) the moment a buyer checks out, so an order
+ * doesn't sit unseen in the dashboard until someone happens to log in. Sibling of the
+ * new-application notification above, and deliberately the same shape: the figures that
+ * decide whether it needs attention now, then where to go.
+ *
+ * `productionNote` is only present when the order can't ship entirely from stock — that's
+ * the case where the buyer is waiting on a confirmation from you, so it's worth surfacing
+ * in the subject-adjacent body rather than leaving it to be discovered in the PDF.
+ */
+export function buildNewOrderAdminEmailBody(input: {
+  orderId: string;
+  businessName: string;
+  contactName: string;
+  email: string;
+  totalPairs: number;
+  grandTotal: string;
+  terms: string;
+  hasMadeToOrderLines: boolean;
+  hasPreOrderLines: boolean;
+  attachedInvoice: boolean;
+}): string {
+  const flags: string[] = [];
+  if (input.hasMadeToOrderLines) flags.push("some lines are made to order");
+  if (input.hasPreOrderLines) flags.push("some lines are pre-order");
+  const productionNote = flags.length > 0 ? `\n\nNeeds confirming: ${flags.join(", ")}.` : "";
+  const invoiceNote = input.attachedInvoice ? "\n\nThe buyer's proforma invoice is attached." : "";
+  return `You got a new order.\n\nOrder: ${input.orderId}\nBusiness: ${input.businessName}\nContact: ${input.contactName}\nEmail: ${input.email}\nPairs: ${input.totalPairs}\nTotal: ${input.grandTotal} incl. VAT\nTerms: ${input.terms}${productionNote}${invoiceNote}\n\nOpen it in the admin dashboard: Orders → ${input.orderId}.`;
+}
+
+export function newOrderAdminEmailSubject(input: { orderId: string; businessName: string }): string {
+  return `New order ${input.orderId} — ${input.businessName}`;
+}
+
 export function buildPasswordResetEmailBody(resetUrl: string, contactName: string): string {
   const firstName = contactName.split(" ")[0] || "there";
   return `Hi ${firstName},\n\nWe received a request to reset your Hector Footwear wholesale account password. Click the link below to choose a new one — it expires in 1 hour:\n\n${resetUrl}\n\nIf you didn't request this, you can safely ignore this email.\n\nBest,\nHector Footwear Wholesale`;
