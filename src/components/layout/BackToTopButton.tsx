@@ -14,7 +14,6 @@ export function BackToTopButton() {
 
   useEffect(() => {
     function onScroll() {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- scroll listener, not derivable render state
       setVisible(window.scrollY > SHOW_AFTER_PX);
     }
     onScroll();

@@ -1,9 +1,20 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseHostname = supabaseUrl ? new URL(supabaseUrl).hostname : undefined;
 
 const nextConfig: NextConfig = {
+  /**
+   * Pin the workspace root to this directory. Next infers it from the nearest
+   * lockfile and warns when it finds more than one — on the dev machine there is
+   * a stray `package-lock.json` in the home folder (an accidental
+   * `npm install @vercel/blob` outside any project), which sits *above* this one
+   * and so won it. Inferring a root two levels up changes which files output
+   * file tracing considers part of the app, so this is worth stating outright
+   * rather than depending on what happens to exist on the machine doing the build.
+   */
+  outputFileTracingRoot: path.resolve(import.meta.dirname),
   // Default is 1MB, too small for real (unedited) photo uploads from the
   // admin hero/style-image forms — a phone or camera JPEG routinely exceeds it.
   experimental: {
