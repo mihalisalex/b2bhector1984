@@ -44,7 +44,10 @@ export function VisibilityTab({ style, canEdit }: { style: Style; canEdit: boole
       </div>
 
       <div>
-        <label htmlFor="publishAt" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Schedule publish (optional)</label>
+        {/* Named for what it does. "Schedule publish" reads as automation — nothing acts on
+            this date, and the note below already said so, but the label was writing a cheque
+            the feature doesn't cash. */}
+        <label htmlFor="publishAt" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Planned publish date (reminder only)</label>
         <input
           id="publishAt"
           name="publishAt"

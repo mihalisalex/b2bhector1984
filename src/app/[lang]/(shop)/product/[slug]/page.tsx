@@ -149,7 +149,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 photo instead of inheriting the stacked-layout gap. */}
             <div className="lg:min-w-0">
               <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 lg:mt-0">
-                <AvailabilityBadge style={style} />
+                {/* Same conflict as the catalogue card: the purchase panel below already
+                    states the real fulfilment ("Made to order — ships in ~N days"), so
+                    "Available now" beside it read as a contradiction. */}
+                <AvailabilityBadge
+                  style={style}
+                  stockOverridden={totalOnHandForStyle(style.id, { [style.id]: inventory }) === 0}
+                />
                 <span className="font-mono-tab text-[11px] uppercase tracking-[0.14em] text-ink-soft">
                   {style.styleNumber}
                 </span>
@@ -242,3 +248,17 @@ function TrustItem({ children }: { children: React.ReactNode }) {
     </li>
   );
 }
+
+/**
+ * This route deliberately has **no `loading.tsx`**.
+ *
+ * It had one, and that Suspense boundary opted the segment into streaming: Next flushed the
+ * 200 shell before the page body ran, so by the time `notFound()` threw, the status line was
+ * already sent. A bad product slug then answered **HTTP 200** with a client-rendered 404 —
+ * a soft 404, confirmed against production, not just dev. The visitor saw the right screen;
+ * a crawler saw a valid page at every misspelled URL.
+ *
+ * The trade is a skeleton on navigation versus a truthful status code. The status wins,
+ * especially with `commerce_indexable` due to be switched on. If a skeleton is wanted back,
+ * it has to come with the product lookup resolved *above* the boundary, not inside it.
+ */

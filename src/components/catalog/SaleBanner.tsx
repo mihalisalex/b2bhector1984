@@ -44,9 +44,11 @@ export function SaleBanner({ styles, seasonFiltered = false }: { styles: Style[]
           on {onSale.length} {onSale.length === 1 ? "style" : "styles"} — discount already applied to the prices below.
         </span>
       </p>
-      {!seasonFiltered && seasons.size === 1 && (
+      {/* Links to the sale facet, not the season: "View them" means the discounted styles,
+          and `?season=winter` also matched every "both"-season style (17 instead of 8). */}
+      {!seasonFiltered && (
         <Link
-          href={`/catalogue?season=${[...seasons][0]}`}
+          href="/catalogue?flag=sale"
           className="ml-auto shrink-0 text-[11px] font-semibold uppercase tracking-[0.14em] text-burgundy underline-offset-4 hover:underline"
         >
           View them →

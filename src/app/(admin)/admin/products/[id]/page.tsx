@@ -15,6 +15,7 @@ import { getCurrentAccount } from "@/lib/session";
 import { hasPermission } from "@/lib/data/permissions";
 import { PRODUCT_PERMISSION_KEYS } from "@/lib/data/permissions";
 import { ProductEditorShell } from "@/components/admin/products/editor/ProductEditorShell";
+import { parseTab } from "@/components/admin/products/editor/tabs";
 import type { ProductPermissionKey } from "@/lib/types";
 
 export default async function ProductEditorPage({
@@ -66,8 +67,9 @@ export default async function ProductEditorPage({
       permissions={permissions}
       slugHistory={slugHistory}
       commerceIndexable={seoSettings.commerceIndexable}
-      // The SEO dashboard deep-links here with ?tab=seo.
-      initialTab={tab?.toLowerCase() === "seo" ? "SEO" : undefined}
+      // Any tab can be deep-linked (?tab=pricing, ?tab=inventory…); the shell keeps this
+      // in sync as the admin clicks around.
+      initialTab={parseTab(tab)}
     />
   );
 }

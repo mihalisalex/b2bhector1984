@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { checkRateLimit, formatRetryAfter, resetRateLimit } from "@/lib/rateLimit";
@@ -37,7 +38,7 @@ import {
 import { z } from "zod";
 import { hashPassword, verifyPassword } from "@/lib/passwords";
 import { MIN_PASSWORD_LENGTH } from "@/lib/passwordPolicy";
-import { formatEUR, getOrderMinimumError, getUnitPrice, summarizeOrder, TERMS_LABEL, validateMatrix } from "@/lib/pricing";
+import { formatEUR, getOrderMinimumError, getUnitPrice, MAX_BACKORDER_QTY, summarizeOrder, TERMS_LABEL, validateMatrix } from "@/lib/pricing";
 import { createSavedAssortment, deleteSavedAssortment as deleteSavedAssortmentData } from "@/lib/data/assortments";
 import { addFavorite, removeFavorite } from "@/lib/data/favorites";
 import { decrementInventoryForOrder, restoreInventoryForLines, type StockLine } from "@/lib/data/inventory";
@@ -345,11 +346,17 @@ export interface CheckoutState extends FormState {
   orderId?: string;
 }
 
+/** The three payment terms, as a parser rather than a cast — see `placeOrder`. */
+const termsSchema = z.enum(["prepay", "net30", "net60"]);
+
 const cartLineSchema = z.object({
   styleId: z.string().min(1),
   colorwayId: z.string().min(1),
   boxTypeId: z.enum(["box8", "box10", "box12"]),
-  qty: z.number().int().positive(),
+  // `MAX_BACKORDER_QTY` was enforced only by the browser's quantity stepper, so a crafted
+  // request could order an unbounded number of boxes of any backorder-enabled style —
+  // which is every style in the catalogue.
+  qty: z.number().int().positive().max(MAX_BACKORDER_QTY),
 });
 const cartLinesSchema = z.array(cartLineSchema);
 
@@ -379,7 +386,14 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
   const shipToId = String(formData.get("shipToId") ?? "");
   if (!account.shipTo.some((s) => s.id === shipToId)) return { error: "Select a valid ship-to address." };
 
-  const terms = String(formData.get("terms") ?? account.creditTerms) as CreditTerms;
+  // Parsed, not cast. A buyer choosing their own terms is deliberate (it routes the order
+  // to a rep for credit approval), but the value was previously trusted verbatim: anything
+  // outside the enum made `TERMS_DISCOUNT[terms]` undefined, so every unit price became
+  // NaN. It failed safe on the `orders.terms` check constraint, but only after the stock
+  // decrement, and the buyer got the generic "something went wrong" for a bad request.
+  const parsedTerms = termsSchema.safeParse(String(formData.get("terms") ?? account.creditTerms));
+  if (!parsedTerms.success) return { error: "Choose one of the available payment terms." };
+  const terms: CreditTerms = parsedTerms.data;
   const notes = String(formData.get("notes") ?? "").trim() || undefined;
 
   const byStyle = new Map<string, Record<string, Partial<Record<BoxTypeId, number>>>>();
@@ -516,106 +530,114 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
   // can't decode fails the whole render (see buildInvoicePdf's doc comment), which
   // would otherwise take the confirmation email down with it — so on any failure here,
   // the buyer still gets their confirmation, just without the PDF attached.
-  let invoiceAttachment: EmailAttachment | undefined;
-  try {
-    const shipTo = account.shipTo.find((s) => s.id === shipToId);
-    const pdfBuffer = await buildInvoicePdf({
-      order: { id: order.id, placedAt: order.placedAt, status: order.status, terms: order.terms },
-      businessName: account.businessName,
-      contactName: account.contactName,
-      shipTo,
-      lines: orderLines,
-      styleById,
-    });
-    invoiceAttachment = {
-      filename: `${order.id}-proforma-invoice.pdf`,
-      contentBase64: pdfBuffer.toString("base64"),
-      contentType: "application/pdf",
-    };
-  } catch (err) {
-    console.error(`[checkout] Failed to build invoice PDF for ${order.id} — confirmation email will go out without it:`, err);
-  }
-
-  const confirmationSubject = orderConfirmationEmailSubject(order);
-  await sendEmail({
-    to: account.email,
-    subject: confirmationSubject,
-    html: textToHtml(
-      buildOrderConfirmationEmailBody(
-        order,
-        account.contactName,
-        hasMadeToOrderLines ? hero.productionLeadTimeDays : undefined,
-        hasPreOrderLines,
-        invoiceAttachment !== undefined,
-      ),
-      confirmationSubject,
-    ),
-    attachments: invoiceAttachment ? [invoiceAttachment] : undefined,
-  });
-
-  // Tell the business it has an order. Without this an order sits unseen in the dashboard
-  // until someone happens to log in — the same gap the new-application notification above
-  // already closes, which is why this reuses that pattern exactly (ADMIN_EMAIL env var,
-  // warn-and-continue when unset).
-  //
-  // Safe to await: sendEmail never throws (failures are logged inside it), so a bounced
-  // notification can't fail a checkout that has already been written to the database.
-  // Reuses the same `invoiceAttachment` buffer as the buyer's copy rather than rebuilding
-  // the PDF — it may be undefined if generation failed, which the body accounts for.
-  const adminOrderEmail = process.env.ADMIN_EMAIL;
-  if (adminOrderEmail) {
-    const adminSubject = newOrderAdminEmailSubject({ orderId: order.id, businessName: account.businessName });
-    await sendEmail({
-      to: adminOrderEmail,
-      subject: adminSubject,
-      html: textToHtml(
-        buildNewOrderAdminEmailBody({
-          orderId: order.id,
-          businessName: account.businessName,
-          contactName: account.contactName,
-          email: account.email,
-          totalPairs,
-          grandTotal: formatEUR(orderGrandTotal),
-          terms: TERMS_LABEL[terms] ?? terms,
-          hasMadeToOrderLines,
-          hasPreOrderLines,
-          attachedInvoice: invoiceAttachment !== undefined,
-        }),
-        adminSubject,
-      ),
-      attachments: invoiceAttachment ? [invoiceAttachment] : undefined,
-    });
-  } else {
-    console.warn(`[email] ADMIN_EMAIL not set — skipping new-order admin notification for ${order.id}`);
-  }
-
-  // WhatsApp notification for the proforma invoice request — no-ops safely
-  // (with a console warning) until both WHATSAPP_* env vars are set AND the
-  // buyer has a phone on file. Never blocks or fails the order: a redirect
-  // to the order confirmation page happens regardless of whether this send
-  // succeeded, exactly like the email above.
-  if (account.phone) {
-    const productionNote = [
-      hasMadeToOrderLines
-        ? `Some items in this order are made to order and will ship in about ${hero.productionLeadTimeDays} days. `
-        : "",
-      hasPreOrderLines ? "Some items are on pre-order — we'll confirm ship timing once production is scheduled. " : "",
-    ].join("");
-    await sendWhatsAppTemplate({
-      to: account.phone,
-      params: buildProformaInvoiceParams({
+  // Everything from here to the redirect is post-commit follow-up: the order is already in
+  // the database, and none of it changes what the buyer sees on the confirmation page. It
+  // used to be awaited inline, which put a PDF render plus two sequential Resend calls on
+  // the critical path — measured at 5.7s for `POST /checkout`, of which `placeOrder` was
+  // 3.3s. `after()` runs it once the response has been sent, so the buyer lands on their
+  // order immediately and the emails follow a moment later.
+  after(async () => {
+    let invoiceAttachment: EmailAttachment | undefined;
+    try {
+      const shipTo = account.shipTo.find((s) => s.id === shipToId);
+      const pdfBuffer = await buildInvoicePdf({
+        order: { id: order.id, placedAt: order.placedAt, status: order.status, terms: order.terms },
+        businessName: account.businessName,
         contactName: account.contactName,
-        orderId: order.id,
-        totalPairs,
-        subtotal: formatEUR(orderTotal),
-        vatAmount: formatEUR(orderVat),
-        grandTotal: formatEUR(orderGrandTotal),
-        extraNote: productionNote + hero.whatsappClosingNote,
-      }),
+        shipTo,
+        lines: orderLines,
+        styleById,
+      });
+      invoiceAttachment = {
+        filename: `${order.id}-proforma-invoice.pdf`,
+        contentBase64: pdfBuffer.toString("base64"),
+        contentType: "application/pdf",
+      };
+    } catch (err) {
+      console.error(`[checkout] Failed to build invoice PDF for ${order.id} — confirmation email will go out without it:`, err);
+    }
+  
+    const confirmationSubject = orderConfirmationEmailSubject(order);
+    await sendEmail({
+      to: account.email,
+      subject: confirmationSubject,
+      html: textToHtml(
+        buildOrderConfirmationEmailBody(
+          order,
+          account.contactName,
+          hasMadeToOrderLines ? hero.productionLeadTimeDays : undefined,
+          hasPreOrderLines,
+          invoiceAttachment !== undefined,
+        ),
+        confirmationSubject,
+      ),
+        attachments: invoiceAttachment ? [invoiceAttachment] : undefined,
     });
-  } else {
-    console.warn(`[whatsapp] Account ${account.id} has no phone on file — skipping proforma invoice notification.`);
-  }
+  
+    // Tell the business it has an order. Without this an order sits unseen in the dashboard
+    // until someone happens to log in — the same gap the new-application notification above
+    // already closes, which is why this reuses that pattern exactly (ADMIN_EMAIL env var,
+    // warn-and-continue when unset).
+    //
+    // Safe to await: sendEmail never throws (failures are logged inside it), so a bounced
+    // notification can't fail a checkout that has already been written to the database.
+    // Reuses the same `invoiceAttachment` buffer as the buyer's copy rather than rebuilding
+    // the PDF — it may be undefined if generation failed, which the body accounts for.
+    const adminOrderEmail = process.env.ADMIN_EMAIL;
+    if (adminOrderEmail) {
+      const adminSubject = newOrderAdminEmailSubject({ orderId: order.id, businessName: account.businessName });
+      await sendEmail({
+        to: adminOrderEmail,
+        subject: adminSubject,
+        html: textToHtml(
+          buildNewOrderAdminEmailBody({
+            orderId: order.id,
+            businessName: account.businessName,
+            contactName: account.contactName,
+            email: account.email,
+            totalPairs,
+            grandTotal: formatEUR(orderGrandTotal),
+            terms: TERMS_LABEL[terms] ?? terms,
+            hasMadeToOrderLines,
+            hasPreOrderLines,
+            attachedInvoice: invoiceAttachment !== undefined,
+          }),
+          adminSubject,
+        ),
+        attachments: invoiceAttachment ? [invoiceAttachment] : undefined,
+      });
+    } else {
+      console.warn(`[email] ADMIN_EMAIL not set — skipping new-order admin notification for ${order.id}`);
+    }
+  
+    // WhatsApp notification for the proforma invoice request — no-ops safely
+    // (with a console warning) until both WHATSAPP_* env vars are set AND the
+    // buyer has a phone on file. Never blocks or fails the order: a redirect
+    // to the order confirmation page happens regardless of whether this send
+    // succeeded, exactly like the email above.
+    if (account.phone) {
+      const productionNote = [
+        hasMadeToOrderLines
+          ? `Some items in this order are made to order and will ship in about ${hero.productionLeadTimeDays} days. `
+          : "",
+        hasPreOrderLines ? "Some items are on pre-order — we'll confirm ship timing once production is scheduled. " : "",
+      ].join("");
+      await sendWhatsAppTemplate({
+        to: account.phone,
+        params: buildProformaInvoiceParams({
+          contactName: account.contactName,
+          orderId: order.id,
+          totalPairs,
+          subtotal: formatEUR(orderTotal),
+          vatAmount: formatEUR(orderVat),
+          grandTotal: formatEUR(orderGrandTotal),
+          extraNote: productionNote + hero.whatsappClosingNote,
+        }),
+      });
+    } else {
+      console.warn(`[whatsapp] Account ${account.id} has no phone on file — skipping proforma invoice notification.`);
+    }
+  });
 
   redirect(`/dashboard/orders/${order.id}?justPlaced=1`);
 }

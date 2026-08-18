@@ -257,3 +257,55 @@ export function totalOnHandForStyle(
     0,
   );
 }
+
+/**
+ * Applies a stock change caused by an admin editing an order *after* it was placed.
+ *
+ * Checkout decrements `on_hand` when an order is created, but the admin's line-item
+ * editor never reversed that: reducing a line from 4 boxes to 1, or deleting it outright,
+ * left the difference permanently consumed, and raising a line took nothing extra. Stock
+ * drifted a little further from reality with every correction an admin made.
+ *
+ * `delta` follows `adjust_inventory`'s own convention — **positive takes stock, negative
+ * puts it back**. Only ever call this for lines whose `fulfillment` is `"stock"`;
+ * `"production"` lines never touched `on_hand`, so adjusting them would invent stock.
+ *
+ * Takes the *database* colorway id (what `order_lines` stores), not the local one.
+ *
+ * Returns `{ ok: false }` when a take-more request isn't covered by available stock — the
+ * caller must then refuse the edit rather than write a quantity the warehouse can't meet.
+ * A put-back always succeeds.
+ */
+export async function applyOrderLineStockDelta(input: {
+  styleId: string;
+  colorwayDbId: string;
+  boxTypeId: BoxTypeId;
+  delta: number;
+  reason: string;
+  actorAccountId: string | null;
+}): Promise<{ ok: boolean }> {
+  if (input.delta === 0) return { ok: true };
+
+  const { data, error } = await supabaseAdmin.rpc("adjust_inventory", {
+    p_style_id: input.styleId,
+    p_colorway_id: input.colorwayDbId,
+    p_box_type_id: input.boxTypeId,
+    p_qty: input.delta,
+    p_warehouse_id: "main",
+  });
+  if (error) throw new Error(`adjust_inventory: ${error.message}`);
+
+  // `adjust_inventory` reports whether a *take* was covered; a put-back is always fine.
+  if (input.delta > 0 && !data) return { ok: false };
+
+  await logInventoryMovement(
+    input.styleId,
+    input.colorwayDbId,
+    input.boxTypeId,
+    "main",
+    -input.delta,
+    input.reason,
+    input.actorAccountId,
+  );
+  return { ok: true };
+}

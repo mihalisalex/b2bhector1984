@@ -66,7 +66,23 @@ export function OrderDetailsForm({
           </select>
         </label>
 
-        <Field label="Invoice URL" name="invoiceUrl" defaultValue={invoiceUrl} className="sm:col-span-2" />
+        {/* This was write-only: the value was saved and then rendered nowhere at all — not
+            to the buyer, not on this page, only back into its own input. Now it's a real
+            link once set, so an admin can actually reach whatever they filed here (an
+            accounting-system invoice, a signed PDF) instead of re-reading a text box. */}
+        <div className="flex flex-col gap-1.5 sm:col-span-2">
+          <Field label="Invoice URL" name="invoiceUrl" defaultValue={invoiceUrl} />
+          {invoiceUrl && (
+            <a
+              href={invoiceUrl}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="self-start text-xs text-signal underline underline-offset-2"
+            >
+              Open saved invoice ↗
+            </a>
+          )}
+        </div>
 
         <Field label="Carrier" name="carrier" defaultValue={carrier} placeholder="e.g. UPS, DHL" />
         <Field label="Tracking number" name="trackingNumber" defaultValue={trackingNumber} />

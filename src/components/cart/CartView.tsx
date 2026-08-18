@@ -10,7 +10,7 @@ import { formatEUR, getOrderMinimumError, MAX_BACKORDER_QTY, validateMatrix } fr
 import type { BoxTypeId } from "@/lib/types";
 import type { StyleInventory } from "@/lib/data/inventory";
 import type { BoxOption } from "@/lib/orderMinimum";
-import { LinkButton } from "@/components/ui/Button";
+import { Button, LinkButton } from "@/components/ui/Button";
 import { StepIcon } from "@/components/ui/StepIcon";
 import { TextAction, TextActionLink } from "@/components/ui/TextAction";
 import { VatSuffix } from "@/components/ui/VatSuffix";
@@ -364,13 +364,19 @@ export function CartView({
           <p className="max-w-sm text-right text-xs font-medium text-ember">{blockedReason}</p>
         )}
         <div className="hidden lg:block">
-          <LinkButton
-            href={blockedReason ? "#" : "/checkout"}
-            size="lg"
-            className={blockedReason ? "pointer-events-none opacity-40" : ""}
-          >
-            Proceed to Checkout
-          </LinkButton>
+          {/* A real disabled <button> when blocked, not an <a href="#">. `pointer-events-none`
+              stops the mouse but not the keyboard: the anchor stayed in the tab order with no
+              `aria-disabled`, so it announced as a working link and Enter navigated to "#".
+              (The server re-enforces the minimum in `placeOrder` either way.) */}
+          {blockedReason ? (
+            <Button size="lg" disabled className="w-full">
+              Proceed to Checkout
+            </Button>
+          ) : (
+            <LinkButton href="/checkout" size="lg">
+              Proceed to Checkout
+            </LinkButton>
+          )}
         </div>
       </div>
 
@@ -381,12 +387,15 @@ export function CartView({
             <p className="truncate text-lg font-semibold tabular-nums text-ink">{formatEUR(cartGrandTotal)}</p>
             <p className="truncate text-[10px] text-ink-soft">{grandTotalPairs} pairs</p>
           </div>
-          <LinkButton
-            href={blockedReason ? "#" : "/checkout"}
-            className={cn("shrink-0", blockedReason ? "pointer-events-none opacity-40" : "")}
-          >
-            Checkout
-          </LinkButton>
+          {blockedReason ? (
+            <Button disabled className="shrink-0">
+              Checkout
+            </Button>
+          ) : (
+            <LinkButton href="/checkout" className="shrink-0">
+              Checkout
+            </LinkButton>
+          )}
         </div>
         {blockedReason && <p className="mt-1.5 text-[11px] font-medium text-ember">{blockedReason}</p>}
       </div>

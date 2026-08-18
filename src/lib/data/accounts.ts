@@ -125,11 +125,25 @@ async function mapAccount(row: AccountRow): Promise<Account> {
   };
 }
 
+/**
+ * Case-insensitive email lookup, without letting the caller write the pattern.
+ *
+ * This used `.ilike("email", email)` on the raw input, which turns a login form into a
+ * pattern-matching primitive: `%` matches anything, `_` matches any single character. It
+ * was never an authentication bypass — the submitted password still has to verify against
+ * whichever row comes back — but `%` matched every account and `.limit(1)` then picked an
+ * arbitrary one, and a real address containing `_` could match a different account.
+ *
+ * `%`, `_` and the escape character itself are escaped so the input can only ever be a
+ * literal. `ilike` is kept (rather than `.eq`) because `accounts.email` is stored with
+ * whatever casing the applicant typed, so an exact match would reject a valid login.
+ */
 export async function getAccountByEmail(email: string): Promise<Account | undefined> {
+  const literal = email.replace(/[\\%_]/g, (ch) => `\\${ch}`);
   const { data, error } = await supabaseAdmin
     .from("accounts")
     .select("*, sales_reps(*)")
-    .ilike("email", email)
+    .ilike("email", literal)
     .limit(1);
   if (error) throw new Error(`accounts: ${error.message}`);
   const row = data?.[0] as AccountRow | undefined;

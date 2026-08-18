@@ -7,6 +7,7 @@ import { getStyleImageUrl } from "@/lib/data/styleLabels";
 import { getPublishedJournalPosts } from "@/lib/data/journalPosts";
 import { absoluteUrl } from "@/lib/seo";
 import { PUBLIC_PAGES } from "@/lib/seoRoutes";
+import { DEFAULT_LOCALE, LOCALES } from "@/i18n/config";
 
 /**
  * XML sitemap.
@@ -27,22 +28,55 @@ import { PUBLIC_PAGES } from "@/lib/seoRoutes";
  */
 export const revalidate = 3600;
 
+/**
+ * Fallback `lastModified` for pages with no real modification date of their own.
+ *
+ * Deliberately **not** `new Date()`. This route re-renders hourly, so "now" meant every
+ * static page claimed to have changed on every fetch — and a sitemap whose `lastmod` is
+ * always current is a signal Google learns to ignore entirely, taking the *accurate* dates
+ * on journal posts and products down with it. A fixed date is honest: these pages genuinely
+ * haven't changed since it, and bumping it is a deliberate act.
+ */
+const STATIC_PAGE_LAST_MODIFIED = new Date("2026-08-17T00:00:00Z");
+
+/**
+ * The storefront serves four locales: English unprefixed (`/collections`) and the rest
+ * prefixed (`/de/collections`). Every marketing page therefore exists four times, and each
+ * copy has to declare the others via `hreflang` or Google has no way to connect them.
+ *
+ * The sitemap previously listed English only, with no alternates at all — so three quarters
+ * of the translated site had no discovery path, despite each page already emitting correct
+ * `hreflang` tags in its own `<head>`. `x-default` points at English, matching the canonical.
+ */
+function localeAlternates(path: string): Record<string, string> {
+  const languages: Record<string, string> = {};
+  for (const locale of LOCALES) {
+    languages[locale] = absoluteUrl(locale === DEFAULT_LOCALE ? path : `/${locale}${path === "/" ? "" : path}`);
+  }
+  languages["x-default"] = absoluteUrl(path);
+  return languages;
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [settings, overrides] = await Promise.all([getSeoSettings(), getAllEntityMeta()]);
   if (!settings.sitemapEnabled) return [];
 
   const entries: MetadataRoute.Sitemap = [];
-  const now = new Date();
 
   for (const page of PUBLIC_PAGES) {
     const override = overrides.get(`page:${page.path}`);
     // Respect an admin who has deliberately marked a landing page noindex.
     if (override?.robots?.includes("noindex")) continue;
+    // An admin-set canonical may deliberately point somewhere else entirely, so only the
+    // ordinary (un-overridden) case gets locale alternates — inventing `/de/<their-url>`
+    // would fabricate pages that don't exist.
+    const custom = override?.canonicalUrl?.trim();
     entries.push({
-      url: absoluteUrl(override?.canonicalUrl?.trim() || page.path),
-      lastModified: override?.updatedAt ? new Date(override.updatedAt) : now,
+      url: absoluteUrl(custom || page.path),
+      lastModified: override?.updatedAt ? new Date(override.updatedAt) : STATIC_PAGE_LAST_MODIFIED,
       changeFrequency: page.changeFrequency,
       priority: page.priority,
+      ...(custom ? {} : { alternates: { languages: localeAlternates(page.path) } }),
     });
   }
 
@@ -66,7 +100,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   entries.push({
     url: absoluteUrl("/catalogue"),
-    lastModified: now,
+    lastModified: STATIC_PAGE_LAST_MODIFIED,
     changeFrequency: "daily",
     priority: 0.9,
   });
@@ -91,7 +125,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     entries.push({
       url: absoluteUrl(style.canonicalUrl?.trim() || `/product/${style.slug}`),
-      lastModified: style.createdAt ? new Date(style.createdAt) : now,
+      lastModified: style.createdAt ? new Date(style.createdAt) : STATIC_PAGE_LAST_MODIFIED,
       changeFrequency: "weekly",
       priority: style.featured ? 0.8 : 0.6,
       ...(imageUrls?.length ? { images: imageUrls } : {}),

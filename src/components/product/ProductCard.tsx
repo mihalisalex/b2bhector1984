@@ -104,7 +104,7 @@ export function ProductCard({
         </div>
       </div>
       <div className="flex flex-1 flex-col gap-2 px-4 pb-4 pt-3">
-        <AvailabilityBadge style={style} />
+        <AvailabilityBadge style={style} stockOverridden={soldOut || madeToOrder} />
         <h3 className="font-display text-base font-bold uppercase leading-tight tracking-tight text-ink">
           <Link href={`/product/${style.slug}`} className="hover:underline">
             {style.name}

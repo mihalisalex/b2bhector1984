@@ -23,5 +23,37 @@ export async function GET(request: NextRequest) {
 
   const { error } = await supabaseAdmin.from("box_types").select("id").limit(1);
   if (error) return Response.json({ ok: false, error: error.message }, { status: 500 });
-  return Response.json({ ok: true, pingedAt: new Date().toISOString() });
+
+  // Housekeeping, since this already runs daily and already holds a service-role client.
+  //
+  // Expired sessions were never deleted — only ignored. `getSessionAccountId` re-checks
+  // `expires_at` on every request, so a stale row was harmless, but the table grew forever
+  // (27 of 46 rows were already dead) and every one of them is a bearer token sitting in
+  // the database long after it stopped being useful. Cheap to sweep, so sweep it.
+  //
+  // Best-effort: a failed sweep must never turn the keep-alive ping — the thing actually
+  // stopping the Supabase project from pausing — into a 500.
+  let prunedSessions: number | null = null;
+  try {
+    const { count, error: pruneError } = await supabaseAdmin
+      .from("sessions")
+      .delete({ count: "exact" })
+      .lt("expires_at", new Date().toISOString());
+    if (pruneError) throw new Error(pruneError.message);
+    prunedSessions = count ?? 0;
+  } catch (err) {
+    console.error("[cron] session prune failed (keep-alive itself succeeded):", err);
+  }
+
+  // Used single-use reset tokens are dead weight for the same reason.
+  try {
+    await supabaseAdmin
+      .from("password_reset_tokens")
+      .delete()
+      .lt("expires_at", new Date().toISOString());
+  } catch (err) {
+    console.error("[cron] reset-token prune failed:", err);
+  }
+
+  return Response.json({ ok: true, pingedAt: new Date().toISOString(), prunedSessions });
 }

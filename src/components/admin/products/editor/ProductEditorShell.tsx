@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { TABS, type Tab } from "@/components/admin/products/editor/tabs";
 import { useToastResult } from "@/components/ui/ToastProvider";
 import { archiveProductAction, deleteProductAction } from "@/lib/productActions";
 import { GeneralTab } from "@/components/admin/products/editor/GeneralTab";
@@ -23,11 +24,6 @@ import type { WarehouseStockRow } from "@/lib/data/inventory";
 import type { StyleAnalytics } from "@/lib/data/styleAnalytics";
 import type { StyleImage } from "@/lib/data/styleImages";
 
-const TABS = [
-  "General", "Pricing", "Inventory", "Images & Media", "Variants", "Attributes",
-  "Shipping", "SEO", "Related", "Documents", "Visibility", "Analytics",
-] as const;
-type Tab = (typeof TABS)[number];
 
 const STATUS_LABEL: Record<string, string> = { active: "Active", draft: "Draft", archived: "Archived", private: "Private" };
 
@@ -150,7 +146,16 @@ export function ProductEditorShell({
               role="tab"
               aria-selected={tab === t}
               aria-controls="product-editor-tabpanel"
-              onClick={() => setTab(t)}
+              onClick={() => {
+                setTab(t);
+                // Mirror the tab into the URL so this 12-tab editor is deep-linkable and
+                // survives a reload. It used to live only in React state, so every save or
+                // refresh dropped you back to General — and there was no way to send someone
+                // a link to a specific product's Pricing or Inventory tab.
+                // `replace` (not `push`) keeps Back going to the products list, not walking
+                // back through each tab the admin happened to click.
+                router.replace(`?tab=${encodeURIComponent(t.toLowerCase())}`, { scroll: false });
+              }}
               className={`whitespace-nowrap border-b-2 px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-colors ${
                 tab === t ? "border-ink text-ink" : "border-transparent text-ink-soft hover:text-ink"
               }`}

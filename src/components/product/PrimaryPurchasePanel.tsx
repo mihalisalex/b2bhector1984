@@ -9,7 +9,8 @@ import { withLocale } from "@/i18n/paths";
 import { useColorwaySelection } from "@/lib/colorway-selection-context";
 import { pickDefaultBoxType } from "@/lib/productSelectionDefaults";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
-import { formatEUR, getUnitPrice, MAX_BACKORDER_QTY, MIN_ORDER_PAIRS } from "@/lib/pricing";
+import { formatEUR, getUnitPrice, isOnSale, MAX_BACKORDER_QTY, MIN_ORDER_PAIRS } from "@/lib/pricing";
+import { SaleBadge } from "@/components/product/SaleBadge";
 import { VatSuffix, vatSuffixText } from "@/components/ui/VatSuffix";
 import { ColorwayPicker } from "@/components/product/ColorwayPicker";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
@@ -96,6 +97,9 @@ export function PrimaryPurchasePanel({
   const willBeProduction = allowBackorder && existingQty + addQty > onHand;
 
   const unitPrice = getUnitPrice(style, "net60", priceMultiplier);
+  // List price ignoring any active sale, so the struck-through figure is the real "was".
+  const onSale = isOnSale(style);
+  const listUnitPrice = Math.round(style.basePrice * priceMultiplier * 100) / 100;
   const pairsPerBox = box.totalPairs;
   const subtotal = useMemo(() => unitPrice * pairsPerBox * addQty, [unitPrice, pairsPerBox, addQty]);
 
@@ -255,12 +259,21 @@ export function PrimaryPurchasePanel({
               <p className="truncate text-[10px] font-semibold uppercase tracking-[0.1em] text-ink-soft">
                 {box.totalPairs}-Pair Box
               </p>
-              <p className="mt-1 flex items-baseline gap-1.5">
+              <p className="mt-1 flex flex-wrap items-baseline gap-x-1.5">
                 <span className="text-[17px] font-semibold tabular-nums text-ink">
                   {formatEUR(unitPrice)}
                   <VatSuffix vatRate={style.vatRate} className="text-[11px] font-normal text-ink-soft" />
                 </span>
+                {/* The catalogue card advertises the discount; this page was showing only the
+                    already-reduced number, so the saving was invisible exactly where the buyer
+                    decides. Struck list price is computed the same way the card does it. */}
+                {onSale && (
+                  <span className="text-[11px] tabular-nums text-ink-soft line-through">
+                    {formatEUR(listUnitPrice)}
+                  </span>
+                )}
                 <span className="text-[11px] text-ink-soft">/ pair · {selectedColorway.name}</span>
+                {onSale && <SaleBadge style={style} />}
               </p>
             </div>
             <ColorwayPicker style={style} inventory={inventory} className="-mr-1 shrink-0" />

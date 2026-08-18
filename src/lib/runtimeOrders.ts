@@ -1,6 +1,7 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { fromDbId, toDbId, toNumber } from "@/lib/data/dbIds";
+import { applyOrderLineStockDelta } from "@/lib/data/inventory";
 import type { BoxTypeId, CreditTerms, Order, OrderLine, OrderStatusEvent } from "@/lib/types";
 
 interface OrderRow {
@@ -300,21 +301,66 @@ export async function updateOrderDetails(
   if (error) throw new Error(`orders: ${error.message}`);
 }
 
-export async function updateOrderLineQty(lineId: string, qty: number): Promise<void> {
-  const { error } = await supabaseAdmin.from("order_lines").update({ qty }).eq("id", lineId);
-  if (error) throw new Error(`order_lines: ${error.message}`);
-}
-
-/** Refuses to delete an order's last remaining line — an order needs at least one. */
-export async function deleteOrderLine(lineId: string): Promise<{ error?: string }> {
-  const { data: lineRow, error: lineError } = await supabaseAdmin
+/** The order-line fields needed to keep stock in step with an edit. */
+async function getLineForStockAdjust(lineId: string) {
+  const { data, error } = await supabaseAdmin
     .from("order_lines")
-    .select("order_id")
+    .select("id, order_id, style_id, colorway_id, box_type_id, qty, fulfillment")
     .eq("id", lineId)
     .limit(1);
-  if (lineError) throw new Error(`order_lines: ${lineError.message}`);
-  const orderId = lineRow?.[0]?.order_id;
-  if (!orderId) return {};
+  if (error) throw new Error(`order_lines: ${error.message}`);
+  return data?.[0] as
+    | { id: string; order_id: string; style_id: string; colorway_id: string; box_type_id: BoxTypeId; qty: number; fulfillment: string | null }
+    | undefined;
+}
+
+/**
+ * Changes a line's quantity **and moves stock to match**.
+ *
+ * Checkout decrements `on_hand` at placement, so an admin lowering a line has to put the
+ * difference back and raising one has to take more — otherwise every correction leaked
+ * stock. Only `"stock"` lines are adjusted; `"production"` lines never consumed `on_hand`.
+ *
+ * Refuses (rather than writing a quantity the warehouse can't meet) when an increase isn't
+ * covered by available stock. The stock move happens first for exactly that reason: if it
+ * fails, nothing has been written yet.
+ */
+export async function updateOrderLineQty(lineId: string, qty: number, actorAccountId: string | null = null): Promise<{ error?: string }> {
+  const line = await getLineForStockAdjust(lineId);
+  if (!line) return { error: "That line no longer exists." };
+
+  const fulfillment = line.fulfillment ?? "stock";
+  if (fulfillment === "stock" && qty !== line.qty) {
+    const { ok } = await applyOrderLineStockDelta({
+      styleId: line.style_id,
+      colorwayDbId: line.colorway_id,
+      boxTypeId: line.box_type_id,
+      delta: qty - line.qty, // positive takes stock, negative puts it back
+      reason: "order_line_edited",
+      actorAccountId,
+    });
+    if (!ok) {
+      return { error: `Not enough stock to raise this line to ${qty}. Lower the quantity or restock first.` };
+    }
+  }
+
+  const { error } = await supabaseAdmin.from("order_lines").update({ qty }).eq("id", lineId);
+  if (error) throw new Error(`order_lines: ${error.message}`);
+  return {};
+}
+
+/**
+ * Refuses to delete an order's last remaining line — an order needs at least one.
+ *
+ * Puts the line's stock back first (see `updateOrderLineQty`): the quantity was taken out
+ * of `on_hand` when the order was placed, so removing the line without restoring it left
+ * that stock permanently unavailable. Restore happens before the delete so the row is still
+ * there to read the style/colorway/qty from.
+ */
+export async function deleteOrderLine(lineId: string, actorAccountId: string | null = null): Promise<{ error?: string }> {
+  const line = await getLineForStockAdjust(lineId);
+  if (!line) return {};
+  const orderId = line.order_id;
 
   const { count, error: countError } = await supabaseAdmin
     .from("order_lines")
@@ -322,6 +368,17 @@ export async function deleteOrderLine(lineId: string): Promise<{ error?: string 
     .eq("order_id", orderId);
   if (countError) throw new Error(`order_lines: ${countError.message}`);
   if ((count ?? 0) <= 1) return { error: "An order needs at least one line item." };
+
+  if ((line.fulfillment ?? "stock") === "stock") {
+    await applyOrderLineStockDelta({
+      styleId: line.style_id,
+      colorwayDbId: line.colorway_id,
+      boxTypeId: line.box_type_id,
+      delta: -line.qty, // negative puts stock back
+      reason: "order_line_deleted",
+      actorAccountId,
+    });
+  }
 
   const { error } = await supabaseAdmin.from("order_lines").delete().eq("id", lineId);
   if (error) throw new Error(`order_lines: ${error.message}`);

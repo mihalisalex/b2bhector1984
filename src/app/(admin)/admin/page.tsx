@@ -38,9 +38,9 @@ export default async function AdminOrdersPage({
 
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatCard label="Total orders" value={String(allOrders.length)} />
-        <StatCard label="Total revenue" value={formatEUR(totalRevenue)} isPrice />
+        <StatCard label="Total revenue (excl. VAT)" value={formatEUR(totalRevenue)} isPrice />
         <StatCard label="Awaiting action" value={String(awaitingAction)} highlight={awaitingAction > 0} />
-        <StatCard label="Active buyers" value={String(activeBuyers)} />
+        <StatCard label="Buyers with orders" value={String(activeBuyers)} />
       </div>
 
       <AdminOrderFilters />

@@ -127,6 +127,11 @@ export async function updateOrderDetailsAction(
   const carrier = String(formData.get("carrier") ?? "").trim();
 
   if (!ORDER_TERMS.includes(terms as CreditTerms)) return { error: "Select valid payment terms." };
+  // Now that this renders as a link, it has to actually be one — the field previously
+  // accepted any string (a literal "not-a-url" saved fine) because nothing ever used it.
+  if (invoiceUrl && !/^https?:\/\/\S+$/i.test(invoiceUrl)) {
+    return { error: "Invoice URL must be a full link starting with http:// or https://" };
+  }
 
   await updateOrderDetailsInDb(orderId, accountId, {
     terms: terms as CreditTerms,
@@ -149,7 +154,14 @@ export async function updateOrderLineQtyAction(orderId: string, formData: FormDa
   const lineId = String(formData.get("lineId") ?? "");
   const qty = Number(formData.get("qty") ?? 0);
   if (!lineId || !Number.isFinite(qty) || qty < 1) return;
-  await updateOrderLineQtyInDb(lineId, Math.round(qty));
+  // Moves stock to match the new quantity, and refuses if an increase isn't covered.
+  const result = await updateOrderLineQtyInDb(lineId, Math.round(qty), admin.id);
+  if (result.error) {
+    // This form has no error surface (a plain <form action>, no useActionState), so the
+    // row simply re-renders at its unchanged quantity. Logged so the reason is findable.
+    console.warn(`[admin] line qty change refused on ${orderId}/${lineId}: ${result.error}`);
+    return;
+  }
   await logAudit(admin.id, "order.line_qty_updated", "order", orderId, `line ${lineId} → qty ${Math.round(qty)}`);
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath("/admin");
@@ -159,7 +171,7 @@ export async function updateOrderLineQtyAction(orderId: string, formData: FormDa
 /** Bound to `.bind(null, orderId, lineId)` — a <form action> per line row's remove button. */
 export async function deleteOrderLineAction(orderId: string, lineId: string) {
   const admin = await requireAdmin();
-  const result = await deleteOrderLineInDb(lineId);
+  const result = await deleteOrderLineInDb(lineId, admin.id);
   if (result.error) return; // last remaining line — refused, nothing to revalidate
   await logAudit(admin.id, "order.line_deleted", "order", orderId, `line ${lineId}`);
   revalidatePath(`/admin/orders/${orderId}`);

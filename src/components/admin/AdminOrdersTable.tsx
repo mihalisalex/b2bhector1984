@@ -6,8 +6,11 @@ import { bulkUpdateOrderStatus } from "@/lib/adminActions";
 import { formatEUR, summarizeOrder } from "@/lib/pricing";
 import { formatDate } from "@/lib/format";
 import { OrderStatusForm } from "@/components/admin/OrderStatusForm";
+import { ListPager } from "@/components/admin/ListPager";
 import type { AdminOrder } from "@/lib/runtimeOrders";
 import type { OrderStatus } from "@/lib/types";
+
+const PAGE_SIZE = 25;
 
 const STATUSES: OrderStatus[] = ["submitted", "confirmed", "in_production", "shipped", "delivered"];
 
@@ -23,6 +26,7 @@ export function AdminOrdersTable({ orders }: { orders: AdminOrder[] }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkStatus, setBulkStatus] = useState<OrderStatus>("confirmed");
   const [message, setMessage] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
   const [isPending, startTransition] = useTransition();
 
   // Drop any selected id that's no longer in the current (filtered/searched)
@@ -61,6 +65,14 @@ export function AdminOrdersTable({ orders }: { orders: AdminOrder[] }) {
       if (!result.error) setSelected(new Set());
     });
   }
+
+  // Every order was rendered as a row, unbounded. Same client-side pager the other admin
+  // reference tables use (accounts, suppliers, applications). Select-all and the bulk
+  // actions deliberately still operate on the whole filtered set, not just this page —
+  // narrowing by status and then bulk-updating "all of them" is the actual workflow.
+  const pageCount = Math.max(1, Math.ceil(orders.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const pageRows = orders.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const totalsById = useMemo(() => {
     const map = new Map<string, number>();
@@ -113,7 +125,7 @@ export function AdminOrdersTable({ orders }: { orders: AdminOrder[] }) {
             </tr>
           </thead>
           <tbody>
-            {orders.map((order) => (
+            {pageRows.map((order) => (
               <tr key={order.id} className="border-b border-stone-200 last:border-b-0 hover:bg-stone-50">
                 <td className="px-3 py-2.5">
                   <input
@@ -147,6 +159,14 @@ export function AdminOrdersTable({ orders }: { orders: AdminOrder[] }) {
           </tbody>
         </table>
       </div>
+
+      <ListPager
+        page={currentPage}
+        pageCount={pageCount}
+        total={orders.length}
+        pageSize={PAGE_SIZE}
+        onChange={setPage}
+      />
     </div>
   );
 }

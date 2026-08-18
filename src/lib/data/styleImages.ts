@@ -88,13 +88,36 @@ export async function createStyleImageUploadTarget(
   return { bucket: BUCKET, path: data.path, token: data.token };
 }
 
+/**
+ * A usable default alt text, so a photo can never ship with none.
+ *
+ * Uploads used to insert `alt_text: ""` and rely on someone typing one in the Media tab
+ * later — nobody did, and two thirds of the catalogue's photography ended up with empty
+ * alt attributes. A generated description ("5109 Brown - Leather formal boots, product
+ * photo") is worse than a hand-written one and far better than nothing, for both screen
+ * readers and image search. An admin editing it afterwards still wins; this only fills the
+ * blank that would otherwise persist.
+ */
+export function defaultAltText(styleName: string, styleNumber?: string): string {
+  const name = styleName.trim();
+  const suffix = styleNumber?.trim() ? ` (${styleNumber.trim()})` : "";
+  return name ? `${name}${suffix} — product photo` : "Product photo";
+}
+
 /** Called once the browser has finished the direct-to-Storage upload for `path`. */
 export async function finalizeStyleImageUpload(styleId: string, path: string): Promise<void> {
   const existing = await listImagesForStyle(styleId);
+  const { data: styleRow } = await supabaseAdmin
+    .from("styles")
+    .select("name, style_number")
+    .eq("id", styleId)
+    .limit(1);
+  const style = styleRow?.[0] as { name: string; style_number: string } | undefined;
+
   const { error } = await supabaseAdmin.from("style_images").insert({
     style_id: styleId,
     storage_path: path,
-    alt_text: "",
+    alt_text: style ? defaultAltText(style.name, style.style_number) : "",
     sort_order: existing.length,
     is_primary: existing.length === 0,
   });
