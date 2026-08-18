@@ -87,16 +87,28 @@ export async function getApplicationById(id: string): Promise<Application | unde
 }
 
 /**
- * Only transitions an application still in "pending" — guards against two
- * admins racing (e.g. one declines, a stale tab then tries to approve the
- * same application after the fact). Returns whether it actually changed.
+ * Moves an application from one status to another, but only if it is still in the status
+ * the caller expects. That guard stops two admins racing — one declines, a stale tab then
+ * tries to approve the same row. Returns whether it actually changed.
+ *
+ * `from` used to be hard-coded to `"pending"`, which silently broke the last step of the
+ * signup funnel: `activateAccount` calls this with `"active"` on a row that is already
+ * `"approved"`, so the update matched zero rows and did nothing. Every buyer who had ever
+ * activated still read as `"approved"` — the admin could not tell who had actually
+ * onboarded, and the `"active"` state, though present in the check constraint and styled in
+ * the UI, was unreachable. Making the expected status explicit keeps the race guard while
+ * letting a legitimate second transition through.
  */
-export async function updateApplicationStatus(id: string, status: ApplicationStatus): Promise<{ changed: boolean }> {
+export async function updateApplicationStatus(
+  id: string,
+  status: ApplicationStatus,
+  from: ApplicationStatus = "pending",
+): Promise<{ changed: boolean }> {
   const { data, error } = await supabaseAdmin
     .from("applications")
     .update({ status, reviewed_at: new Date().toISOString() })
     .eq("id", id)
-    .eq("status", "pending")
+    .eq("status", from)
     .select("id");
   if (error) throw new Error(`applications: ${error.message}`);
   return { changed: (data?.length ?? 0) > 0 };

@@ -97,6 +97,23 @@ export async function getOrderById(accountId: string, orderId: string): Promise<
   return mapOrder(accountId, row, lineRows);
 }
 
+/**
+ * `orders.id` was already taken. Distinguished from every other insert failure so
+ * `placeOrder` can retry with a fresh id — and *only* for that reason: retrying a
+ * genuine failure (a bad ship-to FK, a constraint violation, a DB outage) would just
+ * re-run the same broken write. Nothing has been written when this is thrown, since the
+ * `orders` row is the first insert, so a retry starts from a clean slate.
+ */
+export class DuplicateOrderIdError extends Error {
+  constructor(public readonly orderId: string) {
+    super(`orders: id ${orderId} already exists`);
+    this.name = "DuplicateOrderIdError";
+  }
+}
+
+/** Postgres `unique_violation`. */
+const PG_UNIQUE_VIOLATION = "23505";
+
 export async function addOrder(accountId: string, order: Order): Promise<void> {
   const { error: orderError } = await supabaseAdmin.from("orders").insert({
     id: order.id,
@@ -108,7 +125,10 @@ export async function addOrder(accountId: string, order: Order): Promise<void> {
     notes: order.notes ?? null,
     invoice_url: order.invoiceUrl ?? null,
   });
-  if (orderError) throw new Error(`orders: ${orderError.message}`);
+  if (orderError) {
+    if (orderError.code === PG_UNIQUE_VIOLATION) throw new DuplicateOrderIdError(order.id);
+    throw new Error(`orders: ${orderError.message}`);
+  }
 
   await supabaseAdmin.from("order_status_history").insert({ order_id: order.id, status: order.status });
 

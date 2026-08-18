@@ -67,6 +67,8 @@ const en = {
   },
   shopFooter: {
     yourRep: "Your rep: {name} · {email} · {phone}",
+    /** Used when no rep is assigned yet, so there is no phone number to show. */
+    yourRepNoPhone: "Your rep: {name} · {email}",
     dashboard: "Dashboard",
     support: "Support",
   },

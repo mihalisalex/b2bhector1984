@@ -63,10 +63,15 @@ export function orderConfirmationEmailSubject(order: { id: string }): string {
 export function buildApplicationApprovedEmailBody(
   contactName: string,
   activationUrl: string,
-  rep?: { name: string; phone: string },
+  rep?: { name: string; phone?: string },
 ): string {
   const firstName = contactName.split(" ")[0] || "there";
-  const repLine = rep ? `\n\nYour dedicated account rep is ${rep.name} — reach them directly at ${rep.phone}.` : "";
+  // Name the rep either way; only promise a number when there is one to call.
+  const repLine = rep
+    ? rep.phone
+      ? `\n\nYour dedicated account rep is ${rep.name} — reach them directly at ${rep.phone}.`
+      : `\n\nYour dedicated account rep is ${rep.name}.`
+    : "";
   return `Hi ${firstName},\n\nGood news — your Hector Footwear wholesale application has been approved. Activate your account to start browsing the full catalog with pricing:\n\n${activationUrl}${repLine}\n\nBest,\nHector Footwear Wholesale`;
 }
 

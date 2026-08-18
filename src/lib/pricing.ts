@@ -15,6 +15,35 @@ export const TERMS_LABEL: Record<CreditTerms, string> = {
 };
 
 /**
+ * A sale price is only honoured when it is a real discount: above zero and
+ * genuinely below the list price.
+ *
+ * This is the last line of defence, not the first — `updatePricingAction` rejects
+ * a bad value at save time with a message the admin can act on. It exists because
+ * this function is the single point every price on the site flows through, and the
+ * failure it prevents is the worst kind: a `sale_price` of 0 made the storefront,
+ * the cart, the checkout total and the order row all agree the product cost
+ * €0.00/pair, complete with a "Sale" badge, and `placeOrder` would have accepted
+ * the order at that price. A value *above* `basePrice` was equally silent, but
+ * inverted — a price rise wearing no badge at all.
+ *
+ * Guarding here rather than only at the write path means any future write (a bulk
+ * tool, a CSV import, a hand-edited row) is inert rather than dangerous, and any
+ * bad value already sitting in the database stops being charged the moment this
+ * ships. `>=` not `>`: a "sale" at exactly list price is not a sale, and letting
+ * it through would show a 0% discount badge.
+ */
+function activeSalePrice(style: Style, now: Date): number | undefined {
+  const { salePrice, basePrice } = style;
+  if (salePrice == null || salePrice <= 0 || salePrice >= basePrice) return undefined;
+  const start = style.saleStartAt ? new Date(style.saleStartAt) : undefined;
+  const end = style.saleEndAt ? new Date(style.saleEndAt) : undefined;
+  if (start && now < start) return undefined;
+  if (end && now > end) return undefined;
+  return salePrice;
+}
+
+/**
  * `basePrice`, discounted to `salePrice` when a scheduled sale is currently
  * active (both bounds optional/open-ended — set either, both, or neither).
  * This is the one place discount scheduling actually affects a real price;
@@ -22,12 +51,7 @@ export const TERMS_LABEL: Record<CreditTerms, string> = {
  * reads through this rather than `style.basePrice` directly.
  */
 export function getEffectiveBasePrice(style: Style, now: Date = new Date()): number {
-  if (style.salePrice == null) return style.basePrice;
-  const start = style.saleStartAt ? new Date(style.saleStartAt) : undefined;
-  const end = style.saleEndAt ? new Date(style.saleEndAt) : undefined;
-  if (start && now < start) return style.basePrice;
-  if (end && now > end) return style.basePrice;
-  return style.salePrice;
+  return activeSalePrice(style, now) ?? style.basePrice;
 }
 
 /** Whether a scheduled sale is currently active — the one check every "Sale" badge across

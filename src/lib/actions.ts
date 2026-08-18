@@ -4,7 +4,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { checkRateLimit, formatRetryAfter, resetRateLimit } from "@/lib/rateLimit";
-import { addOrder } from "@/lib/runtimeOrders";
+import { addOrder, DuplicateOrderIdError } from "@/lib/runtimeOrders";
+import { generateOrderId, ORDER_ID_MAX_ATTEMPTS } from "@/lib/orderId";
 import {
   APPLICATION_COOKIE,
   SESSION_COOKIE,
@@ -280,37 +281,58 @@ export async function activateAccount(_prev: FormState, formData: FormData): Pro
   }
   if (password !== confirmPassword) return { error: "Passwords don't match." };
 
+  // Activation links are long-lived and land in an inbox, so the same one genuinely does get
+  // clicked twice. `accounts.email` is unique, so the second attempt used to throw out of
+  // `createAccount` uncaught — a 500/error boundary instead of an explanation. Check first,
+  // and say something useful.
+  if (await getAccountByEmail(application.email)) {
+    return {
+      error: "An account already exists for this email address. Sign in instead — or use “Forgot password” if you don’t have it.",
+    };
+  }
+
   const id = `acct-${crypto.randomUUID().slice(0, 8)}`;
-  await createAccount({
-    id,
-    businessName: application.businessName,
-    contactName: application.contactName,
-    email: application.email,
-    phone: application.phone,
-    password: await hashPassword(password),
-    status: "active",
-    creditTerms: "prepay",
-    creditLimit: 5000,
-    resaleCertId: application.resaleCertId,
-    businessType: application.businessType,
-    storeLocation: application.storeLocation,
-    expectedVolume: application.expectedVolume,
-    appliedAt: application.submittedAt,
-    approvedAt: new Date().toISOString(),
-    // Decided by the admin back at approval time (see `approveApplicationWithAssignment`
-    // and `AdminApplicationsList`'s rep-select/multiplier row) — carried onto the account
-    // now rather than re-asked at activation, which the applicant has no reason to see.
-    repId: application.repId,
-    priceMultiplier: application.priceMultiplier,
-    shipTo: {
-      label: application.businessName,
-      line1: application.addressLine1,
-      city: application.city,
-      state: application.state,
-      zip: application.zip,
-    },
-  });
-  await updateApplicationStatus(application.id, "active");
+  try {
+    await createAccount({
+      id,
+      businessName: application.businessName,
+      contactName: application.contactName,
+      email: application.email,
+      phone: application.phone,
+      password: await hashPassword(password),
+      status: "active",
+      creditTerms: "prepay",
+      creditLimit: 5000,
+      resaleCertId: application.resaleCertId,
+      businessType: application.businessType,
+      storeLocation: application.storeLocation,
+      expectedVolume: application.expectedVolume,
+      appliedAt: application.submittedAt,
+      approvedAt: new Date().toISOString(),
+      // Decided by the admin back at approval time (see `approveApplicationWithAssignment`
+      // and `AdminApplicationsList`'s rep-select/multiplier row) — carried onto the account
+      // now rather than re-asked at activation, which the applicant has no reason to see.
+      repId: application.repId,
+      priceMultiplier: application.priceMultiplier,
+      shipTo: {
+        label: application.businessName,
+        line1: application.addressLine1,
+        city: application.city,
+        state: application.state,
+        zip: application.zip,
+      },
+    });
+  } catch (err) {
+    // Covers the email-uniqueness race (two tabs activating at once) and any DB failure.
+    console.error(`[activateAccount] failed to provision account for application ${application.id}:`, err);
+    return {
+      error: "We couldn't finish setting up your account. Please try again, or email info@hectorfootwear.gr and we'll sort it out.",
+    };
+  }
+
+  // `"approved"`, not the default `"pending"` — this is the transition that was silently
+  // failing and leaving every onboarded buyer stuck at "approved" in the admin list.
+  await updateApplicationStatus(application.id, "active", "approved");
 
   const token = await createSession(id);
   await setSessionCookie(token);
@@ -445,9 +467,10 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
     (l) => l.fulfillment === "production" && l.productionEta === undefined,
   );
 
+  const placedAt = new Date();
   const order: Order = {
-    id: `ORD-${Date.now().toString().slice(-5)}`,
-    placedAt: new Date().toISOString(),
+    id: generateOrderId(placedAt),
+    placedAt: placedAt.toISOString(),
     status: "submitted",
     terms,
     shipToId,
@@ -463,15 +486,28 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
   //
   // Scoped tightly to `addOrder` on purpose: `redirect()` further down signals success by
   // *throwing* (NEXT_REDIRECT), so widening this catch would roll back completed orders.
-  try {
-    await addOrder(account.id, order);
-  } catch (err) {
-    const decremented = stockLines.filter((_, i) => stockResult.fulfillments[i] === "stock");
-    await restoreInventoryForLines(decremented);
-    console.error(`[checkout] order ${order.id} failed to save; inventory restored:`, err);
-    return {
-      error: `Something went wrong saving your order, so nothing was charged or reserved. Please try again, or contact ${account.rep.name} if it keeps happening.`,
-    };
+  //
+  // The one error worth retrying rather than reporting is a duplicate order id: ids carry
+  // a random tail (see orderId.ts) so a second attempt gets a different one, and nothing
+  // was written when `DuplicateOrderIdError` is thrown. A buyer should never see a failed
+  // checkout over a number collision.
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      await addOrder(account.id, order);
+      break;
+    } catch (err) {
+      if (err instanceof DuplicateOrderIdError && attempt < ORDER_ID_MAX_ATTEMPTS) {
+        console.warn(`[checkout] order id ${order.id} was taken (attempt ${attempt}) — retrying with a new one`);
+        order.id = generateOrderId(placedAt);
+        continue;
+      }
+      const decremented = stockLines.filter((_, i) => stockResult.fulfillments[i] === "stock");
+      await restoreInventoryForLines(decremented);
+      console.error(`[checkout] order ${order.id} failed to save; inventory restored:`, err);
+      return {
+        error: `Something went wrong saving your order, so nothing was charged or reserved. Please try again, or contact ${account.rep.name} if it keeps happening.`,
+      };
+    }
   }
 
   // Best-effort, same posture as the email/WhatsApp sends below: a buyer's order is

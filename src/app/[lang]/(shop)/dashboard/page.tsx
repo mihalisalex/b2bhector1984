@@ -63,7 +63,9 @@ export default async function DashboardPage() {
           </div>
           <div className="mt-3 flex flex-col gap-1 text-xs text-stone-300/80">
             <a href={`mailto:${account.rep.email}`} className="hover:text-white">{account.rep.email}</a>
-            <a href={telHref(account.rep.phone)} className="hover:text-white">{account.rep.phone}</a>
+            {account.rep.phone && (
+              <a href={telHref(account.rep.phone)} className="hover:text-white">{account.rep.phone}</a>
+            )}
           </div>
         </div>
       </div>

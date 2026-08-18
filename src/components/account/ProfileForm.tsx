@@ -7,7 +7,13 @@ import type { Account } from "@/lib/types";
 
 const initialState: FormState = {};
 
-export function ProfileForm({ account }: { account: Account }) {
+/**
+ * `whatsappEnabled` comes from the server (see `isWhatsAppConfigured`) because the field's
+ * label and hint describe what actually happens with the number. Claiming a WhatsApp
+ * confirmation on a deployment with no WhatsApp credentials is a promise to the buyer that
+ * nothing keeps.
+ */
+export function ProfileForm({ account, whatsappEnabled }: { account: Account; whatsappEnabled: boolean }) {
   const [state, formAction, pending] = useActionState(updateAccountProfile, initialState);
 
   return (
@@ -16,14 +22,17 @@ export function ProfileForm({ account }: { account: Account }) {
       <Field label="Contact name" name="contactName" defaultValue={account.contactName} required />
       <Field label="Email" name="email" type="email" defaultValue={account.email} required />
       <Field
-        label="Mobile phone (WhatsApp)"
+        label={whatsappEnabled ? "Mobile phone (WhatsApp)" : "Mobile phone"}
         name="phone"
         type="tel"
         defaultValue={account.phone}
         placeholder="+30 691 234 5678"
       />
       <p className="-mt-2.5 text-xs text-ink-soft">
-        Include the country code. Used to send an order confirmation by WhatsApp when you request a proforma invoice.
+        Include the country code.{" "}
+        {whatsappEnabled
+          ? "Used to send an order confirmation by WhatsApp when you request a proforma invoice."
+          : "Used by your rep to reach you about an order. Order confirmations are sent by email."}
       </p>
 
       {state.error && (

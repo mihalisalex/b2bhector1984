@@ -69,6 +69,7 @@ const fr: Dictionary = {
   },
   shopFooter: {
     yourRep: "Votre représentant : {name} · {email} · {phone}",
+    yourRepNoPhone: "Votre représentant : {name} · {email}",
     dashboard: "Tableau de bord",
     support: "Assistance",
   },

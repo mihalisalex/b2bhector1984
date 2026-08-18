@@ -222,8 +222,8 @@ function TrustStrip({ rep }: { rep?: SalesRep }) {
           Your rep{" "}
           <a href={`mailto:${rep.email}`} className="font-medium text-ink underline hover:text-signal">
             {rep.name}
-          </a>{" "}
-          · {rep.phone}
+          </a>
+          {rep.phone ? ` · ${rep.phone}` : ""}
         </TrustItem>
       ) : (
         <TrustItem>Territory rep assigned to every approved account</TrustItem>

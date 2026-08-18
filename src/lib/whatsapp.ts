@@ -58,6 +58,27 @@ export function normalizePhoneForWhatsApp(raw: string): string {
   return digits ? `+${digits}` : "";
 }
 
+/**
+ * Whether WhatsApp sending is actually wired up in this environment.
+ *
+ * Exists so the UI can stop making a promise the deployment can't keep. The buyer's account
+ * page used to state flatly that their phone number was "used to send an order confirmation
+ * by WhatsApp" — true only once these three variables exist, and they don't by default, so
+ * every buyer was told about a message that silently no-ops. Reading the same three names
+ * `sendWhatsAppTemplate` reads means the copy and the behaviour can never disagree: set the
+ * variables and the promise appears on its own, with no code change.
+ *
+ * Server-only (it touches `process.env`), so pass the result down to client components as a
+ * prop rather than calling it from one.
+ */
+export function isWhatsAppConfigured(): boolean {
+  return Boolean(
+    process.env.WHATSAPP_ACCESS_TOKEN &&
+      process.env.WHATSAPP_PHONE_NUMBER_ID &&
+      process.env.WHATSAPP_TEMPLATE_NAME,
+  );
+}
+
 export async function sendWhatsAppTemplate({ to, params }: SendWhatsAppTemplateInput): Promise<void> {
   const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;

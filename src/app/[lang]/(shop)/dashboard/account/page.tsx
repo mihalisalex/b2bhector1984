@@ -4,6 +4,7 @@ import { getCurrentAccount } from "@/lib/session";
 import { TERMS_LABEL, MIN_ORDER_PAIRS } from "@/lib/pricing";
 import { formatDate, telHref } from "@/lib/format";
 import { cn } from "@/lib/cn";
+import { isWhatsAppConfigured } from "@/lib/whatsapp";
 import { ProfileForm } from "@/components/account/ProfileForm";
 import { PasswordForm } from "@/components/account/PasswordForm";
 import { ShipToManager } from "@/components/account/ShipToManager";
@@ -44,7 +45,7 @@ export default async function AccountPage() {
         <section className="border border-stone-300 bg-white p-5">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Profile</h2>
           <div className="mt-4">
-            <ProfileForm account={account} />
+            <ProfileForm account={account} whatsappEnabled={isWhatsAppConfigured()} />
           </div>
         </section>
 
@@ -95,9 +96,11 @@ export default async function AccountPage() {
             <a href={`mailto:${account.rep.email}`} className="hover:text-white">
               {account.rep.email}
             </a>
-            <a href={telHref(account.rep.phone)} className="hover:text-white">
-              {account.rep.phone}
-            </a>
+            {account.rep.phone && (
+              <a href={telHref(account.rep.phone)} className="hover:text-white">
+                {account.rep.phone}
+              </a>
+            )}
           </div>
         </section>
       </div>

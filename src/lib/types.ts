@@ -280,7 +280,15 @@ export interface SalesRep {
   name: string;
   title: string;
   email: string;
-  phone: string;
+  /**
+   * Optional because the *fallback* rep — what an account with no `rep_id` gets — has no
+   * phone number to give. It used to carry `(503) 555-0100`, a reserved fictional US
+   * number, which shipped to buyers as a live `tel:` link. A placeholder is worse than an
+   * absence here: an absent phone just renders the email, whereas a fake one invites a
+   * buyer to call it. Every real `sales_reps` row has a phone (the column is `not null`),
+   * so in practice this is only empty for the unassigned case.
+   */
+  phone?: string;
   initials: string;
   territory: string;
 }

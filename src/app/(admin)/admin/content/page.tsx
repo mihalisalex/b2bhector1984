@@ -5,10 +5,12 @@ import {
   createHeroImageUploadUrlAction,
   finalizeHeroImageUploadAction,
 } from "@/lib/adminActions";
+import { isWhatsAppConfigured } from "@/lib/whatsapp";
 import { ImageUploadForm } from "@/components/admin/ImageUploadForm";
 
 export default async function AdminContentPage() {
   const hero = await getHomepageHero();
+  const whatsappEnabled = isWhatsAppConfigured();
 
   return (
     <div>
@@ -181,6 +183,25 @@ export default async function AdminContentPage() {
             label="WhatsApp order message — closing note"
             hint="The one free-text line in the automatic WhatsApp message sent to a buyer's phone when they request a proforma invoice — appended after the order figures (pairs, subtotal, VAT, total)."
           >
+            {/* Whether WhatsApp is actually wired up is invisible from inside the app — the send
+                path just logs a warning and no-ops — so an admin could edit this note for months
+                without knowing no message ever goes out. Stating it here is the only place the
+                deployment's real configuration is visible without shell access. */}
+            {whatsappEnabled ? (
+              <p className="mb-2 inline-block border border-positive/40 bg-positive-100 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-positive">
+                WhatsApp connected — this note is being sent
+              </p>
+            ) : (
+              <p className="mb-2 border border-court/50 bg-court-100 px-3 py-2 text-xs text-ink">
+                <strong className="font-semibold uppercase tracking-wide">Not connected.</strong> No
+                WhatsApp message is sent to anyone yet — buyers get their order confirmation by email
+                only. This note is saved and will be used as soon as{" "}
+                <code className="font-mono-tab">WHATSAPP_ACCESS_TOKEN</code>,{" "}
+                <code className="font-mono-tab">WHATSAPP_PHONE_NUMBER_ID</code> and{" "}
+                <code className="font-mono-tab">WHATSAPP_TEMPLATE_NAME</code> are set and Meta has
+                approved the message template.
+              </p>
+            )}
             <textarea
               name="whatsappClosingNote"
               defaultValue={hero.whatsappClosingNote}

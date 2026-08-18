@@ -3,11 +3,24 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 import { fromDbId, toDbId, toNumber } from "@/lib/data/dbIds";
 import type { Account, SalesRep } from "@/lib/types";
 
+/**
+ * Shown to any account with no `rep_id` — including every account approved through the
+ * bulk-approve path, which doesn't ask for one.
+ *
+ * Deliberately carries **no phone number**. It used to specify `(503) 555-0100`, a reserved
+ * fictional US number left over from the original seed data, and it rendered as a live
+ * `tel:` link on the dashboard, on every product page's trust strip, in the shop footer and
+ * on the admin order view. Every consumer now treats `phone` as optional and falls back to
+ * the email alone, so the honest "we haven't assigned you a rep yet, here's the general
+ * inbox" state is what a buyer actually sees.
+ *
+ * If a real general/switchboard number exists, adding it here is the only change needed —
+ * every render site already handles a present phone.
+ */
 const UNASSIGNED_REP: SalesRep = {
   name: "New Accounts Team",
   title: "Wholesale Onboarding",
   email: "info@hectorfootwear.gr",
-  phone: "(503) 555-0100",
   initials: "NA",
   territory: "Unassigned — a territory rep will follow up within 2 business days",
 };

@@ -98,9 +98,13 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
             </div>
             <div className="mt-3 flex flex-col gap-1 text-xs text-stone-300/80">
               <a href={`mailto:${order.email}`} className="hover:text-white">{order.email}</a>
-              {account && (
-                <a href={telHref(account.rep.phone)} className="hover:text-white">Rep: {account.rep.name}</a>
-              )}
+              {account &&
+                (account.rep.phone ? (
+                  <a href={telHref(account.rep.phone)} className="hover:text-white">Rep: {account.rep.name}</a>
+                ) : (
+                  // No rep assigned, so no number to dial — a link here would have to invent one.
+                  <span>Rep: {account.rep.name}</span>
+                ))}
             </div>
             <div className="mt-4">
               <EmailBuyerPanel

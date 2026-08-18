@@ -7,6 +7,7 @@ import { getCurrentAccount } from "@/lib/session";
 import { logAudit } from "@/lib/data/auditLog";
 import { hasPermission } from "@/lib/data/permissions";
 import { sanitizeProductDescription } from "@/lib/sanitizeHtml";
+import { formatEUR } from "@/lib/pricing";
 import {
   updateStyleGeneral,
   updateStylePricing,
@@ -195,12 +196,21 @@ export async function updatePricingAction(styleId: string, _prev: FormState, for
     const v = Number(formData.get(key));
     return Number.isFinite(v) ? v : fallback;
   };
+  /** Blank means "no sale". `formData.get()` returns a *string*, so the old
+   *  truthiness check treated a typed "0" as a real value and set salePrice to 0 —
+   *  which the storefront then charged. Trim first so " " is blank too. */
+  const optionalNum = (key: string) => {
+    const raw = String(formData.get(key) ?? "").trim();
+    if (!raw) return undefined;
+    const v = Number(raw);
+    return Number.isFinite(v) ? v : undefined;
+  };
   const input: PricingInput = {
     costPrice: num("costPrice"),
     basePrice: num("basePrice"),
     msrp: num("msrp"),
-    distributorPrice: formData.get("distributorPrice") ? num("distributorPrice") : undefined,
-    salePrice: formData.get("salePrice") ? num("salePrice") : undefined,
+    distributorPrice: optionalNum("distributorPrice"),
+    salePrice: optionalNum("salePrice"),
     saleStartAt: String(formData.get("saleStartAt") ?? "").trim() || undefined,
     saleEndAt: String(formData.get("saleEndAt") ?? "").trim() || undefined,
     currency: String(formData.get("currency") ?? "EUR"),
@@ -208,6 +218,24 @@ export async function updatePricingAction(styleId: string, _prev: FormState, for
     vatRate: num("vatRate", 0.24),
   };
   if (input.basePrice <= 0) return { error: "Wholesale price must be greater than zero." };
+  // A sale price is what buyers are actually charged (see getEffectiveBasePrice), so an
+  // out-of-range value here isn't a display bug — it's the price on the invoice. Both
+  // bounds are real mistakes worth blocking: 0 or negative sells the product for nothing,
+  // and anything at or above list is a price *rise* that shows no sale badge, so nobody
+  // would notice it from the storefront.
+  if (input.salePrice !== undefined) {
+    if (input.salePrice <= 0) {
+      return { error: "Sale price must be greater than zero. Leave the field blank to remove the sale." };
+    }
+    if (input.salePrice >= input.basePrice) {
+      return {
+        error: `Sale price (${formatEUR(input.salePrice)}) must be below the wholesale price (${formatEUR(input.basePrice)}) — otherwise it isn't a discount.`,
+      };
+    }
+  }
+  if (input.saleStartAt && input.saleEndAt && new Date(input.saleEndAt) <= new Date(input.saleStartAt)) {
+    return { error: "The sale's end date must be after its start date." };
+  }
   const failure = await runOrError(() => updateStylePricing(styleId, input));
   if (failure) return failure;
   await logAudit(admin.id, "product.price_changed", "style", styleId, `base=${input.basePrice} cost=${input.costPrice} sale=${input.salePrice ?? "none"}`);
@@ -788,12 +816,20 @@ export async function bulkDeleteAction(styleIds: string[]): Promise<FormState> {
 export async function bulkAdjustPriceAction(styleIds: string[], mode: "set" | "increase_pct" | "decrease_pct", value: number): Promise<FormState> {
   const admin = await requirePermission("products.bulk");
   const rows = (await listProductsForAdmin({ pageSize: 100000 })).items.filter((r) => styleIds.includes(r.id));
+  // This tool moves `basePrice` but carries each product's existing `salePrice` through
+  // untouched, so a big enough decrease can leave a sale price at or above the new list
+  // price. `getEffectiveBasePrice` makes that harmless — the sale simply stops applying,
+  // and buyers pay the lower base — but it also means the discount disappears from the
+  // storefront without anyone being told, so count them and say so.
+  const deactivatedSales: string[] = [];
   try {
     for (const row of rows) {
       const nextPrice = mode === "set" ? value : mode === "increase_pct" ? row.basePrice * (1 + value / 100) : row.basePrice * (1 - value / 100);
+      const basePrice = Math.max(0.01, Math.round(nextPrice * 100) / 100);
+      if (row.salePrice != null && row.salePrice >= basePrice) deactivatedSales.push(row.styleNumber);
       await updateStylePricing(row.id, {
         costPrice: row.costPrice,
-        basePrice: Math.max(0.01, Math.round(nextPrice * 100) / 100),
+        basePrice,
         msrp: row.msrp,
         distributorPrice: row.distributorPrice,
         salePrice: row.salePrice,
@@ -809,7 +845,11 @@ export async function bulkAdjustPriceAction(styleIds: string[], mode: "set" | "i
     return { error: friendlyDbError(err) };
   }
   revalidatePath("/admin/products");
-  return { success: `Updated pricing for ${rows.length} products.` };
+  const note =
+    deactivatedSales.length > 0
+      ? ` Note: the sale price on ${deactivatedSales.join(", ")} is now at or above the new wholesale price, so those sales no longer apply — clear or lower them.`
+      : "";
+  return { success: `Updated pricing for ${rows.length} products.${note}` };
 }
 
 export async function bulkSetBrandAction(styleIds: string[], brandId: string): Promise<FormState> {

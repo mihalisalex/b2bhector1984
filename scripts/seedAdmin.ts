@@ -39,7 +39,10 @@ async function main() {
       credit_limit: 0,
       resale_cert_id: "N/A",
       business_type: "Internal admin",
-      store_location: "Portland, OR",
+      // The admin's own dashboard renders this next to the business name, so it can't be
+      // demo data — it read "Portland, OR" (from the original US-market seed) on a live
+      // Greek wholesaler's account until the pre-launch audit caught it.
+      store_location: "Heraklion, Crete",
       expected_volume: "N/A",
       applied_at: new Date().toISOString(),
       approved_at: new Date().toISOString(),
