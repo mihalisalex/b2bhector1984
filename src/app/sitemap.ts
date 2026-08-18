@@ -23,10 +23,17 @@ import { DEFAULT_LOCALE, LOCALES } from "@/i18n/config";
  *     override sets a foreign canonical, or which is marked noindex, is
  *     excluded rather than listed and then contradicted by its own head.
  *
- * Re-rendered hourly, and revalidated on demand when SEO settings or a product
- * slug change (see `revalidateSeoSurfaces`).
+ * Rendered per request, for the same reason as robots.txt — see the comment in
+ * `src/app/robots.ts`. `revalidatePath` does not reliably evict a cached Route
+ * Handler's output, so an hourly cache here meant the sitemap could keep
+ * omitting every product long after the policy that excluded them was switched
+ * off. The two files have to agree with each other and with each page's robots
+ * tag; the cheapest way to guarantee that is for none of them to be cached.
+ *
+ * The two expensive reads (`getSeoSettings`, `getStorefrontStyles`) are cached
+ * for 60s in their own right, and crawlers fetch this a few times a day.
  */
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 /**
  * Fallback `lastModified` for pages with no real modification date of their own.

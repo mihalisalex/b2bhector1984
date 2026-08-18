@@ -6,11 +6,24 @@ import { ALWAYS_DISALLOWED, COMMERCE_PREFIXES, PUBLIC_PAGES } from "@/lib/seoRou
 /**
  * robots.txt, assembled from the admin's SEO settings rather than hardcoded.
  *
- * Re-rendered hourly, and explicitly revalidated the moment an admin saves the
- * SEO settings (see `revalidateSeoSurfaces` in seoActions.ts) so a policy
- * change takes effect immediately instead of on the next deploy.
+ * Rendered per request, deliberately.
+ *
+ * This used to be `revalidate = 3600` on the assumption that
+ * `revalidateSeoSurfaces` would purge it the moment an admin saved. It does not:
+ * `robots.ts` is a *cached Route Handler*, and `revalidatePath` against one
+ * invalidates the data read inside it rather than reliably evicting the rendered
+ * output. Observed on 18 Aug 2026 — the indexing policy was switched on, the
+ * product pages' robots tags flipped to `index, follow` within their 60s data
+ * cache, and this file went on serving `Disallow: /catalogue` and
+ * `Disallow: /product`. The site contradicted itself, and the only thing
+ * standing between the catalogue and Google was the stale copy.
+ *
+ * Per-request costs nothing worth counting here: crawlers fetch this a handful
+ * of times a day, and `getSeoSettings` is itself cached for 60s, so the
+ * database sees no additional load. A cache that can silently strand the whole
+ * indexing policy is a bad trade for a document this small.
  */
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
   const settings = await getSeoSettings();
