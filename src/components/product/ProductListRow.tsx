@@ -12,11 +12,14 @@ export function ProductListRow({
   style,
   totalOnHand,
   priceMultiplier = 1,
+  showPricing = true,
   favorited,
 }: {
   style: Style;
   totalOnHand?: number;
   priceMultiplier?: number;
+  /** Set false for anonymous visitors — see the same prop on ProductCard. */
+  showPricing?: boolean;
   favorited?: boolean;
 }) {
   // See ProductCard for the same soldOut/madeToOrder split — "Sold out" only when the
@@ -60,20 +63,24 @@ export function ProductListRow({
 
       <div className="flex shrink-0 flex-col items-end gap-2 text-right">
         {favorited !== undefined && <FavoriteButton styleId={style.id} initialFavorited={favorited} variant="icon" />}
-        <div>
-          <p className="text-[11px] uppercase tracking-wide text-ink-soft">Wholesale</p>
-          <p className="flex items-baseline justify-end gap-1.5">
-            <span className={cn("text-lg font-semibold tabular-nums", onSale ? "text-burgundy" : "text-ink")}>
-              {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
-              <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
-            </span>
-            {onSale && (
-              <span className="text-xs tabular-nums text-ink-soft line-through">
-                {formatEUR(style.basePrice * priceMultiplier)}
+        {showPricing ? (
+          <div>
+            <p className="text-[11px] uppercase tracking-wide text-ink-soft">Wholesale</p>
+            <p className="flex items-baseline justify-end gap-1.5">
+              <span className={cn("text-lg font-semibold tabular-nums", onSale ? "text-burgundy" : "text-ink")}>
+                {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
+                <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
               </span>
-            )}
-          </p>
-        </div>
+              {onSale && (
+                <span className="text-xs tabular-nums text-ink-soft line-through">
+                  {formatEUR(style.basePrice * priceMultiplier)}
+                </span>
+              )}
+            </p>
+          </div>
+        ) : (
+          <p className="text-[11px] uppercase tracking-wide text-ink-soft">Trade pricing on approval</p>
+        )}
       </div>
     </Link>
   );

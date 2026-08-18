@@ -103,15 +103,19 @@ export const PUBLIC_PAGES: PublicPage[] = [
 ];
 
 /**
- * Route prefixes behind the login. These are disallowed in robots.txt AND
- * declare `noindex` in their own metadata, unless the `commerce_indexable`
- * setting is turned on. Both are needed: `Disallow` prevents crawling but not
- * indexing of a URL discovered from an external link, and a `noindex` tag on a
- * disallowed page can never be read.
+ * Route prefixes that require a session. The proxy redirects these to /login,
+ * and the `(shop)` layout redirects again for anything under it — `/cart` and
+ * `/quick-order` have no guard of their own, so that second layer is the one
+ * actually protecting them.
+ *
+ * `/catalogue` and `/product` are deliberately NOT here. They are readable
+ * without a login so search engines can index them, and they live under the
+ * `(catalog)` route group whose layout serves anonymous visitors a public
+ * shell. They still withhold trade pricing — see `showPricing` on the product
+ * and catalogue pages. Nothing that can show a price, a stock figure or an
+ * order form is reachable from this list.
  */
 export const GATED_PREFIXES = [
-  "/catalogue",
-  "/product",
   "/quick-order",
   "/linesheet",
   "/cart",
@@ -133,10 +137,24 @@ export const ALWAYS_DISALLOWED = [
   "/reset-password",
   "/forgot-password",
   "/api",
+  // Ordering tools, not merchandising pages. They redirect anonymous visitors to
+  // /login, so advertising them to a crawler only ever produces a soft 404 — which
+  // is precisely what used to happen to /product and /catalogue.
+  "/quick-order",
+  "/linesheet",
 ];
 
-/** The commerce surfaces that become indexable when the policy is flipped on. */
-export const COMMERCE_PREFIXES = ["/catalogue", "/product", "/quick-order", "/linesheet"];
+/**
+ * The commerce surfaces that become indexable when the policy is flipped on.
+ *
+ * Every prefix here MUST be absent from `GATED_PREFIXES`, or turning the policy
+ * on advertises a URL that redirects the crawler to /login — a page Google
+ * cannot index and will treat as a soft 404. That was the state of this file
+ * until 18 Aug 2026: all four of these were gated, so the indexing switch could
+ * only ever make things worse. `/quick-order` and `/linesheet` are ordering
+ * tools that stay behind the login, so they are no longer listed as indexable.
+ */
+export const COMMERCE_PREFIXES = ["/catalogue", "/product"];
 
 export function isGatedPath(path: string): boolean {
   return GATED_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));

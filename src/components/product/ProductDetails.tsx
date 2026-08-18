@@ -13,7 +13,19 @@ import type { Style } from "@/lib/types";
  * and this content is long-tail — most buyers only open one section, so paying
  * for hydration to render all of it eagerly would be backwards.
  */
-export function ProductDetails({ style, minOrderPairs = MIN_ORDER_PAIRS }: { style: Style; minOrderPairs?: number }) {
+export function ProductDetails({
+  style,
+  minOrderPairs = MIN_ORDER_PAIRS,
+  showPricing = true,
+}: {
+  style: Style;
+  minOrderPairs?: number;
+  /** Set false for anonymous visitors. Withholds the MSRP row — suggested *retail* is
+   * not the wholesale figure, but it is still a price, and "everything except pricing"
+   * is the promise this page makes to a logged-out visitor. Everything else in the
+   * specification list stays, so the page keeps real content for a crawler. */
+  showPricing?: boolean;
+}) {
   const boxTypes = getAvailableBoxTypes(style);
   const docs = style.documents ?? [];
   const attributes = style.attributes ?? [];
@@ -43,7 +55,7 @@ export function ProductDetails({ style, minOrderPairs = MIN_ORDER_PAIRS }: { sty
           <Spec label="Category" value={`${CATEGORY_LABEL[style.category]} · ${GENDER_LABEL[style.gender]}`} />
           <Spec label="Materials" value={style.materials.join(", ")} />
           <Spec label="Weight" value={`${style.weightOz} oz per pair`} />
-          <Spec label="MSRP" value={`${formatEUR(style.msrp)} — suggested retail`} />
+          {showPricing && <Spec label="MSRP" value={`${formatEUR(style.msrp)} — suggested retail`} />}
           <Spec label="Sold as" value={`${boxTypes.map((b) => b.totalPairs).join(" / ")}-pair pre-pack boxes`} />
           <Spec label="Size run" value="EU 40–45" />
           {hasDimensions && (

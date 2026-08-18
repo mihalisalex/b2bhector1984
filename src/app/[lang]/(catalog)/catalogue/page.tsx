@@ -62,6 +62,9 @@ export default async function CatalogPage({
 
   const favoriteIds = account ? await getFavoriteStyleIds(account.id) : new Set<string>();
   const priceMultiplier = account?.priceMultiplier ?? 1;
+  // Public so it can be indexed; priced only for approved accounts. Same single flag as
+  // the product page — see the note there.
+  const showPricing = account !== null;
   const results = sortStyles(filtered, sort, orderLineRows ? pairsSoldByStyle(orderLineRows) : undefined);
   // Only for what's actually rendered this request — cheaper than batching the whole catalogue.
   const imagesByStyle = view === "grid" ? await listImagesForStyles(results.map((s) => s.id)) : {};
@@ -98,7 +101,9 @@ export default async function CatalogPage({
       {/* Reads the currently-visible results, not the whole catalogue, so the figures always
           describe what's actually on screen — and it disappears on its own when no discounted
           style is in view. */}
-      <SaleBanner styles={results} seasonFiltered={filters.season.length > 0} />
+      {/* Quotes a discount rate and says it is "already applied to the prices below" —
+          meaningless, and slightly misleading, when there are no prices below. */}
+      {showPricing && <SaleBanner styles={results} seasonFiltered={filters.season.length > 0} />}
 
       {results.length === 0 ? (
         <div className="border border-dashed border-stone-300 bg-stone-100 px-6 py-20 text-center">
@@ -131,6 +136,7 @@ export default async function CatalogPage({
               style={style}
               totalOnHand={totalOnHandForStyle(style.id, inventory)}
               priceMultiplier={priceMultiplier}
+              showPricing={showPricing}
               favorited={account ? favoriteIds.has(style.id) : undefined}
             />
           ))}
@@ -151,6 +157,7 @@ export default async function CatalogPage({
                 style={style}
                 totalOnHand={totalOnHandForStyle(style.id, inventory)}
                 priceMultiplier={priceMultiplier}
+                showPricing={showPricing}
                 favorited={account ? favoriteIds.has(style.id) : undefined}
                 inventory={account ? inventory[style.id] : undefined}
                 images={imagesByStyle[style.id] ?? []}

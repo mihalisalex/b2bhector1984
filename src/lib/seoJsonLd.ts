@@ -157,7 +157,7 @@ export function buildBreadcrumbSchema(trail: Breadcrumb[], settings: SeoSettings
 export function buildProductSchema(
   style: Style,
   settings: SeoSettings,
-  options: { imageUrls?: string[]; inStock?: boolean } = {},
+  options: { imageUrls?: string[]; inStock?: boolean; showPricing?: boolean } = {},
 ): JsonLd | null {
   if (!settings.schemaProduct) return null;
 
@@ -185,7 +185,12 @@ export function buildProductSchema(
     "@type": "Offer",
     url: absoluteUrl(`/product/${style.slug}`),
     priceCurrency: style.currency || "EUR",
-    price: style.basePrice > 0 ? style.basePrice.toFixed(2) : undefined,
+    // Only when the viewer is entitled to see prices at all. This markup is rendered
+    // into a page that is now public, so emitting the wholesale figure here would
+    // publish it to every crawler no matter what the visible page withholds — the
+    // structured data being the leak while the page looked correct is exactly the
+    // kind of thing nobody would notice.
+    price: options.showPricing && style.basePrice > 0 ? style.basePrice.toFixed(2) : undefined,
     availability,
     // Wholesale: the buyer is a business, and the offer is only valid for
     // approved trade accounts. Saying so in the markup is more accurate than

@@ -32,6 +32,7 @@ export function ProductCard({
   style,
   totalOnHand,
   priceMultiplier = 1,
+  showPricing = true,
   favorited,
   inventory,
   images = [],
@@ -40,6 +41,10 @@ export function ProductCard({
   style: Style;
   totalOnHand?: number;
   priceMultiplier?: number;
+  /** Set false for anonymous visitors — trade pricing is for approved accounts only. The
+   * card keeps its photo, name, style number and availability so the page still has real
+   * content for a crawler; only the figure is withheld. */
+  showPricing?: boolean;
   /** Omit to hide the favorite toggle entirely (e.g. logged-out contexts). */
   favorited?: boolean;
   /** Set on the above-the-fold cards so next/image preloads them instead of lazy-loading.
@@ -116,20 +121,26 @@ export function ProductCard({
         </p>
 
         <div className="mt-auto border-t border-stone-200 pt-3">
-          <p className="text-[11px] uppercase tracking-wide text-ink-soft">Wholesale</p>
-          <p className="flex items-baseline gap-2">
-            {/* Burgundy only while discounted — the promotional accent, deliberately not
-                --color-ember, which reads as danger/error everywhere else in this app. */}
-            <span className={cn("text-lg font-semibold tabular-nums", onSale ? "text-burgundy" : "text-ink")}>
-              {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
-              <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
-            </span>
-            {onSale && (
-              <span className="text-xs tabular-nums text-ink-soft line-through">
-                {formatEUR(style.basePrice * priceMultiplier)}
-              </span>
-            )}
-          </p>
+          {showPricing ? (
+            <>
+              <p className="text-[11px] uppercase tracking-wide text-ink-soft">Wholesale</p>
+              <p className="flex items-baseline gap-2">
+                {/* Burgundy only while discounted — the promotional accent, deliberately not
+                    --color-ember, which reads as danger/error everywhere else in this app. */}
+                <span className={cn("text-lg font-semibold tabular-nums", onSale ? "text-burgundy" : "text-ink")}>
+                  {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
+                  <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
+                </span>
+                {onSale && (
+                  <span className="text-xs tabular-nums text-ink-soft line-through">
+                    {formatEUR(style.basePrice * priceMultiplier)}
+                  </span>
+                )}
+              </p>
+            </>
+          ) : (
+            <p className="text-[11px] uppercase tracking-wide text-ink-soft">Trade pricing on approval</p>
+          )}
         </div>
 
         {hasMultipleColorways && (

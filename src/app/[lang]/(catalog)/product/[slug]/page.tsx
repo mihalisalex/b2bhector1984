@@ -14,6 +14,7 @@ import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductDetails } from "@/components/product/ProductDetails";
 import { PrimaryPurchasePanel, BUY_BAR_RELEASE_ID } from "@/components/product/PrimaryPurchasePanel";
+import { PublicPurchasePanel } from "@/components/product/PublicPurchasePanel";
 import { TrackRecentlyViewed } from "@/components/product/TrackRecentlyViewed";
 import { RecentlyViewedStrip } from "@/components/product/RecentlyViewedStrip";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -75,6 +76,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const favorited = account ? await isFavorite(account.id, style.id) : false;
   void recordStyleView(style.id, account?.id ?? null);
 
+  // This page is public so it can be indexed, but everything priced or orderable
+  // belongs to an approved account. One flag drives all of it, so there is no way
+  // to add a price to this page and forget the logged-out case.
+  const showPricing = account !== null;
+
   // Structured data. Both builders return null when the corresponding schema
   // type is switched off in the SEO settings, and JsonLd renders nothing for a
   // null — so an admin can disable either without touching this page.
@@ -84,6 +90,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     // `inventory` here is this style's own colorway→box map (not the batched
     // styleId-keyed record `totalOnHandForStyle` expects), so it sums directly.
     inStock: totalOnHandForStyle(style.id, { [style.id]: inventory }) > 0,
+    showPricing,
   });
   const breadcrumbSchema = buildBreadcrumbSchema(
     [
@@ -170,12 +177,21 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">{style.tagline}</p>
 
               <div className="mt-6">
-                <PrimaryPurchasePanel
-                  style={style}
-                  inventory={inventory}
-                  priceMultiplier={priceMultiplier}
-                  initialFavorited={favorited}
-                />
+                {showPricing ? (
+                  <PrimaryPurchasePanel
+                    style={style}
+                    inventory={inventory}
+                    priceMultiplier={priceMultiplier}
+                    initialFavorited={favorited}
+                  />
+                ) : (
+                  <PublicPurchasePanel
+                    style={style}
+                    inventory={inventory}
+                    applyHref="/apply"
+                    loginHref={`/login?next=${encodeURIComponent(`/product/${style.slug}`)}`}
+                  />
+                )}
               </div>
 
               <TrustStrip rep={account?.rep} />
@@ -183,7 +199,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </div>
         </ColorwaySelectionProvider>
 
-        <ProductDetails style={style} minOrderPairs={account?.minOrderPairs} />
+        <ProductDetails style={style} minOrderPairs={account?.minOrderPairs} showPricing={showPricing} />
       </div>
 
       {/* Watched by the mobile buy bar: once this scrolls into view the buyer has moved
@@ -202,6 +218,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 style={r}
                 totalOnHand={totalOnHandForStyle(r.id, relatedInventory)}
                 priceMultiplier={priceMultiplier}
+                showPricing={showPricing}
                 images={relatedImages[r.id] ?? []}
               />
             ))}
@@ -209,9 +226,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </div>
       )}
 
-      <div className="mt-14 border-t border-stone-300 pt-8">
-        <RecentlyViewedStrip excludeStyleId={style.id} />
-      </div>
+      {/* Reads the catalog context to resolve the ids it keeps in localStorage, and that
+          provider is only mounted for signed-in buyers — `useCatalog` throws rather than
+          degrading, so this cannot render for an anonymous visitor. */}
+      {showPricing && (
+        <div className="mt-14 border-t border-stone-300 pt-8">
+          <RecentlyViewedStrip excludeStyleId={style.id} />
+        </div>
+      )}
     </div>
   );
 }
