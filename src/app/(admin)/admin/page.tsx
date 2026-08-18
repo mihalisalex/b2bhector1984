@@ -23,7 +23,8 @@ export default async function AdminOrdersPage({
     if (!query) return true;
     return (
       order.id.toLowerCase().includes(query) ||
-      order.businessName.toLowerCase().includes(query)
+      order.businessName.toLowerCase().includes(query) ||
+      (order.poNumber?.toLowerCase().includes(query) ?? false)
     );
   });
 

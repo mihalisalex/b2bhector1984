@@ -15,6 +15,7 @@ interface OrderRow {
   invoice_url: string | null;
   tracking_number: string | null;
   carrier: string | null;
+  po_number: string | null;
 }
 
 interface OrderLineRow {
@@ -61,6 +62,13 @@ function mapOrder(accountId: string, row: OrderRow, lineRows: OrderLineRow[]): O
     invoiceUrl: row.invoice_url ?? undefined,
     trackingNumber: row.tracking_number ?? undefined,
     carrier: row.carrier ?? undefined,
+    // Read-only for now: `orders.po_number` has existed since 0001 and holds real
+    // values on older orders, but nothing in checkout captures one any more (0029
+    // dropped its NOT NULL for exactly that reason). It was never mapped out of the
+    // row, which is why the admin order search advertised "PO #" and could not
+    // possibly match it. Surfacing it here makes that promise true for the orders
+    // that do carry one, and means a future checkout field needs no search work.
+    poNumber: row.po_number?.trim() || undefined,
   };
 }
 

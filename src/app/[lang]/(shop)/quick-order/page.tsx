@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { getStorefrontStyles, searchStyleIds } from "@/lib/data/styles";
-import { filterStyles, parseFilters } from "@/lib/catalogFilters";
+import { availableFlagOptions, colorOptionsFromStyles, filterStyles, parseFilters } from "@/lib/catalogFilters";
 import { isSortKey, sortStyles } from "@/lib/catalogSort";
 import { getInventoryForStyles, totalOnHandForStyle } from "@/lib/data/inventory";
 import { getCurrentAccount } from "@/lib/session";
@@ -62,7 +62,13 @@ export default async function QuickOrderPage({
       <div className="flex flex-col gap-8 lg:flex-row">
         <div className="print:hidden">
           <Suspense fallback={null}>
-            <CatalogFilters resultCount={results.length} showViewToggle={false} seasonOptions={seasonOptions} />
+            <CatalogFilters
+              resultCount={results.length}
+              showViewToggle={false}
+              seasonOptions={seasonOptions}
+              colorOptions={colorOptionsFromStyles(styles)}
+              flagOptions={availableFlagOptions(styles, inStockIds)}
+            />
           </Suspense>
         </div>
 

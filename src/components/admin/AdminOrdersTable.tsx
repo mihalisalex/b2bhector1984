@@ -139,6 +139,13 @@ export function AdminOrdersTable({ orders }: { orders: AdminOrder[] }) {
                   <Link href={`/admin/orders/${order.id}`} className="font-mono-tab text-ink hover:underline">
                     {order.id}
                   </Link>
+                  {/* Only legacy orders carry one, but the search box offers to match on it —
+                      so when it does match, the reason has to be visible on the row. */}
+                  {order.poNumber && (
+                    <span className="mt-0.5 block font-mono-tab text-[11px] text-ink-soft">
+                      PO {order.poNumber}
+                    </span>
+                  )}
                 </td>
                 <td className="px-3 py-2.5 text-ink-soft">{order.businessName}</td>
                 <td className="px-3 py-2.5 text-ink-soft">{formatDate(order.placedAt)}</td>

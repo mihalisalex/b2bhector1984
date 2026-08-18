@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { COLOR_FAMILIES, FLAG_OPTIONS, PRICE_BANDS } from "@/lib/catalogFilters";
+import { FLAG_OPTIONS, PRICE_BANDS } from "@/lib/catalogFilters";
 import { SORT_OPTIONS } from "@/lib/catalogSort";
 import { TextAction } from "@/components/ui/TextAction";
 import { cn } from "@/lib/cn";
@@ -42,12 +42,18 @@ export function CatalogFilters({
   resultCount,
   showViewToggle = true,
   seasonOptions = DEFAULT_SEASON_OPTIONS,
+  colorOptions = [],
+  flagOptions = FLAG_OPTIONS,
 }: {
   resultCount: number;
   /** Grid/List view toggle only makes sense on the catalogue's card layout, not the quick-order linesheet. */
   showViewToggle?: boolean;
   /** Enabled seasons with their admin-configured display labels; omit to fall back to the stock Summer/Winter pair. */
   seasonOptions?: { value: string; label: string }[];
+  /** Real colourway names from the catalogue (`colorOptionsFromStyles`). Empty hides the group entirely — never invent options here, that was the bug. */
+  colorOptions?: string[];
+  /** Quick toggles that can actually match something (`availableFlagOptions`). Defaults to all of them. */
+  flagOptions?: readonly (typeof FLAG_OPTIONS)[number][];
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -199,16 +205,18 @@ export function CatalogFilters({
       </div>
 
       <div className={cn("mt-4 flex-col gap-6 lg:mt-6 lg:flex", open ? "flex" : "hidden")}>
-        <FilterGroup title="Show only">
-          {FLAG_OPTIONS.map((opt) => (
-            <Checkbox
-              key={opt.value}
-              label={opt.label}
-              checked={isChecked("flag", opt.value)}
-              onChange={() => toggle("flag", opt.value)}
-            />
-          ))}
-        </FilterGroup>
+        {flagOptions.length > 0 && (
+          <FilterGroup title="Show only">
+            {flagOptions.map((opt) => (
+              <Checkbox
+                key={opt.value}
+                label={opt.label}
+                checked={isChecked("flag", opt.value)}
+                onChange={() => toggle("flag", opt.value)}
+              />
+            ))}
+          </FilterGroup>
+        )}
 
         {seasonOptions.length > 0 && (
           <FilterGroup title="Season">
@@ -236,11 +244,13 @@ export function CatalogFilters({
           ))}
         </FilterGroup>
 
-        <FilterGroup title="Colorway">
-          {COLOR_FAMILIES.map((fam) => (
-            <Checkbox key={fam} label={fam} checked={isChecked("color", fam)} onChange={() => toggle("color", fam)} />
-          ))}
-        </FilterGroup>
+        {colorOptions.length > 0 && (
+          <FilterGroup title="Colorway">
+            {colorOptions.map((name) => (
+              <Checkbox key={name} label={name} checked={isChecked("color", name)} onChange={() => toggle("color", name)} />
+            ))}
+          </FilterGroup>
+        )}
 
         <FilterGroup title="Wholesale price">
           {PRICE_BANDS.map((band) => (

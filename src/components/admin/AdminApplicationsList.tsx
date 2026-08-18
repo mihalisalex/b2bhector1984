@@ -1,11 +1,12 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { declineApplication, bulkApproveApplications, resendActivationEmail } from "@/lib/adminActions";
+import { declineApplication, bulkApproveApplications } from "@/lib/adminActions";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/cn";
 import { ListPager } from "@/components/admin/ListPager";
 import { ApproveApplicationForm } from "@/components/admin/ApproveApplicationForm";
+import { ResendActivationButton } from "@/components/admin/ResendActivationButton";
 import type { Application } from "@/lib/types";
 import type { AdminSalesRep } from "@/lib/data/salesReps";
 
@@ -148,14 +149,7 @@ export function AdminApplicationsList({ applications, reps }: { applications: Ap
             )}
             {app.status === "approved" && (
               <div className="flex shrink-0 items-center gap-2">
-                <form action={resendActivationEmail.bind(null, app.id)}>
-                  <button
-                    type="submit"
-                    className="border border-stone-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-ink-soft hover:border-ink hover:text-ink"
-                  >
-                    Resend activation email
-                  </button>
-                </form>
+                <ResendActivationButton applicationId={app.id} />
               </div>
             )}
           </div>

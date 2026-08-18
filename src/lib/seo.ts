@@ -9,6 +9,7 @@ import {
   generateArticleTitle,
   generateProductDescription,
   generateProductTitle,
+  TITLE_MAX,
   type ArticleSeoSource,
   type ProductSeoSource,
 } from "@/lib/seoAutogen";
@@ -86,6 +87,12 @@ export interface BuildMetadataInput {
    * hreflang alternate set (see the block below). Defaults to the site's default locale
    * (English, unprefixed) so every existing call site keeps its current behavior untouched. */
   locale?: Locale;
+  /** Set when `title` came from a generator that already managed the whole ~60-character
+   * budget itself, brand included — `generateProductTitle` drops the brand rather than
+   * overflow, and appending the template's longer suffix on top of that decision produces
+   * exactly the overflow it just avoided. Such a title is used verbatim. Admin-written
+   * overrides leave this unset and are judged on their own text (see `titleCarriesBrand`). */
+  titleIsFinal?: boolean;
   /** Set to `false` for pages whose content doesn't actually vary per locale yet (e.g. the
    * journal, whose posts have no per-locale rows) — suppresses hreflang alternates so the
    * tag set never claims a translated sibling that doesn't really exist. The canonical still
@@ -93,14 +100,50 @@ export interface BuildMetadataInput {
   hasLocaleVariants?: boolean;
 }
 
+/**
+ * Whether a title already carries the house name, and so must not have the
+ * title template's brand suffix appended on top of it.
+ *
+ * The homepage has always opted out. Products and journal articles need the
+ * same escape hatch and never had it: `generateProductTitle` and
+ * `generateArticleTitle` both deliberately put the brand *last* (Google
+ * truncates from the right), and the admin `seo_title` overrides in the
+ * database were written the same way. Applying `%s — Hector Footwear
+ * Wholesale` on top of that rendered a 94-character title with the house name
+ * in it twice — "… | Hector Footwear — Hector Footwear Wholesale" — of which
+ * Google shows the first ~60, i.e. never the brand the suffix was there to add.
+ *
+ * Testing the title's own text rather than taking a flag from the call site
+ * keeps this correct for whatever an admin types into the SEO editor later: a
+ * title they end with the brand is left alone, one they don't still gets the
+ * suffix. `generateProductTitle` drops the brand itself when the fuller form
+ * would exceed 60 characters, and that branch correctly lands here as
+ * "unbranded" and gets the suffix back.
+ */
+function titleCarriesBrand(title: string, settings: SeoSettings): boolean {
+  const haystack = title.toLowerCase();
+  return [settings.siteName, settings.organizationLegalName]
+    .map((name) => name.trim().toLowerCase())
+    .filter((name) => name.length > 0)
+    .some((name) => haystack.includes(name));
+}
+
 function buildMetadata(input: BuildMetadataInput, settings: SeoSettings): Metadata {
   const isHome = input.path === "/";
   // The root layout's title template only applies to `title`, not to
   // openGraph/twitter, so the full form is built once here to keep share cards
-  // consistent with the browser tab. The homepage opts out of the template via
-  // `absolute` — it already carries the brand name, and letting the suffix
-  // append would render "… Wholesale — … Wholesale".
-  const fullTitle = isHome ? input.title : settings.titleTemplate.replace("%s", input.title);
+  // consistent with the browser tab.
+  // The brand suffix is a nicety, and it only pays for itself when there is room left to
+  // show it. A title that already fills Google's ~60-character budget gets truncated at
+  // exactly the point the suffix would begin, so appending it adds length no one ever sees
+  // — which is how the two Greek journal overrides (65 and 67 characters) would have gone
+  // out at 95. Past the budget, the title stands on its own.
+  const skipTemplate =
+    isHome ||
+    input.titleIsFinal ||
+    input.title.length >= TITLE_MAX ||
+    titleCarriesBrand(input.title, settings);
+  const fullTitle = skipTemplate ? input.title : settings.titleTemplate.replace("%s", input.title);
 
   // Final fallback to the app's own generated card (`src/app/opengraph-image.tsx`, 1200x630).
   // Without it the site shipped *no* og:image/twitter:image at all: `defaultOgImageUrl` is an
@@ -134,7 +177,7 @@ function buildMetadata(input: BuildMetadataInput, settings: SeoSettings): Metada
       : undefined;
 
   return {
-    title: isHome ? { absolute: input.title } : input.title,
+    title: skipTemplate ? { absolute: input.title } : input.title,
     description: input.description,
     keywords: input.keywords?.length ? input.keywords : undefined,
     alternates: { canonical, languages },
@@ -277,13 +320,15 @@ export async function productMetadata(style: Style, imageUrl?: string): Promise<
     tags: style.tags,
   };
 
-  const title = style.seoTitle?.trim() || generateProductTitle(source, settings.siteName);
+  const adminTitle = style.seoTitle?.trim();
+  const title = adminTitle || generateProductTitle(source, settings.siteName);
   const description = style.metaDescription?.trim() || generateProductDescription(source);
   const image = style.ogImageUrl?.trim() || imageUrl || style.primaryImageUrl;
 
   return buildMetadata(
     {
       title,
+      titleIsFinal: !adminTitle,
       description,
       path: `/product/${style.slug}`,
       canonicalPath: style.canonicalUrl?.trim() || `/product/${style.slug}`,
@@ -321,13 +366,15 @@ export async function articleMetadata(post: JournalPost): Promise<Metadata> {
     siteName: settings.siteName,
   };
 
-  const title = post.seoTitle?.trim() || generateArticleTitle(source);
+  const adminTitle = post.seoTitle?.trim();
+  const title = adminTitle || generateArticleTitle(source);
   const description = post.metaDescription?.trim() || generateArticleDescription(source);
   const image = post.ogImageUrl?.trim() || post.featuredImageUrl;
 
   return buildMetadata(
     {
       title,
+      titleIsFinal: !adminTitle,
       description,
       path: `/journal/${post.slug}`,
       canonicalPath: post.canonicalUrl?.trim() || `/journal/${post.slug}`,

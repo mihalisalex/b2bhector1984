@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { getStorefrontStyles, searchStyleIds } from "@/lib/data/styles";
-import { filterStyles, parseFilters } from "@/lib/catalogFilters";
+import { availableFlagOptions, colorOptionsFromStyles, filterStyles, parseFilters } from "@/lib/catalogFilters";
 import { isSortKey, pairsSoldByStyle, sortStyles } from "@/lib/catalogSort";
 import { getInventoryForStyles, totalOnHandForStyle } from "@/lib/data/inventory";
 import { listImagesForStyles } from "@/lib/data/styleImages";
@@ -80,7 +80,11 @@ export default async function CatalogPage({
             <CatalogSearchInput />
           </Suspense>
           <Suspense fallback={null}>
-            <CatalogFiltersPanel seasonOptions={seasonOptions} />
+            <CatalogFiltersPanel
+              seasonOptions={seasonOptions}
+              colorOptions={colorOptionsFromStyles(styles)}
+              flagOptions={availableFlagOptions(styles, inStockIds)}
+            />
           </Suspense>
         </div>
       </div>

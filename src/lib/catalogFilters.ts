@@ -10,9 +10,47 @@ export const FLAG_OPTIONS = [
 
 export type CatalogFlag = (typeof FLAG_OPTIONS)[number]["value"];
 
-export const COLOR_FAMILIES = [
-  "Ink", "Cinder", "Bone", "Chalk", "Signal", "Navy", "Red", "Yellow", "Merlot", "Olive", "Ember",
-] as const;
+/**
+ * The colourway names actually present in the given styles, de-duplicated and
+ * sorted — the only honest source for this facet.
+ *
+ * This replaced a hardcoded list ("Ink", "Cinder", "Bone", "Chalk", "Signal",
+ * "Navy", "Red", "Yellow", "Merlot", "Olive", "Ember") left over from the seed
+ * catalogue. Not one of those eleven matched any real colourway, so every
+ * option in the Colorway filter returned an empty grid — eleven controls that
+ * could only ever fail. Deriving them means the facet can never drift from the
+ * catalogue again, whatever colours get uploaded next.
+ */
+export function colorOptionsFromStyles(styles: Style[]): string[] {
+  const names = new Set<string>();
+  for (const style of styles) {
+    for (const colorway of style.colorways) {
+      const name = colorway.name.trim();
+      if (name) names.add(name);
+    }
+  }
+  return [...names].sort((a, b) => a.localeCompare(b));
+}
+
+/**
+ * The quick toggles that can actually return something, given the catalogue as
+ * it stands this request. "Featured" and "In stock now" are both currently
+ * dead — nothing is flagged featured and every style is pre-order with zero on
+ * hand — and a checkbox whose only possible outcome is an empty grid is worse
+ * than no checkbox.
+ */
+export function availableFlagOptions(
+  styles: Style[],
+  inStockIds?: Set<string>,
+): (typeof FLAG_OPTIONS)[number][] {
+  return FLAG_OPTIONS.filter((opt) => {
+    if (opt.value === "sale") return styles.some((s) => isOnSale(s));
+    if (opt.value === "featured") return styles.some((s) => s.featured);
+    // Omitted inventory means the flag no-ops rather than filtering everything
+    // out (see `filterStyles`), so the honest thing is to not offer it at all.
+    return Boolean(inStockIds && styles.some((s) => inStockIds.has(s.id)));
+  });
+}
 
 export const PRICE_BANDS = [
   { id: "u30", label: "Under €30", min: 0, max: 30 },
@@ -79,8 +117,13 @@ export function filterStyles(
     if (filters.gender.length && !filters.gender.includes(s.gender)) return false;
     if (filters.availability.length && !filters.availability.includes(s.availability)) return false;
     if (filters.color.length) {
+      // Exact match, not substring: the options are now the real colourway
+      // names (see `colorOptionsFromStyles`), so a substring test would make
+      // "TAN" silently also select every "TAN BROWN" style. That was tolerable
+      // when the options were invented colour *families*; it is just wrong when
+      // the user is picking a specific colourway off the list.
       const hasColor = s.colorways.some((c) =>
-        filters.color.some((fam) => c.name.toLowerCase().includes(fam.toLowerCase())),
+        filters.color.some((name) => c.name.trim().toLowerCase() === name.trim().toLowerCase()),
       );
       if (!hasColor) return false;
     }

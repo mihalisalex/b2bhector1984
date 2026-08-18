@@ -7,12 +7,21 @@ import { TextField as Field, SelectField, FormMessage } from "@/components/ui/Fo
 
 const initialState: FormState = {};
 
+/**
+ * "Outdoor / run specialty" and "Team sport / athletic" used to sit in this
+ * list — categories from the seed data of a different kind of business. Hector
+ * sells men's leather footwear to shoe retailers, so both described a customer
+ * that will never apply, and every real applicant so far picked one of the
+ * three door-count options. Replaced with the channels that actually buy this
+ * catalogue.
+ */
 const BUSINESS_TYPES = [
   "Independent specialty (1 door)",
   "Multi-brand specialty (2–5 doors)",
   "Regional chain (6+ doors)",
-  "Outdoor / run specialty",
-  "Team sport / athletic",
+  "Department store",
+  "Online retailer",
+  "Distributor / agent",
   "Other",
 ];
 

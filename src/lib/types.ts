@@ -378,6 +378,8 @@ export interface Order {
   invoiceUrl?: string;
   trackingNumber?: string;
   carrier?: string;
+  /** The buyer's own purchase-order reference. Only present on legacy orders — checkout no longer asks for one. */
+  poNumber?: string;
 }
 
 export interface OrderStatusEvent {

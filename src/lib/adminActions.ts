@@ -219,15 +219,28 @@ export async function approveApplication(applicationId: string, _prev: FormState
  * for the email) — resending an activation link to someone who already has an account
  * would be confusing, not helpful.
  */
-export async function resendActivationEmail(applicationId: string) {
+// Takes no `formData` — the form has no fields, only a submit button — but `useActionState`
+// still requires the previous-state parameter to be in the signature, so it can't be dropped.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- positional, required by the useActionState contract
+export async function resendActivationEmail(applicationId: string, _prev: FormState): Promise<FormState> {
   const admin = await requireAdmin();
   const application = await getApplicationById(applicationId);
-  if (!application || application.status !== "approved") return;
+  // Each of these three outcomes used to be a bare `return`, which rendered as
+  // absolutely nothing: the button was indistinguishable from a dead control
+  // whether it had just sent an email, refused to, or hit a no-op. Every branch
+  // now says which one happened.
+  if (!application) return { error: "That application no longer exists." };
+  if (application.status !== "approved") {
+    return { error: `Nothing to resend — this application is ${application.status}, not awaiting activation.` };
+  }
   const existingAccount = await getAccountByEmail(application.email);
-  if (existingAccount) return;
+  if (existingAccount) {
+    return { error: `${application.email} has already activated their account — no activation link to resend.` };
+  }
   await logAudit(admin.id, "application.activation_email_resent", "application", applicationId);
   await notifyApplicationDecision(applicationId, "approved");
   revalidatePath("/admin/applications");
+  return { success: `Activation email resent to ${application.email}.` };
 }
 
 export async function declineApplication(applicationId: string) {
