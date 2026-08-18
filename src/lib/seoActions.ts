@@ -158,7 +158,7 @@ export async function updateSeoSettingsAction(_prev: FormState, formData: FormDa
 
   const warning =
     section === "indexing" && patch.commerceIndexable
-      ? " Catalogue and product pages are now advertised to search engines — trade pricing is visible to anyone who can reach those URLs."
+      ? " Catalogue and product pages are now advertised to search engines. Trade pricing stays behind the login — anonymous visitors and crawlers see the product but not the price."
       : "";
   return { success: `Settings saved.${warning}` };
 }

@@ -217,10 +217,12 @@ function IndexingSection({ settings, canEdit }: { settings: SeoSettings; canEdit
         </label>
 
         {indexable && (
-          <p className="mt-3 border border-ember bg-ember/5 px-3 py-2 text-xs text-ink">
-            <strong>Wholesale prices become publicly visible in search results.</strong> Product pages
-            are still behind the login for humans, but you are asking Google to crawl and list them.
-            Only do this if the business has decided to open the catalogue up.
+          <p className="mt-3 border border-stone-300 bg-stone-100 px-3 py-2 text-xs text-ink">
+            <strong>Prices stay private.</strong> The catalogue and product pages are readable
+            without a login, so Google can crawl and list them — names, photography, colourways,
+            materials and specifications. Wholesale prices, MSRP and the order form are shown only
+            to signed-in approved accounts, and the price is withheld from the pages&rsquo;
+            structured data too.
           </p>
         )}
       </fieldset>
