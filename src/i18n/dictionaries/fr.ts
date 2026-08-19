@@ -83,6 +83,12 @@ const fr: Dictionary = {
     collectionsTitle: "Chaussures en Cuir Homme, en Gros",
     collectionsDescription:
       "Chaussures en cuir homme en gros — mocassins, bottes, chaussures habillées, sneakers et sandales en cuir pleine fleur. Connectez-vous pour les tarifs grossistes ou demandez un compte professionnel.",
+    catalogueTitle: "Catalogue de Gros — Toutes les Chaussures Homme en Cuir",
+    catalogueDescription:
+      "Toute la collection Hector Footwear — mocassins, bottes, chaussures habillées, sneakers et sandales en cuir pour homme, filtrables par catégorie, coloris et saison. Vente en gros par carton ; tarifs réservés aux comptes validés.",
+    catalogueHeading: "Le Catalogue de Gros Complet",
+    catalogueIntro:
+      "Toutes nos chaussures homme en cuir, filtrables par catégorie, coloris, saison et délai de livraison. Les tarifs de gros et les quantités par carton sont réservés aux comptes professionnels validés.",
     brandStoryTitle: "À propos — Grossiste en Chaussures en Cuir Homme depuis 1984",
     brandStoryDescription:
       "Hector Footwear fabrique des chaussures en cuir pleine fleur pour homme — mocassins, bottes, chaussures habillées et plus — pour détaillants indépendants depuis 1984. Vente en gros uniquement.",

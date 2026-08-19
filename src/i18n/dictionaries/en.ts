@@ -82,6 +82,17 @@ const en = {
     collectionsTitle: "Men's Leather Shoes Wholesale",
     collectionsDescription:
       "Men's leather loafers, boots, formal shoes, sneakers and sandals, wholesale — full-grain leather, box-only ordering. Sign in for wholesale pricing or apply for a trade account.",
+    // Deliberately NOT the same target as /collections. Both pages became publicly
+    // indexable on 18 Aug and both list the same products, so pointing them at one
+    // keyword would have them competing with each other. /collections is the seasonal
+    // lookbook and owns the head term; /catalogue is the complete index and owns the
+    // "full range / browse every style" intent.
+    catalogueTitle: "Wholesale Catalogue — Every Men's Leather Shoe Style",
+    catalogueDescription:
+      "Browse the complete Hector Footwear range — men's leather loafers, boots, formal shoes, sneakers and sandals, filterable by category, colourway and season. Box-only wholesale; trade pricing shown to approved accounts.",
+    catalogueHeading: "The Full Wholesale Catalogue",
+    catalogueIntro:
+      "Every men's leather shoe we make, filterable by category, colourway, season and delivery window. Wholesale pricing and box quantities are shown to approved trade accounts.",
     brandStoryTitle: "About Us — Men's Leather Footwear Wholesaler Since 1984",
     brandStoryDescription:
       "Hector Footwear has built full-grain men's leather footwear — loafers, boots, formal and more — for independent retailers since 1984. Wholesale only, no DTC.",

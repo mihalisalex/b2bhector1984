@@ -14,26 +14,36 @@ import { SaleBanner } from "@/components/catalog/SaleBanner";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductListRow } from "@/components/product/ProductListRow";
 import { commerceMetadata } from "@/lib/seo";
+import { getDictionary } from "@/i18n/getDictionary";
+import type { Locale } from "@/i18n/config";
+import type { Metadata } from "next";
 
 /**
  * Robots comes from the global indexing policy rather than being hardcoded, so
  * this page, robots.txt and the sitemap always agree. It resolves to
  * `noindex,nofollow` while the trade catalogue is private, which is the default.
  */
-export function generateMetadata() {
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const locale = lang as Locale;
+  const dict = await getDictionary(locale);
   return commerceMetadata({
-    title: "Catalogue",
-    description:
-      "The full Hector Footwear wholesale catalogue — every style, colourway and box configuration, with live stock and trade pricing.",
+    title: dict.seo.catalogueTitle,
+    description: dict.seo.catalogueDescription,
     path: "/catalogue",
+    locale,
   });
 }
 
 export default async function CatalogPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ lang: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const { lang } = await params;
+  const locale = lang as Locale;
   const sp = await searchParams;
   const filters = parseFilters(sp);
   const sortParam = typeof sp.sort === "string" ? sp.sort : "newest";
@@ -53,6 +63,7 @@ export default async function CatalogPage({
       : Promise.resolve({ data: null }),
   ]);
   const seasonOptions = toSeasonOptions(seasonSettings);
+  const dict = await getDictionary(locale);
   const [matchedIds, inventory] = await Promise.all([
     filters.q ? searchStyleIds(filters.q) : Promise.resolve(undefined),
     getInventoryForStyles(styles.map((s) => s.id)),
@@ -71,12 +82,23 @@ export default async function CatalogPage({
 
   return (
     <div className="mx-auto max-w-[1600px] px-6 py-8 lg:px-10">
+      {/* "Home" used to point at /dashboard, which redirects a signed-out visitor to
+          /login — a dead end on a page that is now public, and a crawlable link into a
+          gated route. Signed-in buyers still get their dashboard. */}
       <nav className="mb-3 text-xs text-ink-soft">
-        <Link href="/dashboard" className="hover:text-ink">Home</Link> <span className="mx-1">/</span> <span className="text-ink">Catalog</span>
+        <Link href={account ? "/dashboard" : "/"} className="hover:text-ink">Home</Link>{" "}
+        <span className="mx-1">/</span> <span className="text-ink">{dict.nav.catalogue}</span>
       </nav>
       <div className="mb-6 flex flex-col gap-3 border-b border-stone-300 pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink sm:text-3xl">Catalog</h1>
+          {/* Real per-locale keyword copy. This page carries all 31 products and became
+              publicly indexable on 18 Aug, at which point its H1 was the single word
+              "Catalog" — no keyword, and inconsistent with the "Catalogue" spelling used
+              everywhere else on the site. */}
+          <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink sm:text-3xl">
+            {dict.seo.catalogueHeading}
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">{dict.seo.catalogueIntro}</p>
         </div>
         <div className="flex items-center gap-2">
           <Suspense fallback={null}>

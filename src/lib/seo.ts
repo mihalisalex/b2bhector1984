@@ -291,6 +291,14 @@ export interface CommerceMetadataInput {
   twitterCard?: string;
   keywords?: string[];
   ogType?: "website" | "article";
+  /** Which locale this render is for. Omitting it canonicalises every locale of the page to
+   * the English URL and points all four hreflang alternates at one target — harmless while
+   * these surfaces were noindex, wrong from the moment they became indexable. Pass it for
+   * any commerce page whose copy genuinely varies per locale. */
+  locale?: Locale;
+  /** See `BuildMetadataInput.hasLocaleVariants`. Leave unset for pages with real
+   * per-locale copy; set false where the body text is the same in every language. */
+  hasLocaleVariants?: boolean;
 }
 
 export async function commerceMetadata(input: CommerceMetadataInput): Promise<Metadata> {

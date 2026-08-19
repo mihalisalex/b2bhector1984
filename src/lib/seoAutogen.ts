@@ -98,7 +98,15 @@ export function generateProductDescription(product: ProductSeoSource): string {
     const materials = product.materials?.length ? ` ${product.materials.slice(0, 2).join(" and ")}.` : "";
     return truncate(`${tagline}${materials} Available for wholesale ordering.`, DESCRIPTION_MAX);
   }
-  if (body.length >= DESCRIPTION_MIN) return truncate(body, DESCRIPTION_MAX);
+  // Body copy is shared between colourways of the same style — twenty of this
+  // catalogue's thirty-one products repeat another product's paragraph word for
+  // word, which returned the same snippet for a "Beige" and a "Blue" page and
+  // gave Google thirty-one pages carrying eleven descriptions between them.
+  // Leading with the product name fixes that with the one fact that is always
+  // distinct, and it is the right thing to lead a snippet with anyway: the name
+  // carries the style number and the colourway, which is what a buyer scanning
+  // a result page is actually matching on.
+  if (body.length >= DESCRIPTION_MIN) return truncate(`${product.name}. ${body}`, DESCRIPTION_MAX);
 
   const parts = [
     product.name,

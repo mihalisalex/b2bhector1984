@@ -117,7 +117,10 @@ export const config = {
   // URL, not just ones behind the login. Static assets, image optimisation, API routes
   // and the SEO metadata files are excluded — a redirect rule must never be able to
   // shadow robots.txt or the sitemap, and locale routing has no business touching them.
+  // `llms.txt` belongs to that same set: it lives at the site root, not under a locale
+  // prefix, and without the exclusion the locale rewrite turns it into /en/llms.txt and
+  // it 404s.
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|icon|apple-icon|opengraph-image|robots.txt|sitemap.xml|images/|fonts/).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|icon|apple-icon|opengraph-image|robots.txt|sitemap.xml|llms.txt|images/|fonts/).*)",
   ],
 };
