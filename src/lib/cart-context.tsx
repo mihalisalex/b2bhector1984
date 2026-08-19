@@ -4,6 +4,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { useCatalog } from "@/lib/catalog-context";
 import { getBoxType } from "@/lib/data/boxTypes";
 import { getUnitPrice } from "@/lib/pricing";
+import { syncCartAction, persistCartAction } from "@/lib/cartActions";
+import { cartsEqual } from "@/lib/cartMerge";
 import type { BoxTypeId } from "@/lib/types";
 
 export interface CartLine {
@@ -99,12 +101,40 @@ export function CartProvider({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLines(restored);
     setHydrated(true);
+
+    // Reconcile with the cart stored for this account, so a buyer who started an order on
+    // one device finds it on the next. localStorage stays the instant, offline-tolerant
+    // read; this is the cross-device layer on top of it. Union with the higher quantity per
+    // line — see `mergeCarts` for why maximum and not sum.
+    //
+    // Deliberately not awaited into the render path: the cart shows from localStorage
+    // immediately and only changes if the server genuinely has something extra. `cancelled`
+    // guards the case where `accountId` changes before the round trip lands, which would
+    // otherwise drop one account's cart onto another.
+    let cancelled = false;
+    void syncCartAction(restored).then((merged) => {
+      if (cancelled) return;
+      setLines((current) => (cartsEqual(current, merged) ? current : merged));
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [accountId]);
 
   useEffect(() => {
     if (!hydrated) return;
     window.localStorage.setItem(storageKey(accountId), JSON.stringify(lines));
   }, [lines, accountId, hydrated]);
+
+  // Mirror to the server after the cart settles. Debounced because the quantity steppers fire
+  // on every tap, and a write per tap would be dozens of round trips while a buyer builds a
+  // 40-pair order. localStorage above is already written synchronously, so the debounce only
+  // delays cross-device visibility, never the buyer's own view.
+  useEffect(() => {
+    if (!hydrated) return;
+    const timer = setTimeout(() => void persistCartAction(lines), 800);
+    return () => clearTimeout(timer);
+  }, [lines, hydrated]);
 
   const addLines: CartContextValue["addLines"] = useCallback((styleId, incoming) => {
     setLines((prev) => {
