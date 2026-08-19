@@ -28,8 +28,19 @@ const SIZE_CLASSES: Record<Size, string> = {
 // comment for the revert path. Turns the "bordered" variant into a circle (share, favorite);
 // "chrome" has no visible box either way so the shape doesn't show, but it inherits the same
 // class so nothing here quietly reverts on its own.
+/**
+ * The `after:` block is a touch target, not decoration. Measured on the live site at 375px,
+ * every one of these rendered 36x36 — under the 44x44 that both Apple's HIG and WCAG 2.5.5
+ * ask for, on the controls a phone user hits most (menu, search, account, cart).
+ *
+ * It expands the *hit area* rather than the button, because the visual size is load-bearing:
+ * the mobile header's spacing took three passes to settle, and growing these boxes by 8px
+ * would reopen it. A centred 44x44 pseudo-element gives the finger a bigger goal while the
+ * eye sees exactly what it saw before. Inert at `lg` (48px), which already clears the bar.
+ */
 const base =
-  "relative flex shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-40 disabled:pointer-events-none";
+  "relative flex shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-40 disabled:pointer-events-none " +
+  "after:absolute after:left-1/2 after:top-1/2 after:h-11 after:w-11 after:-translate-x-1/2 after:-translate-y-1/2 after:content-['']";
 
 /** Shared square icon-only button — every standalone icon trigger/close control (account,
  * cart, search, drawer/overlay close, share, favorite) renders through this one recipe

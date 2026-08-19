@@ -120,7 +120,7 @@ export function MainNav({ account }: { account: Account | null }) {
         onClick={() => setOpen(true)}
         aria-label={dict.nav.openMenu}
         aria-expanded={open}
-        className="group flex h-9 w-9 shrink-0 flex-col items-center justify-center gap-[6px] lg:hidden"
+        className="group relative flex h-9 w-9 shrink-0 flex-col items-center justify-center gap-[6px] lg:hidden after:absolute after:left-1/2 after:top-1/2 after:h-11 after:w-11 after:-translate-x-1/2 after:-translate-y-1/2 after:content-['']"
       >
         <span className="h-[1.5px] w-5 bg-ink transition-colors group-hover:bg-signal" aria-hidden />
         <span className="h-[1.5px] w-5 bg-ink transition-colors group-hover:bg-signal" aria-hidden />

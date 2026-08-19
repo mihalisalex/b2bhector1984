@@ -78,7 +78,7 @@ export function MarketingHeader({
             <Link
               href={withLocale(locale, "/login")}
               aria-label={dict.account.logIn}
-              className="flex h-9 w-9 items-center justify-center text-ink transition-colors hover:text-signal"
+              className="relative flex h-9 w-9 items-center justify-center text-ink transition-colors hover:text-signal after:absolute after:left-1/2 after:top-1/2 after:h-11 after:w-11 after:-translate-x-1/2 after:-translate-y-1/2 after:content-['']"
             >
               <AccountIcon />
             </Link>
