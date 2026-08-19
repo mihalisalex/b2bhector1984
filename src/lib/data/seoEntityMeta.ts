@@ -94,19 +94,24 @@ export async function getEntityMeta(
   return all.get(`${entityType}:${entityKey}`);
 }
 
+/**
+ * Optional fields accept `null` as well as `undefined`. Unlike `updateSeoSettings`,
+ * this is a full-row upsert that already coalesces every optional column to null, so
+ * the two mean the same thing here and neither can blank a field the form didn't render.
+ */
 export interface EntityMetaInput {
-  seoTitle?: string;
-  metaDescription?: string;
-  focusKeyword?: string;
+  seoTitle?: string | null;
+  metaDescription?: string | null;
+  focusKeyword?: string | null;
   secondaryKeywords: string[];
-  canonicalUrl?: string;
+  canonicalUrl?: string | null;
   robots: string;
-  ogTitle?: string;
-  ogDescription?: string;
-  ogImageUrl?: string;
-  twitterTitle?: string;
-  twitterDescription?: string;
-  twitterImageUrl?: string;
+  ogTitle?: string | null;
+  ogDescription?: string | null;
+  ogImageUrl?: string | null;
+  twitterTitle?: string | null;
+  twitterDescription?: string | null;
+  twitterImageUrl?: string | null;
   twitterCard: string;
 }
 

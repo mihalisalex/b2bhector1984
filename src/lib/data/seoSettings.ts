@@ -204,9 +204,21 @@ export const isSeoSchemaReady = cache(async (): Promise<boolean> => {
   return !error;
 });
 
-export async function updateSeoSettings(input: Partial<SeoSettings>): Promise<void> {
-  // Only columns present in `input` are written, so a form that renders one
-  // tab's worth of fields can't blank out the tabs it didn't render.
+/**
+ * A patch may set a nullable column to `null` on purpose. The distinction from
+ * `undefined` is load-bearing — see the comment on `text` in `seoActions.ts`.
+ */
+export type SeoSettingsPatch = { [K in keyof SeoSettings]?: SeoSettings[K] | null };
+
+export async function updateSeoSettings(input: SeoSettingsPatch): Promise<void> {
+  // Only columns present in `input` are written, so a form that renders one tab's worth
+  // of fields can't blank out the tabs it didn't render.
+  //
+  // This comment was true of the guard and false of the call sites until 18 Aug 2026:
+  // every optional column was passed as `input.x ?? null`, which turned "absent" into an
+  // explicit null and wrote it. Saving the Indexing tab wiped the organisation address,
+  // contact email, founding year and the Google Search Console token. Do not reintroduce
+  // `?? null` here — a caller that means "clear this" now passes `null` itself.
   const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
   const set = <T,>(column: string, value: T | undefined) => {
     if (value !== undefined) patch[column] = value;
@@ -216,37 +228,37 @@ export async function updateSeoSettings(input: Partial<SeoSettings>): Promise<vo
   set("title_template", input.titleTemplate);
   set("default_title", input.defaultTitle);
   set("default_description", input.defaultDescription);
-  set("default_og_image_url", input.defaultOgImageUrl ?? null);
-  set("twitter_site", input.twitterSite ?? null);
-  set("twitter_creator", input.twitterCreator ?? null);
+  set("default_og_image_url", input.defaultOgImageUrl);
+  set("twitter_site", input.twitterSite);
+  set("twitter_creator", input.twitterCreator);
   set("default_twitter_card", input.defaultTwitterCard);
   set("commerce_indexable", input.commerceIndexable);
   set("robots_enabled", input.robotsEnabled);
   set("extra_disallow", input.extraDisallow);
   set("extra_allow", input.extraAllow);
-  set("crawl_delay", input.crawlDelay ?? null);
+  set("crawl_delay", input.crawlDelay);
   set("sitemap_enabled", input.sitemapEnabled);
   set("sitemap_include_images", input.sitemapIncludeImages);
   set("organization_legal_name", input.organizationLegalName);
-  set("organization_logo_url", input.organizationLogoUrl ?? null);
-  set("organization_email", input.organizationEmail ?? null);
-  set("organization_phone", input.organizationPhone ?? null);
-  set("organization_street", input.organizationStreet ?? null);
-  set("organization_city", input.organizationCity ?? null);
-  set("organization_region", input.organizationRegion ?? null);
-  set("organization_postal_code", input.organizationPostalCode ?? null);
+  set("organization_logo_url", input.organizationLogoUrl);
+  set("organization_email", input.organizationEmail);
+  set("organization_phone", input.organizationPhone);
+  set("organization_street", input.organizationStreet);
+  set("organization_city", input.organizationCity);
+  set("organization_region", input.organizationRegion);
+  set("organization_postal_code", input.organizationPostalCode);
   set("organization_country", input.organizationCountry);
-  set("organization_founding_year", input.organizationFoundingYear ?? null);
+  set("organization_founding_year", input.organizationFoundingYear);
   set("social_profiles", input.socialProfiles);
   set("local_business_enabled", input.localBusinessEnabled);
-  set("opening_hours", input.openingHours ?? null);
+  set("opening_hours", input.openingHours);
   set("schema_organization", input.schemaOrganization);
   set("schema_website", input.schemaWebsite);
   set("schema_breadcrumbs", input.schemaBreadcrumbs);
   set("schema_product", input.schemaProduct);
   set("schema_faq", input.schemaFaq);
-  set("google_site_verification", input.googleSiteVerification ?? null);
-  set("bing_site_verification", input.bingSiteVerification ?? null);
+  set("google_site_verification", input.googleSiteVerification);
+  set("bing_site_verification", input.bingSiteVerification);
 
   const { error } = await supabaseAdmin.from("seo_settings").update(patch).eq("id", "global");
   if (error) throw new Error(`seo_settings: ${error.message}`);

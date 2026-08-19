@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
 import { logAudit } from "@/lib/data/auditLog";
 import { hasPermission } from "@/lib/data/permissions";
-import { updateSeoSettings, type SeoSettings } from "@/lib/data/seoSettings";
+import { updateSeoSettings, type SeoSettingsPatch } from "@/lib/data/seoSettings";
 import {
   createRedirect,
   deleteRedirect,
@@ -85,7 +85,20 @@ function revalidateSeoAdmin() {
 // ---------------------------------------------------------------------------
 
 const bool = (formData: FormData, key: string) => formData.get(key) === "on" || formData.get(key) === "true";
-const text = (formData: FormData, key: string) => String(formData.get(key) ?? "").trim() || undefined;
+/**
+ * `undefined` means "this form never rendered the field, leave the column alone".
+ * `null` means "the field was rendered and the admin cleared it, write the blank".
+ *
+ * Collapsing those two into `undefined` is what let saving the Indexing tab wipe the
+ * organisation address, the contact email, the founding year and the Google Search
+ * Console verification token on 18 Aug 2026: `updateSeoSettings` guarded on
+ * `!== undefined` but every optional column was passed as `value ?? null`, so an
+ * absent field arrived as an explicit null and was written as one.
+ */
+const text = (formData: FormData, key: string): string | null | undefined => {
+  if (!formData.has(key)) return undefined;
+  return String(formData.get(key) ?? "").trim() || null;
+};
 const lines = (formData: FormData, key: string) =>
   String(formData.get(key) ?? "")
     .split(/[\n,]/)
@@ -98,7 +111,7 @@ export async function updateSeoSettingsAction(_prev: FormState, formData: FormDa
 
   // Each tab submits only its own fields; `updateSeoSettings` writes only the
   // keys present, so one tab's save can never blank another tab's values.
-  let patch: Partial<SeoSettings> = {};
+  let patch: SeoSettingsPatch = {};
 
   if (section === "general") {
     patch = {
