@@ -56,7 +56,8 @@ import {
 } from "@/lib/data/styleDocuments";
 import { createSupplier, updateSupplier, deleteSupplier, type SupplierInput } from "@/lib/data/suppliers";
 import { createWarehouse } from "@/lib/data/warehouses";
-import { setPermission } from "@/lib/data/permissions";
+import { setPermission, ADMIN_ROLES } from "@/lib/data/permissions";
+import { getAccountById, updateAdminRole, countSuperAdmins } from "@/lib/data/accounts";
 import { importProductRows, validateImportRows, type ImportRow, type ImportRowPreview, type ImportRowResult } from "@/lib/data/productImport";
 import type { FormState } from "@/lib/actions";
 import type { AdminRole, BoxTypeId, DocumentKind, ProductPermissionKey, ProductStatus, RelationType } from "@/lib/types";
@@ -1024,6 +1025,43 @@ export async function importProductRowsAction(rows: ImportRow[]): Promise<Import
 // ---------------------------------------------------------------------------
 // Permissions
 // ---------------------------------------------------------------------------
+
+/**
+ * Assigns a role to a staff account — the write that made the whole permission matrix real.
+ *
+ * `accounts.admin_role` had no writer anywhere in the app, so every admin fell through
+ * `mapAccount`'s "an admin with no role is a super_admin" default and silently held every
+ * permission. The matrix at /admin/permissions was decorative, and its own copy pointed at
+ * an account screen that did not exist.
+ *
+ * Two guards, both about not being able to lock the business out of its own admin:
+ *
+ *  - **You cannot change your own role.** Demoting yourself out of `products.permissions`
+ *    would take away the screen you would need to undo it, on the very next request. Same
+ *    reasoning as the self-revoke guard in `setPermissionAction` below.
+ *  - **The last super_admin cannot be demoted.** With one left, there would be nobody able
+ *    to grant the role back, and `super_admin` is the one role whose permissions cannot be
+ *    revoked in the matrix.
+ *
+ * Both return silently rather than throwing: the control is a select that submits on change,
+ * and the page re-renders showing the unchanged value, which is the honest result.
+ */
+export async function setAdminRoleAction(accountId: string, formData: FormData) {
+  const admin = await requirePermission("products.permissions");
+  const role = String(formData.get("adminRole") ?? "") as AdminRole;
+  if (!ADMIN_ROLES.includes(role)) return;
+
+  if (accountId === admin.id) return;
+
+  const target = await getAccountById(accountId);
+  if (!target || target.role !== "admin") return;
+
+  if (target.adminRole === "super_admin" && role !== "super_admin" && (await countSuperAdmins()) <= 1) return;
+
+  await runBestEffort("setAdminRoleAction", () => updateAdminRole(accountId, role));
+  await logAudit(admin.id, "permissions.role_assigned", "account", accountId, `${target.adminRole ?? "super_admin"} -> ${role}`);
+  revalidatePath("/admin/permissions");
+}
 
 export async function setPermissionAction(role: AdminRole, permissionKey: ProductPermissionKey, formData: FormData) {
   const admin = await requirePermission("products.permissions");

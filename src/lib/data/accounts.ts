@@ -1,7 +1,7 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { fromDbId, toDbId, toNumber } from "@/lib/data/dbIds";
-import type { Account, SalesRep } from "@/lib/types";
+import type { Account, AdminRole, SalesRep } from "@/lib/types";
 
 /**
  * Shown to any account with no `rep_id` — including every account approved through the
@@ -159,6 +159,44 @@ export async function getAllAccounts(): Promise<Account[]> {
     .order("business_name");
   if (error) throw new Error(`accounts: ${error.message}`);
   return Promise.all(((data ?? []) as AccountRow[]).map(mapAccount));
+}
+
+/**
+ * Staff accounts — everything with `role = 'admin'`, which `getAllAccounts` deliberately
+ * excludes because that list is the buyer pricing table.
+ *
+ * Exists so `/admin/permissions` can show who actually holds each role. Until this landed
+ * there was no screen anywhere that listed staff, which is why the permission matrix was
+ * decorative: the page told you to "assign a role from the account's admin record" and no
+ * such record was reachable.
+ */
+export async function getAdminAccounts(): Promise<Account[]> {
+  const { data, error } = await supabaseAdmin
+    .from("accounts")
+    .select("*, sales_reps(*)")
+    .eq("role", "admin")
+    .order("contact_name");
+  if (error) throw new Error(`accounts: ${error.message}`);
+  return Promise.all(((data ?? []) as AccountRow[]).map(mapAccount));
+}
+
+/**
+ * Writes `accounts.admin_role`. Nothing wrote this column before — a staff account fell
+ * through `mapAccount`'s `?? (role === "admin" ? "super_admin" : undefined)` default, so
+ * every admin silently had every permission regardless of what the matrix said.
+ */
+export async function updateAdminRole(id: string, adminRole: AdminRole): Promise<void> {
+  const { error } = await supabaseAdmin.from("accounts").update({ admin_role: adminRole }).eq("id", id);
+  if (error) throw new Error(`accounts: ${error.message}`);
+}
+
+/** How many staff currently hold `super_admin`, so the last one can't be demoted away. */
+export async function countSuperAdmins(): Promise<number> {
+  const { data, error } = await supabaseAdmin.from("accounts").select("id, admin_role").eq("role", "admin");
+  if (error) throw new Error(`accounts: ${error.message}`);
+  // The null fallback counts: an admin row with no explicit admin_role resolves to
+  // super_admin everywhere else, so it has to count as one here too.
+  return (data ?? []).filter((row) => (row.admin_role ?? "super_admin") === "super_admin").length;
 }
 
 export async function updateAccountPriceMultiplier(id: string, priceMultiplier: number): Promise<void> {
