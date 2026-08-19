@@ -92,7 +92,14 @@ export function generateProductDescription(product: ProductSeoSource): string {
   const tagline = product.tagline?.trim();
   const body = product.description ? stripHtml(product.description) : "";
 
-  if (tagline && tagline.length >= DESCRIPTION_MIN) return truncate(tagline, DESCRIPTION_MAX);
+  // Prefixed with the name for the same reason as the body-copy branch below: a tagline
+  // describes the style family and its colourway, and this catalogue contains pairs that
+  // match on both — 272 Black and 372 Black are different lasts under different style
+  // numbers but the same words describe them. The name carries the style number, which is
+  // what a wholesale buyer actually searches, and it is not otherwise in the snippet.
+  // On the page itself the tagline renders clean, directly under an H1 that already shows
+  // the name — this prefix exists only where that context is missing.
+  if (tagline && tagline.length >= DESCRIPTION_MIN) return truncate(`${product.name}. ${tagline}`, DESCRIPTION_MAX);
   if (tagline && body) return truncate(`${tagline} ${body}`, DESCRIPTION_MAX);
   if (tagline) {
     const materials = product.materials?.length ? ` ${product.materials.slice(0, 2).join(" and ")}.` : "";
