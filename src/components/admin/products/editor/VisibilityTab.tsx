@@ -9,7 +9,7 @@ import type { ProductStatus, Style } from "@/lib/types";
 const initialState: FormState = {};
 
 const STATUS_OPTIONS: { value: ProductStatus; label: string; description: string }[] = [
-  { value: "active", label: "Published", description: "Visible in the catalog and orderable." },
+  { value: "active", label: "Published", description: "Visible in the catalogue and orderable." },
   { value: "draft", label: "Draft", description: "Hidden from buyers, editable in admin only." },
   { value: "private", label: "Private", description: "Reachable by direct link only, not listed." },
   { value: "archived", label: "Archived", description: "Retired — kept for order history, not orderable." },
@@ -29,8 +29,22 @@ export function VisibilityTab({ style, canEdit }: { style: Style; canEdit: boole
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
+  // A style with no colourway is invisible to buyers no matter what is selected below:
+  // `getStorefrontStyles` skips it, and the product page calls `notFound()` rather than
+  // render a gallery whose every consumer assumes `colorways[0]` exists. Setting this to
+  // Published and seeing nothing appear looked like a bug in the status control; it is a
+  // missing colourway, and nothing said so.
+  const hiddenForLackOfColorway = style.colorways.length === 0;
+
   return (
     <form action={formAction} className="max-w-xl space-y-6 pb-20">
+      {hiddenForLackOfColorway && (
+        <p className="border border-ember bg-ember/5 px-4 py-3 text-sm text-ink">
+          <strong>This product has no colourway yet, so buyers can&rsquo;t see it</strong> — it stays out of
+          the catalogue and its product page returns 404 even when Published. Add one on the Media tab
+          and it will appear.
+        </p>
+      )}
       <div className="space-y-2">
         {STATUS_OPTIONS.map((opt) => (
           <label key={opt.value} className="flex cursor-pointer items-start gap-3 border border-stone-300 bg-white px-4 py-3">

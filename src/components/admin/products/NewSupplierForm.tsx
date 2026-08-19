@@ -11,7 +11,10 @@ export function NewSupplierForm() {
 
   return (
     <form action={formAction} className="mt-6 grid max-w-2xl grid-cols-2 gap-3 border border-stone-300 bg-white p-4">
-      <h2 className="col-span-2 text-xs font-semibold uppercase tracking-wide text-ink-soft">Add supplier</h2>
+      {/* The submit button already reads "Add supplier"; repeating it as the heading made the
+          same two words appear twice in one small card. The heading now says what the form is
+          for, the button says what it does. */}
+      <h2 className="col-span-2 text-xs font-semibold uppercase tracking-wide text-ink-soft">New supplier</h2>
       <input name="name" placeholder="Name" required className="border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal" />
       <input name="contactName" placeholder="Contact name" className="border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal" />
       <input name="email" type="email" placeholder="Email" className="border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal" />

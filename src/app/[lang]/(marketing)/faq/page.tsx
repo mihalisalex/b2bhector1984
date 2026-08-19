@@ -51,8 +51,8 @@ const GROUPS_EN: FaqGroup[] = [
         a: "Yes — a single order-wide minimum of 40 pairs, not a per-style minimum. Mix as many styles, colorways, and box sizes as you like across your cart to reach it; your cart shows a running pair count as you go.",
       },
       {
-        q: "What's the difference between Quick Order and the Catalog?",
-        a: "Quick Order is a fast, table-style view for building box quantities across many styles at once. The Catalog and individual product pages give you the full matrix ordering screen for one style at a time, with more detail and photography.",
+        q: "What's the difference between Quick Order and the Catalogue?",
+        a: "Quick Order is a fast, table-style view for building box quantities across many styles at once. The Catalogue and individual product pages give you the full matrix ordering screen for one style at a time, with more detail and photography.",
       },
     ],
   },
@@ -72,7 +72,7 @@ const GROUPS_EN: FaqGroup[] = [
         a: "All wholesale pricing on this site is in EUR (€).",
       },
       {
-        q: "Are the prices I see in Quick Order or the Catalog final?",
+        q: "Are the prices I see in Quick Order or the Catalogue final?",
         a: "Those screens show list price (net-60) as a reference while you build your order. The final per-pair price — with any prepay or net-30 discount applied — is calculated at checkout once you select payment terms.",
       },
     ],

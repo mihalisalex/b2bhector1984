@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/format";
 import Image from "next/image";
 import Link from "next/link";
 import type { JournalPost } from "@/lib/types";
@@ -34,7 +35,7 @@ export function ArticleCard({ post, priority = false }: { post: JournalPost; pri
 
       <div className="flex flex-1 flex-col gap-2 px-1 pb-1 pt-3">
         <p className="font-mono-tab text-[11px] uppercase tracking-wide text-ink-soft">
-          {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"} ·{" "}
+          {post.publishedAt ? formatDate(post.publishedAt) : "—"} ·{" "}
           {readTimeMinutes(post.contentHtml)} min read
         </p>
         <h3 className="font-display text-base font-bold uppercase leading-tight tracking-tight text-ink">

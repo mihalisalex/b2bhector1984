@@ -76,10 +76,10 @@ export default async function JournalArticlePage({ params }: { params: Promise<{
             <p className="font-mono-tab mt-6 text-xs uppercase tracking-wide text-ink-soft">
               By {post.authorName} ·{" "}
               {post.publishedAt
-                ? new Date(post.publishedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+                ? new Date(post.publishedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
                 : "Unpublished"}
               {post.updatedAt !== post.publishedAt && post.publishedAt && (
-                <> · Updated {new Date(post.updatedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</>
+                <> · Updated {new Date(post.updatedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</>
               )}{" "}
               · {readTimeMinutes(post.contentHtml)} min read
             </p>

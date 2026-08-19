@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/format";
 import Link from "next/link";
 import { getApplication } from "@/lib/session";
 import { getApplicationById } from "@/lib/data/applications";
@@ -48,7 +49,7 @@ export default async function ApplicationPendingPage({
         {application.businessName}
       </h1>
       <p className="mt-2 text-sm text-ink-soft">
-        Submitted {new Date(application.submittedAt).toLocaleDateString("en-US")} · {application.contactName}
+        Submitted {formatDate(application.submittedAt)} · {application.contactName}
       </p>
 
       {/* Stepper */}

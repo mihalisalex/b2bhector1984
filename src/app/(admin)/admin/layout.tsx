@@ -14,7 +14,7 @@ const NAV_SECTIONS: AdminNavSection[] = [
     ],
   },
   {
-    title: "Catalog",
+    title: "Catalogue",
     items: [
       { href: "/admin/products", label: "Products" },
       { href: "/admin/seasons", label: "Seasons" },
