@@ -13,6 +13,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { useFocusTrap } from "@/lib/useFocusTrap";
 import { useI18n } from "@/i18n/I18nProvider";
 import { stripLocale, withLocale } from "@/i18n/paths";
+import { isGatedPath } from "@/lib/seoRoutes";
 
 export function MainNav({ account }: { account: Account | null }) {
   const [open, setOpen] = useState(false);
@@ -23,18 +24,21 @@ export function MainNav({ account }: { account: Account | null }) {
 
   /** Where a buyer goes to place an order — the drawer's main menu.
    *
-   * `locked` marks the routes that redirect to /login without a session (the real list lives
-   * in GATED_PREFIXES in lib/seoRoutes.ts — /catalogue and /quick-order are both on it).
+   * The padlock is derived from `isGatedPath`, not hand-maintained here. It used to be a
+   * `locked: true` flag per link, and when /catalogue became publicly readable the flag
+   * stayed behind — signed-out visitors were shown a padlock and "account required" on the
+   * one page that had just been opened up specifically so they would find it. That is the
+   * drift this file's own source of truth exists to prevent, so it now asks that source
+   * directly and there is no second list to forget.
+   *
    * It only ever renders for signed-out visitors, and only in this drawer: a padlock next to
-   * a link a buyer can already open would be noise. /collections is deliberately unlocked —
-   * it's a genuinely public page, which is what makes it worth offering here as the way to
-   * see the range before applying. */
+   * a link a buyer can already open would be noise. */
   const LINKS = useMemo(
     () => [
       { href: "/", label: dict.nav.home },
       { href: "/collections", label: dict.nav.collections },
-      { href: "/quick-order", label: dict.nav.quickOrder, locked: true },
-      { href: "/catalogue", label: dict.nav.catalogue, locked: true },
+      { href: "/quick-order", label: dict.nav.quickOrder },
+      { href: "/catalogue", label: dict.nav.catalogue },
     ],
     [dict],
   );
@@ -164,7 +168,7 @@ export function MainNav({ account }: { account: Account | null }) {
                     item={item}
                     locale={locale}
                     active={activePath === item.href}
-                    locked={!account && item.locked === true}
+                    locked={!account && isGatedPath(item.href)}
                     lockedLabel={dict.nav.accountRequired}
                   />
                 ))}
