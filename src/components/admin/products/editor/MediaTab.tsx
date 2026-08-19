@@ -11,8 +11,6 @@ import {
   updateImageAltTextAction,
   updateImageColorwayAction,
   deleteProductImageAction,
-  createDocumentUploadUrlAction,
-  finalizeDocumentUploadAction,
   deleteDocumentAction,
 } from "@/lib/productActions";
 import type { FormState } from "@/lib/actions";
@@ -50,16 +48,30 @@ export function MediaTab({ style, images, canEdit }: { style: Style; images: Sty
         </div>
       </section>
 
-      <section className="border-t border-stone-300 pt-6">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Video & 360° images</h3>
-        {canEdit && <VideoUploadForm styleId={style.id} />}
-        <div className="mt-3 space-y-2">
-          {videoAndSpins.map((doc) => (
-            <DocumentRow key={doc.id} styleId={style.id} documentId={doc.id} label={doc.label || doc.storagePath.split("/").pop() || ""} publicUrl={doc.publicUrl} prefix={doc.kind === "video" ? "Video" : "360° set"} canEdit={canEdit} showResult={showResult} />
-          ))}
-          {videoAndSpins.length === 0 && <p className="text-sm text-ink-soft">None uploaded yet.</p>}
-        </div>
-      </section>
+      {/* Video and 360° uploads were removed on 19 Aug: the business does not want them, and
+          they had never worked anyway — both wrote to a `style-documents` bucket that did not
+          exist until that day, so every attempt failed with "The related resource does not
+          exist" and the table still held zero rows.
+
+          The existing rows below are rendered rather than dropped, because `style_documents`
+          still permits the 'video' and 'image_360' kinds and a future row could arrive from
+          the database directly. There are none today; if that stays true this block and the
+          two kinds can come out of the schema's check constraint together. PDFs and other
+          documents live on the Documents tab, which is the half of this feature that is
+          wanted. */}
+      {videoAndSpins.length > 0 && (
+        <section className="border-t border-stone-300 pt-6">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Video &amp; 360° images</h3>
+          <p className="mt-1 text-xs text-ink-soft">
+            No longer offered — these are existing files. Product documents belong on the Documents tab.
+          </p>
+          <div className="mt-3 space-y-2">
+            {videoAndSpins.map((doc) => (
+              <DocumentRow key={doc.id} styleId={style.id} documentId={doc.id} label={doc.label || doc.storagePath.split("/").pop() || ""} publicUrl={doc.publicUrl} prefix={doc.kind === "video" ? "Video" : "360° set"} canEdit={canEdit} showResult={showResult} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
@@ -176,16 +188,6 @@ function ImageCard({
   );
 }
 
-function VideoUploadForm({ styleId }: { styleId: string }) {
-  return (
-    <ImageUploadForm
-      accept="video/*,image/*"
-      createUploadTarget={(fileName) => createDocumentUploadUrlAction(styleId, fileName)}
-      finalizeUpload={(path) => finalizeDocumentUploadAction(styleId, path, path.match(/\.(mp4|mov|webm)$/i) ? "video" : "image_360", "")}
-      buttonLabel="Upload video / 360° file"
-    />
-  );
-}
 
 function DocumentRow({
   styleId,
