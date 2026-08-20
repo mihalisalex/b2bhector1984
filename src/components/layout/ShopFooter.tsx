@@ -4,6 +4,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { withLocale } from "@/i18n/paths";
 import { t } from "@/i18n/format";
+import { SUPPORT_EMAIL_HREF } from "@/lib/contact";
 
 export function ShopFooter({ account, locale, dict }: { account: Account; locale: Locale; dict: Dictionary }) {
   return (
@@ -24,7 +25,7 @@ export function ShopFooter({ account, locale, dict }: { account: Account; locale
           <Link href={withLocale(locale, "/dashboard")} className="hover:text-ink">
             {dict.shopFooter.dashboard}
           </Link>
-          <a href="mailto:info@hectorfootwear.gr" className="hover:text-ink">
+          <a href={SUPPORT_EMAIL_HREF} className="hover:text-ink">
             {dict.shopFooter.support}
           </a>
         </span>

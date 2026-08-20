@@ -333,6 +333,17 @@ export interface Account {
    * something lower, for an established account earning easier reorders — see the doc
    * comment on migration 0034. */
   minOrderPairs?: number;
+  /**
+   * The language this buyer is written to in (migration 0037) — transactional email,
+   * invoices, and any server-action message returned to them.
+   *
+   * Preferred over the domain the request arrived on: an order confirmation is often sent
+   * from a background path with no request to read, and a buyer's own language beats
+   * whichever site they happened to be looking at. Backfilled by heuristic from
+   * `storeLocation`; `localeInferred` marks the ones nobody has confirmed.
+   */
+  locale?: string;
+  localeInferred?: boolean;
   resaleCertId: string;
   businessType: string;
   storeLocation: string;

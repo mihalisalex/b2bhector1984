@@ -1,5 +1,6 @@
 import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
 import { formatEUR } from "@/lib/pricing";
+import { SUPPORT_EMAIL } from "@/lib/contact";
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 10, fontFamily: "Helvetica", color: "#121212" },
@@ -105,7 +106,7 @@ export function SpecSheetDocument({ style, euSizes, boxes }: SpecSheetDocumentPr
         </View>
 
         <Text style={styles.footer}>
-          Hector Footwear Wholesale · info@hectorfootwear.gr. Materials, weights, and box breakdowns are
+          Hector Footwear Wholesale · {SUPPORT_EMAIL}. Materials, weights, and box breakdowns are
           illustrative and subject to production tolerances.
         </Text>
       </Page>

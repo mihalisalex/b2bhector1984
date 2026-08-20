@@ -1,6 +1,7 @@
 import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import { formatEUR } from "@/lib/pricing";
 import { formatDate } from "@/lib/format";
+import { SUPPORT_EMAIL } from "@/lib/contact";
 
 const TERMS_LABEL: Record<string, string> = {
   prepay: "Prepay — 10% off",
@@ -347,7 +348,7 @@ export function InvoiceDocument({
             confirmed.
           </Text>
           <Text style={styles.footerText}>
-            Hector Footwear Wholesale · info@hectorfootwear.gr · All pricing and inventory data on this document is
+            Hector Footwear Wholesale · {SUPPORT_EMAIL} · All pricing and inventory data on this document is
             illustrative.
           </Text>
         </View>

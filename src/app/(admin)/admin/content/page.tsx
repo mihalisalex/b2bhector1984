@@ -6,6 +6,7 @@ import {
   finalizeHeroImageUploadAction,
 } from "@/lib/adminActions";
 import { isWhatsAppConfigured } from "@/lib/whatsapp";
+import { originForLocale } from "@/i18n/domains";
 import { ImageUploadForm } from "@/components/admin/ImageUploadForm";
 
 export default async function AdminContentPage() {
@@ -113,8 +114,8 @@ export default async function AdminContentPage() {
           */}
           {!heroGreekComplete && (
             <p className="border border-signal bg-signal/10 px-3 py-2 text-xs font-semibold text-signal">
-              The Greek hero is incomplete — hectorfootwear.gr falls back to the English
-              text below until every Greek field is filled in.
+              The Greek hero is incomplete — {new URL(originForLocale("el")).host} falls back to
+              the English text below until every Greek field is filled in.
             </p>
           )}
 

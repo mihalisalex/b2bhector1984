@@ -1,6 +1,7 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { fromDbId, toDbId, toNumber } from "@/lib/data/dbIds";
+import { SUPPORT_EMAIL } from "@/lib/contact";
 import type { Account, AdminRole, SalesRep } from "@/lib/types";
 
 /**
@@ -20,7 +21,7 @@ import type { Account, AdminRole, SalesRep } from "@/lib/types";
 const UNASSIGNED_REP: SalesRep = {
   name: "New Accounts Team",
   title: "Wholesale Onboarding",
-  email: "info@hectorfootwear.gr",
+  email: SUPPORT_EMAIL,
   initials: "NA",
   territory: "Unassigned — a territory rep will follow up within 2 business days",
 };
@@ -41,6 +42,9 @@ interface AccountRow {
   /** Absent entirely pre-migration 0034, null for every account until an admin sets one —
    * see `Account.minOrderPairs`'s doc comment. */
   min_order_pairs?: number | string | null;
+  /** Migration 0037. Optional so this mapper still works pre-migration. */
+  locale?: string | null;
+  locale_inferred?: boolean | null;
   resale_cert_id: string;
   business_type: string;
   store_location: string;
@@ -102,6 +106,8 @@ async function mapAccount(row: AccountRow): Promise<Account> {
     creditLimit: toNumber(row.credit_limit),
     priceMultiplier: toNumber(row.price_multiplier),
     minOrderPairs: row.min_order_pairs == null ? undefined : toNumber(row.min_order_pairs),
+    locale: row.locale ?? undefined,
+    localeInferred: row.locale_inferred ?? undefined,
     resaleCertId: row.resale_cert_id,
     businessType: row.business_type,
     storeLocation: row.store_location,

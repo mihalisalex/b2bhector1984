@@ -4,6 +4,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { withLocale } from "@/i18n/paths";
 import { t } from "@/i18n/format";
+import { SUPPORT_EMAIL, SUPPORT_EMAIL_HREF } from "@/lib/contact";
 
 export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const f = dict.footer;
@@ -40,7 +41,7 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
             links={[
               { href: "/faq", label: f.faq },
               { href: "/contact", label: f.contactUs },
-              { href: "mailto:info@hectorfootwear.gr", label: "info@hectorfootwear.gr", external: true },
+              { href: SUPPORT_EMAIL_HREF, label: SUPPORT_EMAIL, external: true },
             ]}
           />
           <FooterCol

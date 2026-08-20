@@ -39,6 +39,78 @@ const en = {
     review: "Applications are reviewed manually, usually within two business days",
   },
   sizeRun: "EU 40–45",
+  /**
+   * Messages returned by Server Actions.
+   *
+   * These were hardcoded English and had no way not to be: a Server Action receives no
+   * route params, so under path-based routing there was nothing to read a locale from.
+   * Host-based routing gives them one — see getRequestLocale() in src/i18n/requestLocale.ts.
+   * A Greek buyer failing a login now fails it in Greek.
+   */
+  actions: {
+    loginFailed: "We couldn't find an active account with that email and password.",
+    accountNotActivated: "This account has not been activated yet. Contact your sales rep.",
+    resetLinkSent: "If an account exists for that email, we've sent a link to reset your password.",
+    enterAccountEmail: "Enter the email address on your wholesale account.",
+    passwordsDontMatch: "Passwords don't match.",
+    resetLinkInvalid: "This reset link is invalid or has expired. Request a new one.",
+    passwordUpdatedSignIn: "Password updated. You can now sign in.",
+    requiredFieldsMissing: "Every field marked required needs a value before we can route this to review.",
+    invalidEmail: "Enter a valid email address.",
+    activationFailed:
+      "We couldn't finish setting up your account. Please try again, or email {email} and we'll sort it out.",
+    cartInvalid: "Your cart data looks invalid. Please refresh and try again.",
+    cartEmpty: "Your cart is empty.",
+    selectShipTo: "Select a valid ship-to address.",
+    selectPaymentTerms: "Choose one of the available payment terms.",
+    profileFieldsRequired: "Business name, contact name, and email are all required.",
+    invalidPhone: "Enter a valid phone number, including country code.",
+    profileUpdated: "Profile updated.",
+    currentPasswordIncorrect: "Current password is incorrect.",
+    newPasswordMismatch: "New password and confirmation don't match.",
+    passwordUpdated: "Password updated.",
+    addressFieldsRequired: "Label, address, city, state, and ZIP are required.",
+    addressAdded: "Address added.",
+    addressNotFound: "Address not found.",
+    addressUpdated: "Address updated.",
+    assortmentInvalid: "That assortment's contents looked invalid. Please refresh and try again.",
+    assortmentNeedsName: "Give this assortment a name.",
+    assortmentNeedsStyle: "Add at least one style before saving.",
+    assortmentSaved: "Assortment saved.",
+    accountAlreadyExists:
+      "An account already exists for this email address. Sign in instead — or use “Forgot password” if you don’t have it.",
+  },
+  auth: {
+    // Login
+    portalEyebrow: "Wholesale Portal",
+    portalHeadline: "Everything your store needs to buy Hector Footwear, in one place.",
+    portalBody:
+      "Matrix ordering, terms-based pricing, pre-book and at-once inventory, net terms, and a direct line to your rep — the way the wholesale channel should run.",
+    estBadge: "EST. 1984",
+    seasonsBadge: "2 SEASONS",
+    termsBadge: "NET 30 / 60",
+    loginHeading: "Buyer Login",
+    loginIntroPre: "Approved wholesale accounts only. Not a buyer yet?",
+    applyForAccess: "Apply for access",
+    email: "Email",
+    password: "Password",
+    forgotPassword: "Forgot password?",
+    signIn: "Sign In",
+    signingIn: "Signing in…",
+    // Forgot / reset
+    forgotHeading: "Reset your password",
+    forgotIntro: "Enter the email on your wholesale account and we'll send you a link to reset your password.",
+    sendResetLink: "Send reset link",
+    sending: "Sending…",
+    backToSignIn: "Back to sign in",
+    goToSignIn: "Go to sign in",
+    chooseNewPassword: "Choose a new password",
+    passwordMinLength: "Must be at least {min} characters.",
+    newPassword: "New password",
+    confirmPassword: "Confirm password",
+    resetPassword: "Reset password",
+    saving: "Saving…",
+  },
   product: {
     description: "Description",
     features: "Features",

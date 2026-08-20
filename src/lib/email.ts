@@ -1,8 +1,6 @@
 import "server-only";
 
-// Must exactly match a sender address on a domain verified in Resend's
-// dashboard (Domains → hectorfootwear.gr) — sending fails otherwise.
-const FROM_EMAIL = "Hector Footwear Wholesale <info@hectorfootwear.gr>";
+import { FROM_EMAIL } from "@/lib/contact";
 
 export interface EmailAttachment {
   filename: string;

@@ -4,6 +4,7 @@ import { pageMetadata } from "@/lib/seo";
 import { getDictionary } from "@/i18n/getDictionary";
 import type { Locale } from "@/i18n/config";
 import { withLocale } from "@/i18n/paths";
+import { SUPPORT_EMAIL, SUPPORT_EMAIL_HREF } from "@/lib/contact";
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
@@ -48,13 +49,13 @@ export default async function ContactPage({ params }: { params: Promise<{ lang: 
             n="01"
             title={c.generalTitle}
             body={c.generalBody}
-            lines={[{ href: "mailto:info@hectorfootwear.gr", label: "info@hectorfootwear.gr" }]}
+            lines={[{ href: SUPPORT_EMAIL_HREF, label: SUPPORT_EMAIL }]}
           />
           <ContactCard
             n="02"
             title={c.newAccountsTitle}
             body={c.newAccountsBody}
-            lines={[{ href: "mailto:info@hectorfootwear.gr", label: "info@hectorfootwear.gr" }]}
+            lines={[{ href: SUPPORT_EMAIL_HREF, label: SUPPORT_EMAIL }]}
           />
           <ContactCard
             n="03"
