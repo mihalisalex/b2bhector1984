@@ -2,17 +2,31 @@ import { formatDate } from "@/lib/format";
 import Image from "next/image";
 import Link from "next/link";
 import type { JournalPost } from "@/lib/types";
+import { withLocale, type Locale } from "@/i18n/paths";
 
 function readTimeMinutes(html: string): number {
   const words = html.replace(/<[^>]*>/g, " ").split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.round(words / 200));
 }
 
-export function ArticleCard({ post, priority = false }: { post: JournalPost; priority?: boolean }) {
+export function ArticleCard({
+  post,
+  locale,
+  priority = false,
+}: {
+  post: JournalPost;
+  /** Required, not optional-with-a-default: every other marketing surface builds its hrefs
+   * with `withLocale`, and this component silently didn't — so a card on /el/journal linked
+   * to /journal/<slug> and dropped the reader back into English mid-session. */
+  locale: Locale;
+  priority?: boolean;
+}) {
+  const href = withLocale(locale, `/journal/${post.slug}`);
+
   return (
     <div className="group flex flex-col transition-transform duration-300 ease-out hover:-translate-y-0.5">
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-stone-100">
-        <Link href={`/journal/${post.slug}`} tabIndex={-1} aria-hidden className="block h-full w-full">
+        <Link href={href} tabIndex={-1} aria-hidden className="block h-full w-full">
           {post.featuredImageUrl ? (
             <Image
               src={post.featuredImageUrl}
@@ -39,13 +53,13 @@ export function ArticleCard({ post, priority = false }: { post: JournalPost; pri
           {readTimeMinutes(post.contentHtml)} min read
         </p>
         <h3 className="font-display text-base font-bold uppercase leading-tight tracking-tight text-ink">
-          <Link href={`/journal/${post.slug}`} className="hover:underline">
+          <Link href={href} className="hover:underline">
             {post.title}
           </Link>
         </h3>
         <p className="line-clamp-2 text-sm leading-relaxed text-ink-soft">{post.excerpt}</p>
         <Link
-          href={`/journal/${post.slug}`}
+          href={href}
           className="mt-auto flex items-center gap-1.5 pt-2 text-xs font-semibold uppercase tracking-wide text-signal"
         >
           Read more

@@ -9,6 +9,7 @@ import { JournalFilters } from "@/components/journal/JournalFilters";
 import { JOURNAL_CATEGORIES } from "@/lib/types";
 import { getDictionary } from "@/i18n/getDictionary";
 import type { Locale } from "@/i18n/config";
+import { withLocale } from "@/i18n/paths";
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
@@ -27,11 +28,14 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
 }
 
 export default async function JournalPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ lang: string }>;
   searchParams: Promise<{ category?: string; q?: string }>;
 }) {
-  const { category, q } = await searchParams;
+  const [{ lang }, { category, q }] = await Promise.all([params, searchParams]);
+  const locale = lang as Locale;
   const [allPosts, settings] = await Promise.all([getPublishedJournalPosts(), getSeoSettings()]);
 
   const categoryCounts = Object.fromEntries(
@@ -52,7 +56,13 @@ export default async function JournalPage({
   const featured = isDefaultView ? allPosts.filter((p) => p.featured).slice(0, 3) : [];
   const gridPosts = isDefaultView ? filtered.filter((p) => !featured.some((f) => f.id === p.id)) : filtered;
 
-  const breadcrumbSchema = buildBreadcrumbSchema([{ name: "Home", path: "/" }, { name: "Journal", path: "/journal" }], settings);
+  const breadcrumbSchema = buildBreadcrumbSchema(
+    [
+      { name: "Home", path: withLocale(locale, "/") },
+      { name: "Journal", path: withLocale(locale, "/journal") },
+    ],
+    settings,
+  );
   const collectionSchema = buildCollectionSchema({
     name: "Journal",
     description: "Wholesale buying guides, supplier sourcing advice, and footwear industry insights.",
@@ -84,7 +94,7 @@ export default async function JournalPage({
           </h2>
           <div className="mt-6 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {featured.map((post, i) => (
-              <ArticleCard key={post.id} post={post} priority={i === 0} />
+              <ArticleCard key={post.id} post={post} locale={locale} priority={i === 0} />
             ))}
           </div>
         </section>
@@ -100,7 +110,7 @@ export default async function JournalPage({
         ) : (
           <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {gridPosts.map((post) => (
-              <ArticleCard key={post.id} post={post} />
+              <ArticleCard key={post.id} post={post} locale={locale} />
             ))}
           </div>
         )}
@@ -115,10 +125,10 @@ export default async function JournalPage({
             <p className="mt-1 text-sm text-stone-300/80">Browse Hector Footwear&rsquo;s wholesale catalogue, or apply for a trade account.</p>
           </div>
           <div className="flex gap-3">
-            <LinkButton href="/collections" size="lg" variant="secondary" className="!border-white !text-white hover:!bg-white hover:!text-ink">
+            <LinkButton href={withLocale(locale, "/collections")} size="lg" variant="secondary" className="!border-white !text-white hover:!bg-white hover:!text-ink">
               Browse collections
             </LinkButton>
-            <LinkButton href="/apply" size="lg" className="!bg-white !text-ink hover:!bg-stone-200">
+            <LinkButton href={withLocale(locale, "/apply")} size="lg" className="!bg-white !text-ink hover:!bg-stone-200">
               Apply for access
             </LinkButton>
           </div>

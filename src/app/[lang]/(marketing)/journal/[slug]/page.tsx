@@ -10,6 +10,8 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { ArticleCard } from "@/components/journal/ArticleCard";
 import { LinkButton } from "@/components/ui/Button";
+import { withLocale } from "@/i18n/paths";
+import type { Locale } from "@/i18n/config";
 import type { Metadata } from "next";
 
 async function resolvePost(slug: string) {
@@ -36,18 +38,26 @@ function readTimeMinutes(html: string): number {
   return Math.max(1, Math.round(words / 200));
 }
 
-export default async function JournalArticlePage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+export default async function JournalArticlePage({
+  params,
+}: {
+  params: Promise<{ lang: string; slug: string }>;
+}) {
+  const { lang, slug } = await params;
+  const locale = lang as Locale;
   const { post, isPreview } = await resolvePost(slug);
   if (!post) notFound();
 
   const [settings, related] = await Promise.all([getSeoSettings(), getRelatedJournalPosts(post, 3)]);
 
+  // `trail` feeds both the visible breadcrumbs and `buildBreadcrumbSchema`, so leaving these
+  // unprefixed published BreadcrumbList JSON-LD pointing at English URLs from every
+  // non-English article as well as breaking the visible links.
   const trail = [
-    { name: "Home", path: "/" },
-    { name: "Journal", path: "/journal" },
-    { name: post.category, path: `/journal?category=${encodeURIComponent(post.category)}` },
-    { name: post.title, path: `/journal/${post.slug}` },
+    { name: "Home", path: withLocale(locale, "/") },
+    { name: "Journal", path: withLocale(locale, "/journal") },
+    { name: post.category, path: withLocale(locale, `/journal?category=${encodeURIComponent(post.category)}`) },
+    { name: post.title, path: withLocale(locale, `/journal/${post.slug}`) },
   ];
   const breadcrumbSchema = buildBreadcrumbSchema(trail, settings);
   const articleSchema = buildArticleSchema(post, settings);
@@ -103,7 +113,7 @@ export default async function JournalArticlePage({ params }: { params: Promise<{
               {post.tags.map((tag) => (
                 <Link
                   key={tag}
-                  href={`/journal?q=${encodeURIComponent(tag)}`}
+                  href={withLocale(locale, `/journal?q=${encodeURIComponent(tag)}`)}
                   className="border border-stone-300 px-2.5 py-1 text-xs uppercase tracking-wide text-ink-soft hover:border-ink hover:text-ink"
                 >
                   #{tag}
@@ -121,10 +131,10 @@ export default async function JournalArticlePage({ params }: { params: Promise<{
               <p className="mt-0.5 text-sm text-ink-soft">Browse the collection or apply for a wholesale account.</p>
             </div>
             <div className="flex shrink-0 gap-2">
-              <LinkButton href="/collections" size="sm" variant="secondary">
+              <LinkButton href={withLocale(locale, "/collections")} size="sm" variant="secondary">
                 Browse collections
               </LinkButton>
-              <LinkButton href="/apply" size="sm">
+              <LinkButton href={withLocale(locale, "/apply")} size="sm">
                 Apply for access
               </LinkButton>
             </div>
@@ -140,7 +150,7 @@ export default async function JournalArticlePage({ params }: { params: Promise<{
             </h2>
             <div className="mt-6 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
               {related.map((p) => (
-                <ArticleCard key={p.id} post={p} />
+                <ArticleCard key={p.id} post={p} locale={locale} />
               ))}
             </div>
           </div>
