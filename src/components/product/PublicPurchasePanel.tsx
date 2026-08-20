@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ColorwayPicker } from "@/components/product/ColorwayPicker";
+import { useI18n } from "@/i18n/I18nProvider";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import type { Style } from "@/lib/types";
 import type { StyleInventory } from "@/lib/data/inventory";
@@ -37,7 +38,7 @@ export function PublicPurchasePanel({
       <ColorwayPicker style={style} inventory={inventory} />
 
       <div className="border border-stone-300 bg-white p-5">
-        <p className="text-[11px] uppercase tracking-[0.14em] text-ink-soft">Wholesale only</p>
+        <p className="text-[11px] uppercase tracking-[0.14em] text-ink-soft">{useI18n().dict.wholesale.only}</p>
         <p className="mt-2 text-[15px] leading-relaxed text-ink">
           Trade pricing, box quantities and live stock are available to approved wholesale
           accounts. Applications are reviewed manually, usually within two business days.

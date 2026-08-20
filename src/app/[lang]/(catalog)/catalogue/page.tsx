@@ -161,6 +161,7 @@ export default async function CatalogPage({
               showPricing={showPricing}
               favorited={account ? favoriteIds.has(style.id) : undefined}
               locale={locale}
+              dict={dict}
             />
           ))}
         </div>

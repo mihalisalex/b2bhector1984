@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { backorderLabel, CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styleLabels";
 import { getUnitPrice, isOnSale } from "@/lib/pricing";
-import { useFormat } from "@/i18n/I18nProvider";
+import { useFormat, useI18n } from "@/i18n/I18nProvider";
 import { VatSuffix } from "@/components/ui/VatSuffix";
 import type { Style } from "@/lib/types";
 import type { StyleInventory } from "@/lib/data/inventory";
@@ -59,6 +59,7 @@ export function ProductCard({
   images?: StyleImage[];
 }) {
   const { eur } = useFormat();
+  const dictCatalog = useI18n().dict.catalog;
   // "Sold out" only applies when the style truly can't be ordered further; when it can
   // (allowBackorder, the new default), zero on-hand is "Made to order" instead — still
   // purchasable, just not shipping from the shelf. See PrimaryPurchasePanel/QuickAdd for
@@ -125,7 +126,7 @@ export function ProductCard({
         <div className="mt-auto border-t border-stone-200 pt-3">
           {showPricing ? (
             <>
-              <p className="text-[11px] uppercase tracking-wide text-ink-soft">Wholesale</p>
+              <p className="text-[11px] uppercase tracking-wide text-ink-soft">{dictCatalog.wholesale}</p>
               <p className="flex items-baseline gap-2">
                 {/* Burgundy only while discounted — the promotional accent, deliberately not
                     --color-ember, which reads as danger/error everywhere else in this app. */}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Dictionary } from "@/i18n/dictionaries/en";
 import { backorderLabel, CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styleLabels";
 import { formatEUR, getUnitPrice, isOnSale } from "@/lib/pricing";
 import { VatSuffix } from "@/components/ui/VatSuffix";
@@ -15,6 +16,7 @@ export function ProductListRow({
   showPricing = true,
   favorited,
   locale = "en",
+  dict,
 }: {
   style: Style;
   totalOnHand?: number;
@@ -24,6 +26,9 @@ export function ProductListRow({
   favorited?: boolean;
   /** Drives price formatting — Greek needs "24,90 €", not "€24.90". */
   locale?: string;
+  /** Server component — the caller already has the dictionary, so it is passed rather than
+   * fetched again here. */
+  dict: Dictionary;
 }) {
   // See ProductCard for the same soldOut/madeToOrder split — "Sold out" only when the
   // style genuinely can't be ordered further; zero on-hand with backorders allowed is
@@ -68,7 +73,7 @@ export function ProductListRow({
         {favorited !== undefined && <FavoriteButton styleId={style.id} initialFavorited={favorited} variant="icon" />}
         {showPricing ? (
           <div>
-            <p className="text-[11px] uppercase tracking-wide text-ink-soft">Wholesale</p>
+            <p className="text-[11px] uppercase tracking-wide text-ink-soft">{dict.catalog.wholesale}</p>
             <p className="flex items-baseline justify-end gap-1.5">
               <span className={cn("text-lg font-semibold tabular-nums", onSale ? "text-burgundy" : "text-ink")}>
                 {formatEUR(getUnitPrice(style, "net60", priceMultiplier), locale)}

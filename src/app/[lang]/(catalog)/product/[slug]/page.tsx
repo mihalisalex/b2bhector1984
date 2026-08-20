@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { CATEGORY_LABEL, GENDER_LABEL, getRelatedStyles, getStyleBySlug, getStyleImageUrl } from "@/lib/data/styles";
+import { CATEGORY_LABEL, getRelatedStyles, getStyleBySlug, getStyleImageUrl } from "@/lib/data/styles";
 import { getInventoryForStyle, getInventoryForStyles, totalOnHandForStyle } from "@/lib/data/inventory";
 import { listImagesForStyle, listImagesForStyles } from "@/lib/data/styleImages";
 import { getCurrentAccount } from "@/lib/session";
@@ -19,12 +19,16 @@ import { TrackRecentlyViewed } from "@/components/product/TrackRecentlyViewed";
 import { RecentlyViewedStrip } from "@/components/product/RecentlyViewedStrip";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getDictionary } from "@/i18n/getDictionary";
+import { localizeStyle } from "@/lib/localizeStyle";
+import { withLocale } from "@/i18n/paths";
+import { categoryLabel, genderLabel } from "@/lib/data/styleLabels";
 import type { Locale } from "@/i18n/config";
 import { productMetadata } from "@/lib/seo";
 import { buildBreadcrumbSchema, buildProductSchema } from "@/lib/seoJsonLd";
 import { getSeoSettings } from "@/lib/data/seoSettings";
 import type { Metadata } from "next";
 import type { SalesRep } from "@/lib/types";
+import type { Dictionary } from "@/i18n/dictionaries/en";
 
 /**
  * Pre-migration fallback only.
@@ -123,10 +127,10 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
           width rather than halving the photo. */}
       <div className="lg:mx-auto lg:max-w-[1200px]">
         <nav className="mb-4 flex items-center gap-1.5 text-[11px] uppercase tracking-[0.06em] text-ink-soft">
-          <Link href="/catalogue" className="hover:text-ink">Catalogue</Link>
+          <Link href={withLocale(locale, "/catalogue")} className="hover:text-ink">{dict.nav.catalogue}</Link>
           <span>/</span>
-          <Link href={`/catalogue?category=${style.category}`} className="hover:text-ink">
-            {CATEGORY_LABEL[style.category]}
+          <Link href={withLocale(locale, `/catalogue?category=${style.category}`)} className="hover:text-ink">
+            {categoryLabel(dict, style.category)}
           </Link>
           <span>/</span>
           <span className="text-ink">{style.name}</span>
@@ -175,14 +179,16 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
                   {style.styleNumber}
                 </span>
                 <span className="text-[11px] uppercase tracking-[0.14em] text-ink-soft">
-                  {CATEGORY_LABEL[style.category]} · {GENDER_LABEL[style.gender]}
+                  {categoryLabel(dict, style.category)} · {genderLabel(dict, style.gender)}
                 </span>
               </div>
 
               <h1 className="font-display mt-4 text-[2.25rem] font-bold uppercase leading-[0.95] tracking-[-0.02em] text-ink">
                 {style.name}
               </h1>
-              <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">{style.tagline}</p>
+              {/* localizeStyle, not style.tagline — the Greek copy is in tagline_el and this
+                  header was still reading the English column. */}
+              <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">{localizeStyle(style, locale).tagline}</p>
 
               <div className="mt-6">
                 {showPricing ? (
@@ -202,7 +208,7 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
                 )}
               </div>
 
-              <TrustStrip rep={account?.rep} />
+              <TrustStrip rep={account?.rep} dict={dict} />
             </div>
           </div>
         </ColorwaySelectionProvider>
@@ -253,22 +259,25 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
 }
 
 /** Reassurance row under the buy box — every line is a real policy or real account data, never a generic badge. */
-function TrustStrip({ rep }: { rep?: SalesRep }) {
+function TrustStrip({ rep, dict }: { rep?: SalesRep; dict: Dictionary }) {
+  // These four lines had dictionary keys from the day the shared wholesale strings landed
+  // (box.fixed, terms.discounts, stock.live, rep.assigned) — they were simply never wired
+  // to them, so a Greek buyer read the four policy claims in English.
   return (
     <ul className="mt-4 grid grid-cols-1 gap-2 text-xs text-ink-soft sm:grid-cols-2">
-      <TrustItem>Fixed pre-pack boxes — EU 40–45 run, no broken sizes</TrustItem>
-      <TrustItem>Prepay 10% off · Net 30 5% off · Net 60 at list</TrustItem>
-      <TrustItem>Live stock — availability updates as orders are placed</TrustItem>
+      <TrustItem>{dict.box.fixed}</TrustItem>
+      <TrustItem>{dict.terms.discounts}</TrustItem>
+      <TrustItem>{dict.stock.live}</TrustItem>
       {rep ? (
         <TrustItem>
-          Your rep{" "}
+          {dict.dashboard.yourRep}{" "}
           <a href={`mailto:${rep.email}`} className="font-medium text-ink underline hover:text-signal">
             {rep.name}
           </a>
           {rep.phone ? ` · ${rep.phone}` : ""}
         </TrustItem>
       ) : (
-        <TrustItem>Territory rep assigned to every approved account</TrustItem>
+        <TrustItem>{dict.rep.assigned}</TrustItem>
       )}
     </ul>
   );

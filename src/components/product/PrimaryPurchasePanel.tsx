@@ -6,6 +6,7 @@ import { useCart } from "@/lib/cart-context";
 import { useCatalog } from "@/lib/catalog-context";
 import { useI18n, useFormat } from "@/i18n/I18nProvider";
 import { withLocale } from "@/i18n/paths";
+import { t } from "@/i18n/format";
 import { useColorwaySelection } from "@/lib/colorway-selection-context";
 import { pickDefaultBoxType } from "@/lib/productSelectionDefaults";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
@@ -41,8 +42,9 @@ export function PrimaryPurchasePanel({
   const { addLines, lines, itemCount, minOrderPairs: accountMinOrderPairs } = useCart();
   const minOrderPairs = accountMinOrderPairs ?? MIN_ORDER_PAIRS;
   const { productionLeadTimeDays } = useCatalog();
-  const { locale } = useI18n();
+  const { locale, dict } = useI18n();
   const { eur } = useFormat();
+  const c = dict.catalog;
   const boxTypes = getAvailableBoxTypes(style);
 
   const { colorwayId } = useColorwaySelection();
@@ -146,11 +148,11 @@ export function PrimaryPurchasePanel({
         <div className="space-y-5 px-5 py-5 sm:px-6">
           <div>
             <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">
-              Box size
+              {c.boxSize}
             </p>
             {/* Pills, not full-width tiles — with a single box type this used to render as
                 one giant solid-black bar, which read as a second call-to-action competing
-                with "Add to cart" rather than a quiet selector. */}
+                with c.addToCart rather than a quiet selector. */}
             {boxTypes.length > 1 ? (
               <div className="flex flex-wrap gap-2">
                 {boxTypes.map((b) => {
@@ -169,29 +171,29 @@ export function PrimaryPurchasePanel({
                         stock === 0 && !allowBackorder && "opacity-45",
                       )}
                     >
-                      {b.totalPairs}-Pair Box
+                      {t(c.prePackBox, { pairs: b.totalPairs })}
                     </button>
                   );
                 })}
               </div>
             ) : (
-              <p className="text-sm font-medium text-ink">{boxTypes[0].totalPairs}-pair pre-pack box</p>
+              <p className="text-sm font-medium text-ink">{t(c.prePackBox, { pairs: boxTypes[0].totalPairs })}</p>
             )}
           </div>
 
           <div className="flex items-center justify-between gap-3">
             <p className="mb-0 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">
-              Boxes
+              {c.boxes}
             </p>
             <p className={cn("text-xs font-medium", outOfStock || lowStock || willBeProduction ? "text-ember" : "text-ink-soft")}>
               {outOfStock
-                ? "Out of stock in this combination"
+                ? c.outOfStockCombo
                 : willBeProduction
                   ? style.backorderMode === "pre_order"
-                    ? "Available for pre-order — ships upon arrangement"
-                    : `Made to order — ships in ~${productionLeadTimeDays} days`
+                    ? c.preOrderShips
+                    : t(c.madeToOrderShips, { days: productionLeadTimeDays })
                   : lowStock
-                    ? `Only ${onHand} left`
+                    ? t(c.onlyLeft, { count: onHand })
                     : `${onHand} in stock`}
               {existingQty > 0 && <span className="text-ink-soft"> · {existingQty} in cart</span>}
             </p>
@@ -210,14 +212,13 @@ export function PrimaryPurchasePanel({
 
             {!outOfStock && (
               <p className={cn("mt-2 text-[11px] leading-snug", pairsShort > 0 ? "text-ink-soft" : "text-positive")}>
-                {pairsShort > 0 ? (
-                  <>
-                    Takes your order to <span className="font-semibold text-ink">{pairsAfterAdd} pairs</span> —{" "}
-                    {pairsShort} short of the {minOrderPairs}-pair minimum, mixable across any styles.
-                  </>
-                ) : (
-                  <>Meets the {minOrderPairs}-pair order minimum ({pairsAfterAdd} pairs after adding).</>
-                )}
+                {/* Whole sentences from the dictionary rather than JSX fragments around a
+                    bolded number: Greek inflects the rest of the clause with the count, so
+                    the sentence cannot be assembled around a <span> in the middle. The
+                    emphasis is the cost of translating this correctly. */}
+                {pairsShort > 0
+                  ? t(c.takesOrderTo, { pairs: pairsAfterAdd, short: pairsShort, min: minOrderPairs })
+                  : t(c.meetsMinimum, { min: minOrderPairs, pairs: pairsAfterAdd })}
               </p>
             )}
 
@@ -273,7 +274,7 @@ export function PrimaryPurchasePanel({
                     {eur(listUnitPrice)}
                   </span>
                 )}
-                <span className="text-[11px] text-ink-soft">/ pair · {selectedColorway.name}</span>
+                <span className="text-[11px] text-ink-soft">{c.perPair} · {selectedColorway.name}</span>
                 {onSale && <SaleBadge style={style} />}
               </p>
             </div>
@@ -290,10 +291,13 @@ export function PrimaryPurchasePanel({
               className="flex-1 rounded-full bg-ink px-3 text-xs font-semibold uppercase tracking-[0.08em] text-white transition-transform active:scale-[0.99] disabled:bg-cinder-300 disabled:text-white/70"
             >
               {outOfStock
-                ? "Sold out"
+                ? c.soldOut
                 : justAdded
-                  ? "Added to cart ✓"
-                  : `Add ${box.totalPairs}-pair box${addQty > 1 ? "es" : ""} · ${eur(subtotal)}${vatSuffixText(style.vatRate)}`}
+                  ? c.addedToCart
+                  : t(addQty > 1 ? c.addBoxesPlural : c.addBoxes, {
+                      pairs: box.totalPairs,
+                      total: `${eur(subtotal)}${vatSuffixText(style.vatRate)}`,
+                    })}
             </button>
           </div>
         </div>
@@ -321,6 +325,7 @@ function Stepper({
   disabled?: boolean;
   onStep: (delta: number) => void;
 }) {
+  const c = useI18n().dict.catalog;
   return (
     // EXPERIMENTAL rounded-full, 2026-08-10 — see Button.tsx's `base` comment for the revert
     // path. `overflow-hidden` caps the square inner buttons into the pill shape.
@@ -329,7 +334,7 @@ function Stepper({
         type="button"
         onClick={() => onStep(-1)}
         disabled={disabled || qty <= 1}
-        aria-label="Decrease quantity"
+        aria-label={c.decreaseQty}
         className="flex h-11 w-10 items-center justify-center text-ink transition-colors hover:bg-stone-200 disabled:opacity-30 disabled:hover:bg-transparent"
       >
         <StepIcon kind="minus" />
@@ -341,7 +346,7 @@ function Stepper({
         type="button"
         onClick={() => onStep(1)}
         disabled={disabled || qty >= max}
-        aria-label="Increase quantity"
+        aria-label={c.increaseQty}
         className="flex h-11 w-10 items-center justify-center text-ink transition-colors hover:bg-stone-200 disabled:opacity-30 disabled:hover:bg-transparent"
       >
         <StepIcon kind="plus" />
