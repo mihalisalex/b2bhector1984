@@ -22,6 +22,7 @@ export interface LocalizedStyleCopy {
   description: string;
   materials: string[];
   lastNote: string;
+  features: string[];
 }
 
 export function localizeStyle(style: Style, locale: Locale): LocalizedStyleCopy {
@@ -31,6 +32,7 @@ export function localizeStyle(style: Style, locale: Locale): LocalizedStyleCopy 
       description: style.description,
       materials: style.materials,
       lastNote: style.lastNote,
+      features: style.features,
     };
   }
   return {
@@ -38,6 +40,9 @@ export function localizeStyle(style: Style, locale: Locale): LocalizedStyleCopy 
     description: style.descriptionEl ?? style.description,
     materials: style.materialsEl ?? style.materials,
     lastNote: style.lastNoteEl ?? style.lastNote,
+    // No English fallback: `features` is empty for every style today, so falling back would
+    // swap a full Greek list for an empty one. The Greek list stands on its own.
+    features: style.featuresEl ?? style.features,
   };
 }
 

@@ -1,6 +1,37 @@
 import type { Dictionary } from "@/i18n/dictionaries/en";
 
 const de: Dictionary = {
+  availability: {
+    available: "Sofort verfügbar",
+    preorder: "Vorbestellung",
+    madeToOrder: "Auf Bestellung gefertigt",
+  },
+  wholesale: {
+    only: "Nur Großhandel",
+  },
+  box: {
+    fixed: "Feste Vorpack-Kartons — Größenlauf EU 40–45, keine Einzelgrößen",
+    noSinglePairs: "Einzelpaare werden im Großhandel nicht verkauft",
+    box10: "Karton mit 10 Paar",
+    box8: "Karton mit 8 Paar",
+  },
+  terms: {
+    discounts: "Vorkasse 10% · Net 30 5% · Net 60 zum Listenpreis",
+  },
+  stock: {
+    live: "Live-Bestand — die Verfügbarkeit aktualisiert sich mit jeder Bestellung",
+  },
+  rep: {
+    assigned: "Jedem freigegebenen Konto wird ein Gebietsvertreter zugewiesen",
+  },
+  pricing: {
+    onApproval: "Großhandelspreise nach Freigabe",
+    vat: "Alle Preise sind Großhandelspreise, zzgl. 24% MwSt.",
+  },
+  apply: {
+    review: "Anträge werden manuell geprüft, in der Regel innerhalb von zwei Werktagen",
+  },
+  sizeRun: "EU 40–45",
   tax: {
     vatExcludedNotice: "Alle Preise sind Großhandelspreise, zzgl. {rate}% MwSt.",
     vatExcludedMixed: "Alle Preise sind Großhandelspreise, zzgl. MwSt.",

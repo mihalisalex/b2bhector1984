@@ -1,6 +1,37 @@
 import type { Dictionary } from "@/i18n/dictionaries/en";
 
 const fr: Dictionary = {
+  availability: {
+    available: "Disponible immédiatement",
+    preorder: "Précommande",
+    madeToOrder: "Fabriqué sur commande",
+  },
+  wholesale: {
+    only: "Vente en gros uniquement",
+  },
+  box: {
+    fixed: "Cartons prédéfinis — série EU 40–45, sans pointures dépareillées",
+    noSinglePairs: "Les paires à l'unité ne sont pas vendues en gros",
+    box10: "Carton de 10 paires",
+    box8: "Carton de 8 paires",
+  },
+  terms: {
+    discounts: "Prépaiement −10% · Net 30 −5% · Net 60 au prix catalogue",
+  },
+  stock: {
+    live: "Stock en direct — la disponibilité se met à jour à chaque commande",
+  },
+  rep: {
+    assigned: "Un représentant régional est affecté à chaque compte approuvé",
+  },
+  pricing: {
+    onApproval: "Tarifs de gros après validation du compte",
+    vat: "Tous les prix sont des prix de gros, hors TVA 24%",
+  },
+  apply: {
+    review: "Les demandes sont examinées manuellement, généralement sous deux jours ouvrés",
+  },
+  sizeRun: "EU 40–45",
   tax: {
     vatExcludedNotice: "Tous les prix sont des prix de gros, hors TVA {rate}%.",
     vatExcludedMixed: "Tous les prix sont des prix de gros, hors TVA.",

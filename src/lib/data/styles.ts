@@ -26,6 +26,9 @@ interface StyleRow {
   description_el?: string | null;
   materials_el?: string[] | null;
   last_note_el?: string | null;
+  // Migration 0038.
+  features?: string[] | null;
+  features_el?: string[] | null;
   base_price: number | string;
   msrp: number | string;
   weight_oz: number | string | null;
@@ -168,6 +171,8 @@ function assembleStyles(
       descriptionEl: s.description_el?.trim() || undefined,
       materialsEl: s.materials_el?.length ? s.materials_el : undefined,
       lastNoteEl: s.last_note_el?.trim() || undefined,
+      features: s.features ?? [],
+      featuresEl: s.features_el?.length ? s.features_el : undefined,
       colorways,
       basePrice: toNumber(s.base_price),
       msrp: toNumber(s.msrp),

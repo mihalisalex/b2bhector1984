@@ -192,6 +192,13 @@ export interface Style {
   descriptionEl?: string;
   materialsEl?: string[];
   lastNoteEl?: string;
+  /**
+   * Bullet-list product features (migration 0038). Distinct from `materials`, which is a
+   * flat spec line — these are selling points a retailer can lift straight into their own
+   * shop listing. English starts empty; the section renders only when it has rows.
+   */
+  features: string[];
+  featuresEl?: string[];
   colorways: Colorway[];
   basePrice: number;
   msrp: number;

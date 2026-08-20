@@ -1,4 +1,44 @@
 const en = {
+  /**
+   * Shared wholesale UI strings, supplied by the owner alongside the Greek product copy
+   * ("Κοινά κείμενα χονδρικής"). Key names are exactly as given in that file.
+   *
+   * NOTE: `pricing.vat` overlaps `tax.vatExcludedNotice` below. The supplied string
+   * hardcodes "24%"; the tax one interpolates {rate} from DEFAULT_VAT_RATE, so it cannot
+   * drift from the rate the invoice actually charges. Both are kept for now — see the
+   * commit message — but new call sites should use `tax.vatExcludedNotice`.
+   */
+  availability: {
+    available: "Available now",
+    preorder: "Pre-order",
+    madeToOrder: "Made to order",
+  },
+  wholesale: {
+    only: "Wholesale only",
+  },
+  box: {
+    fixed: "Fixed pre-pack boxes — EU 40–45 run, no broken sizes",
+    noSinglePairs: "Single pairs aren't sold wholesale",
+    box10: "10-pair box",
+    box8: "8-pair box",
+  },
+  terms: {
+    discounts: "Prepay 10% off · Net 30 5% off · Net 60 at list",
+  },
+  stock: {
+    live: "Live stock — availability updates as orders are placed",
+  },
+  rep: {
+    assigned: "Territory rep assigned to every approved account",
+  },
+  pricing: {
+    onApproval: "Trade pricing on approval",
+    vat: "All prices are wholesale, excluding 24% VAT",
+  },
+  apply: {
+    review: "Applications are reviewed manually, usually within two business days",
+  },
+  sizeRun: "EU 40–45",
   tax: {
     /** Shown on every surface that displays a price. `{rate}` is VAT_PERCENT. */
     vatExcludedNotice: "All prices are wholesale, excluding {rate}% VAT.",

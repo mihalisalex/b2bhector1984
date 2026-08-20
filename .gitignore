@@ -46,3 +46,6 @@ next-env.d.ts
 
 # local working notes, never part of the build
 /DASHBORAD PLAN.txt
+
+# Generated translation worksheet (npx tsx scripts/exportGreekReview.ts)
+greek-review.csv
