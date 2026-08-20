@@ -5,16 +5,6 @@ import type { Style } from "@/lib/types";
  * Plain static label maps — kept out of styles.ts (which is `server-only`)
  * so client components can import them without pulling in the Supabase reads.
  */
-/**
- * What to call a style that can be ordered past its on-hand stock. Shared by the
- * catalogue card and the list row, which had the same ternary inline — the wording here
- * has already been revised once across several files at once, so it belongs in one place.
- * Only meaningful when the style actually allows backorders; callers check that first.
- */
-export function backorderLabel(style: Style): string {
-  return style.backorderMode === "pre_order" ? "Pre-order" : "Made to order";
-}
-
 export const CATEGORY_LABEL: Record<Style["category"], string> = {
   loafers: "Loafers",
   wedding: "Wedding",
@@ -85,4 +75,43 @@ export function genderLabel(dict: Dictionary, gender: Style["gender"]): string {
 export function seasonLabel(dict: Dictionary, season: Style["season"]): string {
   const c = dict.catalog;
   return { summer: c.seasonSummer, winter: c.seasonWinter, both: c.seasonBoth }[season] ?? SEASON_LABEL[season];
+}
+
+/**
+ * Labels for the catalogue facets. The option arrays in catalogFilters.ts / catalogSort.ts
+ * still carry an English `label` — that is what the ADMIN screens and CSV exports read, and
+ * they stay English by decision. These lookups are what the buyer-facing toolbars use
+ * instead, so the same option list can serve both without a second source of truth for the
+ * values themselves.
+ */
+export function sortLabel(dict: Dictionary, sort: string): string {
+  const c = dict.catalog;
+  return {
+    newest: c.sortNewest,
+    oldest: c.sortOldest,
+    best_selling: c.sortBestSelling,
+    price_asc: c.sortPriceAsc,
+    price_desc: c.sortPriceDesc,
+    alphabetical: c.sortAlphabetical,
+  }[sort] ?? sort;
+}
+
+export function flagLabel(dict: Dictionary, flag: string): string {
+  const c = dict.catalog;
+  return { instock: c.flagInstock, sale: c.flagSale, featured: c.flagFeatured }[flag] ?? flag;
+}
+
+export function availabilityLabel(dict: Dictionary, value: string): string {
+  const c = dict.catalog;
+  return { available: c.availAvailable, prebook: c.availPrebook }[value] ?? value;
+}
+
+export function priceBandLabel(dict: Dictionary, bandId: string): string {
+  const c = dict.catalog;
+  return { u30: c.bandUnder30, "30-40": c.band30to40, "40-50": c.band40to50, "50up": c.band50up }[bandId] ?? bandId;
+}
+
+/** Pre-order vs made-to-order, localised. Replaces the English-only `backorderLabel`. */
+export function backorderLabelFor(dict: Dictionary, style: Style): string {
+  return style.backorderMode === "pre_order" ? dict.catalog.preOrder : dict.catalog.madeToOrder;
 }

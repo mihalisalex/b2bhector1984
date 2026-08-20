@@ -36,7 +36,7 @@ export default async function JournalPage({
 }) {
   const [{ lang }, { category, q }] = await Promise.all([params, searchParams]);
   const locale = lang as Locale;
-  const [allPosts, settings] = await Promise.all([getPublishedJournalPosts(locale), getSeoSettings()]);
+  const [allPosts, settings, dict] = await Promise.all([getPublishedJournalPosts(locale), getSeoSettings(), getDictionary(locale)]);
 
   const categoryCounts = Object.fromEntries(
     JOURNAL_CATEGORIES.map((c) => [c, allPosts.filter((p) => p.category === c).length]),
@@ -58,7 +58,7 @@ export default async function JournalPage({
 
   const breadcrumbSchema = buildBreadcrumbSchema(
     [
-      { name: "Home", path: withLocale(locale, "/") },
+      { name: dict.catalog.home, path: withLocale(locale, "/") },
       { name: "Journal", path: withLocale(locale, "/journal") },
     ],
     settings,

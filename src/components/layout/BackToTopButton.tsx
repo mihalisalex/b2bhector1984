@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/i18n/I18nProvider";
 
 const SHOW_AFTER_PX = 480;
 
@@ -10,6 +11,7 @@ const SHOW_AFTER_PX = 480;
  * the "bordered" recipe) since this one is fixed-positioned and visibility-driven rather than
  * a plain inline trigger. Rendered once in the root layout, sits above page content. */
 export function BackToTopButton() {
+  const { dict } = useI18n();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -29,7 +31,7 @@ export function BackToTopButton() {
     <button
       type="button"
       onClick={scrollToTop}
-      aria-label="Back to top"
+      aria-label={dict.catalog.backToTop}
       tabIndex={visible ? 0 : -1}
       className={cn(
         "fixed bottom-6 right-6 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-stone-300 bg-stone-50/90 text-ink shadow-sm backdrop-blur transition-all duration-300 ease-out hover:border-ink hover:text-signal",

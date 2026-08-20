@@ -87,9 +87,11 @@ export default async function LocaleLayout({
       <body className="flex min-h-full flex-col bg-stone-50 text-ink">
         <I18nProvider locale={lang} dict={dict}>
           {children}
+          {/* Inside the provider: the banner reads the dictionary, and it is the one piece of
+              chrome a Greek visitor sees before anything else on the page. */}
+          <CookieConsentBanner />
+          <BackToTopButton />
         </I18nProvider>
-        <CookieConsentBanner />
-        <BackToTopButton />
         <JsonLd schema={siteSchemas} />
       </body>
     </html>

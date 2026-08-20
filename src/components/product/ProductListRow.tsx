@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Dictionary } from "@/i18n/dictionaries/en";
-import { backorderLabel, CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styleLabels";
+import { backorderLabelFor, categoryLabel, genderLabel, getStyleImageUrl } from "@/lib/data/styleLabels";
 import { formatEUR, getUnitPrice, isOnSale } from "@/lib/pricing";
 import { VatSuffix } from "@/components/ui/VatSuffix";
 import type { Style } from "@/lib/types";
@@ -35,7 +35,7 @@ export function ProductListRow({
   // "Made to order" instead.
   const soldOut = totalOnHand === 0 && !style.allowBackorder;
   const madeToOrder = totalOnHand === 0 && style.allowBackorder;
-  const backorderText = backorderLabel(style);
+  const backorderText = backorderLabelFor(dict, style);
   const lowStock = typeof totalOnHand === "number" && totalOnHand > 0 && totalOnHand <= 10;
   const onSale = isOnSale(style);
 
@@ -57,8 +57,8 @@ export function ProductListRow({
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <AvailabilityBadge style={style} />
-          <span className="text-[11px] uppercase tracking-wide text-ink-soft">{CATEGORY_LABEL[style.category]}</span>
-          <span className="text-[11px] uppercase tracking-wide text-ink-soft">{GENDER_LABEL[style.gender]}</span>
+          <span className="text-[11px] uppercase tracking-wide text-ink-soft">{categoryLabel(dict, style.category)}</span>
+          <span className="text-[11px] uppercase tracking-wide text-ink-soft">{genderLabel(dict, style.gender)}</span>
         </div>
         <h3 className="font-display mt-1 truncate text-base font-bold uppercase leading-tight tracking-tight text-ink group-hover:underline">
           {style.name}

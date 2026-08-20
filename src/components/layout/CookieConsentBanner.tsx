@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useI18n } from "@/i18n/I18nProvider";
+import { withLocale } from "@/i18n/paths";
 
 const STORAGE_KEY = "hector_cookie_notice_dismissed";
 
 export function CookieConsentBanner() {
+  const { dict, locale } = useI18n();
   const [dismissed, setDismissed] = useState(true);
 
   useEffect(() => {
@@ -31,23 +34,27 @@ export function CookieConsentBanner() {
 
   if (dismissed) return null;
 
+  const [before, after] = dict.cookieBanner.body.split("{link}");
+
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-stone-300 bg-ink px-6 py-4 text-stone-200">
       <div className="mx-auto flex max-w-[1440px] flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <p className="max-w-2xl text-xs leading-relaxed text-stone-300/80">
-          This site uses essential cookies only, to keep you signed in and track your wholesale
-          application. See our{" "}
-          <Link href="/cookies" className="underline underline-offset-2 hover:text-white">
-            Cookie Notice
-          </Link>{" "}
-          for details.
+          {/* The sentence is one dictionary string with a {link} placeholder rather than two
+              fragments around a hardcoded link — Greek puts the article before "Ενημέρωση"
+              and inflects it, so the words on either side of the link are not fixed. */}
+          {before}
+          <Link href={withLocale(locale, "/cookies")} className="underline underline-offset-2 hover:text-white">
+            {dict.footer.cookieNotice}
+          </Link>
+          {after}
         </p>
         <button
           type="button"
           onClick={dismiss}
           className="shrink-0 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-wide text-ink hover:bg-stone-200"
         >
-          Got it
+          {dict.cookieBanner.accept}
         </button>
       </div>
     </div>

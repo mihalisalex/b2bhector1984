@@ -6,6 +6,18 @@ import { FLAG_OPTIONS, PRICE_BANDS } from "@/lib/catalogFilters";
 import { SORT_OPTIONS } from "@/lib/catalogSort";
 import { TextAction } from "@/components/ui/TextAction";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/i18n/I18nProvider";
+import { t } from "@/i18n/format";
+import {
+  availabilityLabel,
+  categoryLabel,
+  flagLabel,
+  genderLabel,
+  priceBandLabel,
+  seasonLabel,
+  sortLabel,
+} from "@/lib/data/styleLabels";
+import type { Category, Gender, Season } from "@/lib/types";
 
 const DEFAULT_SEASON_OPTIONS = [
   { value: "summer", label: "Summer" },
@@ -43,6 +55,7 @@ export function CatalogSearchInput() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const c = useI18n().dict.catalog;
   const [searchValue, setSearchValue] = useState(searchParams.get("q") ?? "");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -71,8 +84,8 @@ export function CatalogSearchInput() {
       type="search"
       value={searchValue}
       onChange={(e) => handleSearchChange(e.target.value)}
-      placeholder="Search style name or number"
-      aria-label="Search styles"
+      placeholder={c.searchPlaceholder}
+      aria-label={c.searchStyles}
       className="w-full rounded-full border border-stone-300 bg-white px-4 py-2 text-sm outline-none focus-visible:border-signal sm:w-64"
     />
   );
@@ -92,6 +105,8 @@ export function CatalogFiltersPanel({
   flagOptions?: readonly (typeof FLAG_OPTIONS)[number][];
 }) {
   const router = useRouter();
+  const { dict } = useI18n();
+  const c = dict.catalog;
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
@@ -177,17 +192,17 @@ export function CatalogFiltersPanel({
           activeCount > 0 || open ? "border-ink bg-ink text-white" : "border-ink text-ink hover:bg-ink hover:text-white",
         )}
       >
-        Filters {activeCount > 0 && `(${activeCount})`}
+        {c.filters} {activeCount > 0 && `(${activeCount})`}
       </button>
 
       {open && (
         <div className="absolute right-0 top-full z-40 mt-2 flex max-h-[70vh] w-72 flex-col gap-5 overflow-y-auto border border-stone-300 bg-white p-4 text-left shadow-lg">
           {flagOptions.length > 0 && (
-            <FilterGroup title="Show only">
+            <FilterGroup title={c.grpShowOnly}>
               {flagOptions.map((opt) => (
                 <Checkbox
                   key={opt.value}
-                  label={opt.label}
+                  label={flagLabel(dict, opt.value)}
                   checked={isChecked("flag", opt.value)}
                   onChange={() => toggle("flag", opt.value)}
                 />
@@ -196,48 +211,48 @@ export function CatalogFiltersPanel({
           )}
 
           {seasonOptions.length > 0 && (
-            <FilterGroup title="Season">
+            <FilterGroup title={c.grpSeason}>
               {seasonOptions.map((opt) => (
-                <Checkbox key={opt.value} label={opt.label} checked={isChecked("season", opt.value)} onChange={() => toggleSeason(opt.value)} />
+                <Checkbox key={opt.value} label={seasonLabel(dict, opt.value as Season)} checked={isChecked("season", opt.value)} onChange={() => toggleSeason(opt.value)} />
               ))}
             </FilterGroup>
           )}
 
-          <FilterGroup title="Category">
+          <FilterGroup title={c.grpCategory}>
             {visibleCategoryOptions.map((opt) => (
-              <Checkbox key={opt.value} label={opt.label} checked={isChecked("category", opt.value)} onChange={() => toggle("category", opt.value)} />
+              <Checkbox key={opt.value} label={categoryLabel(dict, opt.value as Category)} checked={isChecked("category", opt.value)} onChange={() => toggle("category", opt.value)} />
             ))}
           </FilterGroup>
 
-          <FilterGroup title="Gender">
+          <FilterGroup title={c.grpGender}>
             {GENDER_OPTIONS.map((opt) => (
-              <Checkbox key={opt.value} label={opt.label} checked={isChecked("gender", opt.value)} onChange={() => toggle("gender", opt.value)} />
+              <Checkbox key={opt.value} label={genderLabel(dict, opt.value as Gender)} checked={isChecked("gender", opt.value)} onChange={() => toggle("gender", opt.value)} />
             ))}
           </FilterGroup>
 
-          <FilterGroup title="Delivery window">
+          <FilterGroup title={c.grpDelivery}>
             {AVAILABILITY_OPTIONS.map((opt) => (
-              <Checkbox key={opt.value} label={opt.label} checked={isChecked("availability", opt.value)} onChange={() => toggle("availability", opt.value)} />
+              <Checkbox key={opt.value} label={availabilityLabel(dict, opt.value)} checked={isChecked("availability", opt.value)} onChange={() => toggle("availability", opt.value)} />
             ))}
           </FilterGroup>
 
           {colorOptions.length > 0 && (
-            <FilterGroup title="Colorway">
+            <FilterGroup title={c.grpColorway}>
               {colorOptions.map((name) => (
                 <Checkbox key={name} label={name} checked={isChecked("color", name)} onChange={() => toggle("color", name)} />
               ))}
             </FilterGroup>
           )}
 
-          <FilterGroup title="Wholesale price">
+          <FilterGroup title={c.grpPrice}>
             {PRICE_BANDS.map((band) => (
-              <Checkbox key={band.id} label={band.label} checked={isChecked("price", band.id)} onChange={() => toggle("price", band.id)} />
+              <Checkbox key={band.id} label={priceBandLabel(dict, band.id)} checked={isChecked("price", band.id)} onChange={() => toggle("price", band.id)} />
             ))}
           </FilterGroup>
 
           {activeCount > 0 && (
             <TextAction tone="accent" onClick={clearAll} className="text-left">
-              Clear all filters
+              {c.clearAllFilters}
             </TextAction>
           )}
         </div>
@@ -257,6 +272,8 @@ export function CatalogResultsToolbar({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { dict } = useI18n();
+  const c = dict.catalog;
 
   const setParam = useCallback(
     (key: string, value: string) => {
@@ -273,7 +290,9 @@ export function CatalogResultsToolbar({
 
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="font-mono-tab text-xs text-ink-soft">{resultCount} styles</span>
+      <span className="font-mono-tab text-xs text-ink-soft">
+        {resultCount === 1 ? c.styleCountOne : t(c.styleCount, { count: resultCount })}
+      </span>
       <div className="flex items-center gap-2">
         <SortSelect value={sort} onChange={(v) => setParam("sort", v)} />
         {showViewToggle && <ViewToggle view={view} onChange={(v) => setParam("view", v)} />}
@@ -283,28 +302,31 @@ export function CatalogResultsToolbar({
 }
 
 function SortSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const { dict } = useI18n();
+  const c = dict.catalog;
   return (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      aria-label="Sort by"
+      aria-label={c.sortBy}
       className="rounded-full border border-stone-300 bg-white px-4 py-2 text-xs uppercase tracking-wide text-ink-soft outline-none focus-visible:border-signal"
     >
       {SORT_OPTIONS.map((o) => (
-        <option key={o.value} value={o.value}>{`Sort: ${o.label}`}</option>
+        <option key={o.value} value={o.value}>{`${c.sortPrefix}: ${sortLabel(dict, o.value)}`}</option>
       ))}
     </select>
   );
 }
 
 function ViewToggle({ view, onChange }: { view: string; onChange: (v: "grid" | "list") => void }) {
+  const c = useI18n().dict.catalog;
   return (
     <div className="flex items-center overflow-hidden rounded-full border border-stone-300 text-xs font-semibold uppercase tracking-wide">
       <button
         type="button"
         onClick={() => onChange("grid")}
         aria-pressed={view === "grid"}
-        aria-label="Grid view"
+        aria-label={c.gridView}
         className={cn("px-2.5 py-1.5 transition-colors", view === "grid" ? "bg-ink text-white" : "bg-white text-ink-soft hover:text-ink")}
       >
         <GridIcon />
@@ -313,7 +335,7 @@ function ViewToggle({ view, onChange }: { view: string; onChange: (v: "grid" | "
         type="button"
         onClick={() => onChange("list")}
         aria-pressed={view === "list"}
-        aria-label="List view"
+        aria-label={c.listView}
         className={cn(
           "border-l border-stone-300 px-2.5 py-1.5 transition-colors",
           view === "list" ? "bg-ink text-white" : "bg-white text-ink-soft hover:text-ink",

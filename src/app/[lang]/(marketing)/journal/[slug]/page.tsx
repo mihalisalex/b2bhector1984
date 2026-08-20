@@ -1,3 +1,4 @@
+import { getDictionary } from "@/i18n/getDictionary";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -48,13 +49,13 @@ export default async function JournalArticlePage({
   const { post, isPreview } = await resolvePost(slug);
   if (!post) notFound();
 
-  const [settings, related] = await Promise.all([getSeoSettings(), getRelatedJournalPosts(post, 3)]);
+  const [settings, related, dict] = await Promise.all([getSeoSettings(), getRelatedJournalPosts(post, 3), getDictionary(locale)]);
 
   // `trail` feeds both the visible breadcrumbs and `buildBreadcrumbSchema`, so leaving these
   // unprefixed published BreadcrumbList JSON-LD pointing at English URLs from every
   // non-English article as well as breaking the visible links.
   const trail = [
-    { name: "Home", path: withLocale(locale, "/") },
+    { name: dict.catalog.home, path: withLocale(locale, "/") },
     { name: "Journal", path: withLocale(locale, "/journal") },
     { name: post.category, path: withLocale(locale, `/journal?category=${encodeURIComponent(post.category)}`) },
     { name: post.title, path: withLocale(locale, `/journal/${post.slug}`) },
@@ -75,7 +76,7 @@ export default async function JournalArticlePage({
       <article>
         <header className="border-b border-stone-300 bg-stone-100 px-6 py-14 lg:px-10">
           <div className="mx-auto max-w-3xl">
-            <Breadcrumbs trail={trail.map((t) => ({ name: t.name, path: t.path }))} />
+            <Breadcrumbs trail={trail.map((t) => ({ name: t.name, path: t.path }))} dict={dict} />
             <span className="mt-4 inline-block bg-ink px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
               {post.category}
             </span>

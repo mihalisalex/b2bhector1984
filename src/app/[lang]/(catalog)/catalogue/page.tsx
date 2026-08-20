@@ -1,3 +1,4 @@
+import { withLocale } from "@/i18n/paths";
 import { Suspense } from "react";
 import Link from "next/link";
 import { getStorefrontStyles, searchStyleIds } from "@/lib/data/styles";
@@ -86,7 +87,9 @@ export default async function CatalogPage({
           /login — a dead end on a page that is now public, and a crawlable link into a
           gated route. Signed-in buyers still get their dashboard. */}
       <nav className="mb-3 text-xs text-ink-soft">
-        <Link href={account ? "/dashboard" : "/"} className="hover:text-ink">Home</Link>{" "}
+        <Link href={withLocale(locale, account ? "/dashboard" : "/")} className="hover:text-ink">
+          {dict.catalog.home}
+        </Link>{" "}
         <span className="mx-1">/</span> <span className="text-ink">{dict.nav.catalogue}</span>
       </nav>
       <div className="mb-6 flex flex-col gap-3 border-b border-stone-300 pb-6 sm:flex-row sm:items-end sm:justify-between">

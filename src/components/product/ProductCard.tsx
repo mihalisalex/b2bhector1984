@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { backorderLabel, CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styleLabels";
+import { backorderLabelFor, categoryLabel, genderLabel, getStyleImageUrl } from "@/lib/data/styleLabels";
 import { getUnitPrice, isOnSale } from "@/lib/pricing";
 import { useFormat, useI18n } from "@/i18n/I18nProvider";
 import { VatSuffix } from "@/components/ui/VatSuffix";
@@ -59,14 +59,15 @@ export function ProductCard({
   images?: StyleImage[];
 }) {
   const { eur } = useFormat();
-  const dictCatalog = useI18n().dict.catalog;
+  const { dict } = useI18n();
+  const dictCatalog = dict.catalog;
   // "Sold out" only applies when the style truly can't be ordered further; when it can
   // (allowBackorder, the new default), zero on-hand is "Made to order" instead — still
   // purchasable, just not shipping from the shelf. See PrimaryPurchasePanel/QuickAdd for
   // the same distinction applied to the actual add-to-cart controls.
   const soldOut = totalOnHand === 0 && !style.allowBackorder;
   const madeToOrder = totalOnHand === 0 && style.allowBackorder;
-  const backorderText = backorderLabel(style);
+  const backorderText = backorderLabelFor(dict, style);
   const lowStock = typeof totalOnHand === "number" && totalOnHand > 0 && totalOnHand <= 10;
   const onSale = isOnSale(style);
   const hasMultipleColorways = style.colorways.length > 1;
@@ -119,8 +120,8 @@ export function ProductCard({
           </Link>
         </h3>
         <p className="text-xs uppercase tracking-wide text-ink-soft">
-          <span className="font-mono-tab normal-case">{style.styleNumber}</span> · {GENDER_LABEL[style.gender]} ·{" "}
-          {CATEGORY_LABEL[style.category]}
+          <span className="font-mono-tab normal-case">{style.styleNumber}</span> · {genderLabel(dict, style.gender)} ·{" "}
+          {categoryLabel(dict, style.category)}
         </p>
 
         <div className="mt-auto border-t border-stone-200 pt-3">
