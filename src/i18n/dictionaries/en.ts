@@ -280,6 +280,19 @@ const en = {
     meetsMinimum: "Meets the {min}-pair order minimum ({pairs} pairs after adding).",
     decreaseQty: "Decrease quantity",
     increaseQty: "Increase quantity",
+    saved: "Saved",
+    addToFavorites: "Add to favorites",
+    removeFromFavorites: "Remove from favorites",
+    shareProduct: "Share this product",
+    tradePricingOnApproval: "Trade pricing on approval",
+    noneLeftCombo: "None left in this combination",
+    quickAdd: "Add",
+    quickAdded: "Added ✓",
+    closeLightbox: "Close",
+    previousPhoto: "Previous photo",
+    nextPhoto: "Next photo",
+    zoomIn: "Zoom in",
+    zoomOut: "Zoom out",
   },
   checkout: {
     cartEmptyTitle: "Your cart is empty",
@@ -410,6 +423,8 @@ const en = {
     /** Compact form, for table footers and PDF footers where the full line won't fit. */
     vatExcludedShort: "Excl. {rate}% VAT",
     /** Line item label on the order summary and invoice. */
+    /** Compact marker appended after a unit price. */
+    vatSuffix: "+VAT",
     vatLabel: "VAT ({rate}%)",
     netTotal: "Total excl. VAT",
     grossTotal: "Total incl. VAT",

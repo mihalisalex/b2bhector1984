@@ -296,7 +296,7 @@ export function PrimaryPurchasePanel({
                   ? c.addedToCart
                   : t(addQty > 1 ? c.addBoxesPlural : c.addBoxes, {
                       pairs: box.totalPairs,
-                      total: `${eur(subtotal)}${vatSuffixText(style.vatRate)}`,
+                      total: `${eur(subtotal)}${vatSuffixText(style.vatRate, dict)}`,
                     })}
             </button>
           </div>

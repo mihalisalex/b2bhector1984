@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { toggleFavoriteAction } from "@/lib/actions";
 import { IconButton } from "@/components/ui/IconButton";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/i18n/I18nProvider";
 
 export function FavoriteButton({
   styleId,
@@ -15,6 +16,8 @@ export function FavoriteButton({
   /** "button" = labeled pill (product page); "icon" = bare icon (cards). */
   variant?: "button" | "icon";
 }) {
+  const { dict } = useI18n();
+  const c = dict.catalog;
   const [favorited, setFavorited] = useState(initialFavorited);
   const [isPending, startTransition] = useTransition();
 
@@ -36,7 +39,7 @@ export function FavoriteButton({
         onClick={toggle}
         disabled={isPending}
         aria-pressed={favorited}
-        aria-label={favorited ? "Remove from favorites" : "Add to favorites"}
+        aria-label={favorited ? c.removeFromFavorites : c.addToFavorites}
         className="bg-white/90 backdrop-blur"
       >
         <HeartIcon filled={favorited} />
@@ -57,7 +60,7 @@ export function FavoriteButton({
     >
       <HeartIcon filled={favorited} />
       <span className="hidden text-xs font-semibold uppercase tracking-wide sm:inline">
-        {favorited ? "Saved" : "Save"}
+        {favorited ? c.saved : c.save}
       </span>
     </button>
   );

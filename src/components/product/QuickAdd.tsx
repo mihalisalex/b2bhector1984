@@ -5,7 +5,7 @@ import { useCart } from "@/lib/cart-context";
 import { useCatalog } from "@/lib/catalog-context";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { getUnitPrice, MAX_BACKORDER_QTY } from "@/lib/pricing";
-import { useFormat } from "@/i18n/I18nProvider";
+import { useFormat, useI18n } from "@/i18n/I18nProvider";
 import { VatSuffix } from "@/components/ui/VatSuffix";
 import { pickDefaultBoxType } from "@/lib/productSelectionDefaults";
 import type { StyleInventory } from "@/lib/data/inventory";
@@ -40,6 +40,7 @@ export function QuickAdd({
   colorwayId: string;
 }) {
   const { eur } = useFormat();
+  const c = useI18n().dict.catalog;
   const { addLines, lines } = useCart();
   const { productionLeadTimeDays } = useCatalog();
   const boxTypes = getAvailableBoxTypes(style);
@@ -127,11 +128,11 @@ export function QuickAdd({
       <p className={cn("mb-2 text-[11px] font-medium", remaining > 0 && !willBeProduction ? "text-ink-soft" : "text-ember")}>
         {willBeProduction
           ? style.backorderMode === "pre_order"
-            ? "Pre-order — ships upon arrangement"
+            ? c.preOrderShips
             : `Made to order — ~${productionLeadTimeDays} days`
           : remaining > 0
             ? `${remaining} box${remaining === 1 ? "" : "es"} available`
-            : "None left in this combination"}
+            : c.noneLeftCombo}
         {inCart > 0 && <span className="text-ink-soft"> · {inCart} in cart</span>}
       </p>
 
@@ -144,7 +145,7 @@ export function QuickAdd({
             type="button"
             onClick={() => setQty((q) => Math.max(1, q - 1))}
             disabled={qty <= 1}
-            aria-label="Decrease quantity"
+            aria-label={c.decreaseQty}
             className="flex h-9 w-8 items-center justify-center text-ink hover:bg-stone-100 disabled:opacity-30"
           >
             <StepIcon kind="minus" />
@@ -156,7 +157,7 @@ export function QuickAdd({
             type="button"
             onClick={() => setQty((q) => Math.min(maxSelectable, q + 1))}
             disabled={qty >= maxSelectable}
-            aria-label="Increase quantity"
+            aria-label={c.increaseQty}
             className="flex h-9 w-8 items-center justify-center text-ink hover:bg-stone-100 disabled:opacity-30"
           >
             <StepIcon kind="plus" />
@@ -168,7 +169,7 @@ export function QuickAdd({
           disabled={remaining <= 0 && !allowBackorder}
           className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full bg-ink px-2 py-2 leading-none text-white transition-colors hover:bg-ink/85 disabled:cursor-not-allowed disabled:bg-cinder-300"
         >
-          <span className="text-xs font-semibold uppercase tracking-wide">{justAdded ? "Added ✓" : "Add"}</span>
+          <span className="text-xs font-semibold uppercase tracking-wide">{justAdded ? c.quickAdded : c.quickAdd}</span>
           {!justAdded && (
             <span className="font-mono-tab text-[11px] tabular-nums text-white/75">
               {eur(unitPrice * box.totalPairs * qty)}

@@ -142,7 +142,7 @@ export function ProductCard({
               </p>
             </>
           ) : (
-            <p className="text-[11px] uppercase tracking-wide text-ink-soft">Trade pricing on approval</p>
+            <p className="text-[11px] uppercase tracking-wide text-ink-soft">{dictCatalog.tradePricingOnApproval}</p>
           )}
         </div>
 

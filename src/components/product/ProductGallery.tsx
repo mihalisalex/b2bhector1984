@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/i18n/I18nProvider";
 import { useColorwaySelection } from "@/lib/colorway-selection-context";
 import type { StyleImage } from "@/lib/data/styleImages";
 import type { Colorway } from "@/lib/types";
@@ -23,6 +24,7 @@ export function ProductGallery({
   colorways?: Colorway[];
   className?: string;
 }) {
+  const labels = useI18n().dict.catalog;
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [zoom, setZoom] = useState<{ x: number; y: number } | null>(null);
@@ -200,7 +202,7 @@ export function ProductGallery({
             type="button"
             onClick={() => setLightboxOpen(false)}
             className="absolute right-5 top-5 text-3xl leading-none text-white/80 hover:text-white"
-            aria-label="Close"
+            aria-label={labels.closeLightbox}
           >
             &times;
           </button>
@@ -214,7 +216,7 @@ export function ProductGallery({
                   setActiveIndex((i) => (i - 1 + visibleImages.length) % visibleImages.length);
                 }}
                 className="absolute left-4 top-1/2 -translate-y-1/2 px-3 py-6 text-3xl text-white/80 hover:text-white"
-                aria-label="Previous photo"
+                aria-label={labels.previousPhoto}
               >
                 &lsaquo;
               </button>
@@ -225,7 +227,7 @@ export function ProductGallery({
                   setActiveIndex((i) => (i + 1) % visibleImages.length);
                 }}
                 className="absolute right-4 top-1/2 -translate-y-1/2 px-3 py-6 text-3xl text-white/80 hover:text-white"
-                aria-label="Next photo"
+                aria-label={labels.nextPhoto}
               >
                 &rsaquo;
               </button>
@@ -256,7 +258,7 @@ export function ProductGallery({
             onTouchEnd={handleTouchEnd}
             role="button"
             tabIndex={0}
-            aria-label={zoom ? "Zoom out" : "Zoom in"}
+            aria-label={zoom ? labels.zoomOut : labels.zoomIn}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();

@@ -87,7 +87,7 @@ export function ProductListRow({
             </p>
           </div>
         ) : (
-          <p className="text-[11px] uppercase tracking-wide text-ink-soft">Trade pricing on approval</p>
+          <p className="text-[11px] uppercase tracking-wide text-ink-soft">{dict.catalog.tradePricingOnApproval}</p>
         )}
       </div>
     </Link>
