@@ -3,6 +3,8 @@ import Link from "next/link";
 import type { OrderPulse as OrderPulseData } from "@/lib/data/orderPulse";
 import type { Locale } from "@/i18n/config";
 import { withLocale } from "@/i18n/paths";
+import { t } from "@/i18n/format";
+import type { Dictionary } from "@/i18n/dictionaries/en";
 
 /**
  * Homepage order-activity strip — real figures only (see `@/lib/data/orderPulse`).
@@ -14,10 +16,11 @@ import { withLocale } from "@/i18n/paths";
  * Layout is a 2-up on desktop — the best seller's photo carries the left, the live counters
  * the right — collapsing to stacked on mobile with the photo first.
  */
-export function OrderPulse({ pulse, locale }: { pulse: OrderPulseData; locale: Locale }) {
+export function OrderPulse({ pulse, locale, dict }: { pulse: OrderPulseData; locale: Locale; dict: Dictionary }) {
   if (!pulse.hasSignal || !pulse.topStyle) return null;
 
   const { todayCount, weekCount, topStyle, stylesMoved, stylesTotal } = pulse;
+  const p = dict.orderPulse;
   const href = withLocale(locale, `/product/${topStyle.slug}`);
 
   return (
@@ -42,7 +45,7 @@ export function OrderPulse({ pulse, locale }: { pulse: OrderPulseData; locale: L
             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-live" />
           </span>
           <span className="font-mono-tab text-[11px] uppercase tracking-[0.25em] text-live">
-            Live order activity
+            {p.liveActivity}
           </span>
         </div>
 
@@ -66,7 +69,7 @@ export function OrderPulse({ pulse, locale }: { pulse: OrderPulseData; locale: L
 
               <div className="min-w-0">
                 <span className="font-mono-tab text-[10px] uppercase tracking-[0.22em] text-stone-300/60">
-                  Most ordered this month
+                  {p.mostOrdered}
                 </span>
                 <h2 className="font-display mt-2 text-2xl font-bold uppercase leading-[1.03] tracking-tight text-white underline-offset-[6px] group-hover:underline sm:text-[1.75rem]">
                   {topStyle.name}
@@ -76,7 +79,7 @@ export function OrderPulse({ pulse, locale }: { pulse: OrderPulseData; locale: L
                     {topStyle.styleNumber}
                   </span>
                   <span className="rounded-full bg-white/10 px-2.5 py-1 font-mono-tab text-[10px] uppercase tracking-[0.14em] text-stone-200">
-                    {topStyle.boxes} boxes
+                    {t(p.boxes, { count: topStyle.boxes })}
                   </span>
                 </div>
               </div>
@@ -88,9 +91,9 @@ export function OrderPulse({ pulse, locale }: { pulse: OrderPulseData; locale: L
               "this week" for a tighter dashboard look, which read as "2 what?" — the number
               and its noun have to survive being read on their own. */}
           <dl className="grid grid-cols-3 gap-x-4 border-t border-white/10 pt-8 lg:border-l lg:border-t-0 lg:pl-16 lg:pt-0">
-            <Stat value={String(todayCount)} label={todayCount === 1 ? "order today" : "orders today"} />
-            <Stat value={String(weekCount)} label="orders this week" />
-            <Stat value={String(stylesMoved)} label={`of ${stylesTotal} styles ordered this month`} />
+            <Stat value={String(todayCount)} label={todayCount === 1 ? p.orderToday : p.ordersToday} />
+            <Stat value={String(weekCount)} label={p.ordersThisWeek} />
+            <Stat value={String(stylesMoved)} label={t(p.stylesOrdered, { total: stylesTotal })} />
           </dl>
         </div>
       </div>

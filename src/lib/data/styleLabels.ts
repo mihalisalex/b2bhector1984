@@ -115,3 +115,19 @@ export function priceBandLabel(dict: Dictionary, bandId: string): string {
 export function backorderLabelFor(dict: Dictionary, style: Style): string {
   return style.backorderMode === "pre_order" ? dict.catalog.preOrder : dict.catalog.madeToOrder;
 }
+
+/**
+ * Journal categories are a free-text column, so this maps the five that exist today and
+ * falls back to the stored value for anything added later — a new category shows in the
+ * admin's own words rather than disappearing. Add a key here when you add a category.
+ */
+export function journalCategoryLabel(dict: Dictionary, category: string): string {
+  const j = dict.journal;
+  return {
+    "Buyer Guides": j.catBuyerGuides,
+    "Market Trends": j.catMarketTrends,
+    "Industry Insights": j.catIndustryInsights,
+    "Supplier Guides": j.catSupplierGuides,
+    "Procurement Insights": j.catProcurementInsights,
+  }[category] ?? category;
+}

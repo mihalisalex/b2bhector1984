@@ -77,40 +77,39 @@ export default async function JournalPage({
       {/* Flat, left-aligned header — matches /collections instead of the centered
           stone-100 card this used to open with. */}
       <div className="mx-auto max-w-[1200px] px-6 pb-4 pt-12 lg:px-10">
-        <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">Journal</span>
+        <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">{dict.journal.eyebrow}</span>
         <h1 className="font-display mt-2 text-3xl font-bold uppercase leading-[1.05] tracking-tight text-ink sm:text-4xl">
-          Wholesale, decoded.
+          {dict.journal.heading}
         </h1>
         <p className="mt-2 max-w-lg text-sm leading-relaxed text-ink-soft">
-          Sourcing guides, market trends, and procurement insight for buyers and suppliers in the footwear trade —
-          written by the same team that runs the marketplace.
+          {dict.journal.intro}
         </p>
       </div>
 
       {featured.length > 0 && (
         <section className="mx-auto max-w-[1200px] px-6 pt-8 lg:px-10">
           <h2 className="font-display border-b border-stone-300 pb-4 text-xl font-bold uppercase tracking-tight text-ink">
-            Featured
+            {dict.journal.featured}
           </h2>
           <div className="mt-6 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {featured.map((post, i) => (
-              <ArticleCard key={post.id} post={post} locale={locale} priority={i === 0} />
+              <ArticleCard key={post.id} post={post} locale={locale} dict={dict} priority={i === 0} />
             ))}
           </div>
         </section>
       )}
 
       <section className="mx-auto max-w-[1200px] px-6 py-16 lg:px-10">
-        <JournalFilters categoryCounts={categoryCounts} />
+        <JournalFilters categoryCounts={categoryCounts} dict={dict} />
 
         {gridPosts.length === 0 ? (
           <div className="mt-10 border border-dashed border-stone-300 bg-stone-100 px-6 py-16 text-center text-sm text-ink-soft">
-            No articles match that search yet.
+            {dict.journal.noResults}
           </div>
         ) : (
           <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {gridPosts.map((post) => (
-              <ArticleCard key={post.id} post={post} locale={locale} />
+              <ArticleCard key={post.id} post={post} locale={locale} dict={dict} />
             ))}
           </div>
         )}
@@ -120,16 +119,16 @@ export default async function JournalPage({
         <div className="mx-auto flex max-w-[1440px] flex-col items-start justify-between gap-6 px-6 sm:flex-row sm:items-center lg:px-10">
           <div>
             <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-white">
-              Ready to see the collection?
+              {dict.journal.ctaHeading}
             </h2>
-            <p className="mt-1 text-sm text-stone-300/80">Browse Hector Footwear&rsquo;s wholesale catalogue, or apply for a trade account.</p>
+            <p className="mt-1 text-sm text-stone-300/80">{dict.journal.ctaBody}</p>
           </div>
           <div className="flex gap-3">
             <LinkButton href={withLocale(locale, "/collections")} size="lg" variant="secondary" className="!border-white !text-white hover:!bg-white hover:!text-ink">
-              Browse collections
+              {dict.journal.ctaBrowse}
             </LinkButton>
             <LinkButton href={withLocale(locale, "/apply")} size="lg" className="!bg-white !text-ink hover:!bg-stone-200">
-              Apply for access
+              {dict.journal.ctaApply}
             </LinkButton>
           </div>
         </div>

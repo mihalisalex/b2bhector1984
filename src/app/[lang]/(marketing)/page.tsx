@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getStorefrontStyles, CATEGORY_LABEL, getStyleImageUrl } from "@/lib/data/styles";
+import { getStorefrontStyles, getStyleImageUrl } from "@/lib/data/styles";
+import { categoryLabel } from "@/lib/data/styleLabels";
 import { getHomepageHero } from "@/lib/data/siteContent";
 import { getSeasonSettings, toSeasonOptions } from "@/lib/data/seasonSettings";
 import { getOrderPulse } from "@/lib/data/orderPulse";
@@ -166,14 +167,14 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           aria-hidden
           className="absolute inset-x-0 bottom-8 mx-auto w-fit font-mono-tab text-[10px] uppercase tracking-[0.3em] text-white/50"
         >
-          Scroll
+          {dict.orderPulse.scroll}
         </span>
       </section>
 
       {/* Live order-activity strip (2026-08-14). Every figure is a real query — it renders
           nothing at all when there isn't enough genuine activity to report, rather than
           padding itself out. See OrderPulse / lib/data/orderPulse. */}
-      <OrderPulse pulse={pulse} locale={lang} />
+      <OrderPulse pulse={pulse} locale={lang} dict={dict} />
 
       {/* Easy steps to order, right up top for first-time buyers */}
       <section className="border-b border-stone-300 bg-white py-16">
@@ -243,7 +244,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-ink-soft">
               {t(h.stylesCount, {
                 count: seasonStyles.length,
-                categories: SEASON_CATEGORIES[season].map((c) => CATEGORY_LABEL[c]).join(", "),
+                categories: SEASON_CATEGORIES[season].map((c) => categoryLabel(dict, c)).join(", "),
               })}
             </p>
             <Link

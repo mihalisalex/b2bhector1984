@@ -47,3 +47,14 @@ export function formatDateNumeric(iso: string, locale: string = "en"): string {
 export function telHref(phone: string): string {
   return `tel:${phone.replace(/[^\d+]/g, "")}`;
 }
+
+/**
+ * Long editorial form — "16 August 2026" / "16 Αυγούστου 2026".
+ *
+ * Journal article headers used a hardcoded "en-GB", so a Greek article was datelined in
+ * English. Greek needs the genitive month form here, which `el-GR` produces on its own.
+ */
+export function formatDateLong(iso: string, locale: string = "en"): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString(resolve(locale), { day: "numeric", month: "long", year: "numeric" });
+}
