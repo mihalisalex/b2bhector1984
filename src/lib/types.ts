@@ -180,6 +180,18 @@ export interface Style {
   tagline: string;
   description: string;
   materials: string[];
+  /**
+   * Greek product copy (migration 0037). Undefined means "not written yet" and the reader
+   * falls back to the English column above — see `localizeStyle` in src/lib/data/styles.ts.
+   *
+   * Deliberately absent from this set: `name`, `styleNumber`, and colourway names. Those
+   * are order codes, not prose — a retailer rings up asking for "TABA", and a Greek
+   * transliteration would be a different colour as far as that call is concerned.
+   */
+  taglineEl?: string;
+  descriptionEl?: string;
+  materialsEl?: string[];
+  lastNoteEl?: string;
   colorways: Colorway[];
   basePrice: number;
   msrp: number;

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listProductsForAdmin } from "@/lib/data/productAdmin";
+import { countStylesMissingGreekCopy, listProductsForAdmin } from "@/lib/data/productAdmin";
 import { getAllBrands } from "@/lib/data/brands";
 import { getAllSuppliers } from "@/lib/data/suppliers";
 import { CATEGORY_LABEL } from "@/lib/data/styleLabels";
@@ -33,10 +33,11 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
   };
   const view = firstParam(sp, "view") === "grid" ? "grid" : "table";
 
-  const [{ items, total, page, pageSize }, brands, suppliers] = await Promise.all([
+  const [{ items, total, page, pageSize }, brands, suppliers, greekGap] = await Promise.all([
     listProductsForAdmin(params),
     getAllBrands(),
     getAllSuppliers(),
+    countStylesMissingGreekCopy(),
   ]);
 
   return (
@@ -44,7 +45,20 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-stone-300 pb-6">
         <div>
           <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink">Products</h1>
-          <p className="mt-1 text-sm text-ink-soft">{total} product{total === 1 ? "" : "s"} in the catalog.</p>
+          <p className="mt-1 text-sm text-ink-soft">
+            {total} product{total === 1 ? "" : "s"} in the catalog.
+            {/* Catalogue-wide, deliberately unaffected by the current filter — this is the
+                go/no-go number for the Greek launch, so it has to mean the same thing every
+                time it is read. The browser's own badge counts the filtered page. */}
+            {greekGap > 0 && (
+              <>
+                {" "}
+                <span className="font-semibold text-signal">
+                  {greekGap} still need Greek copy.
+                </span>
+              </>
+            )}
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Link

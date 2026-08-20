@@ -20,6 +20,12 @@ interface StyleRow {
   tagline: string;
   description: string;
   materials: string[];
+  // Migration 0037. Optional here for the same reason every other post-0001 column is:
+  // this mapper has to keep working against a database where the migration hasn't run.
+  tagline_el?: string | null;
+  description_el?: string | null;
+  materials_el?: string[] | null;
+  last_note_el?: string | null;
   base_price: number | string;
   msrp: number | string;
   weight_oz: number | string | null;
@@ -158,6 +164,10 @@ function assembleStyles(
       tagline: s.tagline,
       description: s.description,
       materials: s.materials,
+      taglineEl: s.tagline_el?.trim() || undefined,
+      descriptionEl: s.description_el?.trim() || undefined,
+      materialsEl: s.materials_el?.length ? s.materials_el : undefined,
+      lastNoteEl: s.last_note_el?.trim() || undefined,
       colorways,
       basePrice: toNumber(s.base_price),
       msrp: toNumber(s.msrp),

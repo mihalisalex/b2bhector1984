@@ -17,6 +17,19 @@ export interface ImportRow {
   gender?: string;
   tagline?: string;
   description?: string;
+  /**
+   * Greek copy (migration 0037). This is the return leg of the "Greek copy CSV" export on
+   * the product list — the owner writes the translations in a spreadsheet and imports the
+   * same file back, so the column names here match that export's headers exactly.
+   *
+   * `materialsEl` is pipe-separated to match how the export writes it; a comma would fight
+   * with the CSV itself and a Greek materials list ("Δέρμα, φυσικό") legitimately contains
+   * commas.
+   */
+  taglineEl?: string;
+  descriptionEl?: string;
+  materialsEl?: string;
+  lastNoteEl?: string;
   basePrice?: string;
   msrp?: string;
   costPrice?: string;
@@ -107,6 +120,9 @@ export async function importProductRows(rows: ImportRow[]): Promise<ImportRowRes
     const msrp = row.msrp ? Number(row.msrp) : undefined;
     const costPrice = row.costPrice ? Number(row.costPrice) : undefined;
     const tags = row.tags ? row.tags.split(/[,;]/).map((t) => t.trim()).filter(Boolean) : undefined;
+    const materialsEl = row.materialsEl
+      ? row.materialsEl.split("|").map((m) => m.trim()).filter(Boolean)
+      : undefined;
 
     const match = byStyleNumber.get(row.styleNumber.trim());
     try {
@@ -117,6 +133,14 @@ export async function importProductRows(rows: ImportRow[]): Promise<ImportRowRes
         if (row.gender) update.gender = row.gender;
         if (row.tagline) update.tagline = row.tagline;
         if (row.description) update.description = sanitizeProductDescription(row.description);
+        // Greek copy goes through the same sanitiser as the English description — it is
+        // admin-authored HTML from a spreadsheet, which is exactly the untrusted-ish input
+        // sanitizeProductDescription exists for, and skipping it for one language would
+        // leave a hole that only shows up on the Greek site.
+        if (row.taglineEl) update.tagline_el = row.taglineEl;
+        if (row.descriptionEl) update.description_el = sanitizeProductDescription(row.descriptionEl);
+        if (materialsEl) update.materials_el = materialsEl;
+        if (row.lastNoteEl) update.last_note_el = row.lastNoteEl;
         if (basePrice != null) update.base_price = basePrice;
         if (msrp != null) update.msrp = msrp;
         if (costPrice != null) update.cost_price = costPrice;
@@ -140,6 +164,10 @@ export async function importProductRows(rows: ImportRow[]): Promise<ImportRowRes
           tagline: row.tagline || "",
           description: row.description ? sanitizeProductDescription(row.description) : "",
           materials: [],
+          tagline_el: row.taglineEl || null,
+          description_el: row.descriptionEl ? sanitizeProductDescription(row.descriptionEl) : null,
+          materials_el: materialsEl ?? null,
+          last_note_el: row.lastNoteEl || null,
           base_price: basePrice ?? 0,
           msrp: msrp ?? 0,
           cost_price: costPrice ?? 0,

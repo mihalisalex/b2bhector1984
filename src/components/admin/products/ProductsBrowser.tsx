@@ -21,6 +21,7 @@ import {
   bulkSetSupplierAction,
   bulkUpdateStatusAction,
 } from "@/lib/productActions";
+import { hasGreekCopy, missingGreekFields } from "@/lib/localizeStyle";
 import type { ProductRow } from "@/lib/data/productAdmin";
 import type { Brand, ProductStatus, Supplier } from "@/lib/types";
 
@@ -78,6 +79,10 @@ export function ProductsBrowser({
   }, [items]);
 
   const allSelected = items.length > 0 && items.every((i) => selected.has(i.id));
+  // Counted over the page being shown, matching "{n} shown" beside it — a total across the
+  // whole catalogue would contradict the number next to it whenever a filter is applied.
+  // The catalogue-wide figure is on the page header, which knows the unfiltered total.
+  const missingGreekCount = items.filter((i) => !hasGreekCopy(i)).length;
 
   function toggleAll() {
     setSelected(allSelected ? new Set() : new Set(items.map((i) => i.id)));
@@ -137,12 +142,73 @@ export function ProductsBrowser({
       p.styleNumber, p.name, p.category, p.brandName, p.supplierName ?? "", p.basePrice, p.salePrice ?? "", p.costPrice,
       p.marginPct, p.onHand, p.reserved, p.derivedStatus, p.featured ? "Yes" : "No", formatDate(p.createdAt), formatDate(p.createdAt),
     ]);
-    const csv = toCsv([header, ...rows]);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    download(toCsv([header, ...rows]), "hector-footwear-products.csv");
+  }
+
+  /**
+   * The Greek-copy worksheet. Deliberately a *separate* export from the operational one
+   * above: this is a translation job, and pouring price, stock and margin columns into it
+   * would bury the four fields being written under eleven that aren't.
+   *
+   * Shape is chosen for writing rather than for reading. Each English source column sits
+   * immediately left of the empty Greek column it feeds, so the translator never has to
+   * scroll sideways to see what they are translating, and `Slug` is included so the
+   * product page can be opened alongside — you asked to translate in context, not guess
+   * which field you are filling.
+   *
+   * Ordered featured-first, then by catalogue order, so the styles that carry the launch
+   * are the ones at the top of the file.
+   */
+  function exportGreekCopyCsv() {
+    // Headers are chosen so the filled file re-imports with zero mapping work: "SKU" and
+    // "Name" are what the importer matches and requires, and the four _el headers match
+    // `guessMapping`'s table exactly. "Slug"/"Featured"/"Has Greek?" fall through to
+    // Ignore, which is what they are — context for the translator, not data coming back.
+    //
+    // "Name" is NOT labelled "do not translate" in the header despite that being the
+    // intent: the importer requires a name on every row, and a decorated header would map
+    // to Ignore and fail validation on all 31. The instruction lives in the README instead.
+    const header = [
+      "SKU", "Slug", "Name", "Featured", "Has Greek?",
+      "Tagline (EN)", "tagline_el",
+      "Description (EN)", "description_el",
+      "Materials (EN, pipe-separated)", "materials_el",
+      "Last note (EN)", "last_note_el",
+    ];
+    const ordered = [...items].sort((a, b) => {
+      if (a.featured !== b.featured) return a.featured ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    });
+    const rows = ordered.map((p) => [
+      p.styleNumber,
+      p.slug,
+      p.name,
+      p.featured ? "Yes" : "No",
+      hasGreekCopy(p) ? "Yes" : "No",
+      p.tagline,
+      p.taglineEl ?? "",
+      p.description,
+      p.descriptionEl ?? "",
+      p.materials.join(" | "),
+      (p.materialsEl ?? []).join(" | "),
+      p.lastNote,
+      p.lastNoteEl ?? "",
+    ]);
+    download(toCsv([header, ...rows]), "hector-footwear-greek-copy.csv");
+  }
+
+  /**
+   * A BOM is prepended, and it matters here specifically. Excel on Windows opens a CSV as
+   * the system ANSI codepage unless one is present, which renders every Greek character as
+   * mojibake — and this is the one export whose whole purpose is Greek text going out and
+   * coming back. Without it the round-trip corrupts on the owner's own machine.
+   */
+  function download(csv: string, filename: string) {
+    const blob = new Blob(["﻿", csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "hector-footwear-products.csv";
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -150,16 +216,32 @@ export function ProductsBrowser({
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <div className="text-xs font-semibold uppercase tracking-wide text-ink-soft">
-          {selected.size > 0 ? `${selected.size} selected` : `${items.length} shown`}
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">
+            {selected.size > 0 ? `${selected.size} selected` : `${items.length} shown`}
+          </span>
+          {missingGreekCount > 0 && (
+            <span className="border border-signal bg-signal/10 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-signal">
+              {missingGreekCount} of {items.length} missing Greek copy
+            </span>
+          )}
         </div>
-        <button
-          type="button"
-          onClick={exportCsv}
-          className="border border-ink px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-white"
-        >
-          Export CSV
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={exportGreekCopyCsv}
+            className="border border-signal px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-signal hover:bg-signal hover:text-white"
+          >
+            Greek copy CSV
+          </button>
+          <button
+            type="button"
+            onClick={exportCsv}
+            className="border border-ink px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-white"
+          >
+            Export CSV
+          </button>
+        </div>
       </div>
 
       {selected.size > 0 && (
@@ -288,6 +370,7 @@ export function ProductsBrowser({
                 <th className="px-3 py-2.5 text-right">Stock</th>
                 <th className="px-3 py-2.5 text-right">Reserved</th>
                 <th className="px-3 py-2.5">Status</th>
+                <th className="px-3 py-2.5">Greek</th>
                 <th className="px-3 py-2.5">Created</th>
                 <th className="px-3 py-2.5" />
               </tr>
@@ -326,6 +409,21 @@ export function ProductsBrowser({
                     <span className={`px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${STATUS_CLASS[p.derivedStatus]}`}>
                       {STATUS_LABEL[p.derivedStatus]}
                     </span>
+                  </td>
+                  <td className="px-3 py-2.5">
+                    {hasGreekCopy(p) ? (
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-ink-soft">EL</span>
+                    ) : (
+                      <span
+                        // The list of what is actually missing goes in the title rather than
+                        // the cell — the answer is nearly always "both", and spelling that
+                        // out on 31 rows would be noise rather than information.
+                        title={`Missing Greek: ${missingGreekFields(p).join(", ")}`}
+                        className="border border-signal px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-signal"
+                      >
+                        Missing
+                      </span>
+                    )}
                   </td>
                   <td className="px-3 py-2.5 text-ink-soft">{formatDate(p.createdAt)}</td>
                   <td className="px-3 py-2.5 text-right">
@@ -367,7 +465,7 @@ export function ProductsBrowser({
               ))}
               {items.length === 0 && (
                 <tr>
-                  <td colSpan={14} className="px-4 py-10 text-center text-sm text-ink-soft">
+                  <td colSpan={15} className="px-4 py-10 text-center text-sm text-ink-soft">
                     No products match these filters.
                   </td>
                 </tr>
