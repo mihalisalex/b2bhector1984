@@ -7,7 +7,9 @@ import { getStyleImageUrl } from "@/lib/data/styleLabels";
 import { getPublishedJournalPosts } from "@/lib/data/journalPosts";
 import { absoluteUrl } from "@/lib/seo";
 import { PUBLIC_PAGES } from "@/lib/seoRoutes";
-import { DEFAULT_LOCALE, LOCALES } from "@/i18n/config";
+import { LOCALES, type Locale } from "@/i18n/config";
+import { headers } from "next/headers";
+import { defaultLocaleForHost, localesForHost, urlForLocale } from "@/i18n/domains";
 
 /**
  * XML sitemap.
@@ -58,9 +60,10 @@ const STATIC_PAGE_LAST_MODIFIED = new Date("2026-08-17T00:00:00Z");
 function localeAlternates(path: string): Record<string, string> {
   const languages: Record<string, string> = {};
   for (const locale of LOCALES) {
-    languages[locale] = absoluteUrl(locale === DEFAULT_LOCALE ? path : `/${locale}${path === "/" ? "" : path}`);
+    languages[locale] = urlForLocale(locale, path);
   }
-  languages["x-default"] = absoluteUrl(path);
+  // x-default -> English on .com: the fallback for a visitor whose language we don't serve.
+  languages["x-default"] = urlForLocale("en", path);
   return languages;
 }
 
@@ -68,7 +71,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [settings, overrides] = await Promise.all([getSeoSettings(), getAllEntityMeta()]);
   if (!settings.sitemapEnabled) return [];
 
+  /**
+   * TWO SITEMAPS, ONE FILE. Each domain lists only the URLs it actually serves:
+   *
+   *   hectorfootwear.gr/sitemap.xml   -> el URLs only, unprefixed
+   *   hectorfootwear.com/sitemap.xml  -> en (unprefixed) plus de and fr (prefixed)
+   *
+   * Listing a .gr URL in the .com sitemap would be submitting another site's pages, which
+   * Search Console rejects for the property it was submitted to. The hreflang alternates on
+   * each entry still span BOTH domains — that is what connects the two sitemaps into one
+   * translated site rather than two unrelated ones.
+   *
+   * Already force-dynamic (see the header comment), so reading the request host is free.
+   */
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  const hostLocales = localesForHost(host);
+  const hostDefault = defaultLocaleForHost(host);
+
   const entries: MetadataRoute.Sitemap = [];
+
+  /** Absolute URL for a path on THIS host, in the given locale. */
+  const here = (locale: Locale, path: string) => urlForLocale(locale, path);
 
   for (const page of PUBLIC_PAGES) {
     const override = overrides.get(`page:${page.path}`);
@@ -78,26 +102,46 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // ordinary (un-overridden) case gets locale alternates — inventing `/de/<their-url>`
     // would fabricate pages that don't exist.
     const custom = override?.canonicalUrl?.trim();
-    entries.push({
-      url: absoluteUrl(custom || page.path),
-      lastModified: override?.updatedAt ? new Date(override.updatedAt) : STATIC_PAGE_LAST_MODIFIED,
-      changeFrequency: page.changeFrequency,
-      priority: page.priority,
-      ...(custom ? {} : { alternates: { languages: localeAlternates(page.path) } }),
-    });
+    if (custom) {
+      entries.push({
+        url: custom,
+        lastModified: override?.updatedAt ? new Date(override.updatedAt) : STATIC_PAGE_LAST_MODIFIED,
+        changeFrequency: page.changeFrequency,
+        priority: page.priority,
+      });
+      continue;
+    }
+    // One entry per locale THIS host serves — so .com lists /faq, /de/faq and /fr/faq while
+    // .gr lists only its own /faq. Each carries the full cross-domain alternate set.
+    for (const locale of hostLocales) {
+      entries.push({
+        url: here(locale, page.path),
+        lastModified: override?.updatedAt ? new Date(override.updatedAt) : STATIC_PAGE_LAST_MODIFIED,
+        changeFrequency: page.changeFrequency,
+        // The host's own default locale is the one to prioritise; de/fr are secondary
+        // editions of the same page and should not compete with it for crawl budget.
+        priority: locale === hostDefault ? page.priority : Math.max(0.1, page.priority - 0.2),
+        alternates: { languages: localeAlternates(page.path) },
+      });
+    }
   }
 
   // The journal is public content, unconditionally advertised — unlike the
   // catalogue below it, it never sits behind `commerce_indexable`.
-  const posts = await getPublishedJournalPosts();
+  // Only this host's own articles: .gr lists the Greek posts, .com the English ones.
+  const posts = (await getPublishedJournalPosts()).filter((p) =>
+    hostLocales.includes((p.locale as Locale) ?? "en"),
+  );
   for (const post of posts) {
     if (post.robots.includes("noindex")) continue;
     entries.push({
-      url: absoluteUrl(post.canonicalUrl?.trim() || `/journal/${post.slug}`),
+      // Journal posts are single rows per language, not translations, so each belongs to
+      // exactly one domain — `post.locale` (migration 0037), not the host default.
+      url: post.canonicalUrl?.trim() || here((post.locale as Locale) ?? hostDefault, `/journal/${post.slug}`),
       lastModified: new Date(post.updatedAt),
       changeFrequency: "monthly",
       priority: post.featured ? 0.7 : 0.5,
-      ...(post.featuredImageUrl ? { images: [absoluteUrl(post.featuredImageUrl)] } : {}),
+      ...(post.featuredImageUrl ? { images: [absoluteUrl(post.featuredImageUrl, hostDefault)] } : {}),
     });
   }
 
@@ -106,7 +150,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (!settings.commerceIndexable) return entries;
 
   entries.push({
-    url: absoluteUrl("/catalogue"),
+    url: here(hostDefault, "/catalogue"),
     lastModified: STATIC_PAGE_LAST_MODIFIED,
     changeFrequency: "daily",
     priority: 0.9,
@@ -126,12 +170,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const gallery = imagesByStyle[style.id] ?? [];
     const imageUrls = settings.sitemapIncludeImages
       ? gallery.length > 0
-        ? gallery.map((image) => absoluteUrl(image.publicUrl))
-        : [absoluteUrl(getStyleImageUrl(style))]
+        ? gallery.map((image) => absoluteUrl(image.publicUrl, hostDefault))
+        : [absoluteUrl(getStyleImageUrl(style), hostDefault)]
       : undefined;
 
     entries.push({
-      url: absoluteUrl(style.canonicalUrl?.trim() || `/product/${style.slug}`),
+      url: style.canonicalUrl?.trim() || here(hostDefault, `/product/${style.slug}`),
       lastModified: style.createdAt ? new Date(style.createdAt) : STATIC_PAGE_LAST_MODIFIED,
       changeFrequency: "weekly",
       priority: style.featured ? 0.8 : 0.6,

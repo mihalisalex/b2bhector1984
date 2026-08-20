@@ -1,5 +1,6 @@
 import "server-only";
-import { SITE_URL } from "@/lib/siteUrl";
+import type { Locale } from "@/i18n/config";
+import { originForLocale } from "@/i18n/domains";
 import { absoluteUrl } from "@/lib/seo";
 import { getSeoSettings, type SeoSettings } from "@/lib/data/seoSettings";
 import { generateProductDescription, type ProductSeoSource } from "@/lib/seoAutogen";
@@ -36,15 +37,21 @@ function compact(input: JsonLd): JsonLd {
   return out;
 }
 
-const ORGANIZATION_ID = `${SITE_URL}/#organization`;
-const WEBSITE_ID = `${SITE_URL}/#website`;
+/**
+ * Schema @ids are per-DOMAIN. The .gr Organization and the .com Organization are the same
+ * company but two distinct web entities, and giving both the same @id while serving them
+ * different URLs and addresses is a contradiction a validator will flag. Deriving the id
+ * from the locale keeps each domain internally consistent.
+ */
+const organizationId = (locale: Locale) => `${originForLocale(locale)}/#organization`;
+const websiteId = (locale: Locale) => `${originForLocale(locale)}/#website`;
 
 /**
  * Organization, with a stable `@id` that every other schema on the site
  * references instead of repeating the publisher block. This is what lets
  * Google merge the graph across pages into one entity.
  */
-export function buildOrganizationSchema(settings: SeoSettings): JsonLd | null {
+export function buildOrganizationSchema(settings: SeoSettings, locale: Locale = "en"): JsonLd | null {
   if (!settings.schemaOrganization) return null;
 
   const hasAddress = Boolean(settings.organizationStreet || settings.organizationCity);
@@ -73,11 +80,11 @@ export function buildOrganizationSchema(settings: SeoSettings): JsonLd | null {
   return compact({
     "@context": "https://schema.org",
     "@type": settings.localBusinessEnabled ? "LocalBusiness" : "Organization",
-    "@id": ORGANIZATION_ID,
+    "@id": organizationId(locale),
     name: settings.siteName,
     legalName: settings.organizationLegalName,
-    url: SITE_URL,
-    logo: settings.organizationLogoUrl ? absoluteUrl(settings.organizationLogoUrl) : `${SITE_URL}/icon`,
+    url: originForLocale(locale),
+    logo: settings.organizationLogoUrl ? absoluteUrl(settings.organizationLogoUrl, locale) : `${originForLocale(locale)}/icon`,
     description: settings.defaultDescription,
     foundingDate: settings.organizationFoundingYear,
     email: settings.organizationEmail,
@@ -97,7 +104,7 @@ export function buildOrganizationSchema(settings: SeoSettings): JsonLd | null {
  * Google's sitelinks searchbox at a URL that 307s to /login would be a broken
  * promise, and Search Console reports it as such.
  */
-export function buildWebsiteSchema(settings: SeoSettings, locale: string = "en"): JsonLd | null {
+export function buildWebsiteSchema(settings: SeoSettings, locale: Locale = "en"): JsonLd | null {
   if (!settings.schemaWebsite) return null;
 
   const potentialAction = settings.commerceIndexable
@@ -105,7 +112,7 @@ export function buildWebsiteSchema(settings: SeoSettings, locale: string = "en")
         "@type": "SearchAction",
         target: {
           "@type": "EntryPoint",
-          urlTemplate: `${SITE_URL}/catalogue?q={search_term_string}`,
+          urlTemplate: `${originForLocale(locale)}/catalogue?q={search_term_string}`,
         },
         "query-input": "required name=search_term_string",
       }
@@ -114,11 +121,11 @@ export function buildWebsiteSchema(settings: SeoSettings, locale: string = "en")
   return compact({
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "@id": WEBSITE_ID,
-    url: SITE_URL,
+    "@id": websiteId(locale),
+    url: originForLocale(locale),
     name: settings.siteName,
     description: settings.defaultDescription,
-    publisher: { "@id": ORGANIZATION_ID },
+    publisher: { "@id": organizationId(locale) },
     inLanguage: locale,
     potentialAction,
   });
@@ -157,7 +164,7 @@ export function buildBreadcrumbSchema(trail: Breadcrumb[], settings: SeoSettings
 export function buildProductSchema(
   style: Style,
   settings: SeoSettings,
-  options: { imageUrls?: string[]; inStock?: boolean; showPricing?: boolean } = {},
+  options: { imageUrls?: string[]; inStock?: boolean; showPricing?: boolean; locale?: Locale } = {},
 ): JsonLd | null {
   if (!settings.schemaProduct) return null;
 
@@ -173,7 +180,9 @@ export function buildProductSchema(
     tags: style.tags,
   };
 
-  const images = (options.imageUrls ?? []).filter(Boolean).map(absoluteUrl);
+  // `.map((u) => ...)`, not `.map(absoluteUrl)`: Array.map passes (value, index), and once
+  // absoluteUrl gained a second parameter the index was being handed in as the locale.
+  const images = (options.imageUrls ?? []).filter(Boolean).map((u) => absoluteUrl(u, options.locale));
   const availability =
     options.inStock === undefined
       ? undefined
@@ -196,7 +205,7 @@ export function buildProductSchema(
     // approved trade accounts. Saying so in the markup is more accurate than
     // implying a consumer-facing price.
     eligibleCustomerType: "https://schema.org/BusinessCustomer",
-    seller: { "@id": ORGANIZATION_ID },
+    seller: { "@id": organizationId(options.locale ?? "en") },
   });
 
   const additionalProperty = [
@@ -221,9 +230,9 @@ export function buildProductSchema(
     category: style.category,
     material: style.materials?.join(", "),
     image: images,
-    url: absoluteUrl(`/product/${style.slug}`),
+    url: absoluteUrl(`/product/${style.slug}`, options.locale),
     brand: { "@type": "Brand", name: style.brandName || settings.siteName },
-    manufacturer: { "@id": ORGANIZATION_ID },
+    manufacturer: { "@id": organizationId(options.locale ?? "en") },
     weight: style.weightOz ? { "@type": "QuantitativeValue", value: style.weightOz, unitCode: "ONZ" } : undefined,
     offers: offer,
     additionalProperty: additionalProperty.length ? additionalProperty : undefined,
@@ -248,19 +257,21 @@ export function buildCollectionSchema({
   description,
   path,
   items,
+  locale = "en",
 }: {
   name: string;
   description: string;
   path: string;
   items: CollectionItem[];
+  locale?: Locale;
 }): JsonLd {
   return compact({
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     name,
     description,
-    url: absoluteUrl(path),
-    isPartOf: { "@id": WEBSITE_ID },
+    url: absoluteUrl(path, locale),
+    isPartOf: { "@id": websiteId(locale) },
     mainEntity: {
       "@type": "ItemList",
       numberOfItems: items.length,
@@ -281,19 +292,19 @@ export function buildCollectionSchema({
  * treatment as `buildCollectionSchema`/`buildBrandSchema`, which are always
  * emitted because there's nothing to fabricate here, only real post data.
  */
-export function buildArticleSchema(post: JournalPost, settings: SeoSettings): JsonLd {
+export function buildArticleSchema(post: JournalPost, settings: SeoSettings, locale: Locale = "en"): JsonLd {
   return compact({
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     headline: post.title,
     description: post.metaDescription?.trim() || post.excerpt,
-    image: post.featuredImageUrl ? [absoluteUrl(post.featuredImageUrl)] : undefined,
+    image: post.featuredImageUrl ? [absoluteUrl(post.featuredImageUrl, locale)] : undefined,
     datePublished: post.publishedAt,
     dateModified: post.updatedAt,
     author: { "@type": "Organization", name: post.authorName || settings.siteName },
-    publisher: { "@id": ORGANIZATION_ID },
-    url: absoluteUrl(`/journal/${post.slug}`),
-    mainEntityOfPage: { "@type": "WebPage", "@id": absoluteUrl(`/journal/${post.slug}`) },
+    publisher: { "@id": organizationId(locale) },
+    url: absoluteUrl(`/journal/${post.slug}`, locale),
+    mainEntityOfPage: { "@type": "WebPage", "@id": absoluteUrl(`/journal/${post.slug}`, locale) },
     articleSection: post.category,
     keywords: post.tags.length ? post.tags.join(", ") : undefined,
   });
@@ -328,9 +339,9 @@ export function buildBrandSchema(brand: { name: string; description?: string; lo
  * layout. Page-specific schemas are emitted by the pages themselves and
  * reference these by `@id`.
  */
-export async function buildSiteSchemas(locale: string = "en"): Promise<JsonLd[]> {
+export async function buildSiteSchemas(locale: Locale = "en"): Promise<JsonLd[]> {
   const settings = await getSeoSettings();
-  return [buildOrganizationSchema(settings), buildWebsiteSchema(settings, locale)].filter(
+  return [buildOrganizationSchema(settings, locale), buildWebsiteSchema(settings, locale)].filter(
     (schema): schema is JsonLd => schema !== null,
   );
 }

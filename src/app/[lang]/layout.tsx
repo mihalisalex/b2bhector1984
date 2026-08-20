@@ -3,7 +3,7 @@ import { bodySans, displaySerif, mono } from "@/lib/fonts";
 import { BackToTopButton } from "@/components/layout/BackToTopButton";
 import { CookieConsentBanner } from "@/components/layout/CookieConsentBanner";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { SITE_URL } from "@/lib/siteUrl";
+import { originForLocale } from "@/i18n/domains";
 import { getSeoSettings } from "@/lib/data/seoSettings";
 import { buildSiteSchemas } from "@/lib/seoJsonLd";
 import { LOCALES, type Locale } from "@/i18n/config";
@@ -22,11 +22,19 @@ export function generateStaticParams() {
   return LOCALES.map((lang) => ({ lang }));
 }
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
   const settings = await getSeoSettings();
 
   return {
-    metadataBase: new URL(SITE_URL),
+    // Per DOMAIN, not one global base. Every absolute URL Next resolves for this page —
+    // og:image, og:url, the canonical if it were ever relative — hangs off this, and a
+    // single base would resolve .com pages against .gr.
+    metadataBase: new URL(originForLocale(lang as Locale)),
     title: {
       default: settings.defaultTitle,
       template: settings.titleTemplate,

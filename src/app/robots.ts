@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
-import { SITE_URL } from "@/lib/siteUrl";
+import { headers } from "next/headers";
+import { defaultLocaleForHost, originForLocale } from "@/i18n/domains";
 import { getSeoSettings } from "@/lib/data/seoSettings";
 import { ALWAYS_DISALLOWED, COMMERCE_PREFIXES, PUBLIC_PAGES } from "@/lib/seoRoutes";
 
@@ -26,6 +27,12 @@ import { ALWAYS_DISALLOWED, COMMERCE_PREFIXES, PUBLIC_PAGES } from "@/lib/seoRou
 export const dynamic = "force-dynamic";
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
+  // Each domain serves its OWN robots.txt, pointing at its own sitemap and declaring
+  // itself as Host. Already force-dynamic (see above), so reading the request host costs
+  // nothing extra — and a single hardcoded SITE_URL would have hectorfootwear.com telling
+  // crawlers its canonical host and sitemap were both on hectorfootwear.gr.
+  const h = await headers();
+  const origin = originForLocale(defaultLocaleForHost(h.get("x-forwarded-host") ?? h.get("host")));
   const settings = await getSeoSettings();
 
   // The kill switch. Turning robots off blocks the whole site — only ever
@@ -57,7 +64,7 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
       disallow: Array.from(new Set(disallow)),
       ...(settings.crawlDelay ? { crawlDelay: settings.crawlDelay } : {}),
     },
-    sitemap: settings.sitemapEnabled ? `${SITE_URL}/sitemap.xml` : undefined,
-    host: SITE_URL,
+    sitemap: settings.sitemapEnabled ? `${origin}/sitemap.xml` : undefined,
+    host: origin,
   };
 }

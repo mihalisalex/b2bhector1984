@@ -479,6 +479,9 @@ export type JournalCategory = (typeof JOURNAL_CATEGORIES)[number];
 export interface JournalPost {
   id: string;
   slug: string;
+  /** Which site this post belongs to (migration 0037). Journal posts are single rows per
+   * language, not translations of one another. */
+  locale?: string;
   title: string;
   excerpt: string;
   contentHtml: string;

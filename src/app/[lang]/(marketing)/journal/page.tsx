@@ -36,7 +36,7 @@ export default async function JournalPage({
 }) {
   const [{ lang }, { category, q }] = await Promise.all([params, searchParams]);
   const locale = lang as Locale;
-  const [allPosts, settings] = await Promise.all([getPublishedJournalPosts(), getSeoSettings()]);
+  const [allPosts, settings] = await Promise.all([getPublishedJournalPosts(locale), getSeoSettings()]);
 
   const categoryCounts = Object.fromEntries(
     JOURNAL_CATEGORIES.map((c) => [c, allPosts.filter((p) => p.category === c).length]),
