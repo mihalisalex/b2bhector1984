@@ -4,23 +4,29 @@ import { useActionState, useMemo, useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
 import { useCatalog } from "@/lib/catalog-context";
-import { getOrderMinimumError, getUnitPrice, TERMS_DISCOUNT, TERMS_LABEL, validateMatrix } from "@/lib/pricing";
-import { useFormat } from "@/i18n/I18nProvider";
+import { getOrderMinimumError, getUnitPrice, TERMS_DISCOUNT, validateMatrix } from "@/lib/pricing";
+import { useFormat, useI18n } from "@/i18n/I18nProvider";
+import { t } from "@/i18n/format";
+import { withLocale } from "@/i18n/paths";
+import { vatPercent } from "@/lib/tax";
 import { placeOrder, type CheckoutState } from "@/lib/actions";
 import type { Account, BoxTypeId, CreditTerms } from "@/lib/types";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { VatSuffix } from "@/components/ui/VatSuffix";
+import { VatNotice } from "@/components/ui/VatNotice";
 
-const TERMS_OPTIONS: { value: CreditTerms; label: string }[] = [
-  { value: "prepay", label: "Prepay" },
-  { value: "net30", label: "Net 30" },
-  { value: "net60", label: "Net 60" },
-];
+/** Values only — the labels come from the dictionary, since a Greek buyer choosing
+ * payment terms should read them in Greek. */
+const TERMS_VALUES: CreditTerms[] = ["prepay", "net30", "net60"];
 
 const initialState: CheckoutState = {};
 
 export function CheckoutForm({ account }: { account: Account }) {
   const { eur } = useFormat();
+  const { locale, dict } = useI18n();
+  const c = dict.checkout;
+  const termsLabel = (v: CreditTerms) =>
+    v === "prepay" ? c.termsPrepay : v === "net30" ? c.termsNet30 : c.termsNet60;
   const { lines } = useCart();
   const { getStyleById, inventory, productionLeadTimeDays } = useCatalog();
   const [terms, setTerms] = useState<CreditTerms>(account.creditTerms);
@@ -95,8 +101,8 @@ export function CheckoutForm({ account }: { account: Account }) {
   if (lines.length === 0) {
     return (
       <div className="py-24 text-center">
-        <p className="text-sm text-ink-soft">Your cart is empty — nothing to check out yet.</p>
-        <LinkButton href="/catalogue" className="mt-6 inline-flex">Browse Catalogue</LinkButton>
+        <p className="text-sm text-ink-soft">{c.checkoutEmpty}</p>
+        <LinkButton href={withLocale(locale, "/catalogue")} className="mt-6 inline-flex">{c.browseCatalogue}</LinkButton>
       </div>
     );
   }
@@ -104,7 +110,7 @@ export function CheckoutForm({ account }: { account: Account }) {
   return (
     <form action={formAction} className="mt-6 grid grid-cols-1 gap-10 pb-24 lg:grid-cols-[1fr_400px] lg:pb-0">
       <div className="flex flex-col gap-8">
-        <Section title="Ship To">
+        <Section title={c.shipTo}>
           <div className="flex flex-col gap-2">
             {account.shipTo.map((addr) => (
               <label key={addr.id} className="flex cursor-pointer items-start gap-3 border border-stone-300 p-3 has-[:checked]:border-ink has-[:checked]:bg-stone-100">
@@ -119,68 +125,67 @@ export function CheckoutForm({ account }: { account: Account }) {
           </div>
         </Section>
 
-        <Section title="Payment Terms">
+        <Section title={c.paymentTerms}>
           <select
             name="terms"
             value={terms}
             onChange={(e) => setTerms(e.target.value as CreditTerms)}
             className="max-w-xs border border-stone-300 bg-white px-3 py-2.5 text-sm outline-none focus-visible:border-signal"
           >
-            {TERMS_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}{TERMS_DISCOUNT[opt.value] > 0 ? ` — ${Math.round(TERMS_DISCOUNT[opt.value] * 100)}% off` : " — list price"}
+            {TERMS_VALUES.map((value) => (
+              <option key={value} value={value}>
+                {TERMS_DISCOUNT[value] > 0
+                  ? t(c.discountApplied, { terms: termsLabel(value), percent: Math.round(TERMS_DISCOUNT[value] * 100) })
+                  : t(c.listPrice, { terms: termsLabel(value) })}
               </option>
             ))}
           </select>
           <p className="mt-2 max-w-sm text-xs text-ink-soft">
-            Your account is currently approved for <strong className="text-ink">{TERMS_LABEL[account.creditTerms]}</strong>.
-            Requesting different terms routes this order to {account.rep.name} for credit approval before it ships.
+            {t(c.approvedForTerms, { terms: termsLabel(account.creditTerms), rep: account.rep.name })}
           </p>
         </Section>
 
-        <Section title="Notes for your rep">
+        <Section title={c.notesForRep}>
           <textarea
             name="notes"
             rows={4}
-            placeholder="Delivery instructions, combine shipments, anything your rep should know…"
+            placeholder={c.notesPlaceholder}
             className="w-full border border-stone-300 bg-white px-3 py-2.5 text-sm outline-none focus-visible:border-signal"
           />
         </Section>
 
         {(availableNow.length > 0 || prebook.length > 0 || madeToOrder.length > 0 || preOrder.length > 0) && (
-          <Section title="Estimated Shipping">
+          <Section title={c.estimatedShipping}>
             <div className="flex flex-col gap-2 text-sm text-ink-soft">
+              {/* English pluralised with a trailing "s"; Greek and German do not, so the
+                  count goes through the dictionary string rather than being assembled from
+                  fragments here. */}
               {availableNow.length > 0 && (
                 <p>
-                  <span className="font-medium text-ink">At-once ({availableNow.length} style{availableNow.length > 1 ? "s" : ""}):</span>{" "}
-                  ships within 5 business days of confirmation.
+                  <span className="font-medium text-ink">{t(c.atOnceLabel, { count: availableNow.length })}</span>{" "}
+                  {c.atOnceBody}
                 </p>
               )}
               {prebook.map((g) => (
                 <p key={g.style.id}>
-                  <span className="font-medium text-ink">{g.style.name} (pre-book):</span> {g.style.shipWindow}.
+                  <span className="font-medium text-ink">{t(c.prebookLabel, { name: g.style.name })}</span>{" "}
+                  {g.style.shipWindow}.
                 </p>
               ))}
               {madeToOrder.length > 0 && (
                 <p>
-                  <span className="font-medium text-ink">
-                    Made to order ({madeToOrder.length} style{madeToOrder.length > 1 ? "s" : ""}):
-                  </span>{" "}
-                  not fully in stock — ships in about {productionLeadTimeDays} days. Exact per-item status is
-                  confirmed after you submit.
+                  <span className="font-medium text-ink">{t(c.madeToOrderLabel, { count: madeToOrder.length })}</span>{" "}
+                  {t(c.madeToOrderBody, { days: productionLeadTimeDays })}
                 </p>
               )}
               {preOrder.length > 0 && (
                 <p>
-                  <span className="font-medium text-ink">
-                    Pre-order ({preOrder.length} style{preOrder.length > 1 ? "s" : ""}):
-                  </span>{" "}
-                  not fully in stock — no fixed ship date yet. {account.rep.name} will confirm timing once
-                  production is scheduled.
+                  <span className="font-medium text-ink">{t(c.preOrderLabel, { count: preOrder.length })}</span>{" "}
+                  {t(c.preOrderBody, { rep: account.rep.name })}
                 </p>
               )}
               {[availableNow.length > 0, prebook.length > 0, madeToOrder.length > 0, preOrder.length > 0].filter(Boolean).length > 1 && (
-                <p className="text-xs">This order will ship in multiple shipments.</p>
+                <p className="text-xs">{c.multipleShipments}</p>
               )}
             </div>
           </Section>
@@ -205,7 +210,7 @@ export function CheckoutForm({ account }: { account: Account }) {
                   {g.style.name} <span className="font-mono-tab text-xs">×{g.totalPairs}</span>
                   {termsDiscount > 0 && (
                     <span className="ml-1.5 bg-ember px-1 py-0.5 align-middle text-[9px] font-semibold uppercase tracking-wide text-white">
-                      {TERMS_LABEL[terms]} −{Math.round(termsDiscount * 100)}%
+                      {termsLabel(terms)} −{Math.round(termsDiscount * 100)}%
                     </span>
                   )}
                 </span>
@@ -222,24 +227,27 @@ export function CheckoutForm({ account }: { account: Account }) {
         </div>
         {vatTotal > 0 && (
           <div className="mt-3 flex items-center justify-between text-xs text-ink-soft">
-            <span>Subtotal</span>
+            <span>{c.subtotal}</span>
             <span className="tabular-nums">{eur(cartTotal)}</span>
           </div>
         )}
         {vatTotal > 0 && (
           <div className="mt-1 flex items-center justify-between text-xs text-ink-soft">
-            <span>VAT</span>
+            <span>{t(dict.tax.vatLabel, { rate: vatPercent() })}</span>
             <span className="tabular-nums">{eur(vatTotal)}</span>
           </div>
         )}
         <div className="mt-4 flex items-center justify-between">
-          <span className="text-sm font-semibold uppercase tracking-wide text-ink-soft">Total</span>
+          <span className="text-sm font-semibold uppercase tracking-wide text-ink-soft">{c.total}</span>
           <span className="text-xl font-semibold tabular-nums text-ink">{eur(grandTotal)}</span>
         </div>
+        {/* Your brief: it must be impossible for a buyer to think a displayed price
+            includes VAT. This is the last screen before they commit. */}
+        <VatNotice dict={dict} rates={styleGroups.map((g) => g.style.vatRate)} className="mt-3 text-[11px] text-ink-soft" />
         <p className="mt-1 text-right text-[11px] text-ink-soft">
           {TERMS_DISCOUNT[terms] > 0
-            ? `${TERMS_LABEL[terms]} — ${Math.round(TERMS_DISCOUNT[terms] * 100)}% off applied`
-            : `${TERMS_LABEL[terms]} — list price`}
+            ? t(c.discountApplied, { terms: termsLabel(terms), percent: Math.round(TERMS_DISCOUNT[terms] * 100) })
+            : t(c.listPrice, { terms: termsLabel(terms) })}
         </p>
 
         {minimumError && (
@@ -254,7 +262,7 @@ export function CheckoutForm({ account }: { account: Account }) {
         )}
 
         <Button type="submit" size="lg" className="mt-5 w-full" disabled={pending || !!minimumError}>
-          {pending ? "Requesting…" : "Request Proforma Invoice"}
+          {pending ? c.requesting : c.requestProforma}
         </Button>
         <p className="mt-3 text-center text-[11px] text-ink-soft">
           This isn&rsquo;t a charge — it sends this order to {account.rep.name}{" "}
@@ -273,7 +281,7 @@ export function CheckoutForm({ account }: { account: Account }) {
             <p className="truncate text-[10px] text-ink-soft">{totalPairs} pairs</p>
           </div>
           <Button type="submit" disabled={pending || !!minimumError} className="shrink-0">
-            {pending ? "Requesting…" : "Submit Order"}
+            {pending ? c.submitting : c.submitOrder}
           </Button>
         </div>
         {minimumError && <p className="mt-1.5 text-[11px] font-medium text-ember">{minimumError}</p>}

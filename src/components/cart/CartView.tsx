@@ -7,7 +7,10 @@ import { useCatalog } from "@/lib/catalog-context";
 import { getBoxType } from "@/lib/data/boxTypes";
 import { getStyleImageUrl } from "@/lib/data/styleLabels";
 import { getOrderMinimumError, MAX_BACKORDER_QTY, validateMatrix } from "@/lib/pricing";
-import { useFormat } from "@/i18n/I18nProvider";
+import { useFormat, useI18n } from "@/i18n/I18nProvider";
+import { withLocale } from "@/i18n/paths";
+import { t } from "@/i18n/format";
+import { VatNotice } from "@/components/ui/VatNotice";
 import type { BoxTypeId } from "@/lib/types";
 import type { StyleInventory } from "@/lib/data/inventory";
 import type { BoxOption } from "@/lib/orderMinimum";
@@ -31,6 +34,8 @@ export function CartView({
   inventory: Record<string, StyleInventory>;
 }) {
   const { eur } = useFormat();
+  const { locale, dict } = useI18n();
+  const c = dict.checkout;
   const { lines, unavailableLines, setLineQty, removeStyle, clearCart, cartTotal, cartVatTotal, cartGrandTotal, priceMultiplier, minOrderPairs } = useCart();
   const { getStyleById, productionLeadTimeDays } = useCatalog();
 
@@ -98,17 +103,17 @@ export function CartView({
   );
   const blockedReason =
     minimumError ||
-    (overStockLine ? "One or more lines exceed available stock — reduce quantity to check out." : undefined) ||
+    (overStockLine ? c.overStock : undefined) ||
     (unavailableLines.length > 0
-      ? "Remove the styles that are no longer available before checking out."
+      ? c.removeUnavailable
       : undefined);
 
   if (lines.length === 0) {
     return (
       <div className="mx-auto max-w-[900px] px-6 py-24 text-center">
-        <p className="font-display text-xl font-bold uppercase tracking-tight text-ink">Your cart is empty</p>
-        <p className="mt-2 text-sm text-ink-soft">Build an order from the catalog, linesheet, or quick order.</p>
-        <LinkButton href="/catalogue" className="mt-6 inline-flex">Browse Catalogue</LinkButton>
+        <p className="font-display text-xl font-bold uppercase tracking-tight text-ink">{c.cartEmptyTitle}</p>
+        <p className="mt-2 text-sm text-ink-soft">{c.cartEmptyBody}</p>
+        <LinkButton href={withLocale(locale, "/catalogue")} className="mt-6 inline-flex">{c.browseCatalogue}</LinkButton>
       </div>
     );
   }
@@ -123,10 +128,10 @@ export function CartView({
           <TextAction
             tone="neutralDanger"
             onClick={() => {
-              if (confirm("Empty your entire cart? This removes every line item.")) clearCart();
+              if (confirm(c.emptyCartConfirm)) clearCart();
             }}
           >
-            Empty cart
+            {c.emptyCart}
           </TextAction>
           <TextActionLink href="/catalogue" tone="neutral">
             ← Continue shopping
@@ -136,14 +141,13 @@ export function CartView({
 
       {unavailableStyleIds.length > 0 && (
         <div className="mt-6 border border-ember/40 bg-ember-100 px-4 py-3">
+          {/* Whole sentences per plural case, not "A style"/"Some styles" + a shared tail:
+              Greek inflects the rest of the clause with the number, so the two halves
+              cannot be assembled independently. */}
           <p className="text-sm font-semibold text-ember">
-            {unavailableStyleIds.length === 1 ? "A style in your cart is" : "Some styles in your cart are"} no longer
-            available
+            {unavailableStyleIds.length === 1 ? c.unavailableOne : c.unavailableMany}
           </p>
-          <p className="mt-1 text-xs text-ink-soft">
-            These were withdrawn after you added them, so they can&rsquo;t be priced or ordered. They&rsquo;re not
-            included in your totals — remove them to check out.
-          </p>
+          <p className="mt-1 text-xs text-ink-soft">{c.unavailableBody}</p>
           <ul className="mt-3 flex flex-col gap-2">
             {unavailableStyleIds.map((styleId) => {
               const pairs = unavailableLines
@@ -208,7 +212,7 @@ export function CartView({
                       <div className="min-w-0 flex-1">
                         <p className="text-ink">{colorway?.name ?? l.colorwayId}</p>
                         <p className="font-mono-tab text-xs text-ink-soft">
-                          {box.label} · {l.qty * box.totalPairs} pairs
+                          {box.label} · {t(c.pairsCount, { count: l.qty * box.totalPairs })}
                         </p>
                         <p className={cn("text-[11px]", overStock ? "font-medium text-ember" : willBeProduction ? "text-ink" : "text-ink-soft")}>
                           {label}
@@ -218,7 +222,7 @@ export function CartView({
                       <div className="flex shrink-0 items-center overflow-hidden rounded-full border border-stone-300">
                         <button
                           type="button"
-                          aria-label="Decrease quantity"
+                          aria-label={c.decreaseQty}
                           onClick={() => setLineQty(styleId, l.colorwayId, l.boxTypeId, Math.max(0, l.qty - 1))}
                           className="flex h-9 w-9 items-center justify-center text-ink hover:bg-stone-100"
                         >
@@ -230,12 +234,12 @@ export function CartView({
                           max={max}
                           value={l.qty}
                           onChange={(e) => setLineQty(styleId, l.colorwayId, l.boxTypeId, clamp(styleId, l.colorwayId, l.boxTypeId, Number(e.target.value)))}
-                          aria-label={`${colorway?.name ?? "Colorway"} ${box.label} quantity`}
+                          aria-label={`${colorway?.name ?? c.colorway} ${box.label} quantity`}
                           className="font-mono-tab w-12 border-x border-stone-300 bg-white px-1 py-1 text-center text-sm outline-none focus-visible:border-signal"
                         />
                         <button
                           type="button"
-                          aria-label="Increase quantity"
+                          aria-label={c.increaseQty}
                           onClick={() => setLineQty(styleId, l.colorwayId, l.boxTypeId, l.qty + 1)}
                           disabled={l.qty >= max}
                           className="flex h-9 w-9 items-center justify-center text-ink hover:bg-stone-100 disabled:opacity-30 disabled:hover:bg-transparent"
@@ -261,10 +265,10 @@ export function CartView({
                 <table className="w-full min-w-[480px] border-collapse text-sm">
                   <thead>
                     <tr className="border-b border-stone-200 text-left text-[11px] uppercase tracking-wide text-ink-soft">
-                      <th className="px-4 py-2 font-semibold">Colorway</th>
+                      <th className="px-4 py-2 font-semibold">{c.colorway}</th>
                       <th className="px-2 py-2 font-semibold">Box</th>
                       <th className="px-2 py-2 text-right font-semibold">Qty</th>
-                      <th className="px-4 py-2 text-right font-semibold">Pairs</th>
+                      <th className="px-4 py-2 text-right font-semibold">{c.pairs}</th>
                       <th className="w-10 px-2 py-2" />
                     </tr>
                   </thead>
@@ -282,7 +286,7 @@ export function CartView({
                             <div className="ml-auto flex w-fit items-center overflow-hidden rounded-full border border-stone-300">
                               <button
                                 type="button"
-                                aria-label="Decrease quantity"
+                                aria-label={c.decreaseQty}
                                 onClick={() => setLineQty(styleId, l.colorwayId, l.boxTypeId, Math.max(0, l.qty - 1))}
                                 className="flex h-9 w-9 items-center justify-center text-ink hover:bg-stone-100"
                               >
@@ -296,12 +300,12 @@ export function CartView({
                                 onChange={(e) =>
                                   setLineQty(styleId, l.colorwayId, l.boxTypeId, clamp(styleId, l.colorwayId, l.boxTypeId, Number(e.target.value)))
                                 }
-                                aria-label={`${colorway?.name ?? "Colorway"} ${box.label} quantity`}
+                                aria-label={`${colorway?.name ?? c.colorway} ${box.label} quantity`}
                                 className="font-mono-tab w-12 border-x border-stone-300 bg-white px-1 py-1 text-center text-sm outline-none focus-visible:border-signal"
                               />
                               <button
                                 type="button"
-                                aria-label="Increase quantity"
+                                aria-label={c.increaseQty}
                                 onClick={() => setLineQty(styleId, l.colorwayId, l.boxTypeId, l.qty + 1)}
                                 disabled={l.qty >= max}
                                 className="flex h-9 w-9 items-center justify-center text-ink hover:bg-stone-100 disabled:opacity-30 disabled:hover:bg-transparent"
@@ -333,7 +337,7 @@ export function CartView({
 
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-200 bg-stone-50 px-4 py-3">
                 <div className="flex items-center gap-4 text-xs text-ink-soft">
-                  <span className="font-mono-tab">{validation.totalBoxes} boxes · {validation.totalPairs} pairs</span>
+                  <span className="font-mono-tab">{t(c.boxesAndPairs, { boxes: validation.totalBoxes, pairs: validation.totalPairs })}</span>
                 </div>
                 <span className="text-base font-semibold tabular-nums text-ink">
                   {eur(validation.subtotal)}
@@ -350,7 +354,7 @@ export function CartView({
       <div className="mt-8 flex flex-col items-end gap-3 border-t border-stone-300 pt-6">
         <SaveAssortmentButton lines={lines} />
         <div className="flex items-baseline gap-3">
-          <span className="text-sm font-semibold uppercase tracking-wide text-ink-soft">Cart total (net-60)</span>
+          <span className="text-sm font-semibold uppercase tracking-wide text-ink-soft">{c.cartTotalNet60}</span>
           <span className="text-2xl font-semibold tabular-nums text-ink">{eur(cartTotal)}</span>
         </div>
         {cartVatTotal > 0 && (
@@ -358,7 +362,10 @@ export function CartView({
             + VAT {eur(cartVatTotal)} = {eur(cartGrandTotal)}
           </p>
         )}
-        <p className="text-right text-xs text-ink-soft">{grandTotalPairs} pairs in cart</p>
+        <p className="text-right text-xs text-ink-soft">{t(c.pairsInCart, { count: grandTotalPairs })}</p>
+        {/* Same disclosure as checkout — the cart is where a buyer forms their price
+            expectation, so it cannot be the one screen that omits it. */}
+        <VatNotice dict={dict} className="mt-2 text-right text-[11px] text-ink-soft" />
         <p className="text-right text-xs font-medium text-positive">
           Prepay in full at checkout to save {eur(cartGrandTotal * 0.1)} (10% off)
         </p>
@@ -387,7 +394,7 @@ export function CartView({
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
             <p className="truncate text-lg font-semibold tabular-nums text-ink">{eur(cartGrandTotal)}</p>
-            <p className="truncate text-[10px] text-ink-soft">{grandTotalPairs} pairs</p>
+            <p className="truncate text-[10px] text-ink-soft">{t(c.pairsCount, { count: grandTotalPairs })}</p>
           </div>
           {blockedReason ? (
             <Button disabled className="shrink-0">
