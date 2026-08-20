@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/i18n/I18nProvider";
 import { useActionState, useState } from "react";
 import {
   addShipToAddress,
@@ -109,6 +110,7 @@ function AddressForm({
   address?: ShipToAddress;
   onDone: () => void;
 }) {
+  const d = useI18n().dict.dashboard;
   const action = mode === "add" ? addShipToAddress : updateShipToAddress;
   const [state, formAction, pending] = useActionState(async (prev: FormState, formData: FormData) => {
     const result = await action(prev, formData);
@@ -120,12 +122,12 @@ function AddressForm({
     <form action={formAction} className="flex flex-col gap-3 border border-ink bg-stone-50 p-4">
       {mode === "edit" && address && <input type="hidden" name="shipToId" value={address.id} />}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Field label="Label" name="label" defaultValue={address?.label} required />
-        <Field label="Address line 1" name="line1" defaultValue={address?.line1} required />
-        <Field label="Address line 2" name="line2" defaultValue={address?.line2} />
-        <Field label="City" name="city" defaultValue={address?.city} required />
-        <Field label="State" name="state" defaultValue={address?.state} required />
-        <Field label="ZIP" name="zip" defaultValue={address?.zip} required />
+        <Field label={d.addressLabel} name="label" defaultValue={address?.label} required />
+        <Field label={d.addressLine1} name="line1" defaultValue={address?.line1} required />
+        <Field label={d.addressLine2} name="line2" defaultValue={address?.line2} />
+        <Field label={d.city} name="city" defaultValue={address?.city} required />
+        <Field label={d.state} name="state" defaultValue={address?.state} required />
+        <Field label={d.zip} name="zip" defaultValue={address?.zip} required />
       </div>
       {mode === "add" && (
         <label className="flex items-center gap-2 text-xs text-ink-soft">
@@ -142,7 +144,7 @@ function AddressForm({
 
       <div className="flex gap-2">
         <Button type="submit" size="sm" disabled={pending}>
-          {pending ? "Saving…" : mode === "add" ? "Add address" : "Save address"}
+          {pending ? d.saving : mode === "add" ? d.addAddress : d.saveAddress}
         </Button>
         <Button type="button" variant="ghost" size="sm" onClick={onDone}>
           Cancel

@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/i18n/I18nProvider";
 import { useActionState } from "react";
 import { updateAccountProfile, type FormState } from "@/lib/actions";
 import { Button } from "@/components/ui/Button";
@@ -14,15 +15,16 @@ const initialState: FormState = {};
  * nothing keeps.
  */
 export function ProfileForm({ account, whatsappEnabled }: { account: Account; whatsappEnabled: boolean }) {
+  const d = useI18n().dict.dashboard;
   const [state, formAction, pending] = useActionState(updateAccountProfile, initialState);
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
-      <Field label="Business name" name="businessName" defaultValue={account.businessName} required />
-      <Field label="Contact name" name="contactName" defaultValue={account.contactName} required />
-      <Field label="Email" name="email" type="email" defaultValue={account.email} required />
+      <Field label={d.businessName} name="businessName" defaultValue={account.businessName} required />
+      <Field label={d.contactName} name="contactName" defaultValue={account.contactName} required />
+      <Field label={d.email} name="email" type="email" defaultValue={account.email} required />
       <Field
-        label={whatsappEnabled ? "Mobile phone (WhatsApp)" : "Mobile phone"}
+        label={whatsappEnabled ? d.mobileWhatsApp : d.mobilePhone}
         name="phone"
         type="tel"
         defaultValue={account.phone}
@@ -47,7 +49,7 @@ export function ProfileForm({ account, whatsappEnabled }: { account: Account; wh
       )}
 
       <Button type="submit" size="sm" className="self-start" disabled={pending}>
-        {pending ? "Saving…" : "Save changes"}
+        {pending ? d.saving : d.saveChanges}
       </Button>
     </form>
   );

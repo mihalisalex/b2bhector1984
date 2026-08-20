@@ -1,3 +1,5 @@
+import { getDictionary } from "@/i18n/getDictionary";
+import type { Locale } from "@/i18n/config";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
@@ -12,7 +14,9 @@ import { LinkButton } from "@/components/ui/Button";
 
 export const metadata = { title: "Account", robots: { index: false, follow: false } };
 
-export default async function AccountPage() {
+export default async function AccountPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const d = (await getDictionary(lang as Locale)).dashboard;
   const account = await getCurrentAccount();
   if (!account) redirect("/login");
 
@@ -25,7 +29,7 @@ export default async function AccountPage() {
           </Link>{" "}
           / Account
         </p>
-        <h1 className="font-display mt-1 text-2xl font-bold uppercase tracking-tight text-ink">Account</h1>
+        <h1 className="font-display mt-1 text-2xl font-bold uppercase tracking-tight text-ink">{d.account}</h1>
         <p className="mt-1 text-sm text-ink-soft">
           {account.businessName} · manage your contact info, password, and shipping addresses.
         </p>
@@ -33,8 +37,8 @@ export default async function AccountPage() {
 
       <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border border-stone-300 bg-white p-5">
         <div>
-          <h2 className="font-display text-lg font-bold uppercase tracking-tight text-ink">Wholesale Dashboard</h2>
-          <p className="mt-1 text-sm text-ink-soft">Order history and saved assortments live here.</p>
+          <h2 className="font-display text-lg font-bold uppercase tracking-tight text-ink">{d.wholesaleDashboard}</h2>
+          <p className="mt-1 text-sm text-ink-soft">{d.dashboardIntro}</p>
         </div>
         <LinkButton href="/dashboard" variant="secondary" size="sm">
           Go to Dashboard
@@ -43,14 +47,14 @@ export default async function AccountPage() {
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <section className="border border-stone-300 bg-white p-5">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Profile</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{d.profile}</h2>
           <div className="mt-4">
             <ProfileForm account={account} whatsappEnabled={isWhatsAppConfigured()} />
           </div>
         </section>
 
         <section className="border border-stone-300 bg-white p-5">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Password</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{d.password}</h2>
           <div className="mt-4">
             <PasswordForm />
           </div>
@@ -58,7 +62,7 @@ export default async function AccountPage() {
       </div>
 
       <section className="mt-6 border border-stone-300 bg-white p-5">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Shipping Addresses</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{d.shippingAddresses}</h2>
         <div className="mt-4">
           <ShipToManager addresses={account.shipTo} />
         </div>
@@ -66,14 +70,14 @@ export default async function AccountPage() {
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <section className="border border-stone-300 bg-white p-5">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Billing &amp; Terms</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{d.billingAndTerms}</h2>
           <div className="mt-4 grid grid-cols-2 gap-4">
-            <Stat label="Payment terms" value={TERMS_LABEL[account.creditTerms]} />
-            <Stat label="Minimum order" value={`${account.minOrderPairs ?? MIN_ORDER_PAIRS} pairs`} />
-            <Stat label="Resale cert." value={account.resaleCertId} />
-            <Stat label="Business type" value={account.businessType} />
-            <Stat label="Store location" value={account.storeLocation} />
-            <Stat label="Applied" value={formatDate(account.appliedAt)} />
+            <Stat label={d.paymentTerms} value={TERMS_LABEL[account.creditTerms]} />
+            <Stat label={d.minimumOrder} value={`${account.minOrderPairs ?? MIN_ORDER_PAIRS} pairs`} />
+            <Stat label={d.resaleCert} value={account.resaleCertId} />
+            <Stat label={d.businessType} value={account.businessType} />
+            <Stat label={d.storeLocation} value={account.storeLocation} />
+            <Stat label={d.applied} value={formatDate(account.appliedAt)} />
           </div>
           <p className="mt-4 border-t border-stone-200 pt-3 text-xs text-ink-soft">
             Payment terms, minimum order, and compliance fields are managed by your sales rep — contact them below to
@@ -82,7 +86,7 @@ export default async function AccountPage() {
         </section>
 
         <section className="border border-stone-300 bg-ink p-5 text-stone-200">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-stone-300/70">Your Rep</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-stone-300/70">{d.yourRep}</h2>
           <div className="mt-3 flex items-center gap-3">
             <span className="font-mono-tab flex h-11 w-11 shrink-0 items-center justify-center bg-white text-sm font-semibold text-ink">
               {account.rep.initials}

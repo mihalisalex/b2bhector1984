@@ -1,3 +1,5 @@
+import { getDictionary } from "@/i18n/getDictionary";
+import type { Locale } from "@/i18n/config";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
@@ -13,7 +15,9 @@ import { TextActionLink } from "@/components/ui/TextAction";
 
 export const metadata = { title: "Dashboard", robots: { index: false, follow: false } };
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const d = (await getDictionary(lang as Locale)).dashboard;
   const account = await getCurrentAccount();
   if (!account) redirect("/login");
 
@@ -31,17 +35,17 @@ export default async function DashboardPage() {
           <p className="mt-1 text-sm text-ink-soft">{account.businessName} · {account.storeLocation}</p>
         </div>
         <div className="flex gap-2">
-          <LinkButton href="/quick-order" variant="secondary" size="sm">Quick Order</LinkButton>
-          <LinkButton href="/catalogue" size="sm">Browse Catalogue</LinkButton>
+          <LinkButton href="/quick-order" variant="secondary" size="sm">{d.quickOrder}</LinkButton>
+          <LinkButton href="/catalogue" size="sm">{d.browseCatalogue}</LinkButton>
         </div>
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-3">
         <div className="border border-stone-300 bg-white p-5 lg:col-span-2">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Account</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{d.account}</h2>
           <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
             <Stat label="Terms" value={TERMS_LABEL[account.creditTerms]} />
-            <Stat label="Minimum order" value={`${account.minOrderPairs ?? MIN_ORDER_PAIRS} pairs`} />
+            <Stat label={d.minimumOrder} value={`${account.minOrderPairs ?? MIN_ORDER_PAIRS} pairs`} />
             <Stat label="YTD ordered" value={formatEUR(ytdTotal)} isPrice />
           </div>
           <p className="mt-4 border-t border-stone-200 pt-3 text-xs text-ink-soft">
@@ -51,7 +55,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="border border-stone-300 bg-ink p-5 text-stone-200">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-stone-300/70">Your Rep</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-stone-300/70">{d.yourRep}</h2>
           <div className="mt-3 flex items-center gap-3">
             <span className="font-mono-tab flex h-11 w-11 shrink-0 items-center justify-center bg-white text-sm font-semibold text-ink">
               {account.rep.initials}
@@ -73,7 +77,7 @@ export default async function DashboardPage() {
       <div className="mt-8 flex flex-col gap-8 lg:flex-row">
         <div className="flex-1">
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-lg font-bold uppercase tracking-tight text-ink">Order History</h2>
+            <h2 className="font-display text-lg font-bold uppercase tracking-tight text-ink">{d.orderHistory}</h2>
           </div>
           {orders.length === 0 ? (
             <div className="mt-3 border border-dashed border-stone-300 bg-stone-100 px-6 py-10 text-center text-sm text-ink-soft">
@@ -118,10 +122,10 @@ export default async function DashboardPage() {
 
         <div className="lg:w-72 lg:shrink-0">
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-lg font-bold uppercase tracking-tight text-ink">Saved Assortments</h2>
+            <h2 className="font-display text-lg font-bold uppercase tracking-tight text-ink">{d.savedAssortments}</h2>
           </div>
           {assortments.length === 0 ? (
-            <p className="mt-3 text-sm text-ink-soft">No saved assortments yet.</p>
+            <p className="mt-3 text-sm text-ink-soft">{d.noAssortments}</p>
           ) : (
             <div className="mt-3 flex flex-col gap-2">
               {assortments.map((a) => (
