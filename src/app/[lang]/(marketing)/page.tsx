@@ -61,10 +61,31 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const displayEyebrow = lang === "en" ? hero.eyebrow : (heroEl && hero.eyebrowEl) || h.heroEyebrow;
   const displayHeadingRaw = lang === "en" ? hero.heading : (heroEl && hero.headingEl) || h.heroHeading;
   const displayBody = lang === "en" ? hero.body : (heroEl && hero.bodyEl) || h.heroBody;
-  const displayPrimaryCta =
-    lang === "en" ? hero.primaryCtaLabel : (heroEl && hero.primaryCtaLabelEl) || h.heroPrimaryCta;
-  const displaySecondaryCta =
-    lang === "en" ? hero.secondaryCtaLabel : (heroEl && hero.secondaryCtaLabelEl) || h.viewCollectionFirst;
+  /**
+   * CTA labels are resolved from the button's own DESTINATION, not from a fixed dictionary
+   * key per slot.
+   *
+   * The two hrefs are admin-editable and currently point primary -> /collections and
+   * secondary -> /apply, which is the reverse of what "primary = apply" would assume. A
+   * first pass at this did assume it, and every non-English locale ended up labelling the
+   * buttons backwards: a Greek buyer clicking «Αίτηση πρόσβασης» landed on the collections
+   * page. Keying off the href means the admin can swap, reorder or repoint the buttons
+   * from /admin/content and the translated labels follow instead of silently lying.
+   *
+   * An unrecognised destination falls back to the admin's own English label — a real label
+   * pointing at the right place beats a translated one pointing at the wrong place.
+   */
+  const ctaLabel = (href: string, dbLabel: string, elOverride: string): string => {
+    if (lang === "en") return dbLabel;
+    if (heroEl && elOverride) return elOverride;
+    if (href.includes("/apply")) return dict.nav.applyForAccess;
+    if (href.includes("/collections")) return dict.nav.collections;
+    if (href.includes("/catalogue")) return dict.nav.catalogue;
+    if (href.includes("/quick-order")) return dict.nav.quickOrder;
+    return dbLabel;
+  };
+  const displayPrimaryCta = ctaLabel(hero.primaryCtaHref, hero.primaryCtaLabel, hero.primaryCtaLabelEl);
+  const displaySecondaryCta = ctaLabel(hero.secondaryCtaHref, hero.secondaryCtaLabel, hero.secondaryCtaLabelEl);
   // Admin-edited content occasionally carries a stray blank line between sentences; filtered
   // here so it can't open up an oversized gap in the middle of the headline (a blank line
   // still renders as a full leading-height row even though there's nothing on it).

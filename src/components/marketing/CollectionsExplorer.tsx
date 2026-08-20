@@ -141,7 +141,14 @@ export function CollectionsExplorer({
                 aria-selected={season === opt.value}
                 onClick={() => selectSeason(opt.value)}
                 className={cn(
-                  "relative z-10 whitespace-nowrap rounded-full px-5 py-2 text-xs font-semibold uppercase tracking-wide transition-colors duration-300",
+                  // px-3 below `sm`, px-5 above. At px-5 the two season pills measured 360px
+                  // plus the container's border and padding — 385px against a 375px iPhone
+                  // viewport, so /collections scrolled sideways on the most common phone
+                  // width. That was true in English too, so it is not a Greek regression:
+                  // the labels are season names ("SPRING SUMMER 2027"), not translated copy.
+                  // `whitespace-nowrap` has to stay — a season name broken across two lines
+                  // inside a pill looks worse than the tighter padding.
+                  "relative z-10 whitespace-nowrap rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-colors duration-300 sm:px-5",
                   season === opt.value ? "text-white" : "text-ink-soft hover:text-ink",
                 )}
               >
