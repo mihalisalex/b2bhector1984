@@ -1,4 +1,20 @@
 const en = {
+  tax: {
+    /** Shown on every surface that displays a price. `{rate}` is VAT_PERCENT. */
+    vatExcludedNotice: "All prices are wholesale, excluding {rate}% VAT.",
+    /** Used only when items on one page carry different VAT rates, so no single
+     * percentage can be stated truthfully. */
+    vatExcludedMixed: "All prices are wholesale, excluding VAT.",
+    /** Compact form, for table footers and PDF footers where the full line won't fit. */
+    vatExcludedShort: "Excl. {rate}% VAT",
+    /** Line item label on the order summary and invoice. */
+    vatLabel: "VAT ({rate}%)",
+    netTotal: "Total excl. VAT",
+    grossTotal: "Total incl. VAT",
+    afm: "Tax ID (ΑΦΜ)",
+    doy: "Tax office (ΔΟΥ)",
+    euVatId: "EU VAT number",
+  },
   nav: {
     home: "Home",
     quickOrder: "Quick Order",

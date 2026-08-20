@@ -1,6 +1,17 @@
 import type { Dictionary } from "@/i18n/dictionaries/en";
 
 const el: Dictionary = {
+  tax: {
+    vatExcludedNotice: "Όλες οι τιμές είναι χονδρικής, πλέον ΦΠΑ {rate}%.",
+    vatExcludedMixed: "Όλες οι τιμές είναι χονδρικής, πλέον ΦΠΑ.",
+    vatExcludedShort: "Πλέον ΦΠΑ {rate}%",
+    vatLabel: "ΦΠΑ ({rate}%)",
+    netTotal: "Σύνολο προ ΦΠΑ",
+    grossTotal: "Σύνολο με ΦΠΑ",
+    afm: "ΑΦΜ",
+    doy: "ΔΟΥ",
+    euVatId: "Αριθμός ΦΠΑ ΕΕ",
+  },
   nav: {
     home: "Αρχική",
     quickOrder: "Γρήγορη παραγγελία",

@@ -1,6 +1,17 @@
 import type { Dictionary } from "@/i18n/dictionaries/en";
 
 const fr: Dictionary = {
+  tax: {
+    vatExcludedNotice: "Tous les prix sont des prix de gros, hors TVA {rate}%.",
+    vatExcludedMixed: "Tous les prix sont des prix de gros, hors TVA.",
+    vatExcludedShort: "Hors TVA {rate}%",
+    vatLabel: "TVA ({rate}%)",
+    netTotal: "Total HT",
+    grossTotal: "Total TTC",
+    afm: "Numéro fiscal (ΑΦΜ)",
+    doy: "Centre des impôts (ΔΟΥ)",
+    euVatId: "Numéro de TVA intracommunautaire",
+  },
   nav: {
     home: "Accueil",
     quickOrder: "Commande rapide",

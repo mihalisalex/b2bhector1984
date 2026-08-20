@@ -1,6 +1,17 @@
 import type { Dictionary } from "@/i18n/dictionaries/en";
 
 const de: Dictionary = {
+  tax: {
+    vatExcludedNotice: "Alle Preise sind Großhandelspreise, zzgl. {rate}% MwSt.",
+    vatExcludedMixed: "Alle Preise sind Großhandelspreise, zzgl. MwSt.",
+    vatExcludedShort: "zzgl. {rate}% MwSt.",
+    vatLabel: "MwSt. ({rate}%)",
+    netTotal: "Summe netto",
+    grossTotal: "Summe brutto",
+    afm: "Steuernummer (ΑΦΜ)",
+    doy: "Finanzamt (ΔΟΥ)",
+    euVatId: "USt-IdNr.",
+  },
   nav: {
     home: "Startseite",
     quickOrder: "Schnellbestellung",
