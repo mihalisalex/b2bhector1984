@@ -29,9 +29,6 @@ registerPdfFonts();
  * roughly `--color-stone-100`.
  */
 const styles = StyleSheet.create({
-  // 9.5pt, not 10: Manrope sets a larger x-height than the Helvetica this replaced, and at
-  // 10pt a typical 8-line order spilled onto a second page that Helvetica fit on one.
-  // Measured against the previous build rather than guessed — see the comment on tableRow.
   page: { fontSize: 9.5, fontFamily: PDF_FONT_FAMILY, color: "#121212" },
 
   headerBand: {
@@ -56,11 +53,7 @@ const styles = StyleSheet.create({
   docTitle: { fontSize: 10, fontFamily: PDF_FONT_FAMILY, fontWeight: 700, color: "#121212", textAlign: "right", letterSpacing: 0.75 },
   docMeta: { fontSize: 8.5, color: "#a3a3a3", textAlign: "right", marginTop: 6 },
 
-  // paddingBottom is just breathing room before the footer now, not reserved space for a
-  // `fixed` element repeating on every page (the footer isn't `fixed` — see its own
-  // comment). It used to be 92pt for that purpose; left that large, it was dead space
-  // pushing an 8-9-line order onto a mostly-blank second page for no reason.
-  body: { paddingHorizontal: 40, paddingTop: 16, paddingBottom: 12 },
+  body: { paddingHorizontal: 40, paddingTop: 16, paddingBottom: 0 },
 
   infoCard: {
     flexDirection: "row",
@@ -94,10 +87,6 @@ const styles = StyleSheet.create({
   tableRow: {
     flexDirection: "row",
     alignItems: "center",
-    // 6pt, down from 8. Manrope is a taller face than the Helvetica this document used, and
-    // at the old spacing a typical 8-line wholesale order spilled onto a second page that
-    // Helvetica fitted on one — measured against the previous build, not guessed. Trimming
-    // 2pt a side gives the rows back without touching type size or the layout's proportions.
     paddingVertical: 6,
     borderBottom: "0.75pt solid #ececea",
   },
@@ -155,13 +144,28 @@ const styles = StyleSheet.create({
   grandTotalLabel: { fontSize: 8.5, color: "#ffffff", letterSpacing: 1 },
   grandTotalValue: { fontSize: 16, color: "#ffffff" },
 
+  /**
+   * IN NORMAL FLOW, not absolutely positioned. This is the fix for a real bug.
+   *
+   * It used to be `position: absolute; bottom: 0`, which pins it to the page bottom but
+   * reserves NO space — so when the body's content grew tall enough, the grand-total band
+   * simply printed on top of the footer text. Adding `paddingBottom` to the body does not
+   * help and it is worth being explicit about why: padding only moves where the page
+   * BREAKS, it does not push already-laid-out content upward. The overlap survived a
+   * paddingBottom of 76pt unchanged.
+   *
+   * A page count cannot see this failure either — the document still reports one page while
+   * being unreadable at the bottom. It was found by a human opening the file.
+   *
+   * In flow, the footer takes the space it needs and can never be drawn over. The cost is
+   * that on a short invoice it sits just below the content rather than pinned to the very
+   * bottom of the sheet. That is a cosmetic loss against a correctness win.
+   */
   footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
+    marginTop: 14,
     paddingHorizontal: 40,
-    paddingVertical: 18,
+    paddingTop: 10,
+    paddingBottom: 10,
     borderTop: "0.75pt solid #e0e0e0",
   },
   footerText: { fontSize: 8, color: "#a3a3a3", lineHeight: 1.5, textAlign: "center" },
