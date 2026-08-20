@@ -128,6 +128,8 @@ const en = {
     box: "Box",
     specSheetFooter:
       "Hector Footwear Wholesale · {email}. Materials, weights, and box breakdowns are illustrative and subject to production tolerances.",
+    afm: "Tax ID",
+    doy: "Tax office",
     wholesaleEst: "WHOLESALE — EST. 1984",
   },
   /**

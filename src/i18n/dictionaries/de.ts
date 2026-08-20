@@ -105,6 +105,8 @@ const de: Dictionary = {
     box: "Karton",
     specSheetFooter:
       "Hector Footwear Wholesale · {email}. Materialien, Gewichte und Kartonaufteilungen sind unverbindlich und unterliegen Produktionstoleranzen.",
+    afm: "Steuernr.",
+    doy: "Finanzamt",
     wholesaleEst: "GROSSHANDEL — SEIT 1984",
   },
   email: {

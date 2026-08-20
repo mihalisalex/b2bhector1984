@@ -6,6 +6,8 @@ import { SITE_URL } from "@/lib/siteUrl";
 import { summarizeOrder } from "@/lib/pricing";
 import { InvoiceDocument, type InvoiceLineView } from "@/lib/pdf/InvoiceDocument";
 import { getDictionary } from "@/i18n/getDictionary";
+import { getSeoSettings } from "@/lib/data/seoSettings";
+import { resolveTaxIdentity } from "@/lib/tax";
 import { DEFAULT_LOCALE, type Locale } from "@/i18n/config";
 import type { OrderLine, Style } from "@/lib/types";
 
@@ -115,6 +117,12 @@ export async function buildInvoicePdf(input: BuildInvoicePdfInput): Promise<Buff
 
   const { total, vatTotal, grandTotal, totalBoxes, totalPairs } = summarizeOrder({ lines: input.lines });
 
+  // ΑΦΜ/ΔΟΥ from seo_settings. Omitted entirely when unset rather than printed as a
+  // placeholder — an invoice showing «TODO» where the tax number belongs is worse than one
+  // that simply does not carry it yet.
+  const settings = await getSeoSettings();
+  const taxIdentity = resolveTaxIdentity({ afm: settings.taxAfm, doy: settings.taxDoy, euVatId: settings.taxEuVatId });
+
   return renderToBuffer(
     InvoiceDocument({
       order: input.order,
@@ -132,6 +140,7 @@ export async function buildInvoicePdf(input: BuildInvoicePdfInput): Promise<Buff
       // renders inside `after()`, where no request remains.
       dict: (await getDictionary(input.locale ?? DEFAULT_LOCALE)).pdf,
       locale: input.locale ?? DEFAULT_LOCALE,
+      tax: taxIdentity.incomplete ? undefined : { afm: taxIdentity.afm, doy: taxIdentity.doy },
     }),
   );
 }

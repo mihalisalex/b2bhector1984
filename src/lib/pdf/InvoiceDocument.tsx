@@ -212,6 +212,8 @@ export interface InvoiceDocumentProps {
   dict?: Dictionary["pdf"];
   /** Drives number and date conventions — Greek needs "24,90 €" and DD/MM/YYYY. */
   locale?: string;
+  /** Issuer tax identity, rendered in the invoice header. Omitted when unset. */
+  tax?: { afm: string; doy: string };
 }
 
 export function InvoiceDocument({
@@ -227,6 +229,7 @@ export function InvoiceDocument({
   grandTotal,
   dict = enDict.pdf,
   locale = "en",
+  tax,
 }: InvoiceDocumentProps) {
   const TERMS: Record<string, string> = {
     prepay: dict.termsPrepay,
@@ -250,6 +253,17 @@ export function InvoiceDocument({
               <Text style={styles.wordmarkSub}>FOOTWEAR</Text>
             </View>
             <Text style={styles.tagline}>{dict.wholesaleEst}</Text>
+            {/* ΑΦΜ and ΔΟΥ belong on the face of the document: a Greek retailer's
+                accountant needs the issuer's tax registration to book the invoice at all.
+                Rendered only when present, so a database without them still produces a
+                clean invoice rather than one reading «TODO». */}
+            {tax && (
+              <Text style={styles.tagline}>
+                {dict.afm} {tax.afm}
+                {"  ·  "}
+                {dict.doy} {tax.doy}
+              </Text>
+            )}
           </View>
           <View>
             <View style={styles.docTitleBadge}>

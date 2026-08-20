@@ -90,16 +90,27 @@ export function resolveTaxIdentity(input?: {
 }): TaxIdentity {
   const afm = input?.afm?.trim() || TAX_IDENTITY_PLACEHOLDER;
   const doy = input?.doy?.trim() || TAX_IDENTITY_PLACEHOLDER;
-  // Derived from the ΑΦΜ when not stated outright — the EU form is just "EL" + ΑΦΜ, and
-  // keeping the two independently editable invites them drifting apart.
-  const euVatId =
-    input?.euVatId?.trim() || (afm === TAX_IDENTITY_PLACEHOLDER ? TAX_IDENTITY_PLACEHOLDER : `EL${afm}`);
+
+  /**
+   * NOT derived from the ΑΦΜ. An earlier version of this filled it in as `EL${afm}`, on the
+   * reasoning that the EU form is just the prefix plus the number.
+   *
+   * That is the right *format* but the wrong *claim*. A Greek business only holds an EU VAT
+   * number once it is registered in VIES; printing EL+ΑΦΜ on an invoice for a business that
+   * isn't asserts a registration that may not exist, and a customer's accountant can check
+   * it in VIES in seconds. The owner has confirmed there is no EU VAT number, so this stays
+   * empty and the invoice simply omits the line rather than inventing one.
+   */
+  const euVatId = input?.euVatId?.trim() || "";
 
   return {
     afm,
     doy,
     euVatId,
-    incomplete: [afm, doy, euVatId].some((v) => v === TAX_IDENTITY_PLACEHOLDER),
+    // `euVatId` is deliberately NOT part of this: an absent EU VAT number is a settled fact
+    // here, not an outstanding to-do, and flagging it would keep the pre-launch checklist
+    // permanently red.
+    incomplete: [afm, doy].some((v) => v === TAX_IDENTITY_PLACEHOLDER),
   };
 }
 

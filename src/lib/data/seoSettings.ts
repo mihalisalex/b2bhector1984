@@ -62,6 +62,11 @@ export interface SeoSettings {
   schemaFaq: boolean;
 
   googleSiteVerification?: string;
+  /** Greek tax identity (migration 0038). `taxEuVatId` is intentionally absent from the
+   * schema surface as a required value — this business is not VIES-registered. */
+  taxAfm?: string;
+  taxDoy?: string;
+  taxEuVatId?: string;
   bingSiteVerification?: string;
 }
 
@@ -127,6 +132,9 @@ interface SeoSettingsRow {
   schema_product: boolean;
   schema_faq: boolean;
   google_site_verification: string | null;
+  tax_afm?: string | null;
+  tax_doy?: string | null;
+  tax_eu_vat_id?: string | null;
   bing_site_verification: string | null;
 }
 
@@ -171,6 +179,9 @@ function mapSettings(row: SeoSettingsRow): SeoSettings {
     schemaProduct: row.schema_product,
     schemaFaq: row.schema_faq,
     googleSiteVerification: opt(row.google_site_verification),
+    taxAfm: opt(row.tax_afm ?? null),
+    taxDoy: opt(row.tax_doy ?? null),
+    taxEuVatId: opt(row.tax_eu_vat_id ?? null),
     bingSiteVerification: opt(row.bing_site_verification),
   };
 }

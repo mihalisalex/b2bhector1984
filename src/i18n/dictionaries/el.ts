@@ -107,6 +107,8 @@ const el: Dictionary = {
     box: "Κιβώτιο",
     specSheetFooter:
       "Hector Footwear Wholesale · {email}. Τα υλικά, τα βάρη και οι αναλύσεις κιβωτίων είναι ενδεικτικά και υπόκεινται σε ανοχές παραγωγής.",
+    afm: "ΑΦΜ",
+    doy: "ΔΟΥ",
     wholesaleEst: "ΧΟΝΔΡΙΚΗ — ΑΠΟ ΤΟ 1984",
   },
   email: {
