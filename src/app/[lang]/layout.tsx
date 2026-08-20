@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { bodySans, displaySerif, mono } from "@/lib/fonts";
+import { bodySans, bodySansGreek, displaySerif, displaySerifGreek, mono } from "@/lib/fonts";
 import { BackToTopButton } from "@/components/layout/BackToTopButton";
 import { CookieConsentBanner } from "@/components/layout/CookieConsentBanner";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -78,7 +78,11 @@ export default async function LocaleLayout({
   return (
     <html
       lang={lang}
-      className={`${displaySerif.variable} ${bodySans.variable} ${mono.variable} h-full antialiased`}
+      // Greek gets its own pair: the Latin display face has no Greek beyond a math subset
+      // and the Latin body face has none at all. See src/lib/fonts.ts.
+      className={`${lang === "el" ? displaySerifGreek.variable : displaySerif.variable} ${
+        lang === "el" ? bodySansGreek.variable : bodySans.variable
+      } ${mono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-stone-50 text-ink">
         <I18nProvider locale={lang} dict={dict}>
