@@ -65,6 +65,54 @@ const fr: Dictionary = {
     accountAlreadyExists:
       "Un compte existe déjà pour cette adresse e-mail. Connectez-vous — ou utilisez « Mot de passe oublié ».",
   },
+  email: {
+    greeting: "Bonjour {name},",
+    fallbackName: "",
+    signoff: "Cordialement,\nHector Footwear Wholesale",
+
+    statusSubmitted: "Reçue",
+    statusConfirmed: "Confirmée",
+    statusInProduction: "En production",
+    statusShipped: "Expédiée",
+    statusDelivered: "Livrée",
+
+    orderStatusSubject: "Mise à jour de la commande {id} — {status}",
+    orderStatusBody: "Au sujet de votre commande {id}, actuellement au statut : {status}.",
+
+    orderConfirmationSubject: "Confirmation de commande — {id}",
+    orderConfirmationBody:
+      "Nous avons bien reçu votre commande {id}. Nous vous tiendrons informé au fil de la production.",
+    invoiceAttached: "Votre facture proforma est jointe au format PDF.",
+    madeToOrderNote:
+      "Certains articles de cette commande n'étaient pas en stock et sont fabriqués sur commande — comptez environ {days} jours.",
+    preOrderNote:
+      "Certains articles sont en précommande — ils n'étaient pas en stock, et nous confirmerons le délai d'expédition dès que la production sera planifiée.",
+    inStockShipsNote: "Tout ce qui est en stock part immédiatement.",
+
+    approvedSubject: "Votre demande de compte de gros Hector Footwear — approuvée",
+    approvedBody:
+      "Bonne nouvelle — votre demande de compte de gros Hector Footwear a été approuvée. Activez votre compte pour consulter l'ensemble du catalogue avec les tarifs :",
+    repLineWithPhone: "Votre interlocuteur dédié est {name} — joignable directement au {phone}.",
+    repLine: "Votre interlocuteur dédié est {name}.",
+
+    declinedSubject: "Votre demande de compte de gros Hector Footwear",
+    declinedBody:
+      "Merci de l'intérêt que vous portez à Hector Footwear. Après examen, nous ne sommes pas en mesure d'approuver un compte de gros pour le moment. Si la situation de votre entreprise évolue, n'hésitez pas à soumettre une nouvelle demande.",
+
+    receivedSubject: "Nous avons bien reçu votre demande de compte de gros Hector Footwear",
+    receivedBody:
+      "Merci d'avoir demandé un compte de gros Hector Footwear — nous l'avons bien reçue et notre équipe l'examine. La plupart des demandes sont traitées sous deux jours ouvrés, et nous vous répondrons par e-mail dès qu'une décision sera prise.",
+
+    passwordResetSubject: "Réinitialiser votre mot de passe de gros Hector Footwear",
+    passwordResetBody:
+      "Nous avons reçu une demande de réinitialisation du mot de passe de votre compte de gros. Cliquez sur le lien ci-dessous pour en choisir un nouveau — il expire dans 1 heure :",
+    passwordResetIgnore: "Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.",
+
+    shellEyebrow: "Portail de gros",
+    shellButton: "Continuer →",
+    shellFooterLine1: "Hector Footwear Co. — Comptes de gros uniquement.",
+    shellFooterLine2: "Ceci est un e-mail transactionnel concernant votre compte de gros.",
+  },
   auth: {
     portalEyebrow: "Portail de gros",
     portalHeadline: "Tout ce dont votre magasin a besoin pour commander Hector Footwear, au même endroit.",

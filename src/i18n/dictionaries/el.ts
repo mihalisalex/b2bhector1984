@@ -67,6 +67,57 @@ const el: Dictionary = {
     accountAlreadyExists:
       "Υπάρχει ήδη λογαριασμός με αυτή τη διεύθυνση email. Συνδεθείτε — ή χρησιμοποιήστε το «Ξεχάσατε τον κωδικό;» αν δεν τον θυμάστε.",
   },
+  email: {
+    // "Γεια σας" rather than "Αγαπητέ/Αγαπητή": the Greek formal salutation is gendered and
+    // nothing on the account records gender, so the polite-plural form is the one that is
+    // never wrong. Flag it in the review file if you want something warmer.
+    greeting: "Γεια σας {vocative},",
+    fallbackName: "",
+    signoff: "Με εκτίμηση,\nHector Footwear Wholesale",
+
+    statusSubmitted: "Καταχωρήθηκε",
+    statusConfirmed: "Επιβεβαιώθηκε",
+    statusInProduction: "Σε παραγωγή",
+    statusShipped: "Απεστάλη",
+    statusDelivered: "Παραδόθηκε",
+
+    orderStatusSubject: "Ενημέρωση παραγγελίας {id} — {status}",
+    orderStatusBody: "Σχετικά με την παραγγελία σας {id}, η οποία βρίσκεται σε κατάσταση: {status}.",
+
+    orderConfirmationSubject: "Επιβεβαίωση παραγγελίας — {id}",
+    orderConfirmationBody:
+      "Λάβαμε την παραγγελία σας {id}. Θα επικοινωνήσουμε μαζί σας καθώς προχωρά η παραγωγή.",
+    invoiceAttached: "Το προτιμολόγιο επισυνάπτεται σε μορφή PDF.",
+    madeToOrderNote:
+      "Ορισμένα είδη της παραγγελίας δεν ήταν διαθέσιμα και κατασκευάζονται κατόπιν παραγγελίας — υπολογίστε περίπου {days} ημέρες.",
+    preOrderNote:
+      "Ορισμένα είδη είναι σε προπαραγγελία — δεν ήταν διαθέσιμα και θα σας επιβεβαιώσουμε τον χρόνο αποστολής μόλις προγραμματιστεί η παραγωγή.",
+    inStockShipsNote: "Ό,τι υπάρχει σε απόθεμα αποστέλλεται άμεσα.",
+
+    approvedSubject: "Η αίτησή σας για λογαριασμό χονδρικής Hector Footwear — εγκρίθηκε",
+    approvedBody:
+      "Καλά νέα — η αίτησή σας για λογαριασμό χονδρικής στη Hector Footwear εγκρίθηκε. Ενεργοποιήστε τον λογαριασμό σας για να δείτε ολόκληρο τον κατάλογο με τιμές χονδρικής:",
+    repLineWithPhone: "Ο υπεύθυνος του λογαριασμού σας είναι ο/η {name} — τηλέφωνο επικοινωνίας: {phone}.",
+    repLine: "Ο υπεύθυνος του λογαριασμού σας είναι ο/η {name}.",
+
+    declinedSubject: "Η αίτησή σας για λογαριασμό χονδρικής Hector Footwear",
+    declinedBody:
+      "Σας ευχαριστούμε για το ενδιαφέρον σας να διαθέσετε προϊόντα Hector Footwear. Μετά από αξιολόγηση, δεν μπορούμε να εγκρίνουμε λογαριασμό χονδρικής αυτή τη στιγμή. Αν αλλάξουν τα δεδομένα της επιχείρησής σας, μπορείτε να υποβάλετε νέα αίτηση.",
+
+    receivedSubject: "Λάβαμε την αίτησή σας για λογαριασμό χονδρικής Hector Footwear",
+    receivedBody:
+      "Σας ευχαριστούμε για την αίτηση λογαριασμού χονδρικής στη Hector Footwear — τη λάβαμε και η ομάδα μας την εξετάζει. Οι περισσότερες αιτήσεις αξιολογούνται εντός 2 εργάσιμων ημερών και θα σας ενημερώσουμε με email μόλις ληφθεί απόφαση.",
+
+    passwordResetSubject: "Επαναφορά κωδικού πρόσβασης Hector Footwear",
+    passwordResetBody:
+      "Λάβαμε αίτημα επαναφοράς του κωδικού πρόσβασης του λογαριασμού χονδρικής σας. Πατήστε τον παρακάτω σύνδεσμο για να ορίσετε νέο κωδικό — λήγει σε 1 ώρα:",
+    passwordResetIgnore: "Αν δεν ζητήσατε εσείς την επαναφορά, αγνοήστε αυτό το email.",
+
+    shellEyebrow: "Πύλη Χονδρικής",
+    shellButton: "Συνέχεια →",
+    shellFooterLine1: "Hector Footwear Co. — Μόνο για λογαριασμούς χονδρικής.",
+    shellFooterLine2: "Πρόκειται για ενημερωτικό email σχετικά με τον λογαριασμό χονδρικής σας.",
+  },
   auth: {
     portalEyebrow: "Πύλη Χονδρικής",
     portalHeadline: "Ό,τι χρειάζεται το κατάστημά σας για να παραγγείλει Hector Footwear, σε ένα σημείο.",

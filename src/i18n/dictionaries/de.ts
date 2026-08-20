@@ -65,6 +65,54 @@ const de: Dictionary = {
     accountAlreadyExists:
       "Für diese E-Mail-Adresse existiert bereits ein Konto. Melden Sie sich an — oder nutzen Sie „Passwort vergessen“.",
   },
+  email: {
+    greeting: "Hallo {name},",
+    fallbackName: "",
+    signoff: "Mit freundlichen Grüßen,\nHector Footwear Wholesale",
+
+    statusSubmitted: "Eingegangen",
+    statusConfirmed: "Bestätigt",
+    statusInProduction: "In Produktion",
+    statusShipped: "Versendet",
+    statusDelivered: "Zugestellt",
+
+    orderStatusSubject: "Update zu Bestellung {id} — {status}",
+    orderStatusBody: "Zu Ihrer Bestellung {id}, aktueller Status: {status}.",
+
+    orderConfirmationSubject: "Auftragsbestätigung — {id}",
+    orderConfirmationBody:
+      "Wir haben Ihre Bestellung {id} erhalten. Wir melden uns, sobald sie in der Produktion weiterkommt.",
+    invoiceAttached: "Ihre Proforma-Rechnung ist als PDF angehängt.",
+    madeToOrderNote:
+      "Einige Artikel dieser Bestellung waren nicht auf Lager und werden auf Bestellung gefertigt — rechnen Sie mit etwa {days} Tagen.",
+    preOrderNote:
+      "Einige Artikel sind vorbestellt — sie waren nicht auf Lager, und wir bestätigen den Versandtermin, sobald die Produktion geplant ist.",
+    inStockShipsNote: "Alles, was vorrätig ist, geht sofort raus.",
+
+    approvedSubject: "Ihr Hector Footwear Großhandelsantrag — genehmigt",
+    approvedBody:
+      "Gute Nachrichten — Ihr Antrag auf ein Hector Footwear Großhandelskonto wurde genehmigt. Aktivieren Sie Ihr Konto, um den vollständigen Katalog mit Preisen zu sehen:",
+    repLineWithPhone: "Ihr fester Ansprechpartner ist {name} — direkt erreichbar unter {phone}.",
+    repLine: "Ihr fester Ansprechpartner ist {name}.",
+
+    declinedSubject: "Ihr Hector Footwear Großhandelsantrag",
+    declinedBody:
+      "Vielen Dank für Ihr Interesse an Hector Footwear. Nach Prüfung können wir derzeit kein Großhandelskonto genehmigen. Sollten sich Ihre geschäftlichen Umstände ändern, freuen wir uns über einen neuen Antrag.",
+
+    receivedSubject: "Wir haben Ihren Hector Footwear Großhandelsantrag erhalten",
+    receivedBody:
+      "Vielen Dank für Ihren Antrag auf ein Hector Footwear Großhandelskonto — wir haben ihn erhalten und unser Team prüft ihn. Die meisten Anträge werden innerhalb von zwei Werktagen bearbeitet, und wir melden uns per E-Mail, sobald eine Entscheidung vorliegt.",
+
+    passwordResetSubject: "Hector Footwear Großhandelspasswort zurücksetzen",
+    passwordResetBody:
+      "Wir haben eine Anfrage zum Zurücksetzen des Passworts Ihres Großhandelskontos erhalten. Klicken Sie auf den folgenden Link, um ein neues zu wählen — er läuft in 1 Stunde ab:",
+    passwordResetIgnore: "Falls die Anfrage nicht von Ihnen kam, können Sie diese E-Mail ignorieren.",
+
+    shellEyebrow: "Großhandelsportal",
+    shellButton: "Weiter →",
+    shellFooterLine1: "Hector Footwear Co. — Nur für Großhandelskonten.",
+    shellFooterLine2: "Dies ist eine transaktionale E-Mail zu Ihrem Großhandelskonto.",
+  },
   auth: {
     portalEyebrow: "Großhandelsportal",
     portalHeadline: "Alles, was Ihr Geschäft zum Einkauf von Hector Footwear braucht, an einem Ort.",

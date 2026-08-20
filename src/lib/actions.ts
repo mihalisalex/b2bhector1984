@@ -55,8 +55,6 @@ import {
   buildNewOrderAdminEmailBody,
   newOrderAdminEmailSubject,
   orderConfirmationEmailSubject,
-  PASSWORD_RESET_EMAIL_SUBJECT,
-  APPLICATION_RECEIVED_EMAIL_SUBJECT,
   NEW_APPLICATION_ADMIN_EMAIL_SUBJECT,
   textToHtml,
 } from "@/lib/emailTemplates";
@@ -163,10 +161,15 @@ export async function requestPasswordReset(_prev: FormState, formData: FormData)
     if (account && account.status === "active") {
       const token = await createPasswordResetToken(account.id);
       const resetUrl = `${SITE_URL}/reset-password/${token}`;
+      // The recipient's own language, not the domain the request came from — someone can
+      // request a reset from any device, and the mail belongs to their account.
+      const locale = await getLocaleForAccount(account.locale);
+      const e = (await getDictionary(locale)).email;
+      const subject = e.passwordResetSubject;
       await sendEmail({
         to: account.email,
-        subject: PASSWORD_RESET_EMAIL_SUBJECT,
-        html: textToHtml(buildPasswordResetEmailBody(resetUrl, account.contactName), PASSWORD_RESET_EMAIL_SUBJECT),
+        subject,
+        html: textToHtml(buildPasswordResetEmailBody(e, resetUrl, account.contactName), subject, e, locale),
       });
     }
   } catch (err) {
@@ -277,10 +280,19 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
   } else {
     console.warn("[email] ADMIN_EMAIL not set — skipping new-application admin notification");
   }
+  // No account exists yet, so there is no stored preference to read — the domain they
+  // applied on is the only signal we have, and it is a good one.
+  const applyLocale = await getRequestLocale();
+  const applyEmail = (await getDictionary(applyLocale)).email;
   await sendEmail({
     to: application.email,
-    subject: APPLICATION_RECEIVED_EMAIL_SUBJECT,
-    html: textToHtml(buildApplicationReceivedEmailBody(application.contactName), APPLICATION_RECEIVED_EMAIL_SUBJECT),
+    subject: applyEmail.receivedSubject,
+    html: textToHtml(
+      buildApplicationReceivedEmailBody(applyEmail, application.contactName),
+      applyEmail.receivedSubject,
+      applyEmail,
+      applyLocale,
+    ),
   });
 
   await setApplicationCookie(id, APPLICATION_MAX_AGE);
@@ -335,6 +347,12 @@ export async function activateAccount(_prev: FormState, formData: FormData): Pro
       // now rather than re-asked at activation, which the applicant has no reason to see.
       repId: application.repId,
       priceMultiplier: application.priceMultiplier,
+      // The language every future email to this buyer is written in, taken from the domain
+      // they activated on. `applications` carries no locale of its own, so this is the
+      // best signal available — and once the activation link is built per-domain (Phase C)
+      // the domain they activate on is by construction the one they applied on. An admin
+      // can correct it from /admin/accounts; `locale_inferred` marks it as unconfirmed.
+      locale: await getRequestLocale(),
       shipTo: {
         label: application.businessName,
         line1: application.addressLine1,
@@ -580,12 +598,17 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
       console.error(`[checkout] Failed to build invoice PDF for ${order.id} — confirmation email will go out without it:`, err);
     }
   
-    const confirmationSubject = orderConfirmationEmailSubject(order);
+    // `dict` here is the buyer's own (resolved above from account.locale), which matters
+    // more than usual on this path: `after()` runs once the response is already sent, so
+    // there is no longer a request whose Host header could be read.
+    const e = dict.email;
+    const confirmationSubject = orderConfirmationEmailSubject(e, order);
     await sendEmail({
       to: account.email,
       subject: confirmationSubject,
       html: textToHtml(
         buildOrderConfirmationEmailBody(
+          e,
           order,
           account.contactName,
           hasMadeToOrderLines ? hero.productionLeadTimeDays : undefined,
@@ -593,8 +616,10 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
           invoiceAttachment !== undefined,
         ),
         confirmationSubject,
+        e,
+        account.locale ?? "el",
       ),
-        attachments: invoiceAttachment ? [invoiceAttachment] : undefined,
+      attachments: invoiceAttachment ? [invoiceAttachment] : undefined,
     });
   
     // Tell the business it has an order. Without this an order sits unseen in the dashboard

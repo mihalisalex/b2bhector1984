@@ -267,6 +267,8 @@ export async function createAccount(input: {
    * — `undefined`/`null` for `repId` means unassigned, matching the column's own default. */
   repId?: string | null;
   priceMultiplier?: number;
+  /** The language this buyer is written to in (migration 0037). */
+  locale?: string;
 }): Promise<void> {
   const baseRow = {
     id: input.id,
@@ -292,10 +294,20 @@ export async function createAccount(input: {
   // doesn't exist yet errors outright (unlike a read, which just omits it),
   // so account creation — and therefore every application activation — must
   // not break for every buyer just because migration 0026 hasn't run.
-  const { error } = await supabaseAdmin.from("accounts").insert({ ...baseRow, phone: input.phone ?? null });
+  // `locale` (0037) is subject to the same rule as `phone` above — naming a column that
+  // isn't there yet fails the whole insert — so it rides in the same optimistic attempt and
+  // is dropped by the same fallback. A pre-0037 database still activates accounts; they
+  // just take the column default once it exists.
+  const { error } = await supabaseAdmin
+    .from("accounts")
+    .insert({ ...baseRow, phone: input.phone ?? null, ...(input.locale ? { locale: input.locale } : {}) });
   if (error) {
-    const isMissingPhoneColumn = error.message.includes("schema cache") || error.message.includes("Could not find") || error.message.includes("phone");
-    if (!isMissingPhoneColumn) throw new Error(`accounts: ${error.message}`);
+    const isMissingOptionalColumn =
+      error.message.includes("schema cache") ||
+      error.message.includes("Could not find") ||
+      error.message.includes("phone") ||
+      error.message.includes("locale");
+    if (!isMissingOptionalColumn) throw new Error(`accounts: ${error.message}`);
     const { error: fallbackError } = await supabaseAdmin.from("accounts").insert(baseRow);
     if (fallbackError) throw new Error(`accounts: ${fallbackError.message}`);
   }

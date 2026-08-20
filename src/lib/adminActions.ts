@@ -30,14 +30,14 @@ import {
 } from "@/lib/runtimeOrders";
 import { sendEmail } from "@/lib/email";
 import {
-  APPLICATION_APPROVED_EMAIL_SUBJECT,
-  APPLICATION_DECLINED_EMAIL_SUBJECT,
   buildApplicationApprovedEmailBody,
   buildApplicationDeclinedEmailBody,
   buildOrderStatusEmailBody,
   orderStatusEmailSubject,
   textToHtml,
 } from "@/lib/emailTemplates";
+import { getDictionary } from "@/i18n/getDictionary";
+import { resolveLocale } from "@/lib/localeHeuristic";
 import { SITE_URL } from "@/lib/siteUrl";
 import type { FormState } from "@/lib/actions";
 import type { BoxTypeId, CreditTerms, OrderStatus, Season } from "@/lib/types";
@@ -52,11 +52,15 @@ async function requireAdmin() {
 async function notifyOrderStatusChange(orderId: string, status: OrderStatus) {
   const order = await getOrderByIdAdmin(orderId);
   if (!order?.email) return;
-  const subject = orderStatusEmailSubject({ id: order.id, status });
+  // The buyer's language, not the admin's. The admin triggering this is on the
+  // English-only admin site, which says nothing about who receives the mail.
+  const locale = resolveLocale(order.locale, order.storeLocation);
+  const e = (await getDictionary(locale)).email;
+  const subject = orderStatusEmailSubject(e, { id: order.id, status });
   await sendEmail({
     to: order.email,
     subject,
-    html: textToHtml(buildOrderStatusEmailBody({ id: order.id, status }, order.contactName), subject),
+    html: textToHtml(buildOrderStatusEmailBody(e, { id: order.id, status }, order.contactName), subject, e, locale),
   });
 }
 
@@ -64,6 +68,12 @@ async function notifyOrderStatusChange(orderId: string, status: OrderStatus) {
 async function notifyApplicationDecision(applicationId: string, decision: "approved" | "declined") {
   const application = await getApplicationById(applicationId);
   if (!application) return;
+  // An application has no account yet and `applications` carries no locale column, so the
+  // store address is the only real signal — the same heuristic migration 0037 used to
+  // backfill accounts.locale. Guessing from the admin's own domain would be worse than
+  // useless: the admin is always on the English admin site.
+  const locale = resolveLocale(undefined, application.storeLocation);
+  const e = (await getDictionary(locale)).email;
   if (decision === "approved") {
     // `repId` was just set by `approveApplicationWithAssignment` (or left unset on a bulk
     // approve) — re-fetched fresh here rather than threaded through as a param, so
@@ -72,21 +82,24 @@ async function notifyApplicationDecision(applicationId: string, decision: "appro
     const rep = application.repId ? await getSalesRepById(application.repId) : undefined;
     await sendEmail({
       to: application.email,
-      subject: APPLICATION_APPROVED_EMAIL_SUBJECT,
+      subject: e.approvedSubject,
       html: textToHtml(
         buildApplicationApprovedEmailBody(
+          e,
           application.contactName,
           `${SITE_URL}/apply/pending?app=${application.id}`,
           rep ? { name: rep.name, phone: rep.phone } : undefined,
         ),
-        APPLICATION_APPROVED_EMAIL_SUBJECT,
+        e.approvedSubject,
+        e,
+        locale,
       ),
     });
   } else {
     await sendEmail({
       to: application.email,
-      subject: APPLICATION_DECLINED_EMAIL_SUBJECT,
-      html: textToHtml(buildApplicationDeclinedEmailBody(application.contactName), APPLICATION_DECLINED_EMAIL_SUBJECT),
+      subject: e.declinedSubject,
+      html: textToHtml(buildApplicationDeclinedEmailBody(e, application.contactName), e.declinedSubject, e, locale),
     });
   }
 }

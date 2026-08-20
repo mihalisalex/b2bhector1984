@@ -80,6 +80,68 @@ const en = {
     accountAlreadyExists:
       "An account already exists for this email address. Sign in instead — or use “Forgot password” if you don’t have it.",
   },
+  /**
+   * Transactional email. Written in the recipient's language (accounts.locale), not the
+   * domain's — an order confirmation is often sent from a background path with no request
+   * to read, and a buyer's own language is the right answer either way.
+   *
+   * The two ADMIN notifications (new application, new order) are deliberately absent: they
+   * go to the business's own inbox, and the admin side of this app is English-only.
+   */
+  email: {
+    /**
+     * `{name}` is the contact's first name as stored; `{vocative}` is the Greek address
+     * form of it (see src/i18n/greek.ts). A language picks whichever placeholder its
+     * grammar needs — English takes `{name}`, Greek takes `{vocative}`.
+     * `fallbackName` fills in when there is no name at all.
+     */
+    greeting: "Hi {name},",
+    fallbackName: "there",
+    signoff: "Best,\nHector Footwear Wholesale",
+
+    statusSubmitted: "Submitted",
+    statusConfirmed: "Confirmed",
+    statusInProduction: "In Production",
+    statusShipped: "Shipped",
+    statusDelivered: "Delivered",
+
+    orderStatusSubject: "Order {id} update — {status}",
+    orderStatusBody: "Writing about your order {id}, currently {status}.",
+
+    orderConfirmationSubject: "Order confirmation — {id}",
+    orderConfirmationBody: "We've received your order {id}. We'll be in touch as it moves through production.",
+    invoiceAttached: "Your proforma invoice is attached as a PDF.",
+    madeToOrderNote:
+      "Some items in this order weren't in stock and are made to order — expect those in about {days} days.",
+    preOrderNote:
+      "Some items are on pre-order — they weren't in stock, and we'll confirm ship timing with you once production is scheduled.",
+    inStockShipsNote: "Anything on hand ships right away.",
+
+    approvedSubject: "Your Hector Footwear wholesale application — approved",
+    approvedBody:
+      "Good news — your Hector Footwear wholesale application has been approved. Activate your account to start browsing the full catalog with pricing:",
+    repLineWithPhone: "Your dedicated account rep is {name} — reach them directly at {phone}.",
+    repLine: "Your dedicated account rep is {name}.",
+
+    declinedSubject: "Your Hector Footwear wholesale application",
+    declinedBody:
+      "Thanks for your interest in carrying Hector Footwear. After review, we're not able to approve a wholesale account at this time. If your business circumstances change, you're welcome to re-apply.",
+
+    receivedSubject: "We've received your Hector Footwear wholesale application",
+    receivedBody:
+      "Thanks for applying for a Hector Footwear wholesale account — we've received your application and our team is reviewing it now. Most applications are reviewed within 2 business days, and we'll follow up by email as soon as a decision is made.",
+
+    passwordResetSubject: "Reset your Hector Footwear wholesale password",
+    passwordResetBody:
+      "We received a request to reset your Hector Footwear wholesale account password. Click the link below to choose a new one — it expires in 1 hour:",
+    passwordResetIgnore: "If you didn't request this, you can safely ignore this email.",
+
+    // The branded HTML shell in textToHtml.
+    shellEyebrow: "Wholesale Portal",
+    shellButton: "Continue →",
+    shellFooterLine1: "Hector Footwear Co. — Wholesale accounts only.",
+    shellFooterLine2: "This is a transactional email about your wholesale account.",
+  },
   auth: {
     // Login
     portalEyebrow: "Wholesale Portal",
