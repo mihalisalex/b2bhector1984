@@ -588,6 +588,9 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
         shipTo,
         lines: orderLines,
         styleById,
+        // Same locale the confirmation email uses — the invoice is its attachment, and the
+        // two arriving in different languages would be worse than either being wrong.
+        locale: await getLocaleForAccount(account.locale),
       });
       invoiceAttachment = {
         filename: `${order.id}-proforma-invoice.pdf`,

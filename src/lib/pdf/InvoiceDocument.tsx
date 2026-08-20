@@ -2,27 +2,25 @@ import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/render
 import { formatEUR } from "@/lib/pricing";
 import { formatDate } from "@/lib/format";
 import { SUPPORT_EMAIL } from "@/lib/contact";
+import { registerPdfFonts, PDF_FONT_FAMILY } from "@/lib/pdf/fonts";
+import { t } from "@/i18n/format";
+import enDict, { type Dictionary } from "@/i18n/dictionaries/en";
 
-const TERMS_LABEL: Record<string, string> = {
-  prepay: "Prepay — 10% off",
-  net30: "Net 30 — 5% off",
-  net60: "Net 60 — list price",
-};
+registerPdfFonts();
 
-const STATUS_LABEL: Record<string, string> = {
-  submitted: "Proforma Invoice",
-  confirmed: "Confirmed",
-  in_production: "In Production",
-  shipped: "Shipped",
-  delivered: "Delivered",
-};
 
 /**
- * Deliberately Helvetica-only (react-pdf's built-in fonts), not the site's Bodoni
- * Moda/Geist pairing — embedding custom TTFs into a server-rendered PDF is real
- * fragility for a look the layout/color treatment below already carries on its own.
- * The two-weight "HECTOR" (bold) / "FOOTWEAR" (light, tracked) split mirrors the
- * real wordmark (`Logo.tsx`) as closely as Helvetica allows.
+ * Manrope, embedded — see src/lib/pdf/fonts.ts.
+ *
+ * This was Helvetica-only until the Greek site, and the note here said so deliberately:
+ * "embedding custom TTFs into a server-rendered PDF is real fragility". That held until
+ * these documents had to carry Greek. Helvetica is a base-14 font declared
+ * `/Encoding /WinAnsiEncoding` — CP1252, which has no Greek glyphs — so Greek text drew as
+ * Latin punctuation. That was already true of any Greek business name or address on an
+ * invoice, before any localisation work.
+ *
+ * The two-weight "HECTOR" (bold) / "FOOTWEAR" (light, tracked) split still mirrors the
+ * real wordmark (`Logo.tsx`); Manrope carries it at least as well as Helvetica did.
  *
  * Color palette matches the storefront's tokens (`globals.css`) by value, not by
  * reference — react-pdf styles are plain objects, not CSS, so there's nothing to
@@ -31,7 +29,10 @@ const STATUS_LABEL: Record<string, string> = {
  * roughly `--color-stone-100`.
  */
 const styles = StyleSheet.create({
-  page: { fontSize: 10, fontFamily: "Helvetica", color: "#121212" },
+  // 9.5pt, not 10: Manrope sets a larger x-height than the Helvetica this replaced, and at
+  // 10pt a typical 8-line order spilled onto a second page that Helvetica fit on one.
+  // Measured against the previous build rather than guessed — see the comment on tableRow.
+  page: { fontSize: 9.5, fontFamily: PDF_FONT_FAMILY, color: "#121212" },
 
   headerBand: {
     backgroundColor: "#121212",
@@ -42,7 +43,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   wordmarkRow: { flexDirection: "row", alignItems: "baseline", gap: 6 },
-  wordmark: { fontSize: 16, fontFamily: "Helvetica-Bold", color: "#ffffff", letterSpacing: 1.5 },
+  wordmark: { fontSize: 16, fontFamily: PDF_FONT_FAMILY, fontWeight: 700, color: "#ffffff", letterSpacing: 1.5 },
   wordmarkSub: { fontSize: 8, color: "#a3a3a3", letterSpacing: 2 },
   tagline: { fontSize: 7.5, color: "#a3a3a3", marginTop: 4, letterSpacing: 1 },
   docTitleBadge: {
@@ -52,31 +53,31 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     alignSelf: "flex-end",
   },
-  docTitle: { fontSize: 10, fontFamily: "Helvetica-Bold", color: "#121212", textAlign: "right", letterSpacing: 0.75 },
+  docTitle: { fontSize: 10, fontFamily: PDF_FONT_FAMILY, fontWeight: 700, color: "#121212", textAlign: "right", letterSpacing: 0.75 },
   docMeta: { fontSize: 8.5, color: "#a3a3a3", textAlign: "right", marginTop: 6 },
 
   // paddingBottom is just breathing room before the footer now, not reserved space for a
   // `fixed` element repeating on every page (the footer isn't `fixed` — see its own
   // comment). It used to be 92pt for that purpose; left that large, it was dead space
   // pushing an 8-9-line order onto a mostly-blank second page for no reason.
-  body: { paddingHorizontal: 40, paddingTop: 20, paddingBottom: 16 },
+  body: { paddingHorizontal: 40, paddingTop: 16, paddingBottom: 12 },
 
   infoCard: {
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 24,
-    marginBottom: 18,
+    marginBottom: 14,
     padding: 14,
     backgroundColor: "#f7f7f5",
     borderRadius: 4,
   },
   infoBlock: { flexGrow: 1 },
-  infoLabel: { fontSize: 7.5, fontFamily: "Helvetica-Bold", color: "#8a8a8a", letterSpacing: 1.25, marginBottom: 6 },
+  infoLabel: { fontSize: 7.5, fontFamily: PDF_FONT_FAMILY, fontWeight: 700, color: "#8a8a8a", letterSpacing: 1.25, marginBottom: 6 },
   infoValue: { fontSize: 10, lineHeight: 1.5 },
 
   sectionLabel: {
     fontSize: 8,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: PDF_FONT_FAMILY, fontWeight: 700,
     color: "#8a8a8a",
     letterSpacing: 1.25,
     marginBottom: 8,
@@ -93,10 +94,14 @@ const styles = StyleSheet.create({
   tableRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 8,
+    // 6pt, down from 8. Manrope is a taller face than the Helvetica this document used, and
+    // at the old spacing a typical 8-line wholesale order spilled onto a second page that
+    // Helvetica fitted on one — measured against the previous build, not guessed. Trimming
+    // 2pt a side gives the rows back without touching type size or the layout's proportions.
+    paddingVertical: 6,
     borderBottom: "0.75pt solid #ececea",
   },
-  th: { fontSize: 7.5, fontFamily: "Helvetica-Bold", color: "#6b6b6b", letterSpacing: 0.75 },
+  th: { fontSize: 7.5, fontFamily: PDF_FONT_FAMILY, fontWeight: 700, color: "#6b6b6b", letterSpacing: 0.75 },
 
   colItem: { flexGrow: 1, flexDirection: "row", alignItems: "center", gap: 10, paddingRight: 10 },
   thumb: { width: 34, height: 34, borderRadius: 4, objectFit: "cover" },
@@ -108,9 +113,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  thumbFallbackText: { fontSize: 13, fontFamily: "Helvetica-Bold", color: "#ffffff" },
+  thumbFallbackText: { fontSize: 13, fontFamily: PDF_FONT_FAMILY, fontWeight: 700, color: "#ffffff" },
   itemText: { flexShrink: 1 },
-  itemName: { fontSize: 9.5, fontFamily: "Helvetica-Bold" },
+  itemName: { fontSize: 9.5, fontFamily: PDF_FONT_FAMILY, fontWeight: 700 },
   itemSub: { fontSize: 8.5, color: "#8a8a8a", marginTop: 2 },
 
   statusPill: {
@@ -120,7 +125,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 2,
   },
-  statusPillText: { fontSize: 7.5, fontFamily: "Helvetica-Bold", letterSpacing: 0.4 },
+  statusPillText: { fontSize: 7.5, fontFamily: PDF_FONT_FAMILY, fontWeight: 700, letterSpacing: 0.4 },
   statusPillStock: { backgroundColor: "#eef4ee" },
   statusPillStockText: { color: "#2f6e43" },
   statusPillProduction: { backgroundColor: "#e5e5e5" },
@@ -128,15 +133,15 @@ const styles = StyleSheet.create({
 
   colQty: { width: 34, textAlign: "right", fontSize: 9.5 },
   colUnit: { width: 58, textAlign: "right", fontSize: 9, color: "#6b6b6b" },
-  colTotal: { width: 68, textAlign: "right", fontSize: 9.5, fontFamily: "Helvetica-Bold" },
+  colTotal: { width: 68, textAlign: "right", fontSize: 9.5, fontFamily: PDF_FONT_FAMILY, fontWeight: 700 },
 
-  summaryWrap: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginTop: 14 },
+  summaryWrap: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginTop: 10 },
   summaryMeta: { fontSize: 9, color: "#6b6b6b" },
   summaryBox: { width: 230 },
   summaryRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 6 },
   summaryLabel: { fontSize: 9, color: "#6b6b6b" },
   summaryValue: { fontSize: 9.5 },
-  summaryValueBold: { fontSize: 9.5, fontFamily: "Helvetica-Bold" },
+  summaryValueBold: { fontSize: 9.5, fontFamily: PDF_FONT_FAMILY, fontWeight: 700 },
   grandTotalBand: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -199,6 +204,8 @@ export interface InvoiceDocumentProps {
   vatTotal: number;
   /** What the buyer actually owes — total + vatTotal. */
   grandTotal: number;
+  /** The buyer's language. Defaults to English so existing callers keep working. */
+  dict?: Dictionary["pdf"];
 }
 
 export function InvoiceDocument({
@@ -212,7 +219,20 @@ export function InvoiceDocument({
   total,
   vatTotal,
   grandTotal,
+  dict = enDict.pdf,
 }: InvoiceDocumentProps) {
+  const TERMS: Record<string, string> = {
+    prepay: dict.termsPrepay,
+    net30: dict.termsNet30,
+    net60: dict.termsNet60,
+  };
+  const STATUS: Record<string, string> = {
+    submitted: dict.proformaInvoice,
+    confirmed: dict.statusConfirmed,
+    in_production: dict.statusInProduction,
+    shipped: dict.statusShipped,
+    delivered: dict.statusDelivered,
+  };
   return (
     <Document title={`${order.id} — Hector Footwear`}>
       <Page size="A4" style={styles.page}>
@@ -222,11 +242,11 @@ export function InvoiceDocument({
               <Text style={styles.wordmark}>HECTOR</Text>
               <Text style={styles.wordmarkSub}>FOOTWEAR</Text>
             </View>
-            <Text style={styles.tagline}>WHOLESALE — EST. 1984</Text>
+            <Text style={styles.tagline}>{dict.wholesaleEst}</Text>
           </View>
           <View>
             <View style={styles.docTitleBadge}>
-              <Text style={styles.docTitle}>{(STATUS_LABEL[order.status] ?? "Invoice").toUpperCase()}</Text>
+              <Text style={styles.docTitle}>{(STATUS[order.status] ?? dict.invoice).toUpperCase()}</Text>
             </View>
             <Text style={styles.docMeta}>{order.id}</Text>
             <Text style={styles.docMeta}>{formatDate(order.placedAt)}</Text>
@@ -236,12 +256,12 @@ export function InvoiceDocument({
         <View style={styles.body}>
           <View style={styles.infoCard}>
             <View style={styles.infoBlock}>
-              <Text style={styles.infoLabel}>BILL TO</Text>
+              <Text style={styles.infoLabel}>{dict.billTo.toUpperCase()}</Text>
               <Text style={styles.infoValue}>{businessName}</Text>
               <Text style={styles.infoValue}>{contactName}</Text>
             </View>
             <View style={styles.infoBlock}>
-              <Text style={styles.infoLabel}>SHIP TO</Text>
+              <Text style={styles.infoLabel}>{dict.shipTo.toUpperCase()}</Text>
               {shipTo ? (
                 <>
                   <Text style={styles.infoValue}>{shipTo.label}</Text>
@@ -253,24 +273,24 @@ export function InvoiceDocument({
               )}
             </View>
             <View style={styles.infoBlock}>
-              <Text style={styles.infoLabel}>TERMS</Text>
-              <Text style={styles.infoValue}>{TERMS_LABEL[order.terms] ?? order.terms}</Text>
+              <Text style={styles.infoLabel}>{dict.terms.toUpperCase()}</Text>
+              <Text style={styles.infoValue}>{TERMS[order.terms] ?? order.terms}</Text>
               {order.trackingNumber && (
                 <>
-                  <Text style={[styles.infoLabel, { marginTop: 10 }]}>TRACKING</Text>
+                  <Text style={[styles.infoLabel, { marginTop: 10 }]}>{dict.tracking.toUpperCase()}</Text>
                   <Text style={styles.infoValue}>{order.carrier} {order.trackingNumber}</Text>
                 </>
               )}
             </View>
           </View>
 
-          <Text style={styles.sectionLabel}>ORDER DETAIL</Text>
+          <Text style={styles.sectionLabel}>{dict.orderDetail.toUpperCase()}</Text>
           <View style={styles.table}>
             <View style={styles.tableHeaderRow}>
-              <Text style={[styles.th, styles.colItem]}>ITEM</Text>
-              <Text style={[styles.th, styles.colQty]}>QTY</Text>
-              <Text style={[styles.th, styles.colUnit]}>UNIT</Text>
-              <Text style={[styles.th, styles.colTotal]}>TOTAL</Text>
+              <Text style={[styles.th, styles.colItem]}>{dict.item.toUpperCase()}</Text>
+              <Text style={[styles.th, styles.colQty]}>{dict.qty.toUpperCase()}</Text>
+              <Text style={[styles.th, styles.colUnit]}>{dict.unit.toUpperCase()}</Text>
+              <Text style={[styles.th, styles.colTotal]}>{dict.total.toUpperCase()}</Text>
             </View>
             {lines.map((line, i) => (
               <View key={i} style={styles.tableRow} wrap={false}>
@@ -299,8 +319,10 @@ export function InvoiceDocument({
                         ]}
                       >
                         {line.fulfillment === "production"
-                          ? `PRODUCTION${line.productionEta ? ` · ETA ${formatDate(line.productionEta)}` : ""}`
-                          : "IN STOCK"}
+                          ? `${dict.production.toUpperCase()}${
+                              line.productionEta ? ` · ${dict.eta.toUpperCase()} ${formatDate(line.productionEta)}` : ""
+                            }`
+                          : dict.inStock.toUpperCase()}
                       </Text>
                     </View>
                   </View>
@@ -313,20 +335,20 @@ export function InvoiceDocument({
           </View>
 
           <View style={styles.summaryWrap}>
-            <Text style={styles.summaryMeta}>{totalBoxes} boxes · {totalPairs} pairs</Text>
+            <Text style={styles.summaryMeta}>{t(dict.boxesAndPairs, { boxes: totalBoxes, pairs: totalPairs })}</Text>
             <View style={styles.summaryBox}>
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Subtotal</Text>
+                <Text style={styles.summaryLabel}>{dict.subtotal}</Text>
                 <Text style={styles.summaryValueBold}>{formatEUR(total)}</Text>
               </View>
               {vatTotal > 0 && (
                 <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>VAT</Text>
+                  <Text style={styles.summaryLabel}>{dict.vat}</Text>
                   <Text style={styles.summaryValue}>{formatEUR(vatTotal)}</Text>
                 </View>
               )}
               <View style={styles.grandTotalBand}>
-                <Text style={styles.grandTotalLabel}>TOTAL</Text>
+                <Text style={styles.grandTotalLabel}>{dict.grandTotal.toUpperCase()}</Text>
                 <Text style={styles.grandTotalValue}>{formatEUR(grandTotal)}</Text>
               </View>
             </View>
@@ -343,14 +365,8 @@ export function InvoiceDocument({
             enough to spill past page 1 just doesn't get a footer repeated on page 1,
             which is a far smaller cost than the bug this replaced. */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            This is a proforma invoice, not a charge — it reflects stock and production check before your order is
-            confirmed.
-          </Text>
-          <Text style={styles.footerText}>
-            Hector Footwear Wholesale · {SUPPORT_EMAIL} · All pricing and inventory data on this document is
-            illustrative.
-          </Text>
+          <Text style={styles.footerText}>{dict.proformaNotice}</Text>
+          <Text style={styles.footerText}>{t(dict.invoiceFooter, { email: SUPPORT_EMAIL })}</Text>
         </View>
       </Page>
     </Document>

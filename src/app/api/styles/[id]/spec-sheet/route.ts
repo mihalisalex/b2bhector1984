@@ -2,6 +2,8 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { getCurrentAccount } from "@/lib/session";
 import { getStyleById } from "@/lib/data/styles";
 import { EU_SIZES, getAvailableBoxTypes } from "@/lib/data/boxTypes";
+import { getDictionary } from "@/i18n/getDictionary";
+import { resolveLocale } from "@/lib/localeHeuristic";
 import { SpecSheetDocument, type SpecSheetBoxRow } from "@/lib/pdf/SpecSheetDocument";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -38,6 +40,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
         },
         euSizes: EU_SIZES,
         boxes,
+        // The signed-in buyer's language — this is a document they hand to their own team.
+        dict: (await getDictionary(resolveLocale(account.locale, account.storeLocation))).pdf,
       }),
     );
   } catch (err) {

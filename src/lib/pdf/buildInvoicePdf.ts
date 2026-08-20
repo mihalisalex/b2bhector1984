@@ -5,6 +5,8 @@ import { getStyleImageUrl } from "@/lib/data/styleLabels";
 import { SITE_URL } from "@/lib/siteUrl";
 import { summarizeOrder } from "@/lib/pricing";
 import { InvoiceDocument, type InvoiceLineView } from "@/lib/pdf/InvoiceDocument";
+import { getDictionary } from "@/i18n/getDictionary";
+import { DEFAULT_LOCALE, type Locale } from "@/i18n/config";
 import type { OrderLine, Style } from "@/lib/types";
 
 export interface BuildInvoicePdfInput {
@@ -20,6 +22,9 @@ export interface BuildInvoicePdfInput {
   contactName: string;
   shipTo?: { label: string; line1: string; line2?: string; city: string; state: string; zip: string };
   lines: OrderLine[];
+  /** The buyer's language (accounts.locale). Threaded in rather than read from the request:
+   * the order-confirmation caller renders inside `after()`, where no request remains. */
+  locale?: Locale;
   /** styleId -> Style, for every style referenced in `lines`. A line whose style can't be
    * resolved (deleted/archived since the order was placed) still renders — just with its
    * raw id as the name and no photo, same fallback the on-demand invoice route always used. */
@@ -122,6 +127,10 @@ export async function buildInvoicePdf(input: BuildInvoicePdfInput): Promise<Buff
       total,
       vatTotal,
       grandTotal,
+      // The buyer's language. `locale` is threaded in by the caller rather than read from
+      // the request here, because one of the two call sites (the order-confirmation email)
+      // renders inside `after()`, where no request remains.
+      dict: (await getDictionary(input.locale ?? DEFAULT_LOCALE)).pdf,
     }),
   );
 }

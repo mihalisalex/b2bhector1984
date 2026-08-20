@@ -67,6 +67,48 @@ const el: Dictionary = {
     accountAlreadyExists:
       "Υπάρχει ήδη λογαριασμός με αυτή τη διεύθυνση email. Συνδεθείτε — ή χρησιμοποιήστε το «Ξεχάσατε τον κωδικό;» αν δεν τον θυμάστε.",
   },
+  pdf: {
+    invoice: "Τιμολόγιο",
+    proformaInvoice: "Προτιμολόγιο",
+    statusConfirmed: "Επιβεβαιωμένη",
+    statusInProduction: "Σε παραγωγή",
+    statusShipped: "Απεσταλμένη",
+    statusDelivered: "Παραδοθείσα",
+    billTo: "Στοιχεία τιμολόγησης",
+    shipTo: "Διεύθυνση αποστολής",
+    terms: "Όροι πληρωμής",
+    tracking: "Παρακολούθηση",
+    orderDetail: "Ανάλυση παραγγελίας",
+    item: "Είδος",
+    qty: "Ποσ.",
+    unit: "Τιμή μον.",
+    total: "Σύνολο",
+    subtotal: "Μερικό σύνολο",
+    vat: "ΦΠΑ",
+    grandTotal: "Σύνολο",
+    inStock: "Σε απόθεμα",
+    production: "Σε παραγωγή",
+    eta: "Παράδοση",
+    boxesAndPairs: "{boxes} κιβώτια · {pairs} ζευγάρια",
+    termsPrepay: "Προεξόφληση — έκπτωση 10%",
+    termsNet30: "Net 30 — έκπτωση 5%",
+    termsNet60: "Net 60 — τιμή τιμοκαταλόγου",
+    proformaNotice:
+      "Πρόκειται για προτιμολόγιο, όχι για χρέωση — αποτυπώνει τον έλεγχο αποθέματος και παραγωγής πριν την επιβεβαίωση της παραγγελίας σας.",
+    invoiceFooter:
+      "Hector Footwear Wholesale · {email} · Τα στοιχεία τιμών και αποθέματος στο παρόν έγγραφο είναι ενδεικτικά.",
+    specSheet: "Τεχνικό φύλλο",
+    category: "Κατηγορία",
+    gender: "Φύλο",
+    weight: "Βάρος",
+    msrp: "Προτ. λιανική",
+    materials: "Υλικά",
+    sizeBreakdown: "Ανάλυση νουμέρων (ζευγάρια ανά κιβώτιο)",
+    box: "Κιβώτιο",
+    specSheetFooter:
+      "Hector Footwear Wholesale · {email}. Τα υλικά, τα βάρη και οι αναλύσεις κιβωτίων είναι ενδεικτικά και υπόκεινται σε ανοχές παραγωγής.",
+    wholesaleEst: "ΧΟΝΔΡΙΚΗ — ΑΠΟ ΤΟ 1984",
+  },
   email: {
     // "Γεια σας" rather than "Αγαπητέ/Αγαπητή": the Greek formal salutation is gendered and
     // nothing on the account records gender, so the polite-plural form is the one that is

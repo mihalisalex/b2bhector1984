@@ -81,6 +81,56 @@ const en = {
       "An account already exists for this email address. Sign in instead — or use “Forgot password” if you don’t have it.",
   },
   /**
+   * The generated PDFs (proforma invoice, spec sheet).
+   *
+   * Written in the buyer's language for the same reason the emails are: an invoice is the
+   * document their accountant handles. Note these render through an embedded font — see
+   * src/lib/pdf/fonts.ts — because the built-in Helvetica cannot draw Greek at all.
+   */
+  pdf: {
+    invoice: "Invoice",
+    proformaInvoice: "Proforma Invoice",
+    statusConfirmed: "Confirmed",
+    statusInProduction: "In Production",
+    statusShipped: "Shipped",
+    statusDelivered: "Delivered",
+    billTo: "Bill to",
+    shipTo: "Ship to",
+    terms: "Terms",
+    tracking: "Tracking",
+    orderDetail: "Order detail",
+    item: "Item",
+    qty: "Qty",
+    unit: "Unit",
+    total: "Total",
+    subtotal: "Subtotal",
+    vat: "VAT",
+    grandTotal: "Total",
+    inStock: "In stock",
+    production: "Production",
+    eta: "ETA",
+    boxesAndPairs: "{boxes} boxes · {pairs} pairs",
+    termsPrepay: "Prepay — 10% off",
+    termsNet30: "Net 30 — 5% off",
+    termsNet60: "Net 60 — list price",
+    proformaNotice:
+      "This is a proforma invoice, not a charge — it reflects stock and production check before your order is confirmed.",
+    invoiceFooter:
+      "Hector Footwear Wholesale · {email} · All pricing and inventory data on this document is illustrative.",
+    // Spec sheet
+    specSheet: "Spec Sheet",
+    category: "Category",
+    gender: "Gender",
+    weight: "Weight",
+    msrp: "MSRP",
+    materials: "Materials",
+    sizeBreakdown: "Size breakdown (pairs per box)",
+    box: "Box",
+    specSheetFooter:
+      "Hector Footwear Wholesale · {email}. Materials, weights, and box breakdowns are illustrative and subject to production tolerances.",
+    wholesaleEst: "WHOLESALE — EST. 1984",
+  },
+  /**
    * Transactional email. Written in the recipient's language (accounts.locale), not the
    * domain's — an order confirmation is often sent from a background path with no request
    * to read, and a buyer's own language is the right answer either way.
