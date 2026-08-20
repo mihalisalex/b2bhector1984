@@ -182,6 +182,7 @@ const de: Dictionary = {
     heroBody:
       "Herren-Lederschuhe aus Vollnarbenleder — vom Loafer bis zum Stiefel — im Großhandel, so wie es unabhängige Einzelhändler erwarten. Bestellung nur im Karton, konditionsbasierte Preise, kein Direktvertrieb-Rabatt.",
     heroImageAlt: "Herren-Lederschuhe aus Vollnarbenleder aus der Großhandelskollektion von Hector Footwear",
+    heroPrimaryCta: "Zugang beantragen",
     viewCollectionFirst: "Zuerst die Kollektion ansehen",
     step1Title: "Bewerben",
     step1Body: "Erzählen Sie uns von Ihrem Geschäft — dauert nur 2 Minuten.",

@@ -47,16 +47,24 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   ]);
   const h = dict.home;
   const seasonOptions = toSeasonOptions(seasonSettings);
-  // The hero's eyebrow/heading/body are admin-edited via /admin/content, but that editor
-  // only ever writes one (English) row — there's no per-locale content model for it yet
-  // (Phase 2 of the i18n work, deferred — see the i18n Phase 1 write-up). Rather than show
-  // the same English hero copy under /de, /fr and /el, non-English locales get dictionary-
-  // authored hero copy instead; English keeps using the admin's live DB content exactly as
-  // before, so the admin's editing workflow is completely unaffected.
-  const isEnglishHero = lang === "en";
-  const displayEyebrow = isEnglishHero ? hero.eyebrow : h.heroEyebrow;
-  const displayHeadingRaw = isEnglishHero ? hero.heading : h.heroHeading;
-  const displayBody = isEnglishHero ? hero.body : h.heroBody;
+  // Hero copy, in precedence order.
+  //
+  // English uses the admin's live DB row, exactly as it always has. Greek now has its own
+  // admin-editable row too (migration 0037's _el columns, edited side by side at
+  // /admin/content) and that wins when written. Until it is written — and for de/fr, which
+  // have no _el columns and no plans for any — the dictionary's hero copy stands in.
+  //
+  // Note what this deliberately never does: fall back to the ENGLISH database row on a
+  // non-English page. That was the old failure this whole project exists to stop, and the
+  // dictionary rung guarantees there is always a translated string to reach instead.
+  const heroEl = lang === "el";
+  const displayEyebrow = lang === "en" ? hero.eyebrow : (heroEl && hero.eyebrowEl) || h.heroEyebrow;
+  const displayHeadingRaw = lang === "en" ? hero.heading : (heroEl && hero.headingEl) || h.heroHeading;
+  const displayBody = lang === "en" ? hero.body : (heroEl && hero.bodyEl) || h.heroBody;
+  const displayPrimaryCta =
+    lang === "en" ? hero.primaryCtaLabel : (heroEl && hero.primaryCtaLabelEl) || h.heroPrimaryCta;
+  const displaySecondaryCta =
+    lang === "en" ? hero.secondaryCtaLabel : (heroEl && hero.secondaryCtaLabelEl) || h.viewCollectionFirst;
   // Admin-edited content occasionally carries a stray blank line between sentences; filtered
   // here so it can't open up an oversized gap in the middle of the headline (a blank line
   // still renders as a full leading-height row even though there's nothing on it).
@@ -122,13 +130,13 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
               size="lg"
               className="px-10 shadow-[0_10px_36px_rgba(0,0,0,0.35)] ring-1 ring-white/20 transition-shadow hover:shadow-[0_16px_48px_rgba(0,0,0,0.45)]"
             >
-              {hero.primaryCtaLabel}
+              {displayPrimaryCta}
             </LinkButton>
             <Link
               href={withLocale(lang, hero.secondaryCtaHref)}
               className="text-xs font-medium uppercase tracking-[0.15em] text-stone-300/80 underline underline-offset-4 hover:text-white"
             >
-              {hero.secondaryCtaLabel}
+              {displaySecondaryCta}
             </Link>
           </div>
         </div>

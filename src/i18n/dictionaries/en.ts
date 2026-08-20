@@ -191,6 +191,11 @@ const en = {
     heroBody:
       "Full-grain men's leather footwear — loafers to boots — wholesaled the way independent retailers expect. Box-only ordering, terms-based pricing, no DTC discounting.",
     heroImageAlt: "Full-grain leather men's shoes from the Hector Footwear wholesale collection",
+    /** Hero CTA labels. The DB's primary/secondary_cta_label columns are English-only, and
+     * the hero rendered them verbatim under every locale — the Greek homepage shipped an
+     * "Apply for access" button. These are the translated fallbacks; migration 0037's _el
+     * columns override them when the admin writes Greek. */
+    heroPrimaryCta: "Apply for access",
     viewCollectionFirst: "View the collection first",
     step1Title: "Apply",
     step1Body: "Tell us about your store — takes 2 minutes.",

@@ -182,6 +182,7 @@ const fr: Dictionary = {
     heroBody:
       "Chaussures en cuir pleine fleur pour homme — du mocassin à la botte — vendues en gros comme l'attendent les détaillants indépendants. Commande par carton, tarification selon les conditions de paiement, aucune remise directe au consommateur.",
     heroImageAlt: "Chaussures en cuir pleine fleur pour homme de la collection grossiste Hector Footwear",
+    heroPrimaryCta: "Demander l'accès",
     viewCollectionFirst: "Voir d'abord la collection",
     step1Title: "Postuler",
     step1Body: "Parlez-nous de votre boutique — cela prend 2 minutes.",

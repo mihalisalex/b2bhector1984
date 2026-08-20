@@ -443,6 +443,13 @@ export async function updateHomepageHeroAction(formData: FormData) {
     primaryCtaHref: String(formData.get("primaryCtaHref") ?? ""),
     secondaryCtaLabel: String(formData.get("secondaryCtaLabel") ?? ""),
     secondaryCtaHref: String(formData.get("secondaryCtaHref") ?? ""),
+    // Same \r\n normalisation as the English heading — the heading is newline-separated
+    // and rendered as <br />, so a browser's CRLF would produce a stray blank line.
+    eyebrowEl: String(formData.get("eyebrowEl") ?? ""),
+    headingEl: String(formData.get("headingEl") ?? "").replace(/\r\n/g, "\n"),
+    bodyEl: String(formData.get("bodyEl") ?? ""),
+    primaryCtaLabelEl: String(formData.get("primaryCtaLabelEl") ?? ""),
+    secondaryCtaLabelEl: String(formData.get("secondaryCtaLabelEl") ?? ""),
     announcementEnabled: formData.get("announcementEnabled") === "on",
     announcementText: String(formData.get("announcementText") ?? ""),
     announcementHref: String(formData.get("announcementHref") ?? ""),

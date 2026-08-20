@@ -17,6 +17,18 @@ export interface HomepageHero {
   primaryCtaHref: string;
   secondaryCtaLabel: string;
   secondaryCtaHref: string;
+  /**
+   * Greek hero copy (migration 0037). Empty string means "not written yet" and the
+   * homepage falls back to the English field beside it.
+   *
+   * The CTA *hrefs* are deliberately not duplicated: they are routes, and both languages
+   * point at the same page on their own domain.
+   */
+  eyebrowEl: string;
+  headingEl: string;
+  bodyEl: string;
+  primaryCtaLabelEl: string;
+  secondaryCtaLabelEl: string;
   /** The bar above the hero ("Summer 2027 Collection is Live Now" -> /catalogue). Added by
    * migration 0024 — `mapHero` defaults these when the columns aren't there yet, so an
    * unmigrated database just doesn't show the bar instead of crashing the homepage. */
@@ -44,6 +56,11 @@ interface HeroRow {
   primary_cta_href: string;
   secondary_cta_label: string;
   secondary_cta_href: string;
+  eyebrow_el?: string | null;
+  heading_el?: string | null;
+  body_el?: string | null;
+  primary_cta_label_el?: string | null;
+  secondary_cta_label_el?: string | null;
   announcement_enabled?: boolean | null;
   announcement_text?: string | null;
   announcement_href?: string | null;
@@ -62,6 +79,11 @@ function mapHero(row: HeroRow): HomepageHero {
     primaryCtaHref: row.primary_cta_href,
     secondaryCtaLabel: row.secondary_cta_label,
     secondaryCtaHref: row.secondary_cta_href,
+    eyebrowEl: row.eyebrow_el ?? "",
+    headingEl: row.heading_el ?? "",
+    bodyEl: row.body_el ?? "",
+    primaryCtaLabelEl: row.primary_cta_label_el ?? "",
+    secondaryCtaLabelEl: row.secondary_cta_label_el ?? "",
     announcementEnabled: row.announcement_enabled ?? false,
     announcementText: row.announcement_text ?? "",
     announcementHref: row.announcement_href ?? "/catalogue",
@@ -105,6 +127,11 @@ export async function updateHomepageHero(input: {
   primaryCtaHref: string;
   secondaryCtaLabel: string;
   secondaryCtaHref: string;
+  eyebrowEl: string;
+  headingEl: string;
+  bodyEl: string;
+  primaryCtaLabelEl: string;
+  secondaryCtaLabelEl: string;
   announcementEnabled: boolean;
   announcementText: string;
   announcementHref: string;
@@ -122,6 +149,14 @@ export async function updateHomepageHero(input: {
       primary_cta_href: input.primaryCtaHref,
       secondary_cta_label: input.secondaryCtaLabel,
       secondary_cta_href: input.secondaryCtaHref,
+      // Empty string is stored as null, so "not written yet" has exactly one
+      // representation — otherwise `heading_el = ''` and `heading_el IS NULL` would both
+      // mean "no Greek" and every fallback check would have to test for both.
+      eyebrow_el: input.eyebrowEl.trim() || null,
+      heading_el: input.headingEl.trim() || null,
+      body_el: input.bodyEl.trim() || null,
+      primary_cta_label_el: input.primaryCtaLabelEl.trim() || null,
+      secondary_cta_label_el: input.secondaryCtaLabelEl.trim() || null,
       announcement_enabled: input.announcementEnabled,
       announcement_text: input.announcementText,
       announcement_color: input.announcementColor,

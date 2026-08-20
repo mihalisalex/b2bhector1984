@@ -10,6 +10,15 @@ import { ImageUploadForm } from "@/components/admin/ImageUploadForm";
 
 export default async function AdminContentPage() {
   const hero = await getHomepageHero();
+  // Every Greek hero field, not just the headline — a hero with Greek copy and an English
+  // button reads worse than one that is consistently English, so "complete" means all five.
+  const heroGreekComplete = [
+    hero.eyebrowEl,
+    hero.headingEl,
+    hero.bodyEl,
+    hero.primaryCtaLabelEl,
+    hero.secondaryCtaLabelEl,
+  ].every((v) => v.trim().length > 0);
   const whatsappEnabled = isWhatsAppConfigured();
 
   return (
@@ -96,38 +105,81 @@ export default async function AdminContentPage() {
             </Field>
           </div>
 
-          <Field label="Eyebrow">
-            <input
-              type="text"
-              name="eyebrow"
-              defaultValue={hero.eyebrow}
-              required
-              className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
-            />
-          </Field>
+          {/*
+            English and Greek side by side. Greek fields are deliberately NOT `required`:
+            an empty Greek hero is a valid, expected state (it falls back to English), and
+            marking them required would block every save of the English copy until the
+            Greek exists. The banner below is what keeps the gap visible instead.
+          */}
+          {!heroGreekComplete && (
+            <p className="border border-signal bg-signal/10 px-3 py-2 text-xs font-semibold text-signal">
+              The Greek hero is incomplete — hectorfootwear.gr falls back to the English
+              text below until every Greek field is filled in.
+            </p>
+          )}
 
-          <Field label="Heading" hint="One line per row — each becomes a line break.">
-            <textarea
-              name="heading"
-              defaultValue={hero.heading}
-              required
-              rows={3}
-              className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
-            />
-          </Field>
+          <div className="grid grid-cols-1 gap-x-4 gap-y-4 lg:grid-cols-2">
+            <Field label="Eyebrow — English">
+              <input
+                type="text"
+                name="eyebrow"
+                defaultValue={hero.eyebrow}
+                required
+                className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
+              />
+            </Field>
+            <Field label="Eyebrow — Ελληνικά">
+              <input
+                type="text"
+                name="eyebrowEl"
+                defaultValue={hero.eyebrowEl}
+                lang="el"
+                placeholder="Δεν έχει συμπληρωθεί"
+                className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
+              />
+            </Field>
 
-          <Field label="Body">
-            <textarea
-              name="body"
-              defaultValue={hero.body}
-              required
-              rows={3}
-              className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
-            />
-          </Field>
+            <Field label="Heading — English" hint="One line per row — each becomes a line break.">
+              <textarea
+                name="heading"
+                defaultValue={hero.heading}
+                required
+                rows={3}
+                className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
+              />
+            </Field>
+            <Field label="Heading — Ελληνικά" hint="One line per row — each becomes a line break.">
+              <textarea
+                name="headingEl"
+                defaultValue={hero.headingEl}
+                lang="el"
+                rows={3}
+                placeholder="Δεν έχει συμπληρωθεί"
+                className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
+              />
+            </Field>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Primary button label">
+            <Field label="Body — English">
+              <textarea
+                name="body"
+                defaultValue={hero.body}
+                required
+                rows={3}
+                className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
+              />
+            </Field>
+            <Field label="Body — Ελληνικά">
+              <textarea
+                name="bodyEl"
+                defaultValue={hero.bodyEl}
+                lang="el"
+                rows={3}
+                placeholder="Δεν έχει συμπληρωθεί"
+                className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
+              />
+            </Field>
+
+            <Field label="Primary button label — English">
               <input
                 type="text"
                 name="primaryCtaLabel"
@@ -136,16 +188,18 @@ export default async function AdminContentPage() {
                 className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
               />
             </Field>
-            <Field label="Primary button link">
+            <Field label="Primary button label — Ελληνικά">
               <input
                 type="text"
-                name="primaryCtaHref"
-                defaultValue={hero.primaryCtaHref}
-                required
+                name="primaryCtaLabelEl"
+                defaultValue={hero.primaryCtaLabelEl}
+                lang="el"
+                placeholder="Δεν έχει συμπληρωθεί"
                 className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
               />
             </Field>
-            <Field label="Secondary button label">
+
+            <Field label="Secondary button label — English">
               <input
                 type="text"
                 name="secondaryCtaLabel"
@@ -154,7 +208,31 @@ export default async function AdminContentPage() {
                 className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
               />
             </Field>
-            <Field label="Secondary button link">
+            <Field label="Secondary button label — Ελληνικά">
+              <input
+                type="text"
+                name="secondaryCtaLabelEl"
+                defaultValue={hero.secondaryCtaLabelEl}
+                lang="el"
+                placeholder="Δεν έχει συμπληρωθεί"
+                className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
+              />
+            </Field>
+          </div>
+
+          {/* The two links are shared, not duplicated per language: they are routes, and
+              each domain serves the same page at the same path. */}
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Primary button link" hint="Shared by both languages.">
+              <input
+                type="text"
+                name="primaryCtaHref"
+                defaultValue={hero.primaryCtaHref}
+                required
+                className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
+              />
+            </Field>
+            <Field label="Secondary button link" hint="Shared by both languages.">
               <input
                 type="text"
                 name="secondaryCtaHref"
