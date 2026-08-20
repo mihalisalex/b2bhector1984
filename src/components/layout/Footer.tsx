@@ -5,6 +5,7 @@ import type { Dictionary } from "@/i18n/dictionaries/en";
 import { withLocale } from "@/i18n/paths";
 import { t } from "@/i18n/format";
 import { SUPPORT_EMAIL, SUPPORT_EMAIL_HREF } from "@/lib/contact";
+import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 
 export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const f = dict.footer;
@@ -55,7 +56,17 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
           />
         </div>
 
-        <div className="mt-12 flex flex-col gap-2 border-t border-white/10 pt-6 text-xs text-stone-300/60 md:flex-row md:items-center md:justify-between">
+        {/* All four languages live here, not in the header — de and fr are reachable but
+            not advertised as equal markets. This is the only place they can be reached at
+            all, and the only automatic language behaviour on the site is: none. */}
+        <div className="mt-12 border-t border-white/10 pt-6 text-xs text-stone-300/60">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <span className="text-stone-300/60">{dict.languageSwitcher.label}</span>
+            <LanguageSwitcher variant="footer" />
+          </div>
+        </div>
+
+        <div className="mt-6 flex flex-col gap-2 border-t border-white/10 pt-6 text-xs text-stone-300/60 md:flex-row md:items-center md:justify-between">
           <span>{t(f.copyright, { year: new Date().getFullYear() })}</span>
           <span>{f.disclaimer}</span>
         </div>
