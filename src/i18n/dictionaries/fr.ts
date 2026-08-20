@@ -67,6 +67,26 @@ const fr: Dictionary = {
     catSupplierGuides: "Guides fournisseur",
     catProcurementInsights: "Conseils d’achat",
   },
+  applicationStatus: {
+    title: "Statut de la demande",
+    eyebrow: "Statut de la demande",
+    submittedOn: "Envoyée le {date} · {name}",
+    stepSubmitted: "Envoyée",
+    stepReview: "En cours d’examen",
+    stepApproved: "Validée",
+    stepActive: "Active",
+    underReview: "En cours d’examen",
+    underReviewBody:
+      "Un membre de notre équipe vérifie votre numéro SIRET et les informations de votre entreprise. Cela prend généralement 1 à 2 jours ouvrés. Nous vous écrirons à {email} dès qu’une décision sera prise.",
+    approved: "Validée",
+    approvedBody:
+      "Votre compte professionnel est validé. Définissez un mot de passe pour l’activer et accédez au catalogue complet avec les tarifs.",
+    noApplication: "Aucune demande enregistrée",
+    noApplicationBody: "Faites une nouvelle demande pour suivre son statut ici.",
+    applyForAccess: "Demander un accès",
+    alreadyHaveAccount: "Vous avez déjà un compte ?",
+    signIn: "Se connecter",
+  },
   apply: {
     eyebrow: "Accès professionnel",
     heading: "Demander un compte professionnel",
@@ -448,6 +468,12 @@ const fr: Dictionary = {
     confirmPassword: "Confirmer le mot de passe",
     resetPassword: "Réinitialiser le mot de passe",
     saving: "Enregistrement…",
+    resetIncompleteTitle: "Réinitialiser le mot de passe",
+    resetIncompleteHeading: "Ce lien de réinitialisation est incomplet",
+    resetIncompleteBody:
+      "Les liens de réinitialisation contiennent un code à usage unique, et cette adresse est arrivée sans lui. Cela signifie généralement que le lien a été tronqué par votre messagerie ou qu’il a déjà été utilisé.",
+    resetIncompleteAction: "Demandez-en un nouveau : il sera envoyé à l’e-mail de votre compte.",
+    sendNewResetLink: "Envoyer un nouveau lien",
   },
   product: {
     description: "Description",

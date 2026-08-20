@@ -74,6 +74,26 @@ const en = {
     catSupplierGuides: "Supplier Guides",
     catProcurementInsights: "Procurement Insights",
   },
+  applicationStatus: {
+    title: "Application Status",
+    eyebrow: "Application Status",
+    submittedOn: "Submitted {date} · {name}",
+    stepSubmitted: "Submitted",
+    stepReview: "In Review",
+    stepApproved: "Approved",
+    stepActive: "Active",
+    underReview: "Under Review",
+    underReviewBody:
+      "A member of our wholesale team is verifying your resale certificate and business details. This typically takes 1–2 business days. We’ll email {email} once a decision is made.",
+    approved: "Approved",
+    approvedBody:
+      "You’re approved for a wholesale account. Set a password to activate it and start browsing the full catalogue with pricing.",
+    noApplication: "No application on file",
+    noApplicationBody: "Start a new wholesale application to see its status here.",
+    applyForAccess: "Apply for Access",
+    alreadyHaveAccount: "Already have an account?",
+    signIn: "Sign in",
+  },
   apply: {
     eyebrow: "Wholesale Access",
     heading: "Apply for a Wholesale Account",
@@ -494,6 +514,12 @@ const en = {
     confirmPassword: "Confirm password",
     resetPassword: "Reset password",
     saving: "Saving…",
+    resetIncompleteTitle: "Reset Password",
+    resetIncompleteHeading: "This reset link is incomplete",
+    resetIncompleteBody:
+      "Password reset links carry a one-time code, and this address arrived without one. That usually means the link was cut short by an email client, or it has already been used.",
+    resetIncompleteAction: "Request a new one and it will be sent to your account email.",
+    sendNewResetLink: "Send a new reset link",
   },
   product: {
     description: "Description",

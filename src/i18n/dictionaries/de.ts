@@ -67,6 +67,26 @@ const de: Dictionary = {
     catSupplierGuides: "Lieferanten-Leitfäden",
     catProcurementInsights: "Beschaffungswissen",
   },
+  applicationStatus: {
+    title: "Antragsstatus",
+    eyebrow: "Antragsstatus",
+    submittedOn: "Eingereicht am {date} · {name}",
+    stepSubmitted: "Eingereicht",
+    stepReview: "In Prüfung",
+    stepApproved: "Freigegeben",
+    stepActive: "Aktiv",
+    underReview: "In Prüfung",
+    underReviewBody:
+      "Ein Mitglied unseres Großhandelsteams prüft Ihre Gewerbeanmeldung und Firmendaten. Das dauert in der Regel 1–2 Werktage. Wir melden uns per E-Mail an {email}, sobald eine Entscheidung vorliegt.",
+    approved: "Freigegeben",
+    approvedBody:
+      "Ihr Großhandelskonto ist freigegeben. Legen Sie ein Passwort fest, um es zu aktivieren, und sehen Sie den vollständigen Katalog mit Preisen.",
+    noApplication: "Kein Antrag hinterlegt",
+    noApplicationBody: "Stellen Sie einen neuen Großhandelsantrag, um hier den Status zu sehen.",
+    applyForAccess: "Zugang beantragen",
+    alreadyHaveAccount: "Sie haben bereits ein Konto?",
+    signIn: "Anmelden",
+  },
   apply: {
     eyebrow: "Großhandelszugang",
     heading: "Großhandelskonto beantragen",
@@ -448,6 +468,12 @@ const de: Dictionary = {
     confirmPassword: "Passwort bestätigen",
     resetPassword: "Passwort zurücksetzen",
     saving: "Wird gespeichert…",
+    resetIncompleteTitle: "Passwort zurücksetzen",
+    resetIncompleteHeading: "Dieser Zurücksetzungslink ist unvollständig",
+    resetIncompleteBody:
+      "Links zum Zurücksetzen des Passworts enthalten einen Einmalcode, und diese Adresse kam ohne ihn an. Meist wurde der Link vom E-Mail-Programm abgeschnitten oder er wurde bereits verwendet.",
+    resetIncompleteAction: "Fordern Sie einen neuen an — er wird an die E-Mail-Adresse Ihres Kontos gesendet.",
+    sendNewResetLink: "Neuen Link senden",
   },
   product: {
     description: "Beschreibung",
