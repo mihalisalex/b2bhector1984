@@ -131,6 +131,7 @@ export async function buildInvoicePdf(input: BuildInvoicePdfInput): Promise<Buff
       // the request here, because one of the two call sites (the order-confirmation email)
       // renders inside `after()`, where no request remains.
       dict: (await getDictionary(input.locale ?? DEFAULT_LOCALE)).pdf,
+      locale: input.locale ?? DEFAULT_LOCALE,
     }),
   );
 }

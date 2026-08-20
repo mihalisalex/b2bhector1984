@@ -14,6 +14,7 @@ export function ProductListRow({
   priceMultiplier = 1,
   showPricing = true,
   favorited,
+  locale = "en",
 }: {
   style: Style;
   totalOnHand?: number;
@@ -21,6 +22,8 @@ export function ProductListRow({
   /** Set false for anonymous visitors — see the same prop on ProductCard. */
   showPricing?: boolean;
   favorited?: boolean;
+  /** Drives price formatting — Greek needs "24,90 €", not "€24.90". */
+  locale?: string;
 }) {
   // See ProductCard for the same soldOut/madeToOrder split — "Sold out" only when the
   // style genuinely can't be ordered further; zero on-hand with backorders allowed is
@@ -68,12 +71,12 @@ export function ProductListRow({
             <p className="text-[11px] uppercase tracking-wide text-ink-soft">Wholesale</p>
             <p className="flex items-baseline justify-end gap-1.5">
               <span className={cn("text-lg font-semibold tabular-nums", onSale ? "text-burgundy" : "text-ink")}>
-                {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
+                {formatEUR(getUnitPrice(style, "net60", priceMultiplier), locale)}
                 <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
               </span>
               {onSale && (
                 <span className="text-xs tabular-nums text-ink-soft line-through">
-                  {formatEUR(style.basePrice * priceMultiplier)}
+                  {formatEUR(style.basePrice * priceMultiplier, locale)}
                 </span>
               )}
             </p>

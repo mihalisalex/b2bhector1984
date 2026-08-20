@@ -6,7 +6,8 @@ import { useCart } from "@/lib/cart-context";
 import { useCatalog } from "@/lib/catalog-context";
 import { getBoxType } from "@/lib/data/boxTypes";
 import { getStyleImageUrl } from "@/lib/data/styleLabels";
-import { formatEUR, getOrderMinimumError, MAX_BACKORDER_QTY, validateMatrix } from "@/lib/pricing";
+import { getOrderMinimumError, MAX_BACKORDER_QTY, validateMatrix } from "@/lib/pricing";
+import { useFormat } from "@/i18n/I18nProvider";
 import type { BoxTypeId } from "@/lib/types";
 import type { StyleInventory } from "@/lib/data/inventory";
 import type { BoxOption } from "@/lib/orderMinimum";
@@ -29,6 +30,7 @@ export function CartView({
    * to production rather than blocking the buyer). */
   inventory: Record<string, StyleInventory>;
 }) {
+  const { eur } = useFormat();
   const { lines, unavailableLines, setLineQty, removeStyle, clearCart, cartTotal, cartVatTotal, cartGrandTotal, priceMultiplier, minOrderPairs } = useCart();
   const { getStyleById, productionLeadTimeDays } = useCatalog();
 
@@ -334,7 +336,7 @@ export function CartView({
                   <span className="font-mono-tab">{validation.totalBoxes} boxes · {validation.totalPairs} pairs</span>
                 </div>
                 <span className="text-base font-semibold tabular-nums text-ink">
-                  {formatEUR(validation.subtotal)}
+                  {eur(validation.subtotal)}
                   <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
                 </span>
               </div>
@@ -349,16 +351,16 @@ export function CartView({
         <SaveAssortmentButton lines={lines} />
         <div className="flex items-baseline gap-3">
           <span className="text-sm font-semibold uppercase tracking-wide text-ink-soft">Cart total (net-60)</span>
-          <span className="text-2xl font-semibold tabular-nums text-ink">{formatEUR(cartTotal)}</span>
+          <span className="text-2xl font-semibold tabular-nums text-ink">{eur(cartTotal)}</span>
         </div>
         {cartVatTotal > 0 && (
           <p className="text-right text-xs text-ink-soft">
-            + VAT {formatEUR(cartVatTotal)} = {formatEUR(cartGrandTotal)}
+            + VAT {eur(cartVatTotal)} = {eur(cartGrandTotal)}
           </p>
         )}
         <p className="text-right text-xs text-ink-soft">{grandTotalPairs} pairs in cart</p>
         <p className="text-right text-xs font-medium text-positive">
-          Prepay in full at checkout to save {formatEUR(cartGrandTotal * 0.1)} (10% off)
+          Prepay in full at checkout to save {eur(cartGrandTotal * 0.1)} (10% off)
         </p>
         {blockedReason && (
           <p className="max-w-sm text-right text-xs font-medium text-ember">{blockedReason}</p>
@@ -384,7 +386,7 @@ export function CartView({
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-300 bg-white/97 px-4 py-3 backdrop-blur lg:hidden" style={{ boxShadow: "0 -8px 24px rgba(26,29,34,0.12)" }}>
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-lg font-semibold tabular-nums text-ink">{formatEUR(cartGrandTotal)}</p>
+            <p className="truncate text-lg font-semibold tabular-nums text-ink">{eur(cartGrandTotal)}</p>
             <p className="truncate text-[10px] text-ink-soft">{grandTotalPairs} pairs</p>
           </div>
           {blockedReason ? (

@@ -52,9 +52,11 @@ export interface SpecSheetDocumentProps {
   boxes: SpecSheetBoxRow[];
   /** The buyer's language. Defaults to English so existing callers keep working. */
   dict?: Dictionary["pdf"];
+  /** Drives number and date conventions — Greek needs "24,90 €" and DD/MM/YYYY. */
+  locale?: string;
 }
 
-export function SpecSheetDocument({ style, euSizes, boxes, dict = enDict.pdf }: SpecSheetDocumentProps) {
+export function SpecSheetDocument({ style, euSizes, boxes, dict = enDict.pdf, locale = "en" }: SpecSheetDocumentProps) {
   return (
     <Document title={`${style.styleNumber} — Spec Sheet`}>
       <Page size="A4" style={styles.page}>
@@ -87,7 +89,7 @@ export function SpecSheetDocument({ style, euSizes, boxes, dict = enDict.pdf }: 
           </View>
           <View style={styles.infoBlock}>
             <Text style={styles.infoLabel}>{dict.msrp.toUpperCase()}</Text>
-            <Text style={styles.infoValue}>{formatEUR(style.msrp)}</Text>
+            <Text style={styles.infoValue}>{formatEUR(style.msrp, locale)}</Text>
           </View>
         </View>
 

@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
 import { useCatalog } from "@/lib/catalog-context";
-import { formatEUR, MIN_ORDER_PAIRS } from "@/lib/pricing";
+import { MIN_ORDER_PAIRS } from "@/lib/pricing";
+import { useFormat } from "@/i18n/I18nProvider";
 import { suggestBoxesToCloseGap, type BoxOption } from "@/lib/orderMinimum";
 import { StylePlate } from "@/components/product/StylePlate";
 import { Button } from "@/components/ui/Button";
@@ -25,6 +26,7 @@ export function CompleteMinimum({
   options: BoxOption[];
   totalPairs: number;
 }) {
+  const { eur } = useFormat();
   const { addLines, lines, minOrderPairs: accountMinOrderPairs } = useCart();
   const { productionLeadTimeDays } = useCatalog();
   const minimum = accountMinOrderPairs ?? MIN_ORDER_PAIRS;
@@ -107,7 +109,7 @@ export function CompleteMinimum({
                     {option.colorwayName} · {option.boxLabel}
                   </p>
                   <p className="mt-0.5 text-xs tabular-nums text-ink">
-                    {formatEUR(option.unitPrice * option.pairs)}
+                    {eur(option.unitPrice * option.pairs)}
                     <span className="font-mono-tab text-ink-soft"> · {option.pairs} pairs</span>
                   </p>
                   <p className="mt-0.5 text-[11px] text-ink-soft">

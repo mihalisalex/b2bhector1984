@@ -4,12 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
 import { useCatalog } from "@/lib/catalog-context";
-import { useI18n } from "@/i18n/I18nProvider";
+import { useI18n, useFormat } from "@/i18n/I18nProvider";
 import { withLocale } from "@/i18n/paths";
 import { useColorwaySelection } from "@/lib/colorway-selection-context";
 import { pickDefaultBoxType } from "@/lib/productSelectionDefaults";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
-import { formatEUR, getUnitPrice, isOnSale, MAX_BACKORDER_QTY, MIN_ORDER_PAIRS } from "@/lib/pricing";
+import { getUnitPrice, isOnSale, MAX_BACKORDER_QTY, MIN_ORDER_PAIRS } from "@/lib/pricing";
 import { SaleBadge } from "@/components/product/SaleBadge";
 import { VatSuffix, vatSuffixText } from "@/components/ui/VatSuffix";
 import { ColorwayPicker } from "@/components/product/ColorwayPicker";
@@ -42,6 +42,7 @@ export function PrimaryPurchasePanel({
   const minOrderPairs = accountMinOrderPairs ?? MIN_ORDER_PAIRS;
   const { productionLeadTimeDays } = useCatalog();
   const { locale } = useI18n();
+  const { eur } = useFormat();
   const boxTypes = getAvailableBoxTypes(style);
 
   const { colorwayId } = useColorwaySelection();
@@ -202,7 +203,7 @@ export function PrimaryPurchasePanel({
                 {addQty * pairsPerBox} pairs
               </span>
               <span className="text-2xl font-semibold tabular-nums text-ink">
-                {formatEUR(subtotal)}
+                {eur(subtotal)}
                 <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
               </span>
             </div>
@@ -261,7 +262,7 @@ export function PrimaryPurchasePanel({
               </p>
               <p className="mt-1 flex flex-wrap items-baseline gap-x-1.5">
                 <span className="text-[17px] font-semibold tabular-nums text-ink">
-                  {formatEUR(unitPrice)}
+                  {eur(unitPrice)}
                   <VatSuffix vatRate={style.vatRate} className="text-[11px] font-normal text-ink-soft" />
                 </span>
                 {/* The catalogue card advertises the discount; this page was showing only the
@@ -269,7 +270,7 @@ export function PrimaryPurchasePanel({
                     decides. Struck list price is computed the same way the card does it. */}
                 {onSale && (
                   <span className="text-[11px] tabular-nums text-ink-soft line-through">
-                    {formatEUR(listUnitPrice)}
+                    {eur(listUnitPrice)}
                   </span>
                 )}
                 <span className="text-[11px] text-ink-soft">/ pair · {selectedColorway.name}</span>
@@ -292,7 +293,7 @@ export function PrimaryPurchasePanel({
                 ? "Sold out"
                 : justAdded
                   ? "Added to cart ✓"
-                  : `Add ${box.totalPairs}-pair box${addQty > 1 ? "es" : ""} · ${formatEUR(subtotal)}${vatSuffixText(style.vatRate)}`}
+                  : `Add ${box.totalPairs}-pair box${addQty > 1 ? "es" : ""} · ${eur(subtotal)}${vatSuffixText(style.vatRate)}`}
             </button>
           </div>
         </div>

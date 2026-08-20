@@ -210,6 +210,8 @@ export interface InvoiceDocumentProps {
   grandTotal: number;
   /** The buyer's language. Defaults to English so existing callers keep working. */
   dict?: Dictionary["pdf"];
+  /** Drives number and date conventions — Greek needs "24,90 €" and DD/MM/YYYY. */
+  locale?: string;
 }
 
 export function InvoiceDocument({
@@ -224,6 +226,7 @@ export function InvoiceDocument({
   vatTotal,
   grandTotal,
   dict = enDict.pdf,
+  locale = "en",
 }: InvoiceDocumentProps) {
   const TERMS: Record<string, string> = {
     prepay: dict.termsPrepay,
@@ -253,7 +256,7 @@ export function InvoiceDocument({
               <Text style={styles.docTitle}>{(STATUS[order.status] ?? dict.invoice).toUpperCase()}</Text>
             </View>
             <Text style={styles.docMeta}>{order.id}</Text>
-            <Text style={styles.docMeta}>{formatDate(order.placedAt)}</Text>
+            <Text style={styles.docMeta}>{formatDate(order.placedAt, locale)}</Text>
           </View>
         </View>
 
@@ -324,7 +327,7 @@ export function InvoiceDocument({
                       >
                         {line.fulfillment === "production"
                           ? `${dict.production.toUpperCase()}${
-                              line.productionEta ? ` · ${dict.eta.toUpperCase()} ${formatDate(line.productionEta)}` : ""
+                              line.productionEta ? ` · ${dict.eta.toUpperCase()} ${formatDate(line.productionEta, locale)}` : ""
                             }`
                           : dict.inStock.toUpperCase()}
                       </Text>
@@ -332,8 +335,8 @@ export function InvoiceDocument({
                   </View>
                 </View>
                 <Text style={styles.colQty}>{line.qty}</Text>
-                <Text style={styles.colUnit}>{formatEUR(line.unitPrice)}</Text>
-                <Text style={styles.colTotal}>{formatEUR(line.lineTotal)}</Text>
+                <Text style={styles.colUnit}>{formatEUR(line.unitPrice, locale)}</Text>
+                <Text style={styles.colTotal}>{formatEUR(line.lineTotal, locale)}</Text>
               </View>
             ))}
           </View>
@@ -343,17 +346,17 @@ export function InvoiceDocument({
             <View style={styles.summaryBox}>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>{dict.subtotal}</Text>
-                <Text style={styles.summaryValueBold}>{formatEUR(total)}</Text>
+                <Text style={styles.summaryValueBold}>{formatEUR(total, locale)}</Text>
               </View>
               {vatTotal > 0 && (
                 <View style={styles.summaryRow}>
                   <Text style={styles.summaryLabel}>{dict.vat}</Text>
-                  <Text style={styles.summaryValue}>{formatEUR(vatTotal)}</Text>
+                  <Text style={styles.summaryValue}>{formatEUR(vatTotal, locale)}</Text>
                 </View>
               )}
               <View style={styles.grandTotalBand}>
                 <Text style={styles.grandTotalLabel}>{dict.grandTotal.toUpperCase()}</Text>
-                <Text style={styles.grandTotalValue}>{formatEUR(grandTotal)}</Text>
+                <Text style={styles.grandTotalValue}>{formatEUR(grandTotal, locale)}</Text>
               </View>
             </View>
           </View>

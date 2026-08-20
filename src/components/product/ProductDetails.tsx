@@ -83,7 +83,7 @@ export function ProductDetails({
           <Spec label={p.category} value={`${CATEGORY_LABEL[style.category]} · ${GENDER_LABEL[style.gender]}`} />
           <Spec label={p.materials} value={copy.materials.join(", ")} />
           <Spec label={p.weight} value={t(p.weightValue, { oz: style.weightOz })} />
-          {showPricing && <Spec label={p.msrp} value={t(p.msrpValue, { price: formatEUR(style.msrp) })} />}
+          {showPricing && <Spec label={p.msrp} value={t(p.msrpValue, { price: formatEUR(style.msrp, locale) })} />}
           <Spec label={p.soldAs} value={t(p.soldAsValue, { sizes: boxTypes.map((b) => b.totalPairs).join(" / ") })} />
           <Spec label={p.sizeRunLabel} value={dict.sizeRun} />
           {hasDimensions && (

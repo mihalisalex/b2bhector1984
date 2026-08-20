@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
 import { useCatalog } from "@/lib/catalog-context";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
-import { formatEUR, getUnitPrice, isOnSale, MAX_BACKORDER_QTY, validateMatrix } from "@/lib/pricing";
+import { getUnitPrice, isOnSale, MAX_BACKORDER_QTY, validateMatrix } from "@/lib/pricing";
+import { useFormat } from "@/i18n/I18nProvider";
 import { VatSuffix } from "@/components/ui/VatSuffix";
 import { CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styleLabels";
 import type { StyleInventory } from "@/lib/data/inventory";
@@ -31,6 +32,7 @@ export function OrderableLinesheet({
   inventory: Record<string, StyleInventory>;
   priceMultiplier?: number;
 }) {
+  const { eur } = useFormat();
   const { lines, setLineQty } = useCart();
   const { productionLeadTimeDays } = useCatalog();
   const styleById = useMemo(() => new Map(styles.map((s) => [s.id, s])), [styles]);
@@ -98,7 +100,7 @@ export function OrderableLinesheet({
                   <div className="mt-1 flex flex-wrap items-center gap-2">
                     <AvailabilityBadge style={style} />
                     <span className={cn("text-sm font-semibold tabular-nums", isOnSale(style) ? "text-burgundy" : "text-ink")}>
-                      {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
+                      {eur(getUnitPrice(style, "net60", priceMultiplier))}
                       <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
                     </span>
                     {isOnSale(style) && (
@@ -210,7 +212,7 @@ export function OrderableLinesheet({
                       className={cn("px-3 py-2.5 text-right align-top tabular-nums", isOnSale(style) ? "text-burgundy" : "text-ink")}
                       rowSpan={style.colorways.length}
                     >
-                      {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
+                      {eur(getUnitPrice(style, "net60", priceMultiplier))}
                       <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
                       {isOnSale(style) && (
                         <span className="ml-1.5 bg-burgundy px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">Sale</span>
@@ -254,7 +256,7 @@ export function OrderableLinesheet({
                 <span className="flex items-center gap-3">
                   <span className="font-mono-tab text-ink-soft">{v.totalBoxes} boxes · {v.totalPairs} pairs</span>
                   <span className="font-semibold tabular-nums text-ink">
-                    {formatEUR(v.subtotal)}
+                    {eur(v.subtotal)}
                     <VatSuffix vatRate={v.style.vatRate} className="text-xs font-normal text-ink-soft" />
                   </span>
                 </span>
@@ -268,10 +270,10 @@ export function OrderableLinesheet({
         <div className="text-sm text-ink">
           {vatTotal > 0 && (
             <p className="text-xs text-ink-soft">
-              Subtotal {formatEUR(subtotal)} + VAT {formatEUR(vatTotal)}
+              Subtotal {eur(subtotal)} + VAT {eur(vatTotal)}
             </p>
           )}
-          <span className="font-semibold tabular-nums">Total: {formatEUR(grandTotal)}</span>
+          <span className="font-semibold tabular-nums">Total: {eur(grandTotal)}</span>
         </div>
         <LinkButton href="/cart" size="md" className={validations.length === 0 ? "pointer-events-none opacity-40" : ""}>
           Go to Cart

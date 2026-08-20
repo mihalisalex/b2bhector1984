@@ -1,17 +1,47 @@
 /**
- * `en-GB`, not `en-US`: this is a Greek company selling into European retail, the rest of
- * the site is written in British English ("catalogue", "colourway"), and every other locale
- * it serves — Greek, German, French — reads dates day-first. "19 Aug 2026" is unambiguous to
- * all of them; "Aug 19, 2026" reads as foreign to most of the buyer base.
+ * Date formatting.
  *
- * Deliberately a fixed locale rather than the viewer's: rendered on the server and hydrated
- * on the client, so resolving it from the browser would produce a hydration mismatch on
- * every date. If dates ever need to follow the site's own locale switcher, the value has to
- * be threaded through from the page's `lang` param, not read from the runtime.
+ * Deliberately a passed-in locale rather than the viewer's: these render on the server and
+ * again during hydration, so resolving from the browser would produce a mismatch on every
+ * date. That constraint predates the domain split — the original comment here said the
+ * value would have to be "threaded through from the page's `lang` param, not read from the
+ * runtime" if dates ever needed to follow the site's locale. They do now, and it is.
+ *
+ * The default stays `en-GB`, unchanged: this is a Greek company selling into European
+ * retail, the English copy is British ("catalogue", "colourway"), and every locale it
+ * serves reads dates day-first. "20 Aug 2026" is unambiguous to all of them.
+ *
+ * Greek gets `el-GR`, which yields DD/MM/YYYY numerically and Greek month names in the
+ * long form ("20 Αυγ 2026").
  */
-export function formatDate(iso: string): string {
+const DATE_LOCALE: Record<string, string> = {
+  en: "en-GB",
+  el: "el-GR",
+  de: "de-DE",
+  fr: "fr-FR",
+};
+
+function resolve(locale: string): string {
+  return DATE_LOCALE[locale] ?? "en-GB";
+}
+
+/** Long form — "20 Aug 2026" / "20 Αυγ 2026". Used wherever a date is read, not scanned. */
+export function formatDate(iso: string, locale: string = "en"): string {
   const d = new Date(iso);
-  return d.toLocaleDateString("en-GB", { year: "numeric", month: "short", day: "numeric" });
+  return d.toLocaleDateString(resolve(locale), { year: "numeric", month: "short", day: "numeric" });
+}
+
+/**
+ * All-numeric form — "20/08/2026".
+ *
+ * Greek convention is DD/MM/YYYY, which `el-GR` produces. Note this is one of the few
+ * places where getting the locale wrong is not merely ugly but wrong: 08/09 means two
+ * different days depending on which side of the Atlantic reads it, and these appear on
+ * order and invoice documents.
+ */
+export function formatDateNumeric(iso: string, locale: string = "en"): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString(resolve(locale), { year: "numeric", month: "2-digit", day: "2-digit" });
 }
 
 export function telHref(phone: string): string {

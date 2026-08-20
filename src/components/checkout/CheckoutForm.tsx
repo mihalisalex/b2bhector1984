@@ -4,7 +4,8 @@ import { useActionState, useMemo, useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
 import { useCatalog } from "@/lib/catalog-context";
-import { formatEUR, getOrderMinimumError, getUnitPrice, TERMS_DISCOUNT, TERMS_LABEL, validateMatrix } from "@/lib/pricing";
+import { getOrderMinimumError, getUnitPrice, TERMS_DISCOUNT, TERMS_LABEL, validateMatrix } from "@/lib/pricing";
+import { useFormat } from "@/i18n/I18nProvider";
 import { placeOrder, type CheckoutState } from "@/lib/actions";
 import type { Account, BoxTypeId, CreditTerms } from "@/lib/types";
 import { Button, LinkButton } from "@/components/ui/Button";
@@ -19,6 +20,7 @@ const TERMS_OPTIONS: { value: CreditTerms; label: string }[] = [
 const initialState: CheckoutState = {};
 
 export function CheckoutForm({ account }: { account: Account }) {
+  const { eur } = useFormat();
   const { lines } = useCart();
   const { getStyleById, inventory, productionLeadTimeDays } = useCatalog();
   const [terms, setTerms] = useState<CreditTerms>(account.creditTerms);
@@ -209,9 +211,9 @@ export function CheckoutForm({ account }: { account: Account }) {
                 </span>
                 <span className="tabular-nums text-ink">
                   {termsDiscount > 0 && (
-                    <span className="mr-1.5 text-xs text-ink-soft line-through">{formatEUR(listSubtotal)}</span>
+                    <span className="mr-1.5 text-xs text-ink-soft line-through">{eur(listSubtotal)}</span>
                   )}
-                  {formatEUR(g.subtotal)}
+                  {eur(g.subtotal)}
                   <VatSuffix vatRate={g.style.vatRate} className="text-xs text-ink-soft" />
                 </span>
               </div>
@@ -221,18 +223,18 @@ export function CheckoutForm({ account }: { account: Account }) {
         {vatTotal > 0 && (
           <div className="mt-3 flex items-center justify-between text-xs text-ink-soft">
             <span>Subtotal</span>
-            <span className="tabular-nums">{formatEUR(cartTotal)}</span>
+            <span className="tabular-nums">{eur(cartTotal)}</span>
           </div>
         )}
         {vatTotal > 0 && (
           <div className="mt-1 flex items-center justify-between text-xs text-ink-soft">
             <span>VAT</span>
-            <span className="tabular-nums">{formatEUR(vatTotal)}</span>
+            <span className="tabular-nums">{eur(vatTotal)}</span>
           </div>
         )}
         <div className="mt-4 flex items-center justify-between">
           <span className="text-sm font-semibold uppercase tracking-wide text-ink-soft">Total</span>
-          <span className="text-xl font-semibold tabular-nums text-ink">{formatEUR(grandTotal)}</span>
+          <span className="text-xl font-semibold tabular-nums text-ink">{eur(grandTotal)}</span>
         </div>
         <p className="mt-1 text-right text-[11px] text-ink-soft">
           {TERMS_DISCOUNT[terms] > 0
@@ -267,7 +269,7 @@ export function CheckoutForm({ account }: { account: Account }) {
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-300 bg-white/97 px-4 py-3 backdrop-blur lg:hidden" style={{ boxShadow: "0 -8px 24px rgba(26,29,34,0.12)" }}>
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-lg font-semibold tabular-nums text-ink">{formatEUR(grandTotal)}</p>
+            <p className="truncate text-lg font-semibold tabular-nums text-ink">{eur(grandTotal)}</p>
             <p className="truncate text-[10px] text-ink-soft">{totalPairs} pairs</p>
           </div>
           <Button type="submit" disabled={pending || !!minimumError} className="shrink-0">

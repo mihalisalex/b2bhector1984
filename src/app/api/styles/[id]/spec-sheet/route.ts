@@ -11,6 +11,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const account = await getCurrentAccount();
   if (!account) return new Response("Unauthorized", { status: 401 });
 
+  const specLocale = resolveLocale(account.locale, account.storeLocation);
   const style = await getStyleById(id);
   if (!style) return new Response("Not found", { status: 404 });
 
@@ -41,7 +42,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
         euSizes: EU_SIZES,
         boxes,
         // The signed-in buyer's language — this is a document they hand to their own team.
-        dict: (await getDictionary(resolveLocale(account.locale, account.storeLocation))).pdf,
+        dict: (await getDictionary(specLocale)).pdf,
+        locale: specLocale,
       }),
     );
   } catch (err) {

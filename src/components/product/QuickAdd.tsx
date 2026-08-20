@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import { useCatalog } from "@/lib/catalog-context";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
-import { formatEUR, getUnitPrice, MAX_BACKORDER_QTY } from "@/lib/pricing";
+import { getUnitPrice, MAX_BACKORDER_QTY } from "@/lib/pricing";
+import { useFormat } from "@/i18n/I18nProvider";
 import { VatSuffix } from "@/components/ui/VatSuffix";
 import { pickDefaultBoxType } from "@/lib/productSelectionDefaults";
 import type { StyleInventory } from "@/lib/data/inventory";
@@ -38,6 +39,7 @@ export function QuickAdd({
   priceMultiplier?: number;
   colorwayId: string;
 }) {
+  const { eur } = useFormat();
   const { addLines, lines } = useCart();
   const { productionLeadTimeDays } = useCatalog();
   const boxTypes = getAvailableBoxTypes(style);
@@ -169,7 +171,7 @@ export function QuickAdd({
           <span className="text-xs font-semibold uppercase tracking-wide">{justAdded ? "Added ✓" : "Add"}</span>
           {!justAdded && (
             <span className="font-mono-tab text-[11px] tabular-nums text-white/75">
-              {formatEUR(unitPrice * box.totalPairs * qty)}
+              {eur(unitPrice * box.totalPairs * qty)}
               <VatSuffix vatRate={style.vatRate} className="text-white/60" />
             </span>
           )}
