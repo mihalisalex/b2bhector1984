@@ -3,6 +3,12 @@ import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { CATEGORY_LABEL, GENDER_LABEL } from "@/lib/data/styleLabels";
 import { formatEUR, MIN_ORDER_PAIRS } from "@/lib/pricing";
 import { SizeChart } from "@/components/product/SizeChart";
+import { localizeStyle } from "@/lib/localizeStyle";
+import { vatPercent } from "@/lib/tax";
+import { t } from "@/i18n/format";
+import { withLocale } from "@/i18n/paths";
+import type { Locale } from "@/i18n/config";
+import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Style } from "@/lib/types";
 
 /**
@@ -15,10 +21,14 @@ import type { Style } from "@/lib/types";
  */
 export function ProductDetails({
   style,
+  locale,
+  dict,
   minOrderPairs = MIN_ORDER_PAIRS,
   showPricing = true,
 }: {
   style: Style;
+  locale: Locale;
+  dict: Dictionary;
   minOrderPairs?: number;
   /** Set false for anonymous visitors. Withholds the MSRP row — suggested *retail* is
    * not the wholesale figure, but it is still a price, and "everything except pricing"
@@ -30,89 +40,114 @@ export function ProductDetails({
   const docs = style.documents ?? [];
   const attributes = style.attributes ?? [];
   const hasDimensions = style.lengthCm || style.widthCm || style.heightCm;
+  const p = dict.product;
+  // Greek prose where it has been written, English otherwise — the fallback is silent by
+  // design and counted in the admin product list.
+  const copy = localizeStyle(style, locale);
 
   return (
     <div className="mt-8 border-t border-stone-300">
-      <Section title="Description" defaultOpen>
+      <Section title={p.description} defaultOpen>
         {/* Sanitized server-side on write (sanitizeProductDescription) to a fixed tag
             allowlist matching exactly what the admin rich-text editor can produce. */}
         <div
           className="prose max-w-none text-sm leading-relaxed text-ink-soft [&_h2]:font-display [&_h2]:text-base [&_h2]:font-bold [&_h2]:uppercase [&_h2]:text-ink [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_a]:text-signal [&_a]:underline"
-          dangerouslySetInnerHTML={{ __html: style.description }}
+          dangerouslySetInnerHTML={{ __html: copy.description }}
         />
-        {style.lastNote && (
+        {copy.lastNote && (
           <p className="mt-4 border-l-2 border-court bg-court-100/60 px-3 py-2 text-sm text-ink-soft">
-            <span className="font-semibold text-ink">Rep note — </span>
-            {style.lastNote}
+            <span className="font-semibold text-ink">{p.repNote} — </span>
+            {copy.lastNote}
           </p>
         )}
       </Section>
 
-      <Section title="Specifications">
+      {/* Rendered only when the list has rows. English is empty for every style today, so
+          an unconditional section would show an empty heading on every English page. */}
+      {copy.features.length > 0 && (
+        <Section title={p.features}>
+          <ul className="list-disc pl-5 text-sm leading-relaxed text-ink-soft">
+            {copy.features.map((feature) => (
+              <li key={feature} className="mb-1">
+                {feature}
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
+
+      <Section title={p.specifications}>
         <dl className="grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
-          <Spec label="Style number" value={style.styleNumber} />
-          <Spec label="Brand" value={style.brandName} />
-          <Spec label="Category" value={`${CATEGORY_LABEL[style.category]} · ${GENDER_LABEL[style.gender]}`} />
-          <Spec label="Materials" value={style.materials.join(", ")} />
-          <Spec label="Weight" value={`${style.weightOz} oz per pair`} />
-          {showPricing && <Spec label="MSRP" value={`${formatEUR(style.msrp)} — suggested retail`} />}
-          <Spec label="Sold as" value={`${boxTypes.map((b) => b.totalPairs).join(" / ")}-pair pre-pack boxes`} />
-          <Spec label="Size run" value="EU 40–45" />
+          <Spec label={p.styleNumber} value={style.styleNumber} />
+          <Spec label={p.brand} value={style.brandName} />
+          <Spec label={p.category} value={`${CATEGORY_LABEL[style.category]} · ${GENDER_LABEL[style.gender]}`} />
+          <Spec label={p.materials} value={copy.materials.join(", ")} />
+          <Spec label={p.weight} value={t(p.weightValue, { oz: style.weightOz })} />
+          {showPricing && <Spec label={p.msrp} value={t(p.msrpValue, { price: formatEUR(style.msrp) })} />}
+          <Spec label={p.soldAs} value={t(p.soldAsValue, { sizes: boxTypes.map((b) => b.totalPairs).join(" / ") })} />
+          <Spec label={p.sizeRunLabel} value={dict.sizeRun} />
           {hasDimensions && (
             <Spec
-              label="Dimensions"
+              label={p.dimensions}
               value={[style.lengthCm, style.widthCm, style.heightCm].filter(Boolean).join(" × ") + " cm"}
             />
           )}
-          {style.gtin && <Spec label="GTIN" value={style.gtin} />}
-          {style.mpn && <Spec label="MPN" value={style.mpn} />}
+          {style.gtin && <Spec label={p.gtin} value={style.gtin} />}
+          {style.mpn && <Spec label={p.mpn} value={style.mpn} />}
           {attributes.map((attr) => (
             <Spec key={attr.id} label={attr.key} value={attr.value} />
           ))}
         </dl>
       </Section>
 
-      <Section title="Size run &amp; box breakdown">
+      <Section title={p.sizeRunAndBox}>
         <p className="mb-3 text-sm text-ink-soft">
-          Every box is a fixed pre-pack — the size run below is what ships. Single pairs aren&rsquo;t sold wholesale.
+          {dict.box.fixed} {dict.box.noSinglePairs}
         </p>
         <SizeChart style={style} />
       </Section>
 
-      <Section title="Ordering, shipping &amp; returns">
+      <Section title={p.orderingShippingReturns}>
         <dl className="grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
-          <Spec label="Order minimum" value={`${minOrderPairs} pairs, mixable across any styles`} />
+          <Spec label={p.orderMinimum} value={t(p.orderMinimumValue, { pairs: minOrderPairs })} />
           <Spec
-            label="Availability"
+            label={p.availability}
             value={
               style.availability === "available"
-                ? "Available now — ships from current stock"
-                : `Pre-book${style.shipWindow ? ` — ships ${style.shipWindow}` : ""}`
+                ? p.availableNowValue
+                : style.shipWindow
+                  ? t(p.prebookValueWithWindow, { window: style.shipWindow })
+                  : p.prebookValue
             }
           />
-          <Spec label="Payment terms" value="Prepay (10% off), Net 30 (5% off), or Net 60 at list" />
-          <Spec label="Pricing shown" value={`Excludes VAT (${style.vatRate}%), applied at invoicing`} />
-          {style.shippingClass && <Spec label="Shipping class" value={style.shippingClass} />}
+          <Spec label={p.paymentTerms} value={dict.terms.discounts} />
+          {/* `vatRate` is a fraction (0.24), so the old `${style.vatRate}%` rendered
+              "Excludes VAT (0.24%)" on every product page. vatPercent does the conversion
+              in the one place that owns it. */}
+          <Spec label={p.pricingShown} value={t(p.pricingShownValue, { rate: vatPercent(style.vatRate) })} />
+          {style.shippingClass && <Spec label={p.shippingClass} value={style.shippingClass} />}
         </dl>
         <p className="mt-4 text-sm text-ink-soft">
-          Full shipping, returns and account terms are on the{" "}
-          <Link href="/faq" className="text-signal underline hover:text-ink">
-            FAQ
+          {p.fullTermsPre}{" "}
+          {/* Was a bare "/faq" — on /el this walked the reader out of Greek, the same
+              defect the journal cards had. */}
+          <Link href={withLocale(locale, "/faq")} className="text-signal underline hover:text-ink">
+            {dict.nav.faq}
           </Link>
-          . Your territory rep can confirm anything specific to your account.
+          {p.fullTermsPost}
         </p>
       </Section>
 
-      <Section title="Downloads">
+      <Section title={p.downloads}>
         <ul className="flex flex-col gap-2 text-sm">
           <li>
             <a
               href={`/api/styles/${style.id}/spec-sheet`}
               className="font-medium text-signal underline hover:text-ink"
             >
-              Spec sheet (PDF)
+              {p.specSheet}
             </a>
-            <span className="ml-2 text-ink-soft">— pricing, size run, materials</span>
+            <span className="ml-2 text-ink-soft">— {p.specSheetDesc}</span>
           </li>
           {docs.map((doc) => (
             <li key={doc.id}>

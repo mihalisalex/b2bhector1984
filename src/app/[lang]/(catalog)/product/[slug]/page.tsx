@@ -18,6 +18,8 @@ import { PublicPurchasePanel } from "@/components/product/PublicPurchasePanel";
 import { TrackRecentlyViewed } from "@/components/product/TrackRecentlyViewed";
 import { RecentlyViewedStrip } from "@/components/product/RecentlyViewedStrip";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { getDictionary } from "@/i18n/getDictionary";
+import type { Locale } from "@/i18n/config";
 import { productMetadata } from "@/lib/seo";
 import { buildBreadcrumbSchema, buildProductSchema } from "@/lib/seoJsonLd";
 import { getSeoSettings } from "@/lib/data/seoSettings";
@@ -39,8 +41,12 @@ const LEGACY_SLUG_REDIRECTS: Record<string, string> = {
   "riviera-loafer": "hector-boat-loafer", // HL-1001, corrected 2026-07-29 — was stale from an earlier product rename
 };
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params;
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string; slug: string }>;
+}): Promise<Metadata> {
+  const { lang, slug } = await params;
   const style = await getStyleBySlug(slug);
   if (!style) return { title: "Style", robots: { index: false, follow: false } };
 
@@ -51,22 +57,24 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // catalogue is private.
   const images = await listImagesForStyle(style.id);
   const primary = images.find((image) => image.isPrimary) ?? images[0];
-  return productMetadata(style, primary?.publicUrl);
+  return productMetadata(style, primary?.publicUrl, lang as Locale);
 }
 
-export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+export default async function ProductPage({ params }: { params: Promise<{ lang: string; slug: string }> }) {
+  const { lang, slug } = await params;
+  const locale = lang as Locale;
   if (LEGACY_SLUG_REDIRECTS[slug]) redirect(`/product/${LEGACY_SLUG_REDIRECTS[slug]}`);
   const style = await getStyleBySlug(slug);
   // A draft/archived product, or one with no colorways yet (every card/gallery below
   // assumes colorways[0] exists), should 404 rather than crash the page for anyone who
   // hits the URL — including via a stale cart/search/bookmark link.
   if (!style || (style.status ?? "active") !== "active" || style.colorways.length === 0) notFound();
-  const [inventory, images, related, account] = await Promise.all([
+  const [inventory, images, related, account, dict] = await Promise.all([
     getInventoryForStyle(style.id),
     listImagesForStyle(style.id),
     getRelatedStyles(style),
     getCurrentAccount(),
+    getDictionary(locale),
   ]);
   const [relatedInventory, relatedImages] = await Promise.all([
     getInventoryForStyles(related.map((s) => s.id)),
@@ -199,7 +207,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </div>
         </ColorwaySelectionProvider>
 
-        <ProductDetails style={style} minOrderPairs={account?.minOrderPairs} showPricing={showPricing} />
+        <ProductDetails
+          style={style}
+          locale={locale}
+          dict={dict}
+          minOrderPairs={account?.minOrderPairs}
+          showPricing={showPricing}
+        />
       </div>
 
       {/* Watched by the mobile buy bar: once this scrolls into view the buyer has moved

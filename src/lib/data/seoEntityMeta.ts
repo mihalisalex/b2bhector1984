@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { DEFAULT_LOCALE } from "@/i18n/config";
 
 /**
  * SEO overrides for everything that isn't a product.
@@ -11,7 +12,7 @@ import { supabaseAdmin } from "@/lib/supabase/server";
  * key is a uuid for real rows (collections, brands, suppliers) and a stable
  * string for the rest ("loafers", "/faq", "summer").
  */
-export type SeoEntityType = "category" | "collection" | "brand" | "supplier" | "season" | "page";
+export type SeoEntityType = "category" | "collection" | "brand" | "supplier" | "season" | "page" | "style";
 
 export interface SeoEntityMeta {
   entityType: SeoEntityType;
@@ -36,6 +37,8 @@ export interface SeoEntityMeta {
 interface EntityMetaRow {
   entity_type: SeoEntityType;
   entity_key: string;
+  /** Optional so the mapper still works against a database where 0037 hasn't run. */
+  locale?: string | null;
   seo_title: string | null;
   meta_description: string | null;
   focus_keyword: string | null;
@@ -83,15 +86,32 @@ function mapEntityMeta(row: EntityMetaRow): SeoEntityMeta {
 export const getAllEntityMeta = cache(async (): Promise<Map<string, SeoEntityMeta>> => {
   const { data, error } = await supabaseAdmin.from("seo_entity_meta").select("*");
   if (error || !data) return new Map();
-  return new Map((data as EntityMetaRow[]).map((row) => [`${row.entity_type}:${row.entity_key}`, mapEntityMeta(row)]));
+  return new Map(
+    (data as EntityMetaRow[]).map((row) => [
+      // Keyed by locale too, since migration 0037 made it part of the primary key. Rows
+      // written before that migration read back as `en`, which is what they are.
+      `${row.entity_type}:${row.entity_key}:${row.locale ?? DEFAULT_LOCALE}`,
+      mapEntityMeta(row),
+    ]),
+  );
 });
 
+/**
+ * One entity's override for one locale.
+ *
+ * Deliberately no cross-locale fallback. An override is a deliberate act for a specific
+ * page in a specific language; inheriting another language's would put, say, an English
+ * admin title on a Greek page — outranking the Greek in-code default and producing exactly
+ * the mixed-language page the domain split exists to prevent. A miss here means the caller
+ * falls through to its own locale-specific default, which is always translated.
+ */
 export async function getEntityMeta(
   entityType: SeoEntityType,
   entityKey: string,
+  locale: string = DEFAULT_LOCALE,
 ): Promise<SeoEntityMeta | undefined> {
   const all = await getAllEntityMeta();
-  return all.get(`${entityType}:${entityKey}`);
+  return all.get(`${entityType}:${entityKey}:${locale}`);
 }
 
 /**

@@ -314,8 +314,14 @@ export async function commerceMetadata(input: CommerceMetadataInput): Promise<Me
  * photo and the style name is the whole point of the Open Graph fields on a
  * gated page.
  */
-export async function productMetadata(style: Style, imageUrl?: string): Promise<Metadata> {
+export async function productMetadata(style: Style, imageUrl?: string, locale?: Locale): Promise<Metadata> {
   const settings = await getSeoSettings();
+  // Per-locale override (migration 0038 lets seo_entity_meta describe a 'style'). Consulted
+  // only for non-default locales: the English values live on `styles` itself and that path
+  // is deliberately untouched. There is NO cross-locale fallback — a missing Greek override
+  // drops to the generated Greek copy, never to another language's override.
+  const localeOverride =
+    locale && locale !== DEFAULT_LOCALE ? await getEntityMeta("style", style.id, locale) : undefined;
   const source: ProductSeoSource = {
     name: style.name,
     styleNumber: style.styleNumber,
@@ -328,9 +334,10 @@ export async function productMetadata(style: Style, imageUrl?: string): Promise<
     tags: style.tags,
   };
 
-  const adminTitle = style.seoTitle?.trim();
+  const adminTitle = localeOverride?.seoTitle?.trim() || style.seoTitle?.trim();
   const title = adminTitle || generateProductTitle(source, settings.siteName);
-  const description = style.metaDescription?.trim() || generateProductDescription(source);
+  const description =
+    localeOverride?.metaDescription?.trim() || style.metaDescription?.trim() || generateProductDescription(source);
   const image = style.ogImageUrl?.trim() || imageUrl || style.primaryImageUrl;
 
   return buildMetadata(
@@ -339,7 +346,8 @@ export async function productMetadata(style: Style, imageUrl?: string): Promise<
       titleIsFinal: !adminTitle,
       description,
       path: `/product/${style.slug}`,
-      canonicalPath: style.canonicalUrl?.trim() || `/product/${style.slug}`,
+      canonicalPath: style.canonicalUrl?.trim() || withLocale(locale ?? DEFAULT_LOCALE, `/product/${style.slug}`),
+      locale,
       robots: commerceRobots(settings, style.robots),
       ogTitle: style.ogTitle,
       ogDescription: style.ogDescription,
