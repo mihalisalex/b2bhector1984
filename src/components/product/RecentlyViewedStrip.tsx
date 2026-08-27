@@ -5,10 +5,14 @@ import Link from "next/link";
 import { useCatalog } from "@/lib/catalog-context";
 import { getStyleImageUrl } from "@/lib/data/styleLabels";
 import { getRecentlyViewed } from "@/lib/recentlyViewed";
+import { useI18n } from "@/i18n/I18nProvider";
 import { StylePlate } from "@/components/product/StylePlate";
 
 export function RecentlyViewedStrip({ excludeStyleId }: { excludeStyleId?: string }) {
   const { getStyleById } = useCatalog();
+  // Read before the early returns below — a hook after a conditional return breaks the
+  // rules-of-hooks ordering guarantee.
+  const c = useI18n().dict.catalog;
   const [ids, setIds] = useState<string[] | null>(null);
 
   useEffect(() => {
@@ -22,7 +26,7 @@ export function RecentlyViewedStrip({ excludeStyleId }: { excludeStyleId?: strin
 
   return (
     <div>
-      <h2 className="font-display mb-3 text-sm font-bold uppercase tracking-tight text-ink-soft">Recently Viewed</h2>
+      <h2 className="font-display mb-3 text-sm font-bold uppercase tracking-tight text-ink-soft">{c.recentlyViewed}</h2>
       <div className="scroll-thin flex gap-3 overflow-x-auto pb-1">
         {styles.slice(0, 8).map((style) => (
           <Link key={style.id} href={`/product/${style.slug}`} className="group w-28 shrink-0 sm:w-32">

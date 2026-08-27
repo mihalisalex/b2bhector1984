@@ -1,3 +1,8 @@
+import { getDictionary } from "@/i18n/getDictionary";
+import { withLocale } from "@/i18n/paths";
+import { t } from "@/i18n/format";
+import type { Locale } from "@/i18n/config";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
@@ -10,11 +15,18 @@ import { AvailabilityBadge } from "@/components/ui/Badge";
 import { LoadAssortmentButton } from "@/components/dashboard/LoadAssortmentButton";
 import { TextAction } from "@/components/ui/TextAction";
 
-export const metadata = { title: "Saved Assortments", robots: { index: false, follow: false } };
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const dict = await getDictionary(lang as Locale);
+  return { title: dict.dashboard.savedAssortments, robots: { index: false, follow: false } };
+}
 
-export default async function AssortmentsPage() {
+export default async function AssortmentsPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const locale = lang as Locale;
+  const d = (await getDictionary(locale)).dashboard;
   const account = await getCurrentAccount();
-  if (!account) redirect("/login");
+  if (!account) redirect(withLocale(locale, "/login"));
   const [assortments, styles] = await Promise.all([
     getAssortmentsForAccount(account.id),
     getStorefrontStyles(),
@@ -24,17 +36,16 @@ export default async function AssortmentsPage() {
   return (
     <div className="mx-auto max-w-[1400px] px-6 py-8 lg:px-10">
       <nav className="mb-4 text-xs text-ink-soft">
-        <Link href="/dashboard" className="hover:text-ink">Dashboard</Link> / Saved Assortments
+        <Link href={withLocale(locale, "/dashboard")} className="hover:text-ink">{d.title}</Link> / {d.savedAssortments}
       </nav>
       <h1 className="font-display border-b border-stone-300 pb-6 text-2xl font-bold uppercase tracking-tight text-ink">
-        Saved Assortments
+        {d.savedAssortments}
       </h1>
 
       {assortments.length === 0 ? (
         <div className="mt-8 border border-dashed border-stone-300 bg-stone-100 px-6 py-16 text-center">
           <p className="text-sm text-ink-soft">
-            No saved assortments yet. Add styles to your cart, then use &ldquo;Save as assortment&rdquo; there to
-            build a reorder set.
+            {d.noAssortmentsLong}
           </p>
         </div>
       ) : (
@@ -44,20 +55,19 @@ export default async function AssortmentsPage() {
               <div className="flex items-baseline justify-between">
                 <h2 className="font-display text-lg font-bold uppercase tracking-tight text-ink">{a.name}</h2>
                 <div className="flex items-center gap-4">
-                  <span className="text-xs text-ink-soft">Saved {formatDate(a.createdAt)}</span>
+                  <span className="text-xs text-ink-soft">{t(d.savedOn, { date: formatDate(a.createdAt, locale) })}</span>
                   <LoadAssortmentButton lines={a.lines} />
                   <form action={deleteAssortment}>
                     <input type="hidden" name="assortmentId" value={a.id} />
                     <TextAction type="submit" tone="danger">
-                      Delete
+                      {d.delete}
                     </TextAction>
                   </form>
                 </div>
               </div>
               {a.lines.every((l) => !l.colorwayId) && (
                 <p className="mt-1 text-xs text-ink-soft">
-                  Saved before exact quantities were tracked — browse the styles below to reorder, rather than a
-                  direct cart load.
+                  {d.assortmentLegacyNote}
                 </p>
               )}
               <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
@@ -67,7 +77,7 @@ export default async function AssortmentsPage() {
                   return (
                     <Link
                       key={id}
-                      href={`/product/${style.slug}`}
+                      href={withLocale(locale, `/product/${style.slug}`)}
                       className="group border border-stone-300 bg-white transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-ink"
                     >
                       <StylePlate

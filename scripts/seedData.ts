@@ -13,6 +13,11 @@ import type { Account, Order, SavedAssortment, Style } from "../src/lib/types";
  */
 type SeedStyle = Omit<
   Style,
+  // `features` and its _el sibling (migration 0038) are real catalogue content the owner
+  // writes, not demo data — the seed fixtures predate them and inventing feature bullets
+  // for fictional styles would put copy in the catalogue that nobody authored.
+  | "features"
+  | "featuresEl"
   | "availableBoxTypes"
   | "primaryImageUrl"
   | "createdAt"

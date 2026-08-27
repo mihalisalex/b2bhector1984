@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/i18n/I18nProvider";
 import { useActionState, useState } from "react";
 import { saveAssortment, type FormState } from "@/lib/actions";
 import { Button } from "@/components/ui/Button";
@@ -9,6 +10,7 @@ import type { CartLine } from "@/lib/cart-context";
 const initialState: FormState = {};
 
 export function SaveAssortmentButton({ lines }: { lines: CartLine[] }) {
+  const d = useI18n().dict.dashboard;
   const [open, setOpen] = useState(false);
   const [state, formAction, pending] = useActionState(saveAssortment, initialState);
 
@@ -19,7 +21,7 @@ export function SaveAssortmentButton({ lines }: { lines: CartLine[] }) {
   if (!open) {
     return (
       <TextAction tone="neutral" underline onClick={() => setOpen(true)}>
-        Save as assortment
+        {d.saveAsAssortment}
       </TextAction>
     );
   }
@@ -28,7 +30,7 @@ export function SaveAssortmentButton({ lines }: { lines: CartLine[] }) {
     <form action={formAction} className="flex flex-col gap-2 border border-stone-300 bg-white p-3 sm:w-72">
       <input type="hidden" name="lines" value={JSON.stringify(lines)} />
       <label className="flex flex-col gap-1">
-        <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Assortment name</span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{d.assortmentName}</span>
         <input
           name="name"
           required
@@ -41,10 +43,10 @@ export function SaveAssortmentButton({ lines }: { lines: CartLine[] }) {
 
       <div className="flex gap-2">
         <Button type="submit" size="sm" disabled={pending}>
-          {pending ? "Saving…" : "Save"}
+          {pending ? d.saving : d.save}
         </Button>
         <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
-          Cancel
+          {d.cancel}
         </Button>
       </div>
     </form>

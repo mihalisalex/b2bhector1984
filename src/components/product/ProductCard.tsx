@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { backorderLabel, CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styleLabels";
-import { formatEUR, getUnitPrice, isOnSale } from "@/lib/pricing";
+import { backorderLabelFor, categoryLabel, genderLabel, getStyleImageUrl } from "@/lib/data/styleLabels";
+import { getUnitPrice, isOnSale } from "@/lib/pricing";
+import { useFormat, useI18n } from "@/i18n/I18nProvider";
 import { VatSuffix } from "@/components/ui/VatSuffix";
 import type { Style } from "@/lib/types";
 import type { StyleInventory } from "@/lib/data/inventory";
@@ -57,13 +58,16 @@ export function ProductCard({
    * style's default photo when selected — same honest fallback as the product gallery. */
   images?: StyleImage[];
 }) {
+  const { eur } = useFormat();
+  const { dict } = useI18n();
+  const dictCatalog = dict.catalog;
   // "Sold out" only applies when the style truly can't be ordered further; when it can
   // (allowBackorder, the new default), zero on-hand is "Made to order" instead — still
   // purchasable, just not shipping from the shelf. See PrimaryPurchasePanel/QuickAdd for
   // the same distinction applied to the actual add-to-cart controls.
   const soldOut = totalOnHand === 0 && !style.allowBackorder;
   const madeToOrder = totalOnHand === 0 && style.allowBackorder;
-  const backorderText = backorderLabel(style);
+  const backorderText = backorderLabelFor(dict, style);
   const lowStock = typeof totalOnHand === "number" && totalOnHand > 0 && totalOnHand <= 10;
   const onSale = isOnSale(style);
   const hasMultipleColorways = style.colorways.length > 1;
@@ -116,30 +120,30 @@ export function ProductCard({
           </Link>
         </h3>
         <p className="text-xs uppercase tracking-wide text-ink-soft">
-          <span className="font-mono-tab normal-case">{style.styleNumber}</span> · {GENDER_LABEL[style.gender]} ·{" "}
-          {CATEGORY_LABEL[style.category]}
+          <span className="font-mono-tab normal-case">{style.styleNumber}</span> · {genderLabel(dict, style.gender)} ·{" "}
+          {categoryLabel(dict, style.category)}
         </p>
 
         <div className="mt-auto border-t border-stone-200 pt-3">
           {showPricing ? (
             <>
-              <p className="text-[11px] uppercase tracking-wide text-ink-soft">Wholesale</p>
+              <p className="text-[11px] uppercase tracking-wide text-ink-soft">{dictCatalog.wholesale}</p>
               <p className="flex items-baseline gap-2">
                 {/* Burgundy only while discounted — the promotional accent, deliberately not
                     --color-ember, which reads as danger/error everywhere else in this app. */}
                 <span className={cn("text-lg font-semibold tabular-nums", onSale ? "text-burgundy" : "text-ink")}>
-                  {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
+                  {eur(getUnitPrice(style, "net60", priceMultiplier))}
                   <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
                 </span>
                 {onSale && (
                   <span className="text-xs tabular-nums text-ink-soft line-through">
-                    {formatEUR(style.basePrice * priceMultiplier)}
+                    {eur(style.basePrice * priceMultiplier)}
                   </span>
                 )}
               </p>
             </>
           ) : (
-            <p className="text-[11px] uppercase tracking-wide text-ink-soft">Trade pricing on approval</p>
+            <p className="text-[11px] uppercase tracking-wide text-ink-soft">{dictCatalog.tradePricingOnApproval}</p>
           )}
         </div>
 

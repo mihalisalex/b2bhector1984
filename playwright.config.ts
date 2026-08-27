@@ -53,7 +53,12 @@ export default defineConfig({
   retries: 0,
   reporter: "list",
   use: {
-    baseURL: "http://localhost:3000",
+    // en.localhost, not bare localhost: since the domain split the locale comes from the
+    // Host header, and a bare `localhost` matches neither domain so it falls through to
+    // the default — Greek. Every spec here asserts English strings ("Sign In", "Save
+    // changes"), so the whole suite would fail on language alone. `*.localhost` resolves
+    // to 127.0.0.1 without a hosts-file edit and exercises the real host-parsing path.
+    baseURL: "http://en.localhost:3000",
     trace: "on-first-retry",
   },
   webServer: {

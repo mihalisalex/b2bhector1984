@@ -1,16 +1,31 @@
 import { formatDate } from "@/lib/format";
+import enDict, { type Dictionary } from "@/i18n/dictionaries/en";
 import type { OrderStatus, OrderStatusEvent } from "@/lib/types";
 
-const STATUS_LABEL: Record<OrderStatus, string> = {
-  submitted: "Submitted",
-  confirmed: "Confirmed",
-  in_production: "In Production",
-  shipped: "Shipped",
-  delivered: "Delivered",
-};
-
-export function StatusTimeline({ events }: { events: OrderStatusEvent[] }) {
+/**
+ * `dict`/`locale` default to English so the admin order view — which is English-only and
+ * renders this same component — keeps working unchanged without passing anything.
+ */
+export function StatusTimeline({
+  events,
+  dict = enDict.dashboard,
+  locale = "en",
+}: {
+  events: OrderStatusEvent[];
+  dict?: Dictionary["dashboard"];
+  locale?: string;
+}) {
   if (events.length === 0) return null;
+
+  const label = (status: OrderStatus): string =>
+    ({
+      submitted: dict.statusSubmitted,
+      confirmed: dict.statusConfirmed,
+      in_production: dict.statusInProduction,
+      shipped: dict.statusShipped,
+      delivered: dict.statusDelivered,
+    })[status] ?? status;
+
   return (
     <ol className="flex flex-col gap-4">
       {events.map((event, i) => (
@@ -20,8 +35,8 @@ export function StatusTimeline({ events }: { events: OrderStatusEvent[] }) {
             aria-hidden
           />
           <div>
-            <p className="text-sm font-medium text-ink">{STATUS_LABEL[event.status] ?? event.status}</p>
-            <p className="text-xs text-ink-soft">{formatDate(event.changedAt)}</p>
+            <p className="text-sm font-medium text-ink">{label(event.status)}</p>
+            <p className="text-xs text-ink-soft">{formatDate(event.changedAt, locale)}</p>
           </div>
         </li>
       ))}

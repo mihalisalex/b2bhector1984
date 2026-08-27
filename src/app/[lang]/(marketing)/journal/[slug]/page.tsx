@@ -1,3 +1,6 @@
+import { t } from "@/i18n/format";
+import { formatDateLong } from "@/lib/format";
+import { getDictionary } from "@/i18n/getDictionary";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -26,11 +29,11 @@ async function resolvePost(slug: string) {
   return { post: undefined, isPreview: false };
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params;
+export async function generateMetadata({ params }: { params: Promise<{ slug: string; lang: string }> }): Promise<Metadata> {
+  const { slug, lang } = await params;
   const { post } = await resolvePost(slug);
   if (!post) return {};
-  return articleMetadata(post);
+  return articleMetadata(post, lang as Locale);
 }
 
 function readTimeMinutes(html: string): number {
@@ -48,13 +51,13 @@ export default async function JournalArticlePage({
   const { post, isPreview } = await resolvePost(slug);
   if (!post) notFound();
 
-  const [settings, related] = await Promise.all([getSeoSettings(), getRelatedJournalPosts(post, 3)]);
+  const [settings, related, dict] = await Promise.all([getSeoSettings(), getRelatedJournalPosts(post, 3), getDictionary(locale)]);
 
   // `trail` feeds both the visible breadcrumbs and `buildBreadcrumbSchema`, so leaving these
   // unprefixed published BreadcrumbList JSON-LD pointing at English URLs from every
   // non-English article as well as breaking the visible links.
   const trail = [
-    { name: "Home", path: withLocale(locale, "/") },
+    { name: dict.catalog.home, path: withLocale(locale, "/") },
     { name: "Journal", path: withLocale(locale, "/journal") },
     { name: post.category, path: withLocale(locale, `/journal?category=${encodeURIComponent(post.category)}`) },
     { name: post.title, path: withLocale(locale, `/journal/${post.slug}`) },
@@ -68,14 +71,14 @@ export default async function JournalArticlePage({
 
       {isPreview && (
         <div className="border-b border-court bg-court-100 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wide text-court">
-          Draft preview — status: {post.status}. Not visible to the public until published.
+          {t(dict.journal.draftPreview, { status: post.status })}
         </div>
       )}
 
       <article>
         <header className="border-b border-stone-300 bg-stone-100 px-6 py-14 lg:px-10">
           <div className="mx-auto max-w-3xl">
-            <Breadcrumbs trail={trail.map((t) => ({ name: t.name, path: t.path }))} />
+            <Breadcrumbs trail={trail.map((t) => ({ name: t.name, path: t.path }))} dict={dict} />
             <span className="mt-4 inline-block bg-ink px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
               {post.category}
             </span>
@@ -84,14 +87,14 @@ export default async function JournalArticlePage({
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-relaxed text-ink-soft">{post.excerpt}</p>
             <p className="font-mono-tab mt-6 text-xs uppercase tracking-wide text-ink-soft">
-              By {post.authorName} ·{" "}
+              {t(dict.journal.byAuthor, { name: post.authorName })} ·{" "}
               {post.publishedAt
-                ? new Date(post.publishedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
-                : "Unpublished"}
+                ? formatDateLong(post.publishedAt, locale)
+                : dict.journal.unpublished}
               {post.updatedAt !== post.publishedAt && post.publishedAt && (
-                <> · Updated {new Date(post.updatedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</>
+                <> · {t(dict.journal.updatedOn, { date: formatDateLong(post.updatedAt, locale) })}</>
               )}{" "}
-              · {readTimeMinutes(post.contentHtml)} min read
+              · {t(dict.journal.minRead, { minutes: readTimeMinutes(post.contentHtml) })}
             </p>
           </div>
         </header>
@@ -127,15 +130,15 @@ export default async function JournalArticlePage({
               entities (suppliers) that have no public-facing route in this app. */}
           <div className="mt-10 flex flex-col gap-3 border border-stone-300 bg-stone-100 p-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-semibold text-ink">Ready to source from Hector Footwear?</p>
-              <p className="mt-0.5 text-sm text-ink-soft">Browse the collection or apply for a wholesale account.</p>
+              <p className="text-sm font-semibold text-ink">{dict.journal.articleCtaHeading}</p>
+              <p className="mt-0.5 text-sm text-ink-soft">{dict.journal.articleCtaBody}</p>
             </div>
             <div className="flex shrink-0 gap-2">
               <LinkButton href={withLocale(locale, "/collections")} size="sm" variant="secondary">
-                Browse collections
+                {dict.journal.ctaBrowse}
               </LinkButton>
               <LinkButton href={withLocale(locale, "/apply")} size="sm">
-                Apply for access
+                {dict.journal.ctaApply}
               </LinkButton>
             </div>
           </div>
@@ -146,11 +149,11 @@ export default async function JournalArticlePage({
         <section className="border-t border-stone-300 bg-stone-50 px-6 py-16 lg:px-10">
           <div className="mx-auto max-w-[1200px]">
             <h2 className="font-display border-b border-stone-300 pb-4 text-xl font-bold uppercase tracking-tight text-ink">
-              Related reading
+              {dict.journal.relatedReading}
             </h2>
             <div className="mt-6 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
               {related.map((p) => (
-                <ArticleCard key={p.id} post={p} locale={locale} />
+                <ArticleCard key={p.id} post={p} locale={locale} dict={dict} />
               ))}
             </div>
           </div>

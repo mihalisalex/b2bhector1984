@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/i18n/I18nProvider";
 import { useActionState, useRef } from "react";
 import { updateAccountPassword, type FormState } from "@/lib/actions";
 import { MIN_PASSWORD_LENGTH } from "@/lib/passwordPolicy";
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 const initialState: FormState = {};
 
 export function PasswordForm() {
+  const d = useI18n().dict.dashboard;
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction, pending] = useActionState(async (prev: FormState, formData: FormData) => {
     const result = await updateAccountPassword(prev, formData);
@@ -17,9 +19,9 @@ export function PasswordForm() {
 
   return (
     <form ref={formRef} action={formAction} className="flex flex-col gap-4">
-      <Field label="Current password" name="currentPassword" required autoComplete="current-password" />
+      <Field label={d.currentPassword} name="currentPassword" required autoComplete="current-password" />
       <Field
-        label="New password"
+        label={d.newPassword}
         name="newPassword"
         required
         minLength={MIN_PASSWORD_LENGTH}
@@ -27,7 +29,7 @@ export function PasswordForm() {
         hint={`Must be at least ${MIN_PASSWORD_LENGTH} characters.`}
       />
       <Field
-        label="Confirm new password"
+        label={d.confirmNewPassword}
         name="confirmPassword"
         required
         minLength={MIN_PASSWORD_LENGTH}
@@ -46,7 +48,7 @@ export function PasswordForm() {
       )}
 
       <Button type="submit" size="sm" className="self-start" disabled={pending}>
-        {pending ? "Updating…" : "Update password"}
+        {pending ? d.updating : d.updatePassword}
       </Button>
     </form>
   );

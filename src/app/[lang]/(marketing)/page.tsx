@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getStorefrontStyles, CATEGORY_LABEL, getStyleImageUrl } from "@/lib/data/styles";
+import { getStorefrontStyles, getStyleImageUrl } from "@/lib/data/styles";
+import { categoryLabel } from "@/lib/data/styleLabels";
 import { getHomepageHero } from "@/lib/data/siteContent";
 import { getSeasonSettings, toSeasonOptions } from "@/lib/data/seasonSettings";
 import { getOrderPulse } from "@/lib/data/orderPulse";
@@ -47,16 +48,45 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   ]);
   const h = dict.home;
   const seasonOptions = toSeasonOptions(seasonSettings);
-  // The hero's eyebrow/heading/body are admin-edited via /admin/content, but that editor
-  // only ever writes one (English) row — there's no per-locale content model for it yet
-  // (Phase 2 of the i18n work, deferred — see the i18n Phase 1 write-up). Rather than show
-  // the same English hero copy under /de, /fr and /el, non-English locales get dictionary-
-  // authored hero copy instead; English keeps using the admin's live DB content exactly as
-  // before, so the admin's editing workflow is completely unaffected.
-  const isEnglishHero = lang === "en";
-  const displayEyebrow = isEnglishHero ? hero.eyebrow : h.heroEyebrow;
-  const displayHeadingRaw = isEnglishHero ? hero.heading : h.heroHeading;
-  const displayBody = isEnglishHero ? hero.body : h.heroBody;
+  // Hero copy, in precedence order.
+  //
+  // English uses the admin's live DB row, exactly as it always has. Greek now has its own
+  // admin-editable row too (migration 0037's _el columns, edited side by side at
+  // /admin/content) and that wins when written. Until it is written — and for de/fr, which
+  // have no _el columns and no plans for any — the dictionary's hero copy stands in.
+  //
+  // Note what this deliberately never does: fall back to the ENGLISH database row on a
+  // non-English page. That was the old failure this whole project exists to stop, and the
+  // dictionary rung guarantees there is always a translated string to reach instead.
+  const heroEl = lang === "el";
+  const displayEyebrow = lang === "en" ? hero.eyebrow : (heroEl && hero.eyebrowEl) || h.heroEyebrow;
+  const displayHeadingRaw = lang === "en" ? hero.heading : (heroEl && hero.headingEl) || h.heroHeading;
+  const displayBody = lang === "en" ? hero.body : (heroEl && hero.bodyEl) || h.heroBody;
+  /**
+   * CTA labels are resolved from the button's own DESTINATION, not from a fixed dictionary
+   * key per slot.
+   *
+   * The two hrefs are admin-editable and currently point primary -> /collections and
+   * secondary -> /apply, which is the reverse of what "primary = apply" would assume. A
+   * first pass at this did assume it, and every non-English locale ended up labelling the
+   * buttons backwards: a Greek buyer clicking «Αίτηση πρόσβασης» landed on the collections
+   * page. Keying off the href means the admin can swap, reorder or repoint the buttons
+   * from /admin/content and the translated labels follow instead of silently lying.
+   *
+   * An unrecognised destination falls back to the admin's own English label — a real label
+   * pointing at the right place beats a translated one pointing at the wrong place.
+   */
+  const ctaLabel = (href: string, dbLabel: string, elOverride: string): string => {
+    if (lang === "en") return dbLabel;
+    if (heroEl && elOverride) return elOverride;
+    if (href.includes("/apply")) return dict.nav.applyForAccess;
+    if (href.includes("/collections")) return dict.nav.collections;
+    if (href.includes("/catalogue")) return dict.nav.catalogue;
+    if (href.includes("/quick-order")) return dict.nav.quickOrder;
+    return dbLabel;
+  };
+  const displayPrimaryCta = ctaLabel(hero.primaryCtaHref, hero.primaryCtaLabel, hero.primaryCtaLabelEl);
+  const displaySecondaryCta = ctaLabel(hero.secondaryCtaHref, hero.secondaryCtaLabel, hero.secondaryCtaLabelEl);
   // Admin-edited content occasionally carries a stray blank line between sentences; filtered
   // here so it can't open up an oversized gap in the middle of the headline (a blank line
   // still renders as a full leading-height row even though there's nothing on it).
@@ -122,13 +152,13 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
               size="lg"
               className="px-10 shadow-[0_10px_36px_rgba(0,0,0,0.35)] ring-1 ring-white/20 transition-shadow hover:shadow-[0_16px_48px_rgba(0,0,0,0.45)]"
             >
-              {hero.primaryCtaLabel}
+              {displayPrimaryCta}
             </LinkButton>
             <Link
               href={withLocale(lang, hero.secondaryCtaHref)}
               className="text-xs font-medium uppercase tracking-[0.15em] text-stone-300/80 underline underline-offset-4 hover:text-white"
             >
-              {hero.secondaryCtaLabel}
+              {displaySecondaryCta}
             </Link>
           </div>
         </div>
@@ -137,14 +167,14 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           aria-hidden
           className="absolute inset-x-0 bottom-8 mx-auto w-fit font-mono-tab text-[10px] uppercase tracking-[0.3em] text-white/50"
         >
-          Scroll
+          {dict.orderPulse.scroll}
         </span>
       </section>
 
       {/* Live order-activity strip (2026-08-14). Every figure is a real query — it renders
           nothing at all when there isn't enough genuine activity to report, rather than
           padding itself out. See OrderPulse / lib/data/orderPulse. */}
-      <OrderPulse pulse={pulse} locale={lang} />
+      <OrderPulse pulse={pulse} locale={lang} dict={dict} />
 
       {/* Easy steps to order, right up top for first-time buyers */}
       <section className="border-b border-stone-300 bg-white py-16">
@@ -214,7 +244,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-ink-soft">
               {t(h.stylesCount, {
                 count: seasonStyles.length,
-                categories: SEASON_CATEGORIES[season].map((c) => CATEGORY_LABEL[c]).join(", "),
+                categories: SEASON_CATEGORIES[season].map((c) => categoryLabel(dict, c)).join(", "),
               })}
             </p>
             <Link

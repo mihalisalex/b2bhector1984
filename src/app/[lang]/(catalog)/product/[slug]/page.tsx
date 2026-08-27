@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { CATEGORY_LABEL, GENDER_LABEL, getRelatedStyles, getStyleBySlug, getStyleImageUrl } from "@/lib/data/styles";
+import { CATEGORY_LABEL, getRelatedStyles, getStyleBySlug, getStyleImageUrl } from "@/lib/data/styles";
 import { getInventoryForStyle, getInventoryForStyles, totalOnHandForStyle } from "@/lib/data/inventory";
 import { listImagesForStyle, listImagesForStyles } from "@/lib/data/styleImages";
 import { getCurrentAccount } from "@/lib/session";
@@ -18,11 +18,17 @@ import { PublicPurchasePanel } from "@/components/product/PublicPurchasePanel";
 import { TrackRecentlyViewed } from "@/components/product/TrackRecentlyViewed";
 import { RecentlyViewedStrip } from "@/components/product/RecentlyViewedStrip";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { getDictionary } from "@/i18n/getDictionary";
+import { localizeStyle } from "@/lib/localizeStyle";
+import { withLocale } from "@/i18n/paths";
+import { categoryLabel, genderLabel } from "@/lib/data/styleLabels";
+import type { Locale } from "@/i18n/config";
 import { productMetadata } from "@/lib/seo";
 import { buildBreadcrumbSchema, buildProductSchema } from "@/lib/seoJsonLd";
 import { getSeoSettings } from "@/lib/data/seoSettings";
 import type { Metadata } from "next";
 import type { SalesRep } from "@/lib/types";
+import type { Dictionary } from "@/i18n/dictionaries/en";
 
 /**
  * Pre-migration fallback only.
@@ -39,8 +45,12 @@ const LEGACY_SLUG_REDIRECTS: Record<string, string> = {
   "riviera-loafer": "hector-boat-loafer", // HL-1001, corrected 2026-07-29 — was stale from an earlier product rename
 };
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params;
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string; slug: string }>;
+}): Promise<Metadata> {
+  const { lang, slug } = await params;
   const style = await getStyleBySlug(slug);
   if (!style) return { title: "Style", robots: { index: false, follow: false } };
 
@@ -51,22 +61,24 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // catalogue is private.
   const images = await listImagesForStyle(style.id);
   const primary = images.find((image) => image.isPrimary) ?? images[0];
-  return productMetadata(style, primary?.publicUrl);
+  return productMetadata(style, primary?.publicUrl, lang as Locale);
 }
 
-export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+export default async function ProductPage({ params }: { params: Promise<{ lang: string; slug: string }> }) {
+  const { lang, slug } = await params;
+  const locale = lang as Locale;
   if (LEGACY_SLUG_REDIRECTS[slug]) redirect(`/product/${LEGACY_SLUG_REDIRECTS[slug]}`);
   const style = await getStyleBySlug(slug);
   // A draft/archived product, or one with no colorways yet (every card/gallery below
   // assumes colorways[0] exists), should 404 rather than crash the page for anyone who
   // hits the URL — including via a stale cart/search/bookmark link.
   if (!style || (style.status ?? "active") !== "active" || style.colorways.length === 0) notFound();
-  const [inventory, images, related, account] = await Promise.all([
+  const [inventory, images, related, account, dict] = await Promise.all([
     getInventoryForStyle(style.id),
     listImagesForStyle(style.id),
     getRelatedStyles(style),
     getCurrentAccount(),
+    getDictionary(locale),
   ]);
   const [relatedInventory, relatedImages] = await Promise.all([
     getInventoryForStyles(related.map((s) => s.id)),
@@ -115,10 +127,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           width rather than halving the photo. */}
       <div className="lg:mx-auto lg:max-w-[1200px]">
         <nav className="mb-4 flex items-center gap-1.5 text-[11px] uppercase tracking-[0.06em] text-ink-soft">
-          <Link href="/catalogue" className="hover:text-ink">Catalogue</Link>
+          <Link href={withLocale(locale, "/catalogue")} className="hover:text-ink">{dict.nav.catalogue}</Link>
           <span>/</span>
-          <Link href={`/catalogue?category=${style.category}`} className="hover:text-ink">
-            {CATEGORY_LABEL[style.category]}
+          <Link href={withLocale(locale, `/catalogue?category=${style.category}`)} className="hover:text-ink">
+            {categoryLabel(dict, style.category)}
           </Link>
           <span>/</span>
           <span className="text-ink">{style.name}</span>
@@ -167,14 +179,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                   {style.styleNumber}
                 </span>
                 <span className="text-[11px] uppercase tracking-[0.14em] text-ink-soft">
-                  {CATEGORY_LABEL[style.category]} · {GENDER_LABEL[style.gender]}
+                  {categoryLabel(dict, style.category)} · {genderLabel(dict, style.gender)}
                 </span>
               </div>
 
               <h1 className="font-display mt-4 text-[2.25rem] font-bold uppercase leading-[0.95] tracking-[-0.02em] text-ink">
                 {style.name}
               </h1>
-              <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">{style.tagline}</p>
+              {/* localizeStyle, not style.tagline — the Greek copy is in tagline_el and this
+                  header was still reading the English column. */}
+              <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">{localizeStyle(style, locale).tagline}</p>
 
               <div className="mt-6">
                 {showPricing ? (
@@ -194,12 +208,18 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 )}
               </div>
 
-              <TrustStrip rep={account?.rep} />
+              <TrustStrip rep={account?.rep} dict={dict} />
             </div>
           </div>
         </ColorwaySelectionProvider>
 
-        <ProductDetails style={style} minOrderPairs={account?.minOrderPairs} showPricing={showPricing} />
+        <ProductDetails
+          style={style}
+          locale={locale}
+          dict={dict}
+          minOrderPairs={account?.minOrderPairs}
+          showPricing={showPricing}
+        />
       </div>
 
       {/* Watched by the mobile buy bar: once this scrolls into view the buyer has moved
@@ -239,22 +259,25 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 }
 
 /** Reassurance row under the buy box — every line is a real policy or real account data, never a generic badge. */
-function TrustStrip({ rep }: { rep?: SalesRep }) {
+function TrustStrip({ rep, dict }: { rep?: SalesRep; dict: Dictionary }) {
+  // These four lines had dictionary keys from the day the shared wholesale strings landed
+  // (box.fixed, terms.discounts, stock.live, rep.assigned) — they were simply never wired
+  // to them, so a Greek buyer read the four policy claims in English.
   return (
     <ul className="mt-4 grid grid-cols-1 gap-2 text-xs text-ink-soft sm:grid-cols-2">
-      <TrustItem>Fixed pre-pack boxes — EU 40–45 run, no broken sizes</TrustItem>
-      <TrustItem>Prepay 10% off · Net 30 5% off · Net 60 at list</TrustItem>
-      <TrustItem>Live stock — availability updates as orders are placed</TrustItem>
+      <TrustItem>{dict.box.fixed}</TrustItem>
+      <TrustItem>{dict.terms.discounts}</TrustItem>
+      <TrustItem>{dict.stock.live}</TrustItem>
       {rep ? (
         <TrustItem>
-          Your rep{" "}
+          {dict.dashboard.yourRep}{" "}
           <a href={`mailto:${rep.email}`} className="font-medium text-ink underline hover:text-signal">
             {rep.name}
           </a>
           {rep.phone ? ` · ${rep.phone}` : ""}
         </TrustItem>
       ) : (
-        <TrustItem>Territory rep assigned to every approved account</TrustItem>
+        <TrustItem>{dict.rep.assigned}</TrustItem>
       )}
     </ul>
   );

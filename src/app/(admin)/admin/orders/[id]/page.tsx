@@ -13,6 +13,8 @@ import { OrderLineRow } from "@/components/admin/OrderLineRow";
 import { EmailBuyerPanel } from "@/components/admin/EmailBuyerPanel";
 import { StatusTimeline } from "@/components/order/StatusTimeline";
 import { buildOrderStatusEmailBody } from "@/lib/emailTemplates";
+import { getDictionary } from "@/i18n/getDictionary";
+import { resolveLocale } from "@/lib/localeHeuristic";
 
 export const metadata = { title: "Order", robots: { index: false, follow: false } };
 
@@ -29,7 +31,10 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
   const styleEntries = await Promise.all(uniqueStyleIds.map(async (sid) => [sid, await getStyleById(sid)] as const));
   const styleById = new Map(styleEntries);
 
-  const emailBody = buildOrderStatusEmailBody(order, order.contactName);
+  // The admin UI is English, but this text is a draft the admin sends TO the buyer — so it
+  // is prefilled in the buyer's language, not the admin's. They can edit it before sending.
+  const buyerEmailDict = (await getDictionary(resolveLocale(order.locale, order.storeLocation))).email;
+  const emailBody = buildOrderStatusEmailBody(buyerEmailDict, order, order.contactName);
   const productionLines = order.lines.filter((l) => l.fulfillment === "production");
 
   return (

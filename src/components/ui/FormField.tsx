@@ -62,11 +62,16 @@ export function SelectField({
   label,
   name,
   options,
+  placeholder,
   required,
 }: {
   label: string;
+  /** Disabled first option. */
+  placeholder: string;
   name: string;
-  options: string[];
+  /** `value` is submitted and stored; `label` is what the buyer reads. They differ on the
+   * application form, where the stored answer stays English for the admin panel. */
+  options: { value: string; label: string }[];
   required?: boolean;
 }) {
   return (
@@ -74,11 +79,11 @@ export function SelectField({
       <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{label}</span>
       <select name={name} required={required} defaultValue="" className={fieldClasses}>
         <option value="" disabled>
-          Select one
+          {placeholder}
         </option>
         {options.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
           </option>
         ))}
       </select>

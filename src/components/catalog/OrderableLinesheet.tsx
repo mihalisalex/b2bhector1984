@@ -1,11 +1,15 @@
 "use client";
 
+import { t } from "@/i18n/format";
+import { useI18n } from "@/i18n/I18nProvider";
+import { withLocale } from "@/i18n/paths";
 import { useMemo } from "react";
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
 import { useCatalog } from "@/lib/catalog-context";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
-import { formatEUR, getUnitPrice, isOnSale, MAX_BACKORDER_QTY, validateMatrix } from "@/lib/pricing";
+import { getUnitPrice, isOnSale, MAX_BACKORDER_QTY, validateMatrix } from "@/lib/pricing";
+import { useFormat } from "@/i18n/I18nProvider";
 import { VatSuffix } from "@/components/ui/VatSuffix";
 import { CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styleLabels";
 import type { StyleInventory } from "@/lib/data/inventory";
@@ -31,6 +35,9 @@ export function OrderableLinesheet({
   inventory: Record<string, StyleInventory>;
   priceMultiplier?: number;
 }) {
+  const { eur } = useFormat();
+  const { dict, locale } = useI18n();
+  const d = dict.dashboard;
   const { lines, setLineQty } = useCart();
   const { productionLeadTimeDays } = useCatalog();
   const styleById = useMemo(() => new Map(styles.map((s) => [s.id, s])), [styles]);
@@ -98,7 +105,7 @@ export function OrderableLinesheet({
                   <div className="mt-1 flex flex-wrap items-center gap-2">
                     <AvailabilityBadge style={style} />
                     <span className={cn("text-sm font-semibold tabular-nums", isOnSale(style) ? "text-burgundy" : "text-ink")}>
-                      {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
+                      {eur(getUnitPrice(style, "net60", priceMultiplier))}
                       <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
                     </span>
                     {isOnSale(style) && (
@@ -146,16 +153,16 @@ export function OrderableLinesheet({
       {/* Desktop: full linesheet table. */}
       <div className="scroll-thin hidden overflow-x-auto border border-stone-300 lg:block">
         <table className="w-full min-w-[1100px] border-collapse text-sm">
-          <caption className="sr-only">Wholesale linesheet — order quantities by style and colorway</caption>
+          <caption className="sr-only">{d.linesheetCaption}</caption>
           <thead>
             <tr className="border-b border-stone-300 bg-stone-100 text-left text-[11px] uppercase tracking-wide text-ink-soft">
-              <Th>Style</Th>
-              <Th>Colorway</Th>
-              <Th>Delivery</Th>
-              <Th align="right">Price</Th>
-              <Th align="center">8-Pair</Th>
-              <Th align="center">10-Pair</Th>
-              <Th align="center">12-Pair</Th>
+              <Th>{dict.orderDetail.thStyle}</Th>
+              <Th>{dict.orderDetail.thColorway}</Th>
+              <Th>{d.thDelivery}</Th>
+              <Th align="right">{d.thPrice}</Th>
+              <Th align="center">{t(d.pairColumn, { pairs: 8 })}</Th>
+              <Th align="center">{t(d.pairColumn, { pairs: 10 })}</Th>
+              <Th align="center">{t(d.pairColumn, { pairs: 12 })}</Th>
             </tr>
           </thead>
           <tbody>
@@ -210,7 +217,7 @@ export function OrderableLinesheet({
                       className={cn("px-3 py-2.5 text-right align-top tabular-nums", isOnSale(style) ? "text-burgundy" : "text-ink")}
                       rowSpan={style.colorways.length}
                     >
-                      {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
+                      {eur(getUnitPrice(style, "net60", priceMultiplier))}
                       <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
                       {isOnSale(style) && (
                         <span className="ml-1.5 bg-burgundy px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">Sale</span>
@@ -244,7 +251,7 @@ export function OrderableLinesheet({
 
       {validations.length > 0 && (
         <div className="mt-6 border border-stone-300 bg-stone-100 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">In your cart from this list</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{d.inYourCartFromList}</p>
           <div className="mt-2 flex flex-col gap-1.5">
             {validations.map((v) => (
               <div key={v.style.id} className="flex items-center justify-between text-sm">
@@ -254,7 +261,7 @@ export function OrderableLinesheet({
                 <span className="flex items-center gap-3">
                   <span className="font-mono-tab text-ink-soft">{v.totalBoxes} boxes · {v.totalPairs} pairs</span>
                   <span className="font-semibold tabular-nums text-ink">
-                    {formatEUR(v.subtotal)}
+                    {eur(v.subtotal)}
                     <VatSuffix vatRate={v.style.vatRate} className="text-xs font-normal text-ink-soft" />
                   </span>
                 </span>
@@ -268,13 +275,13 @@ export function OrderableLinesheet({
         <div className="text-sm text-ink">
           {vatTotal > 0 && (
             <p className="text-xs text-ink-soft">
-              Subtotal {formatEUR(subtotal)} + VAT {formatEUR(vatTotal)}
+              Subtotal {eur(subtotal)} + VAT {eur(vatTotal)}
             </p>
           )}
-          <span className="font-semibold tabular-nums">Total: {formatEUR(grandTotal)}</span>
+          <span className="font-semibold tabular-nums">Total: {eur(grandTotal)}</span>
         </div>
-        <LinkButton href="/cart" size="md" className={validations.length === 0 ? "pointer-events-none opacity-40" : ""}>
-          Go to Cart
+        <LinkButton href={withLocale(locale, "/cart")} size="md" className={validations.length === 0 ? "pointer-events-none opacity-40" : ""}>
+          {d.goToCart}
         </LinkButton>
       </div>
     </div>

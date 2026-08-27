@@ -75,8 +75,35 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
-export function formatEUR(n: number): string {
-  return n.toLocaleString("en-US", { style: "currency", currency: "EUR" });
+/**
+ * Maps a site locale onto the BCP-47 tag whose number conventions it should use.
+ *
+ * Greek puts the symbol after the amount with a comma decimal and a dot thousands
+ * separator — "1.234,50 €", not "€1,234.50". To a Greek retailer reading an invoice the
+ * English form is not merely foreign, it is briefly ambiguous: a dot is their thousands
+ * separator, so "€1,234.50" reads as a number with two decimal groups until they work it
+ * out. Verified against this project's Node (full ICU): el-GR gives "24,90 €".
+ */
+const NUMBER_LOCALE: Record<string, string> = {
+  en: "en-US",
+  el: "el-GR",
+  de: "de-DE",
+  fr: "fr-FR",
+};
+
+/**
+ * `locale` is an explicit parameter, never read from the runtime.
+ *
+ * These strings are produced during server render and again during hydration; resolving
+ * the locale from the browser would make the two disagree and produce a hydration mismatch
+ * on every price on the page. The same reasoning already governs `formatDate` — see its
+ * comment in src/lib/format.ts.
+ *
+ * Defaults to English so all ~99 existing call sites keep their current output until each
+ * is threaded; client components get it from context via `useFormat()`.
+ */
+export function formatEUR(n: number, locale: string = "en"): string {
+  return n.toLocaleString(NUMBER_LOCALE[locale] ?? "en-US", { style: "currency", currency: "EUR" });
 }
 
 /** Total order value, boxes, and pairs — order lines store per-box qty and per-pair price. */

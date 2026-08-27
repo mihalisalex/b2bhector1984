@@ -1,5 +1,8 @@
+"use client";
+
 import { getEffectiveBasePrice, isOnSale } from "@/lib/pricing";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/i18n/I18nProvider";
 import type { Style } from "@/lib/types";
 
 /**
@@ -16,6 +19,7 @@ import type { Style } from "@/lib/types";
  * is hardcoded, so it can't advertise a discount that isn't actually in effect.
  */
 export function SaleBadge({ style, className }: { style: Style; className?: string }) {
+  const { dict } = useI18n();
   if (!isOnSale(style)) return null;
   const percent = Math.round((1 - getEffectiveBasePrice(style) / style.basePrice) * 100);
   if (percent <= 0) return null;
@@ -29,7 +33,7 @@ export function SaleBadge({ style, className }: { style: Style; className?: stri
     >
       {/* Minus sign (U+2212), not a hyphen — it's a number here, and the hyphen reads as a
           dash at this size. */}
-      −{percent}% Sale
+      −{percent}% {dict.catalog.saleBadge}
     </span>
   );
 }

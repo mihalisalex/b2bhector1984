@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { IconButton } from "@/components/ui/IconButton";
 import { useCancelableTimeout } from "@/lib/useCancelableTimeout";
+import { useI18n } from "@/i18n/I18nProvider";
 
 export function ShareButton({ title }: { title: string }) {
+  const { dict } = useI18n();
   const [copied, setCopied] = useState(false);
   const scheduleReset = useCancelableTimeout();
 
@@ -28,7 +30,7 @@ export function ShareButton({ title }: { title: string }) {
   }
 
   return (
-    <IconButton variant="bordered" size="lg" onClick={share} aria-label="Share this product">
+    <IconButton variant="bordered" size="lg" onClick={share} aria-label={dict.catalog.shareProduct}>
       <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.75} aria-hidden>
         <path strokeLinecap="round" strokeLinejoin="round" d="M8.7 10.7 15.3 7M8.7 13.3l6.6 3.7" />
         <circle cx="6" cy="12" r="2.5" />

@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { searchStylesAction, type SearchResult } from "@/lib/searchActions";
-import { formatEUR } from "@/lib/pricing";
+import { useFormat } from "@/i18n/I18nProvider";
 import { cn } from "@/lib/cn";
 import { useFocusTrap } from "@/lib/useFocusTrap";
 import { IconButton } from "@/components/ui/IconButton";
@@ -41,6 +41,7 @@ function pushRecent(query: string) {
 /** Trigger icon button + portal-rendered instant-search overlay, self-contained so it can
  * drop into ShopHeader (a server component) without lifting any state up. */
 export function SearchOverlay() {
+  const { eur } = useFormat();
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [query, setQuery] = useState("");
@@ -282,7 +283,7 @@ export function SearchOverlay() {
                             <span className="block truncate text-sm font-semibold text-ink">{r.name}</span>
                             <span className="font-mono-tab block text-[11px] text-ink-soft">{r.styleNumber}</span>
                           </span>
-                          <span className="shrink-0 text-sm font-semibold tabular-nums text-ink">{formatEUR(r.price)}</span>
+                          <span className="shrink-0 text-sm font-semibold tabular-nums text-ink">{eur(r.price)}</span>
                         </button>
                       </li>
                     ))}

@@ -1,6 +1,7 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { fromDbId, toDbId, toNumber } from "@/lib/data/dbIds";
+import { SUPPORT_EMAIL } from "@/lib/contact";
 import type { Account, AdminRole, SalesRep } from "@/lib/types";
 
 /**
@@ -20,7 +21,7 @@ import type { Account, AdminRole, SalesRep } from "@/lib/types";
 const UNASSIGNED_REP: SalesRep = {
   name: "New Accounts Team",
   title: "Wholesale Onboarding",
-  email: "info@hectorfootwear.gr",
+  email: SUPPORT_EMAIL,
   initials: "NA",
   territory: "Unassigned — a territory rep will follow up within 2 business days",
 };
@@ -41,6 +42,9 @@ interface AccountRow {
   /** Absent entirely pre-migration 0034, null for every account until an admin sets one —
    * see `Account.minOrderPairs`'s doc comment. */
   min_order_pairs?: number | string | null;
+  /** Migration 0037. Optional so this mapper still works pre-migration. */
+  locale?: string | null;
+  locale_inferred?: boolean | null;
   resale_cert_id: string;
   business_type: string;
   store_location: string;
@@ -102,6 +106,8 @@ async function mapAccount(row: AccountRow): Promise<Account> {
     creditLimit: toNumber(row.credit_limit),
     priceMultiplier: toNumber(row.price_multiplier),
     minOrderPairs: row.min_order_pairs == null ? undefined : toNumber(row.min_order_pairs),
+    locale: row.locale ?? undefined,
+    localeInferred: row.locale_inferred ?? undefined,
     resaleCertId: row.resale_cert_id,
     businessType: row.business_type,
     storeLocation: row.store_location,
@@ -261,6 +267,8 @@ export async function createAccount(input: {
    * — `undefined`/`null` for `repId` means unassigned, matching the column's own default. */
   repId?: string | null;
   priceMultiplier?: number;
+  /** The language this buyer is written to in (migration 0037). */
+  locale?: string;
 }): Promise<void> {
   const baseRow = {
     id: input.id,
@@ -286,10 +294,20 @@ export async function createAccount(input: {
   // doesn't exist yet errors outright (unlike a read, which just omits it),
   // so account creation — and therefore every application activation — must
   // not break for every buyer just because migration 0026 hasn't run.
-  const { error } = await supabaseAdmin.from("accounts").insert({ ...baseRow, phone: input.phone ?? null });
+  // `locale` (0037) is subject to the same rule as `phone` above — naming a column that
+  // isn't there yet fails the whole insert — so it rides in the same optimistic attempt and
+  // is dropped by the same fallback. A pre-0037 database still activates accounts; they
+  // just take the column default once it exists.
+  const { error } = await supabaseAdmin
+    .from("accounts")
+    .insert({ ...baseRow, phone: input.phone ?? null, ...(input.locale ? { locale: input.locale } : {}) });
   if (error) {
-    const isMissingPhoneColumn = error.message.includes("schema cache") || error.message.includes("Could not find") || error.message.includes("phone");
-    if (!isMissingPhoneColumn) throw new Error(`accounts: ${error.message}`);
+    const isMissingOptionalColumn =
+      error.message.includes("schema cache") ||
+      error.message.includes("Could not find") ||
+      error.message.includes("phone") ||
+      error.message.includes("locale");
+    if (!isMissingOptionalColumn) throw new Error(`accounts: ${error.message}`);
     const { error: fallbackError } = await supabaseAdmin.from("accounts").insert(baseRow);
     if (fallbackError) throw new Error(`accounts: ${fallbackError.message}`);
   }

@@ -1,6 +1,9 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { LinkButton } from "@/components/ui/Button";
+import { getDictionary } from "@/i18n/getDictionary";
+import { withLocale } from "@/i18n/paths";
+import type { Locale } from "@/i18n/config";
 
 /**
  * `/reset-password` with no token.
@@ -14,30 +17,36 @@ import { LinkButton } from "@/components/ui/Button";
  * `noindex` because this is a dead-end utility URL, and `ALWAYS_DISALLOWED` in seoRoutes
  * already covers `/reset-password` in robots.txt.
  */
-export const metadata: Metadata = {
-  title: "Reset Password",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const dict = await getDictionary(lang as Locale);
+  return {
+    title: dict.auth.resetIncompleteTitle,
+    robots: { index: false, follow: false },
+  };
+}
 
-export default function ResetPasswordNoTokenPage() {
+export default async function ResetPasswordNoTokenPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const locale = lang as Locale;
+  const a = (await getDictionary(locale)).auth;
+
   return (
     <div className="mx-auto max-w-md px-6 py-20 text-center lg:px-10">
       <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink sm:text-3xl">
-        This reset link is incomplete
+        {a.resetIncompleteHeading}
       </h1>
-      <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-        Password reset links carry a one-time code, and this address arrived without one. That
-        usually means the link was cut short by an email client, or it has already been used.
-      </p>
-      <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-        Request a new one and it will be sent to your account email.
-      </p>
+      <p className="mt-3 text-sm leading-relaxed text-ink-soft">{a.resetIncompleteBody}</p>
+      <p className="mt-2 text-sm leading-relaxed text-ink-soft">{a.resetIncompleteAction}</p>
       <div className="mt-8 flex flex-col items-center gap-3">
-        <LinkButton href="/forgot-password" size="lg">
-          Send a new reset link
+        <LinkButton href={withLocale(locale, "/forgot-password")} size="lg">
+          {a.sendNewResetLink}
         </LinkButton>
-        <Link href="/login" className="text-xs font-semibold uppercase tracking-wide text-ink-soft underline underline-offset-4 hover:text-ink">
-          Back to sign in
+        <Link
+          href={withLocale(locale, "/login")}
+          className="text-xs font-semibold uppercase tracking-wide text-ink-soft underline underline-offset-4 hover:text-ink"
+        >
+          {a.backToSignIn}
         </Link>
       </div>
     </div>

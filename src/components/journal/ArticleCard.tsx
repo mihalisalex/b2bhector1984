@@ -1,4 +1,7 @@
 import { formatDate } from "@/lib/format";
+import { t } from "@/i18n/format";
+import { journalCategoryLabel } from "@/lib/data/styleLabels";
+import type { Dictionary } from "@/i18n/dictionaries/en";
 import Image from "next/image";
 import Link from "next/link";
 import type { JournalPost } from "@/lib/types";
@@ -13,6 +16,7 @@ export function ArticleCard({
   post,
   locale,
   priority = false,
+  dict,
 }: {
   post: JournalPost;
   /** Required, not optional-with-a-default: every other marketing surface builds its hrefs
@@ -20,8 +24,10 @@ export function ArticleCard({
    * to /journal/<slug> and dropped the reader back into English mid-session. */
   locale: Locale;
   priority?: boolean;
+  dict: Dictionary;
 }) {
   const href = withLocale(locale, `/journal/${post.slug}`);
+  const j = dict.journal;
 
   return (
     <div className="group flex flex-col transition-transform duration-300 ease-out hover:-translate-y-0.5">
@@ -43,14 +49,14 @@ export function ArticleCard({
           )}
         </Link>
         <span className="absolute left-2 top-2 bg-ink px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
-          {post.category}
+          {journalCategoryLabel(dict, post.category)}
         </span>
       </div>
 
       <div className="flex flex-1 flex-col gap-2 px-1 pb-1 pt-3">
         <p className="font-mono-tab text-[11px] uppercase tracking-wide text-ink-soft">
-          {post.publishedAt ? formatDate(post.publishedAt) : "—"} ·{" "}
-          {readTimeMinutes(post.contentHtml)} min read
+          {post.publishedAt ? formatDate(post.publishedAt, locale) : "—"} ·{" "}
+          {t(j.minRead, { minutes: readTimeMinutes(post.contentHtml) })}
         </p>
         <h3 className="font-display text-base font-bold uppercase leading-tight tracking-tight text-ink">
           <Link href={href} className="hover:underline">
@@ -62,7 +68,7 @@ export function ArticleCard({
           href={href}
           className="mt-auto flex items-center gap-1.5 pt-2 text-xs font-semibold uppercase tracking-wide text-signal"
         >
-          Read more
+          {j.readMore}
           <span aria-hidden className="transition-transform duration-150 group-hover:translate-x-0.5">
             →
           </span>

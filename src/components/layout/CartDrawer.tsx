@@ -8,14 +8,14 @@ import { useCart } from "@/lib/cart-context";
 import { useCatalog } from "@/lib/catalog-context";
 import { getBoxType } from "@/lib/data/boxTypes";
 import { getStyleImageUrl } from "@/lib/data/styleLabels";
-import { formatEUR } from "@/lib/pricing";
+
 import { CartIcon } from "@/components/layout/icons";
 import { StylePlate } from "@/components/product/StylePlate";
 import { LinkButton } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { useFocusTrap } from "@/lib/useFocusTrap";
 import { cn } from "@/lib/cn";
-import { useI18n } from "@/i18n/I18nProvider";
+import { useI18n, useFormat } from "@/i18n/I18nProvider";
 import { withLocale } from "@/i18n/paths";
 import { t } from "@/i18n/format";
 
@@ -36,6 +36,7 @@ export function CartDrawer() {
   const { lines, unavailableLines, itemCount, removeStyle, cartTotal, cartVatTotal, cartGrandTotal } = useCart();
   const { getStyleById } = useCatalog();
   const { locale, dict } = useI18n();
+  const { eur } = useFormat();
   const cart = dict.cart;
 
   useFocusTrap(dialogRef, open);
@@ -202,11 +203,11 @@ export function CartDrawer() {
                 <div className="border-t border-stone-300 bg-white px-5 py-4">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{cart.cartTotal}</span>
-                    <span className="text-lg font-semibold tabular-nums text-ink">{formatEUR(cartTotal)}</span>
+                    <span className="text-lg font-semibold tabular-nums text-ink">{eur(cartTotal)}</span>
                   </div>
                   {cartVatTotal > 0 && (
                     <p className="text-right text-[11px] text-ink-soft">
-                      {t(cart.plusVatTotal, { vat: formatEUR(cartVatTotal), total: formatEUR(cartGrandTotal) })}
+                      {t(cart.plusVatTotal, { vat: eur(cartVatTotal), total: eur(cartGrandTotal) })}
                     </p>
                   )}
                   <LinkButton href={withLocale(locale, "/cart")} size="lg" className="mt-3 w-full justify-center">

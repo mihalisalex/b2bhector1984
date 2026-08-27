@@ -1,4 +1,5 @@
 import { getCurrentAccount } from "@/lib/session";
+import { resolveLocale } from "@/lib/localeHeuristic";
 import { getOrderById, getOrderByIdAdmin } from "@/lib/runtimeOrders";
 import { getAccountById } from "@/lib/data/accounts";
 import { getStyleById } from "@/lib/data/styles";
@@ -54,6 +55,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       shipTo,
       lines: order.lines,
       styleById,
+      // The BUYER's language, not the downloader's. An admin pulling a copy of someone's
+      // invoice should get the document that buyer received, not one in the admin's own
+      // language — it is the same legal document, and the two must not differ.
+      locale: resolveLocale(shipToAccount?.locale, shipToAccount?.storeLocation),
     });
   } catch (err) {
     // New failure mode since product photography was added to this document: a photo

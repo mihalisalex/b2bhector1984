@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
 import { logAudit } from "@/lib/data/auditLog";
 import { hasPermission } from "@/lib/data/permissions";
-import { updateSeoSettings, type SeoSettingsPatch } from "@/lib/data/seoSettings";
+import { updateSeoLocaleOverrides, type SeoLocaleOverrides, updateSeoSettings, type SeoSettingsPatch } from "@/lib/data/seoSettings";
 import {
   createRedirect,
   deleteRedirect,
@@ -108,23 +108,32 @@ const lines = (formData: FormData, key: string) =>
 export async function updateSeoSettingsAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requireSeoPermission();
   const section = String(formData.get("section") ?? "general");
+  // Which language’s copy this save is for. Titles, descriptions and the postal address
+  // live in `seo_settings_locale` (migration 0037) because they differ per language;
+  // everything else on these tabs governs both domains and stays on the global row.
+  const locale = String(formData.get("locale") ?? "en");
 
   // Each tab submits only its own fields; `updateSeoSettings` writes only the
   // keys present, so one tab's save can never blank another tab's values.
   let patch: SeoSettingsPatch = {};
+  let localePatch: { [K in keyof SeoLocaleOverrides]?: string | null } | null = null;
 
   if (section === "general") {
     patch = {
       siteName: String(formData.get("siteName") ?? "").trim() || "Hector Footwear",
-      titleTemplate: String(formData.get("titleTemplate") ?? "").trim() || "%s — Hector Footwear Wholesale",
-      defaultTitle: String(formData.get("defaultTitle") ?? "").trim() || "Hector Footwear — Wholesale Footwear",
-      defaultDescription: String(formData.get("defaultDescription") ?? "").trim(),
       defaultOgImageUrl: text(formData, "defaultOgImageUrl"),
       twitterSite: text(formData, "twitterSite"),
       twitterCreator: text(formData, "twitterCreator"),
       defaultTwitterCard: String(formData.get("defaultTwitterCard") ?? "summary_large_image"),
       googleSiteVerification: text(formData, "googleSiteVerification"),
       bingSiteVerification: text(formData, "bingSiteVerification"),
+      googleSiteVerificationCom: text(formData, "googleSiteVerificationCom"),
+      bingSiteVerificationCom: text(formData, "bingSiteVerificationCom"),
+    };
+    localePatch = {
+      titleTemplate: String(formData.get("titleTemplate") ?? "").trim() || "%s — Hector Footwear Wholesale",
+      defaultTitle: String(formData.get("defaultTitle") ?? "").trim() || "Hector Footwear — Wholesale Footwear",
+      defaultDescription: String(formData.get("defaultDescription") ?? "").trim(),
     };
   } else if (section === "indexing") {
     patch = {
@@ -142,14 +151,16 @@ export async function updateSeoSettingsAction(_prev: FormState, formData: FormDa
       organizationLogoUrl: text(formData, "organizationLogoUrl"),
       organizationEmail: text(formData, "organizationEmail"),
       organizationPhone: text(formData, "organizationPhone"),
-      organizationStreet: text(formData, "organizationStreet"),
-      organizationCity: text(formData, "organizationCity"),
-      organizationRegion: text(formData, "organizationRegion"),
       organizationPostalCode: text(formData, "organizationPostalCode"),
       organizationCountry: String(formData.get("organizationCountry") ?? "GR").trim(),
       organizationFoundingYear: text(formData, "organizationFoundingYear"),
       socialProfiles: lines(formData, "socialProfiles"),
       localBusinessEnabled: bool(formData, "localBusinessEnabled"),
+    };
+    localePatch = {
+      organizationStreet: text(formData, "organizationStreet"),
+      organizationCity: text(formData, "organizationCity"),
+      organizationRegion: text(formData, "organizationRegion"),
       openingHours: text(formData, "openingHours"),
     };
   } else if (section === "schema") {
@@ -162,7 +173,16 @@ export async function updateSeoSettingsAction(_prev: FormState, formData: FormDa
     };
   }
 
-  const failure = await runOrError(() => updateSeoSettings(patch));
+  // English is the fallback for any locale without an override, so its copy is mirrored
+  // onto the global row. That keeps the handful of readers that are genuinely global —
+  // llms.txt, the SEO audit — showing live values rather than whatever was in the row
+  // when 0037 seeded it. Other locales write only their own row.
+  if (localePatch && locale === "en") patch = { ...patch, ...localePatch };
+
+  const failure = await runOrError(async () => {
+    await updateSeoSettings(patch);
+    if (localePatch) await updateSeoLocaleOverrides(locale, localePatch);
+  });
   if (failure) return failure;
 
   await logAudit(admin.id, "seo.settings_changed", "seo_settings", section);

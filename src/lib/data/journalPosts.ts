@@ -19,6 +19,7 @@ interface JournalPostRow {
   tags: string[] | null;
   featured: boolean;
   status: JournalStatus;
+  locale?: string | null;
   publish_at: string | null;
   published_at: string | null;
   created_at: string;
@@ -44,6 +45,7 @@ function mapPost(row: JournalPostRow): JournalPost {
     tags: row.tags ?? [],
     featured: row.featured,
     status: row.status,
+    locale: row.locale ?? undefined,
     publishAt: row.publish_at ?? undefined,
     publishedAt: row.published_at ?? undefined,
     createdAt: row.created_at,
@@ -58,12 +60,24 @@ function mapPost(row: JournalPostRow): JournalPost {
 
 /** Every published article, newest first. Never throws — a missing migration 0027
  * degrades the journal to "no articles yet" instead of a broken storefront page. */
-export const getPublishedJournalPosts = cache(async (): Promise<JournalPost[]> => {
-  const { data, error } = await supabaseAdmin
-    .from("journal_posts")
-    .select("*")
-    .eq("status", "published")
-    .order("published_at", { ascending: false });
+export const getPublishedJournalPosts = cache(async (locale?: string): Promise<JournalPost[]> => {
+  let query = supabaseAdmin.from("journal_posts").select("*").eq("status", "published");
+
+  /**
+   * Filtered by locale, not merged.
+   *
+   * The eighteen published posts are ten English and eight Greek — original articles per
+   * language, not translations of each other. Before migration 0037 there was no locale
+   * column and both /journal and /el/journal rendered all eighteen, so a Greek retailer
+   * was shown ten English cards on a Greek site. Under the domain split that would be the
+   * .gr site publicly serving English content, which is the exact signal that gets a
+   * domain classified as English.
+   *
+   * Called with no argument (the admin list) it still returns everything.
+   */
+  if (locale) query = query.eq("locale", locale);
+
+  const { data, error } = await query.order("published_at", { ascending: false });
   if (error || !data) return [];
   return (data as JournalPostRow[]).map(mapPost);
 });
@@ -84,7 +98,9 @@ export async function getJournalPostBySlugAny(slug: string): Promise<JournalPost
 /** Same category first, tops up with the newest other published posts — mirrors
  * getRelatedStyles' same-category-then-fill-in shape. */
 export async function getRelatedJournalPosts(post: JournalPost, limit = 3): Promise<JournalPost[]> {
-  const posts = (await getPublishedJournalPosts()).filter((p) => p.id !== post.id);
+  // Related articles must share the post's language — an English "related" card under a
+  // Greek article is the same mixed-language problem the listing filter fixes.
+  const posts = (await getPublishedJournalPosts(post.locale)).filter((p) => p.id !== post.id);
   const sameCategory = posts.filter((p) => p.category === post.category);
   const rest = posts.filter((p) => p.category !== post.category);
   return [...sameCategory, ...rest].slice(0, limit);

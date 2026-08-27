@@ -15,6 +15,10 @@ const TARGET_FIELDS: { value: keyof ImportRow | "ignore"; label: string }[] = [
   { value: "gender", label: "Gender" },
   { value: "tagline", label: "Short description" },
   { value: "description", label: "Full description" },
+  { value: "taglineEl", label: "Short description — Greek" },
+  { value: "descriptionEl", label: "Full description — Greek" },
+  { value: "materialsEl", label: "Materials — Greek (pipe-separated)" },
+  { value: "lastNoteEl", label: "Last note — Greek" },
   { value: "basePrice", label: "Wholesale price" },
   { value: "msrp", label: "MSRP" },
   { value: "costPrice", label: "Cost price" },
@@ -30,6 +34,10 @@ function guessMapping(column: string): keyof ImportRow | "ignore" {
     category: "category", season: "season", gender: "gender",
     tagline: "tagline", shortdescription: "tagline",
     description: "description", fulldescription: "description",
+    // Match the exact headers the "Greek copy CSV" export writes, so a round-trip of that
+    // file auto-maps every column and the owner never touches the mapping step.
+    taglineel: "taglineEl", descriptionel: "descriptionEl",
+    materialsel: "materialsEl", lastnoteel: "lastNoteEl",
     price: "basePrice", wholesaleprice: "basePrice", baseprice: "basePrice",
     msrp: "msrp", retailprice: "msrp",
     cost: "costPrice", costprice: "costPrice",

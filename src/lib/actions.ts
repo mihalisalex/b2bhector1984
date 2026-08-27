@@ -55,13 +55,31 @@ import {
   buildNewOrderAdminEmailBody,
   newOrderAdminEmailSubject,
   orderConfirmationEmailSubject,
-  PASSWORD_RESET_EMAIL_SUBJECT,
-  APPLICATION_RECEIVED_EMAIL_SUBJECT,
   NEW_APPLICATION_ADMIN_EMAIL_SUBJECT,
   textToHtml,
 } from "@/lib/emailTemplates";
 import { SITE_URL } from "@/lib/siteUrl";
+import { SUPPORT_EMAIL } from "@/lib/contact";
+import { getRequestLocale, getLocaleForAccount } from "@/i18n/requestLocale";
+import { getDictionary } from "@/i18n/getDictionary";
+import { t } from "@/i18n/format";
 import type { Application, BoxTypeId, CreditTerms, Order, OrderLine, SavedAssortmentLine } from "@/lib/types";
+
+/**
+ * The message strings for this request, in the language of the domain it arrived on.
+ *
+ * Server Actions receive no route params, so before host-based routing there was nothing
+ * here to read a locale from and every message in this file was hardcoded English — a
+ * Greek buyer mistyping a password was told so in English. `getRequestLocale` reads the
+ * Host header, which is present regardless of route shape.
+ *
+ * Called per action rather than memoised at module scope: this module is shared across
+ * requests, and a cached dictionary would serve one visitor's language to the next.
+ */
+async function messages() {
+  const dict = await getDictionary(await getRequestLocale());
+  return dict.actions;
+}
 
 const APPLICATION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
@@ -101,10 +119,10 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
     ? await verifyPassword(password, account.password)
     : await verifyPassword(password, DUMMY_PASSWORD_HASH);
   if (!account || !passwordOk) {
-    return { error: "We couldn't find an active account with that email and password." };
+    return { error: (await messages()).loginFailed };
   }
   if (account.status !== "active") {
-    return { error: "This account has not been activated yet. Contact your sales rep." };
+    return { error: (await messages()).accountNotActivated };
   }
 
   // Cleared before the redirect below, which throws — a genuine sign-in shouldn't leave
@@ -125,10 +143,9 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
  */
 export async function requestPasswordReset(_prev: FormState, formData: FormData): Promise<FormState> {
   const email = String(formData.get("email") ?? "").trim();
-  const genericSuccess: FormState = {
-    success: "If an account exists for that email, we've sent a link to reset your password.",
-  };
-  if (!email) return { error: "Enter the email address on your wholesale account." };
+  const m = await messages();
+  const genericSuccess: FormState = { success: m.resetLinkSent };
+  if (!email) return { error: m.enterAccountEmail };
 
   // This endpoint sends mail to an address the caller supplies, so it is an email-bombing
   // tool if left unbounded. The cap is per-IP and independent of the email submitted, so
@@ -144,10 +161,15 @@ export async function requestPasswordReset(_prev: FormState, formData: FormData)
     if (account && account.status === "active") {
       const token = await createPasswordResetToken(account.id);
       const resetUrl = `${SITE_URL}/reset-password/${token}`;
+      // The recipient's own language, not the domain the request came from — someone can
+      // request a reset from any device, and the mail belongs to their account.
+      const locale = await getLocaleForAccount(account.locale);
+      const e = (await getDictionary(locale)).email;
+      const subject = e.passwordResetSubject;
       await sendEmail({
         to: account.email,
-        subject: PASSWORD_RESET_EMAIL_SUBJECT,
-        html: textToHtml(buildPasswordResetEmailBody(resetUrl, account.contactName), PASSWORD_RESET_EMAIL_SUBJECT),
+        subject,
+        html: textToHtml(buildPasswordResetEmailBody(e, resetUrl, account.contactName), subject, e, locale),
       });
     }
   } catch (err) {
@@ -168,9 +190,10 @@ export async function resetPassword(_prev: ResetPasswordState, formData: FormDat
   if (password.length < MIN_PASSWORD_LENGTH) {
     return { error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.` };
   }
-  if (password !== confirmPassword) return { error: "Passwords don't match." };
+  const m = await messages();
+  if (password !== confirmPassword) return { error: m.passwordsDontMatch };
 
-  const invalidTokenError = { error: "This reset link is invalid or has expired. Request a new one." };
+  const invalidTokenError = { error: m.resetLinkInvalid };
   try {
     const accountId = await getValidPasswordResetAccountId(token);
     if (!accountId) return invalidTokenError;
@@ -180,7 +203,7 @@ export async function resetPassword(_prev: ResetPasswordState, formData: FormDat
     // A reset is the "I may be compromised" path — drop every existing session so an
     // attacker holding one can't outlive the password that let them in.
     await destroyAllSessionsForAccount(accountId);
-    return { done: true, success: "Password updated. You can now sign in." };
+    return { done: true, success: m.passwordUpdatedSignIn };
   } catch (err) {
     console.error("[resetPassword] failed:", err);
     return invalidTokenError;
@@ -217,13 +240,14 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
     "zip",
     "expectedVolume",
   ];
+  const m = await messages();
   for (const field of required) {
     if (!String(formData.get(field) ?? "").trim()) {
-      return { error: "Every field marked required needs a value before we can route this to review." };
+      return { error: m.requiredFieldsMissing };
     }
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(formData.get("email") ?? "").trim())) {
-    return { error: "Enter a valid email address." };
+    return { error: m.invalidEmail };
   }
 
   const application: Omit<Application, "id" | "status" | "submittedAt" | "repId" | "priceMultiplier"> = {
@@ -256,10 +280,19 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
   } else {
     console.warn("[email] ADMIN_EMAIL not set — skipping new-application admin notification");
   }
+  // No account exists yet, so there is no stored preference to read — the domain they
+  // applied on is the only signal we have, and it is a good one.
+  const applyLocale = await getRequestLocale();
+  const applyEmail = (await getDictionary(applyLocale)).email;
   await sendEmail({
     to: application.email,
-    subject: APPLICATION_RECEIVED_EMAIL_SUBJECT,
-    html: textToHtml(buildApplicationReceivedEmailBody(application.contactName), APPLICATION_RECEIVED_EMAIL_SUBJECT),
+    subject: applyEmail.receivedSubject,
+    html: textToHtml(
+      buildApplicationReceivedEmailBody(applyEmail, application.contactName),
+      applyEmail.receivedSubject,
+      applyEmail,
+      applyLocale,
+    ),
   });
 
   await setApplicationCookie(id, APPLICATION_MAX_AGE);
@@ -280,16 +313,15 @@ export async function activateAccount(_prev: FormState, formData: FormData): Pro
   if (password.length < MIN_PASSWORD_LENGTH) {
     return { error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.` };
   }
-  if (password !== confirmPassword) return { error: "Passwords don't match." };
+  const m = await messages();
+  if (password !== confirmPassword) return { error: m.passwordsDontMatch };
 
   // Activation links are long-lived and land in an inbox, so the same one genuinely does get
   // clicked twice. `accounts.email` is unique, so the second attempt used to throw out of
   // `createAccount` uncaught — a 500/error boundary instead of an explanation. Check first,
   // and say something useful.
   if (await getAccountByEmail(application.email)) {
-    return {
-      error: "An account already exists for this email address. Sign in instead — or use “Forgot password” if you don’t have it.",
-    };
+    return { error: m.accountAlreadyExists };
   }
 
   const id = `acct-${crypto.randomUUID().slice(0, 8)}`;
@@ -315,6 +347,12 @@ export async function activateAccount(_prev: FormState, formData: FormData): Pro
       // now rather than re-asked at activation, which the applicant has no reason to see.
       repId: application.repId,
       priceMultiplier: application.priceMultiplier,
+      // The language every future email to this buyer is written in, taken from the domain
+      // they activated on. `applications` carries no locale of its own, so this is the
+      // best signal available — and once the activation link is built per-domain (Phase C)
+      // the domain they activate on is by construction the one they applied on. An admin
+      // can correct it from /admin/accounts; `locale_inferred` marks it as unconfirmed.
+      locale: await getRequestLocale(),
       shipTo: {
         label: application.businessName,
         line1: application.addressLine1,
@@ -326,9 +364,7 @@ export async function activateAccount(_prev: FormState, formData: FormData): Pro
   } catch (err) {
     // Covers the email-uniqueness race (two tabs activating at once) and any DB failure.
     console.error(`[activateAccount] failed to provision account for application ${application.id}:`, err);
-    return {
-      error: "We couldn't finish setting up your account. Please try again, or email info@hectorfootwear.gr and we'll sort it out.",
-    };
+    return { error: t(m.activationFailed, { email: SUPPORT_EMAIL }) };
   }
 
   // `"approved"`, not the default `"pending"` — this is the transition that was silently
@@ -375,16 +411,21 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
   const account = await getCurrentAccount();
   if (!account) redirect("/login");
 
+  // Prefer the buyer's own stored language over the domain this request happened to arrive
+  // on — an order placed from a shared machine still belongs to their account.
+  const dict = await getDictionary(await getLocaleForAccount(account.locale));
+  const m = dict.actions;
+
   let cartLines: z.infer<typeof cartLinesSchema>;
   try {
     cartLines = cartLinesSchema.parse(JSON.parse(String(formData.get("lines") ?? "[]")));
   } catch {
-    return { error: "Your cart data looks invalid. Please refresh and try again." };
+    return { error: m.cartInvalid };
   }
-  if (cartLines.length === 0) return { error: "Your cart is empty." };
+  if (cartLines.length === 0) return { error: m.cartEmpty };
 
   const shipToId = String(formData.get("shipToId") ?? "");
-  if (!account.shipTo.some((s) => s.id === shipToId)) return { error: "Select a valid ship-to address." };
+  if (!account.shipTo.some((s) => s.id === shipToId)) return { error: m.selectShipTo };
 
   // Parsed, not cast. A buyer choosing their own terms is deliberate (it routes the order
   // to a rep for credit approval), but the value was previously trusted verbatim: anything
@@ -392,7 +433,7 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
   // NaN. It failed safe on the `orders.terms` check constraint, but only after the stock
   // decrement, and the buyer got the generic "something went wrong" for a bad request.
   const parsedTerms = termsSchema.safeParse(String(formData.get("terms") ?? account.creditTerms));
-  if (!parsedTerms.success) return { error: "Choose one of the available payment terms." };
+  if (!parsedTerms.success) return { error: m.selectPaymentTerms };
   const terms: CreditTerms = parsedTerms.data;
   const notes = String(formData.get("notes") ?? "").trim() || undefined;
 
@@ -547,6 +588,9 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
         shipTo,
         lines: orderLines,
         styleById,
+        // Same locale the confirmation email uses — the invoice is its attachment, and the
+        // two arriving in different languages would be worse than either being wrong.
+        locale: await getLocaleForAccount(account.locale),
       });
       invoiceAttachment = {
         filename: `${order.id}-proforma-invoice.pdf`,
@@ -557,12 +601,17 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
       console.error(`[checkout] Failed to build invoice PDF for ${order.id} — confirmation email will go out without it:`, err);
     }
   
-    const confirmationSubject = orderConfirmationEmailSubject(order);
+    // `dict` here is the buyer's own (resolved above from account.locale), which matters
+    // more than usual on this path: `after()` runs once the response is already sent, so
+    // there is no longer a request whose Host header could be read.
+    const e = dict.email;
+    const confirmationSubject = orderConfirmationEmailSubject(e, order);
     await sendEmail({
       to: account.email,
       subject: confirmationSubject,
       html: textToHtml(
         buildOrderConfirmationEmailBody(
+          e,
           order,
           account.contactName,
           hasMadeToOrderLines ? hero.productionLeadTimeDays : undefined,
@@ -570,8 +619,10 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
           invoiceAttachment !== undefined,
         ),
         confirmationSubject,
+        e,
+        account.locale ?? "el",
       ),
-        attachments: invoiceAttachment ? [invoiceAttachment] : undefined,
+      attachments: invoiceAttachment ? [invoiceAttachment] : undefined,
     });
   
     // Tell the business it has an order. Without this an order sits unseen in the dashboard
@@ -650,16 +701,17 @@ export async function updateAccountProfile(_prev: FormState, formData: FormData)
   const contactName = String(formData.get("contactName") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
+  const m = (await getDictionary(await getLocaleForAccount(account.locale))).actions;
   if (!businessName || !contactName || !email) {
-    return { error: "Business name, contact name, and email are all required." };
+    return { error: m.profileFieldsRequired };
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return { error: "Enter a valid email address." };
+    return { error: m.invalidEmail };
   }
   // Loose on purpose — phone formats vary a lot by country. Just enough to
   // catch an obvious typo; digits-only normalization happens at WhatsApp-send time.
   if (phone && phone.replace(/\D/g, "").length < 7) {
-    return { error: "Enter a valid phone number, including country code." };
+    return { error: m.invalidPhone };
   }
 
   const result = await updateAccountContact(account.id, { businessName, contactName, email, phone: phone || undefined });
@@ -667,7 +719,7 @@ export async function updateAccountProfile(_prev: FormState, formData: FormData)
 
   revalidatePath("/dashboard/account");
   revalidatePath("/dashboard");
-  return { success: "Profile updated." };
+  return { success: m.profileUpdated };
 }
 
 export async function updateAccountPassword(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -678,11 +730,12 @@ export async function updateAccountPassword(_prev: FormState, formData: FormData
   const newPassword = String(formData.get("newPassword") ?? "");
   const confirmPassword = String(formData.get("confirmPassword") ?? "");
 
-  if (!(await verifyPassword(currentPassword, account.password))) return { error: "Current password is incorrect." };
+  const m = (await getDictionary(await getLocaleForAccount(account.locale))).actions;
+  if (!(await verifyPassword(currentPassword, account.password))) return { error: m.currentPasswordIncorrect };
   if (newPassword.length < MIN_PASSWORD_LENGTH) {
     return { error: `New password must be at least ${MIN_PASSWORD_LENGTH} characters.` };
   }
-  if (newPassword !== confirmPassword) return { error: "New password and confirmation don't match." };
+  if (newPassword !== confirmPassword) return { error: m.newPasswordMismatch };
 
   await updateAccountPasswordData(account.id, await hashPassword(newPassword));
   // Revoke other sessions, then re-issue one for this device so the user isn't signed out
@@ -690,7 +743,7 @@ export async function updateAccountPassword(_prev: FormState, formData: FormData
   await destroyAllSessionsForAccount(account.id);
   await setSessionCookie(await createSession(account.id));
   revalidatePath("/dashboard/account");
-  return { success: "Password updated." };
+  return { success: m.passwordUpdated };
 }
 
 export async function addShipToAddress(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -705,13 +758,14 @@ export async function addShipToAddress(_prev: FormState, formData: FormData): Pr
   const zip = String(formData.get("zip") ?? "").trim();
   const isDefault = formData.get("isDefault") === "on" || account.shipTo.length === 0;
 
+  const m = (await getDictionary(await getLocaleForAccount(account.locale))).actions;
   if (!label || !line1 || !city || !state || !zip) {
-    return { error: "Label, address, city, state, and ZIP are required." };
+    return { error: m.addressFieldsRequired };
   }
 
   await insertShipToAddress(account.id, { label, line1, line2: line2 || undefined, city, state, zip, isDefault });
   revalidatePath("/dashboard/account");
-  return { success: "Address added." };
+  return { success: m.addressAdded };
 }
 
 export async function updateShipToAddress(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -726,14 +780,15 @@ export async function updateShipToAddress(_prev: FormState, formData: FormData):
   const state = String(formData.get("state") ?? "").trim();
   const zip = String(formData.get("zip") ?? "").trim();
 
-  if (!shipToId || !account.shipTo.some((s) => s.id === shipToId)) return { error: "Address not found." };
+  const m = (await getDictionary(await getLocaleForAccount(account.locale))).actions;
+  if (!shipToId || !account.shipTo.some((s) => s.id === shipToId)) return { error: m.addressNotFound };
   if (!label || !line1 || !city || !state || !zip) {
-    return { error: "Label, address, city, state, and ZIP are required." };
+    return { error: m.addressFieldsRequired };
   }
 
   await updateShipToAddressRow(account.id, shipToId, { label, line1, line2: line2 || undefined, city, state, zip });
   revalidatePath("/dashboard/account");
-  return { success: "Address updated." };
+  return { success: m.addressUpdated };
 }
 
 export async function deleteShipToAddress(formData: FormData): Promise<void> {
@@ -764,18 +819,19 @@ export async function saveAssortment(_prev: FormState, formData: FormData): Prom
   // previously a bare JSON.parse plus an unchecked cast — malformed JSON threw an
   // unhandled error (a 500 rather than a message), and a well-formed but wrong-shaped body
   // went straight through to the insert.
+  const m = (await getDictionary(await getLocaleForAccount(account.locale))).actions;
   let lines: SavedAssortmentLine[];
   try {
     lines = assortmentLinesSchema.parse(JSON.parse(String(formData.get("lines") ?? "[]")));
   } catch {
-    return { error: "That assortment's contents looked invalid. Please refresh and try again." };
+    return { error: m.assortmentInvalid };
   }
-  if (!name) return { error: "Give this assortment a name." };
-  if (lines.length === 0) return { error: "Add at least one style before saving." };
+  if (!name) return { error: m.assortmentNeedsName };
+  if (lines.length === 0) return { error: m.assortmentNeedsStyle };
 
   await createSavedAssortment(account.id, name, lines);
   revalidatePath("/dashboard/assortments");
-  return { success: "Assortment saved." };
+  return { success: m.assortmentSaved };
 }
 
 export async function deleteAssortment(formData: FormData): Promise<void> {

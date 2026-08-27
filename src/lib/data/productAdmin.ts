@@ -673,3 +673,23 @@ export async function deleteStyle(styleId: string): Promise<{ error?: string }> 
   }
   return {};
 }
+
+/**
+ * How many styles still have no Greek tagline or description.
+ *
+ * The go/no-go figure for the Greek launch, so it is deliberately catalogue-wide and
+ * unaffected by whatever filter the admin currently has applied — a number that changes
+ * meaning depending on the page you are looking at is not a number you can gate a launch on.
+ *
+ * Returns 0 rather than throwing if migration 0037 hasn't run: the same graceful-degradation
+ * rule every post-0001 read in this app follows. A missing column here must not take down
+ * the product list.
+ */
+export async function countStylesMissingGreekCopy(): Promise<number> {
+  const { count, error } = await supabaseAdmin
+    .from("styles")
+    .select("id", { count: "exact", head: true })
+    .or("tagline_el.is.null,description_el.is.null");
+  if (error) return 0;
+  return count ?? 0;
+}

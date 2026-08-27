@@ -258,17 +258,34 @@ export interface AdminOrderDetail extends Order {
   businessName: string;
   contactName: string;
   email: string;
+  /** The buyer's stored language, for emails this admin action triggers (migration 0037). */
+  locale?: string;
+  /** Fallback signal when `locale` is absent — see src/lib/localeHeuristic.ts. */
+  storeLocation?: string;
 }
 
 /** Single order for the admin detail/edit view, joined with the buyer's contact info. */
 export async function getOrderByIdAdmin(orderId: string): Promise<AdminOrderDetail | undefined> {
   const { data, error } = await supabaseAdmin
     .from("orders")
-    .select("*, accounts(business_name, contact_name, email)")
+    // `locale` comes along so a status-change email can be written in the buyer's language
+    // rather than the admin's — the admin triggering it is on the English admin site, which
+    // says nothing about the recipient.
+    .select("*, accounts(business_name, contact_name, email, locale, store_location)")
     .eq("id", orderId)
     .limit(1);
   if (error) throw new Error(`orders: ${error.message}`);
-  const row = data?.[0] as (OrderRow & { accounts: { business_name: string; contact_name: string; email: string } | null }) | undefined;
+  const row = data?.[0] as
+    | (OrderRow & {
+        accounts: {
+          business_name: string;
+          contact_name: string;
+          email: string;
+          locale?: string | null;
+          store_location?: string | null;
+        } | null;
+      })
+    | undefined;
   if (!row) return undefined;
 
   const lineRows = await fetchLines([row.id]);
@@ -279,6 +296,8 @@ export async function getOrderByIdAdmin(orderId: string): Promise<AdminOrderDeta
     businessName: row.accounts?.business_name ?? row.account_id,
     contactName: row.accounts?.contact_name ?? "",
     email: row.accounts?.email ?? "",
+    locale: row.accounts?.locale ?? undefined,
+    storeLocation: row.accounts?.store_location ?? undefined,
   };
 }
 

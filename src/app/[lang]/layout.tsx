@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { bodySans, displaySerif, mono } from "@/lib/fonts";
+import { bodySans, bodySansGreek, displaySerif, displaySerifGreek, mono } from "@/lib/fonts";
 import { BackToTopButton } from "@/components/layout/BackToTopButton";
 import { CookieConsentBanner } from "@/components/layout/CookieConsentBanner";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { SITE_URL } from "@/lib/siteUrl";
-import { getSeoSettings } from "@/lib/data/seoSettings";
+import { originForLocale } from "@/i18n/domains";
+import { getSeoSettingsForLocale } from "@/lib/data/seoSettings";
 import { buildSiteSchemas } from "@/lib/seoJsonLd";
 import { LOCALES, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/getDictionary";
@@ -22,11 +22,20 @@ export function generateStaticParams() {
   return LOCALES.map((lang) => ({ lang }));
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getSeoSettings();
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  const settings = await getSeoSettingsForLocale(lang);
+  const isGr = lang === "el";
 
   return {
-    metadataBase: new URL(SITE_URL),
+    // Per DOMAIN, not one global base. Every absolute URL Next resolves for this page —
+    // og:image, og:url, the canonical if it were ever relative — hangs off this, and a
+    // single base would resolve .com pages against .gr.
+    metadataBase: new URL(originForLocale(lang as Locale)),
     title: {
       default: settings.defaultTitle,
       template: settings.titleTemplate,
@@ -43,12 +52,23 @@ export async function generateMetadata(): Promise<Metadata> {
       site: settings.twitterSite,
       description: settings.defaultDescription,
     },
-    verification: {
-      google: settings.googleSiteVerification,
-      other: settings.bingSiteVerification
-        ? { "msvalidate.01": settings.bingSiteVerification }
-        : undefined,
-    },
+    // Search Console is per DOMAIN: .com is a separate property from .gr and cannot be
+    // verified with the .gr token. el is the only locale on .gr; en/de/fr all live on
+    // .com and share its pair. An unset .com token emits nothing rather than emitting
+    // the .gr one, which would silently fail verification and look like a config bug.
+    verification: isGr
+      ? {
+          google: settings.googleSiteVerification,
+          other: settings.bingSiteVerification
+            ? { "msvalidate.01": settings.bingSiteVerification }
+            : undefined,
+        }
+      : {
+          google: settings.googleSiteVerificationCom,
+          other: settings.bingSiteVerificationCom
+            ? { "msvalidate.01": settings.bingSiteVerificationCom }
+            : undefined,
+        },
   };
 }
 
@@ -70,14 +90,20 @@ export default async function LocaleLayout({
   return (
     <html
       lang={lang}
-      className={`${displaySerif.variable} ${bodySans.variable} ${mono.variable} h-full antialiased`}
+      // Greek gets its own pair: the Latin display face has no Greek beyond a math subset
+      // and the Latin body face has none at all. See src/lib/fonts.ts.
+      className={`${lang === "el" ? displaySerifGreek.variable : displaySerif.variable} ${
+        lang === "el" ? bodySansGreek.variable : bodySans.variable
+      } ${mono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-stone-50 text-ink">
         <I18nProvider locale={lang} dict={dict}>
           {children}
+          {/* Inside the provider: the banner reads the dictionary, and it is the one piece of
+              chrome a Greek visitor sees before anything else on the page. */}
+          <CookieConsentBanner />
+          <BackToTopButton />
         </I18nProvider>
-        <CookieConsentBanner />
-        <BackToTopButton />
         <JsonLd schema={siteSchemas} />
       </body>
     </html>

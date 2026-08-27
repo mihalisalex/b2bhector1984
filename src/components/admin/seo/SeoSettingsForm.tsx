@@ -21,10 +21,16 @@ const SECTIONS: { id: Section; label: string; blurb: string }[] = [
 
 export function SeoSettingsForm({
   settings,
+  localeSettings,
+  locale,
   canEdit,
   initialSection = "general",
 }: {
+  /** The global row — site name, social, verification, toggles. */
   settings: SeoSettings;
+  /** The same shape with `locale`’s per-language copy laid over it (`seo_settings_locale`). */
+  localeSettings: SeoSettings;
+  locale: string;
   canEdit: boolean;
   initialSection?: Section;
 }) {
@@ -54,9 +60,13 @@ export function SeoSettingsForm({
 
       {/* Each section is its own form with its own `section` marker, so saving
           one never submits (and therefore never blanks) another's fields. */}
-      {section === "general" && <GeneralSection settings={settings} canEdit={canEdit} />}
+      {section === "general" && (
+        <GeneralSection settings={settings} localeSettings={localeSettings} locale={locale} canEdit={canEdit} />
+      )}
       {section === "indexing" && <IndexingSection settings={settings} canEdit={canEdit} />}
-      {section === "organization" && <OrganizationSection settings={settings} canEdit={canEdit} />}
+      {section === "organization" && (
+        <OrganizationSection settings={settings} localeSettings={localeSettings} locale={locale} canEdit={canEdit} />
+      )}
       {section === "schema" && <SchemaSection settings={settings} canEdit={canEdit} />}
     </div>
   );
@@ -86,21 +96,33 @@ function SaveButton({ isPending, canEdit }: { isPending: boolean; canEdit: boole
   );
 }
 
-function GeneralSection({ settings, canEdit }: { settings: SeoSettings; canEdit: boolean }) {
+function GeneralSection({
+  settings,
+  localeSettings,
+  locale,
+  canEdit,
+}: {
+  settings: SeoSettings;
+  localeSettings: SeoSettings;
+  locale: string;
+  canEdit: boolean;
+}) {
   const { formAction, isPending } = useSeoForm();
-  const [title, setTitle] = useState(settings.defaultTitle);
-  const [description, setDescription] = useState(settings.defaultDescription);
+  const [title, setTitle] = useState(localeSettings.defaultTitle);
+  const [description, setDescription] = useState(localeSettings.defaultDescription);
 
   return (
     <form action={formAction} className="max-w-3xl space-y-5">
       <input type="hidden" name="section" value="general" />
+      <input type="hidden" name="locale" value={locale} />
+      <LocaleBar section="general" locale={locale} />
 
       <TextField label="Site name" name="siteName" defaultValue={settings.siteName} disabled={!canEdit} />
       <div>
         <TextField
           label="Title template"
           name="titleTemplate"
-          defaultValue={settings.titleTemplate}
+          defaultValue={localeSettings.titleTemplate}
           disabled={!canEdit}
           placeholder="%s — Hector Footwear Wholesale"
         />
@@ -173,11 +195,17 @@ function GeneralSection({ settings, canEdit }: { settings: SeoSettings; canEdit:
           Search engine verification
         </legend>
         <p className="mb-3 text-xs text-ink-soft">
-          Paste the content value from the verification meta tag. These render in every page&rsquo;s head.
+          Paste the content value from the verification meta tag. Verification is per
+          <strong> domain</strong>, not per language: <code className="font-mono-tab">.com</code> is a
+          separate property from <code className="font-mono-tab">.gr</code> and cannot be verified with
+          the <code className="font-mono-tab">.gr</code> token. Leave a pair blank if you verified that
+          domain by DNS instead.
         </p>
         <div className="grid gap-4 sm:grid-cols-2">
-          <TextField label="Google Search Console" name="googleSiteVerification" defaultValue={settings.googleSiteVerification} disabled={!canEdit} />
-          <TextField label="Bing Webmaster Tools" name="bingSiteVerification" defaultValue={settings.bingSiteVerification} disabled={!canEdit} />
+          <TextField label="Google — hectorfootwear.gr" name="googleSiteVerification" defaultValue={settings.googleSiteVerification} disabled={!canEdit} />
+          <TextField label="Google — hectorfootwear.com" name="googleSiteVerificationCom" defaultValue={settings.googleSiteVerificationCom} disabled={!canEdit} />
+          <TextField label="Bing — hectorfootwear.gr" name="bingSiteVerification" defaultValue={settings.bingSiteVerification} disabled={!canEdit} />
+          <TextField label="Bing — hectorfootwear.com" name="bingSiteVerificationCom" defaultValue={settings.bingSiteVerificationCom} disabled={!canEdit} />
         </div>
       </fieldset>
 
@@ -271,12 +299,24 @@ function IndexingSection({ settings, canEdit }: { settings: SeoSettings; canEdit
   );
 }
 
-function OrganizationSection({ settings, canEdit }: { settings: SeoSettings; canEdit: boolean }) {
+function OrganizationSection({
+  settings,
+  localeSettings,
+  locale,
+  canEdit,
+}: {
+  settings: SeoSettings;
+  localeSettings: SeoSettings;
+  locale: string;
+  canEdit: boolean;
+}) {
   const { formAction, isPending } = useSeoForm();
 
   return (
     <form action={formAction} className="max-w-3xl space-y-5">
       <input type="hidden" name="section" value="organization" />
+      <input type="hidden" name="locale" value={locale} />
+      <LocaleBar section="organization" locale={locale} />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <TextField label="Legal name" name="organizationLegalName" defaultValue={settings.organizationLegalName} disabled={!canEdit} />
@@ -290,10 +330,10 @@ function OrganizationSection({ settings, canEdit }: { settings: SeoSettings; can
 
       <fieldset className="space-y-4 border border-stone-300 bg-white p-4">
         <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-ink-soft">Address</legend>
-        <TextField label="Street" name="organizationStreet" defaultValue={settings.organizationStreet} disabled={!canEdit} />
+        <TextField label="Street" name="organizationStreet" defaultValue={localeSettings.organizationStreet} disabled={!canEdit} />
         <div className="grid gap-4 sm:grid-cols-3">
-          <TextField label="City" name="organizationCity" defaultValue={settings.organizationCity} disabled={!canEdit} />
-          <TextField label="Region" name="organizationRegion" defaultValue={settings.organizationRegion} disabled={!canEdit} />
+          <TextField label="City" name="organizationCity" defaultValue={localeSettings.organizationCity} disabled={!canEdit} />
+          <TextField label="Region" name="organizationRegion" defaultValue={localeSettings.organizationRegion} disabled={!canEdit} />
           <TextField label="Postal code" name="organizationPostalCode" defaultValue={settings.organizationPostalCode} disabled={!canEdit} />
         </div>
         <TextField label="Country code" name="organizationCountry" defaultValue={settings.organizationCountry} disabled={!canEdit} placeholder="GR" />
@@ -322,7 +362,7 @@ function OrganizationSection({ settings, canEdit }: { settings: SeoSettings; can
         <TextField
           label="Opening hours"
           name="openingHours"
-          defaultValue={settings.openingHours}
+          defaultValue={localeSettings.openingHours}
           disabled={!canEdit}
           placeholder="Mo-Fr 09:00-17:00"
         />
@@ -362,5 +402,55 @@ function SchemaSection({ settings, canEdit }: { settings: SeoSettings; canEdit: 
 
       <SaveButton isPending={isPending} canEdit={canEdit} />
     </form>
+  );
+}
+
+/**
+ * The four locales, as links rather than client state: switching language has to re-read
+ * that locale's row from the database, so it needs a round trip. `section` rides along so
+ * the tab you were on survives the switch.
+ *
+ * Only shown on the two sections that actually hold per-locale copy. Indexing and
+ * structured-data toggles govern both domains identically — 0037 deliberately left them on
+ * the global row so the two sites cannot drift into contradicting each other — and putting
+ * a language switch above them would imply otherwise.
+ */
+const LOCALE_TABS = [
+  { id: "en", label: "English", note: "hectorfootwear.com" },
+  { id: "el", label: "Ελληνικά", note: "hectorfootwear.gr" },
+  { id: "de", label: "Deutsch", note: ".com/de" },
+  { id: "fr", label: "Français", note: ".com/fr" },
+];
+
+function LocaleBar({ section, locale }: { section: Section; locale: string }) {
+  return (
+    <div className="border border-stone-300 bg-stone-100 p-3">
+      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink-soft">
+        Language — these fields are stored per language
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {LOCALE_TABS.map((item) => (
+          <a
+            key={item.id}
+            href={`?section=${section}&locale=${item.id}`}
+            aria-current={locale === item.id ? "true" : undefined}
+            className={`border px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
+              locale === item.id
+                ? "border-ink bg-ink text-white"
+                : "border-stone-300 bg-white text-ink-soft hover:text-ink"
+            }`}
+          >
+            {item.label}
+            <span className="ml-2 font-normal normal-case tracking-normal opacity-70">{item.note}</span>
+          </a>
+        ))}
+      </div>
+      {locale !== "en" && (
+        <p className="mt-2 text-[11px] text-ink-soft">
+          Left blank, a field falls back to the English value — so an untranslated locale reads
+          exactly as it did before, rather than going empty.
+        </p>
+      )}
+    </div>
   );
 }

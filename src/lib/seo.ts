@@ -1,8 +1,9 @@
 import "server-only";
 import type { Metadata } from "next";
 import { SITE_URL } from "@/lib/siteUrl";
-import { LOCALES, DEFAULT_LOCALE, type Locale, withLocale } from "@/i18n/paths";
-import { getSeoSettings, type SeoSettings } from "@/lib/data/seoSettings";
+import { LOCALES, DEFAULT_LOCALE, type Locale } from "@/i18n/paths";
+import { originForLocale, urlForLocale } from "@/i18n/domains";
+import { getSeoSettingsForLocale, type SeoSettings } from "@/lib/data/seoSettings";
 import { getEntityMeta } from "@/lib/data/seoEntityMeta";
 import {
   generateArticleDescription,
@@ -40,10 +41,21 @@ import type { JournalPost, Style } from "@/lib/types";
  */
 const DEFAULT_OG_IMAGE_PATH = "/opengraph-image";
 
-/** Absolute URL for a site-relative path. Absolute inputs pass through untouched. */
-export function absoluteUrl(path: string): string {
+/**
+ * Absolute URL for a site-relative path, on the origin that serves `locale`.
+ *
+ * Since the domain split, "the site's URL" is not one value: el lives on
+ * hectorfootwear.gr and en/de/fr on hectorfootwear.com. `SITE_URL` remains only as the
+ * default for callers that genuinely have no locale in hand (an admin preview, a share
+ * image). Anything a crawler will read should pass one.
+ *
+ * Absolute inputs pass through untouched — an admin-entered canonical or an uploaded image
+ * on Supabase storage is already fully qualified.
+ */
+export function absoluteUrl(path: string, locale?: Locale): string {
   if (/^https?:\/\//i.test(path)) return path;
-  return `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+  const origin = locale ? originForLocale(locale) : SITE_URL;
+  return `${origin}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
 /**
@@ -162,17 +174,30 @@ function buildMetadata(input: BuildMetadataInput, settings: SeoSettings): Metada
   // this is also what makes every locale variant of a page self-canonical instead of every
   // one of them pointing back at the English URL, which used to tell Google there was only
   // ever one indexable version and the /de, /fr, /el pages didn't need a look.
-  const canonical = input.canonicalPath ? input.canonicalPath : withLocale(locale, input.path);
+  // FULLY QUALIFIED, and on this locale's own domain.
+  //
+  // It used to be a path, which Next resolved against a single `metadataBase` — so every
+  // page on hectorfootwear.com canonicalised to hectorfootwear.gr and told Google the two
+  // domains were duplicates of each other. With two domains a canonical has to name its own
+  // host explicitly; there is no longer one base to resolve against.
+  const canonical = input.canonicalPath ? input.canonicalPath : urlForLocale(locale, input.path);
 
-  // hreflang: every locale's URL for this same logical page, plus x-default pointing at the
-  // site's default-locale (English, unprefixed) version — the standard pattern once one
-  // locale is unprefixed. Skipped when an admin canonical override is in play (see above,
-  // same reasoning) or when the page has no real per-locale variants to point at.
+  // hreflang: every locale's URL for this logical page, each on the domain that serves it,
+  // and every page self-references (its own locale is in the set). Reciprocal by
+  // construction — the .gr page lists the .com URL and vice versa, which is what makes
+  // Google treat them as translations rather than duplicates.
+  //
+  // x-default points at English on .com, per the brief: it is the fallback for a visitor
+  // whose language we do not serve, and English is the international edition.
+  //
+  // Skipped when an admin canonical override is in play (same reasoning as above) or when
+  // the page has no real per-locale variants — the journal, whose posts are single rows
+  // per language rather than translations of each other.
   const languages =
     !input.canonicalPath && input.hasLocaleVariants !== false
       ? (Object.fromEntries([
-          ...LOCALES.map((loc) => [loc, absoluteUrl(withLocale(loc, input.path))]),
-          ["x-default", absoluteUrl(withLocale(DEFAULT_LOCALE, input.path))],
+          ...LOCALES.map((loc) => [loc, urlForLocale(loc, input.path)]),
+          ["x-default", urlForLocale("en", input.path)],
         ]) as Record<string, string>)
       : undefined;
 
@@ -189,7 +214,7 @@ function buildMetadata(input: BuildMetadataInput, settings: SeoSettings): Metada
       siteName: settings.siteName,
       type: input.ogType ?? "website",
       locale: OG_LOCALE[locale],
-      images: ogImage ? [{ url: absoluteUrl(ogImage) }] : undefined,
+      images: ogImage ? [{ url: absoluteUrl(ogImage, locale) }] : undefined,
     },
     twitter: {
       card: (input.twitterCard ?? settings.defaultTwitterCard) as "summary" | "summary_large_image",
@@ -197,7 +222,7 @@ function buildMetadata(input: BuildMetadataInput, settings: SeoSettings): Metada
       creator: settings.twitterCreator,
       title: input.twitterTitle?.trim() || input.ogTitle?.trim() || fullTitle,
       description: input.twitterDescription?.trim() || input.ogDescription?.trim() || input.description,
-      images: twitterImage ? [absoluteUrl(twitterImage)] : undefined,
+      images: twitterImage ? [absoluteUrl(twitterImage, locale)] : undefined,
     },
   };
 }
@@ -227,7 +252,7 @@ export async function pageMetadata({
   /** See `BuildMetadataInput.hasLocaleVariants`. Defaults to `true`. */
   hasLocaleVariants?: boolean;
 }): Promise<Metadata> {
-  const [settings, override] = await Promise.all([getSeoSettings(), getEntityMeta("page", path)]);
+  const [settings, override] = await Promise.all([getSeoSettingsForLocale(locale ?? DEFAULT_LOCALE), getEntityMeta("page", path)]);
   return buildMetadata(
     {
       title: override?.seoTitle?.trim() || title,
@@ -302,7 +327,7 @@ export interface CommerceMetadataInput {
 }
 
 export async function commerceMetadata(input: CommerceMetadataInput): Promise<Metadata> {
-  const settings = await getSeoSettings();
+  const settings = await getSeoSettingsForLocale(input.locale ?? DEFAULT_LOCALE);
   return buildMetadata({ ...input, robots: commerceRobots(settings, input.robots) }, settings);
 }
 
@@ -314,8 +339,14 @@ export async function commerceMetadata(input: CommerceMetadataInput): Promise<Me
  * photo and the style name is the whole point of the Open Graph fields on a
  * gated page.
  */
-export async function productMetadata(style: Style, imageUrl?: string): Promise<Metadata> {
-  const settings = await getSeoSettings();
+export async function productMetadata(style: Style, imageUrl?: string, locale?: Locale): Promise<Metadata> {
+  const settings = await getSeoSettingsForLocale(locale ?? DEFAULT_LOCALE);
+  // Per-locale override (migration 0038 lets seo_entity_meta describe a 'style'). Consulted
+  // only for non-default locales: the English values live on `styles` itself and that path
+  // is deliberately untouched. There is NO cross-locale fallback — a missing Greek override
+  // drops to the generated Greek copy, never to another language's override.
+  const localeOverride =
+    locale && locale !== DEFAULT_LOCALE ? await getEntityMeta("style", style.id, locale) : undefined;
   const source: ProductSeoSource = {
     name: style.name,
     styleNumber: style.styleNumber,
@@ -328,9 +359,10 @@ export async function productMetadata(style: Style, imageUrl?: string): Promise<
     tags: style.tags,
   };
 
-  const adminTitle = style.seoTitle?.trim();
+  const adminTitle = localeOverride?.seoTitle?.trim() || style.seoTitle?.trim();
   const title = adminTitle || generateProductTitle(source, settings.siteName);
-  const description = style.metaDescription?.trim() || generateProductDescription(source);
+  const description =
+    localeOverride?.metaDescription?.trim() || style.metaDescription?.trim() || generateProductDescription(source);
   const image = style.ogImageUrl?.trim() || imageUrl || style.primaryImageUrl;
 
   return buildMetadata(
@@ -339,7 +371,10 @@ export async function productMetadata(style: Style, imageUrl?: string): Promise<
       titleIsFinal: !adminTitle,
       description,
       path: `/product/${style.slug}`,
-      canonicalPath: style.canonicalUrl?.trim() || `/product/${style.slug}`,
+      // Only an explicit admin override; otherwise buildMetadata computes the per-domain
+      // absolute canonical itself. Passing a path here would bypass that.
+      canonicalPath: style.canonicalUrl?.trim() || undefined,
+      locale,
       robots: commerceRobots(settings, style.robots),
       ogTitle: style.ogTitle,
       ogDescription: style.ogDescription,
@@ -364,8 +399,8 @@ export async function productMetadata(style: Style, imageUrl?: string): Promise<
  * gated commerce surface, so unlike products this never runs through
  * `commerceRobots`.
  */
-export async function articleMetadata(post: JournalPost): Promise<Metadata> {
-  const settings = await getSeoSettings();
+export async function articleMetadata(post: JournalPost, locale?: Locale): Promise<Metadata> {
+  const settings = await getSeoSettingsForLocale(locale ?? DEFAULT_LOCALE);
   const source: ArticleSeoSource = {
     title: post.title,
     excerpt: post.excerpt,

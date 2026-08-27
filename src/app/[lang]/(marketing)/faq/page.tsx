@@ -7,6 +7,7 @@ import { getSeoSettings } from "@/lib/data/seoSettings";
 import { getDictionary } from "@/i18n/getDictionary";
 import type { Locale } from "@/i18n/config";
 import { withLocale } from "@/i18n/paths";
+import { SUPPORT_EMAIL } from "@/lib/contact";
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
@@ -86,7 +87,7 @@ const GROUPS_EN: FaqGroup[] = [
       },
       {
         q: "I can't log in — what do I do?",
-        a: "Reach out to your territory rep (listed on your dashboard) or info@hectorfootwear.gr and we'll help sort out access.",
+        a: `Reach out to your territory rep (listed on your dashboard) or ${SUPPORT_EMAIL} and we'll help sort out access.`,
       },
       {
         q: "Who do I talk to about my account?",
@@ -103,7 +104,7 @@ const GROUPS_EN: FaqGroup[] = [
       },
       {
         q: "Where do you ship?",
-        a: "Shipping details vary by territory — contact your rep or info@hectorfootwear.gr to confirm coverage and lead times for your location.",
+        a: `Shipping details vary by territory — contact your rep or ${SUPPORT_EMAIL} to confirm coverage and lead times for your location.`,
       },
     ],
   },
@@ -182,7 +183,7 @@ const GROUPS_EL: FaqGroup[] = [
       },
       {
         q: "Δεν μπορώ να συνδεθώ — τι κάνω;",
-        a: "Επικοινωνήστε με τον εκπρόσωπο της περιοχής σας (αναγράφεται στον πίνακα ελέγχου σας) ή στο info@hectorfootwear.gr και θα σας βοηθήσουμε να αποκαταστήσετε την πρόσβαση.",
+        a: `Επικοινωνήστε με τον εκπρόσωπο της περιοχής σας (αναγράφεται στον πίνακα ελέγχου σας) ή στο ${SUPPORT_EMAIL} και θα σας βοηθήσουμε να αποκαταστήσετε την πρόσβαση.`,
       },
       {
         q: "Με ποιον μιλάω για τον λογαριασμό μου;",
@@ -199,7 +200,7 @@ const GROUPS_EL: FaqGroup[] = [
       },
       {
         q: "Σε ποιες περιοχές αποστέλλετε;",
-        a: "Οι λεπτομέρειες αποστολής διαφέρουν ανά περιοχή — επικοινωνήστε με τον εκπρόσωπό σας ή στο info@hectorfootwear.gr για να επιβεβαιώσετε κάλυψη και χρόνους παράδοσης για την τοποθεσία σας.",
+        a: `Οι λεπτομέρειες αποστολής διαφέρουν ανά περιοχή — επικοινωνήστε με τον εκπρόσωπό σας ή στο ${SUPPORT_EMAIL} για να επιβεβαιώσετε κάλυψη και χρόνους παράδοσης για την τοποθεσία σας.`,
       },
     ],
   },

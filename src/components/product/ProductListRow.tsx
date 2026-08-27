@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { backorderLabel, CATEGORY_LABEL, GENDER_LABEL, getStyleImageUrl } from "@/lib/data/styleLabels";
+import type { Dictionary } from "@/i18n/dictionaries/en";
+import { backorderLabelFor, categoryLabel, genderLabel, getStyleImageUrl } from "@/lib/data/styleLabels";
 import { formatEUR, getUnitPrice, isOnSale } from "@/lib/pricing";
 import { VatSuffix } from "@/components/ui/VatSuffix";
 import type { Style } from "@/lib/types";
@@ -14,6 +15,8 @@ export function ProductListRow({
   priceMultiplier = 1,
   showPricing = true,
   favorited,
+  locale = "en",
+  dict,
 }: {
   style: Style;
   totalOnHand?: number;
@@ -21,13 +24,18 @@ export function ProductListRow({
   /** Set false for anonymous visitors — see the same prop on ProductCard. */
   showPricing?: boolean;
   favorited?: boolean;
+  /** Drives price formatting — Greek needs "24,90 €", not "€24.90". */
+  locale?: string;
+  /** Server component — the caller already has the dictionary, so it is passed rather than
+   * fetched again here. */
+  dict: Dictionary;
 }) {
   // See ProductCard for the same soldOut/madeToOrder split — "Sold out" only when the
   // style genuinely can't be ordered further; zero on-hand with backorders allowed is
   // "Made to order" instead.
   const soldOut = totalOnHand === 0 && !style.allowBackorder;
   const madeToOrder = totalOnHand === 0 && style.allowBackorder;
-  const backorderText = backorderLabel(style);
+  const backorderText = backorderLabelFor(dict, style);
   const lowStock = typeof totalOnHand === "number" && totalOnHand > 0 && totalOnHand <= 10;
   const onSale = isOnSale(style);
 
@@ -49,8 +57,8 @@ export function ProductListRow({
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <AvailabilityBadge style={style} />
-          <span className="text-[11px] uppercase tracking-wide text-ink-soft">{CATEGORY_LABEL[style.category]}</span>
-          <span className="text-[11px] uppercase tracking-wide text-ink-soft">{GENDER_LABEL[style.gender]}</span>
+          <span className="text-[11px] uppercase tracking-wide text-ink-soft">{categoryLabel(dict, style.category)}</span>
+          <span className="text-[11px] uppercase tracking-wide text-ink-soft">{genderLabel(dict, style.gender)}</span>
         </div>
         <h3 className="font-display mt-1 truncate text-base font-bold uppercase leading-tight tracking-tight text-ink group-hover:underline">
           {style.name}
@@ -65,21 +73,21 @@ export function ProductListRow({
         {favorited !== undefined && <FavoriteButton styleId={style.id} initialFavorited={favorited} variant="icon" />}
         {showPricing ? (
           <div>
-            <p className="text-[11px] uppercase tracking-wide text-ink-soft">Wholesale</p>
+            <p className="text-[11px] uppercase tracking-wide text-ink-soft">{dict.catalog.wholesale}</p>
             <p className="flex items-baseline justify-end gap-1.5">
               <span className={cn("text-lg font-semibold tabular-nums", onSale ? "text-burgundy" : "text-ink")}>
-                {formatEUR(getUnitPrice(style, "net60", priceMultiplier))}
+                {formatEUR(getUnitPrice(style, "net60", priceMultiplier), locale)}
                 <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
               </span>
               {onSale && (
                 <span className="text-xs tabular-nums text-ink-soft line-through">
-                  {formatEUR(style.basePrice * priceMultiplier)}
+                  {formatEUR(style.basePrice * priceMultiplier, locale)}
                 </span>
               )}
             </p>
           </div>
         ) : (
-          <p className="text-[11px] uppercase tracking-wide text-ink-soft">Trade pricing on approval</p>
+          <p className="text-[11px] uppercase tracking-wide text-ink-soft">{dict.catalog.tradePricingOnApproval}</p>
         )}
       </div>
     </Link>

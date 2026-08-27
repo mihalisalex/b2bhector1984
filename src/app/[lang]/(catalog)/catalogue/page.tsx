@@ -1,3 +1,4 @@
+import { withLocale } from "@/i18n/paths";
 import { Suspense } from "react";
 import Link from "next/link";
 import { getStorefrontStyles, searchStyleIds } from "@/lib/data/styles";
@@ -86,7 +87,9 @@ export default async function CatalogPage({
           /login — a dead end on a page that is now public, and a crawlable link into a
           gated route. Signed-in buyers still get their dashboard. */}
       <nav className="mb-3 text-xs text-ink-soft">
-        <Link href={account ? "/dashboard" : "/"} className="hover:text-ink">Home</Link>{" "}
+        <Link href={withLocale(locale, account ? "/dashboard" : "/")} className="hover:text-ink">
+          {dict.catalog.home}
+        </Link>{" "}
         <span className="mx-1">/</span> <span className="text-ink">{dict.nav.catalogue}</span>
       </nav>
       <div className="mb-6 flex flex-col gap-3 border-b border-stone-300 pb-6 sm:flex-row sm:items-end sm:justify-between">
@@ -125,7 +128,7 @@ export default async function CatalogPage({
           style is in view. */}
       {/* Quotes a discount rate and says it is "already applied to the prices below" —
           meaningless, and slightly misleading, when there are no prices below. */}
-      {showPricing && <SaleBanner styles={results} seasonFiltered={filters.season.length > 0} />}
+      {showPricing && <SaleBanner styles={results} seasonFiltered={filters.season.length > 0} dict={dict} locale={locale} />}
 
       {results.length === 0 ? (
         <div className="border border-dashed border-stone-300 bg-stone-100 px-6 py-20 text-center">
@@ -160,6 +163,8 @@ export default async function CatalogPage({
               priceMultiplier={priceMultiplier}
               showPricing={showPricing}
               favorited={account ? favoriteIds.has(style.id) : undefined}
+              locale={locale}
+              dict={dict}
             />
           ))}
         </div>

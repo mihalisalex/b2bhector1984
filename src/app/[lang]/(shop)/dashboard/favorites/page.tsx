@@ -1,3 +1,7 @@
+import { getDictionary } from "@/i18n/getDictionary";
+import { withLocale } from "@/i18n/paths";
+import type { Locale } from "@/i18n/config";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
@@ -8,11 +12,18 @@ import { listImagesForStyles } from "@/lib/data/styleImages";
 import { ProductCard } from "@/components/product/ProductCard";
 import { LinkButton } from "@/components/ui/Button";
 
-export const metadata = { title: "Favorites", robots: { index: false, follow: false } };
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const dict = await getDictionary(lang as Locale);
+  return { title: dict.dashboard.favorites, robots: { index: false, follow: false } };
+}
 
-export default async function FavoritesPage() {
+export default async function FavoritesPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const locale = lang as Locale;
+  const d = (await getDictionary(locale)).dashboard;
   const account = await getCurrentAccount();
-  if (!account) redirect("/login");
+  if (!account) redirect(withLocale(locale, "/login"));
 
   const [favoriteIds, allStyles] = await Promise.all([getFavoriteStyleIds(account.id), getStorefrontStyles()]);
   const favorites = allStyles.filter((s) => favoriteIds.has(s.id));
@@ -24,18 +35,18 @@ export default async function FavoritesPage() {
   return (
     <div className="mx-auto max-w-[1400px] px-6 py-8 lg:px-10">
       <nav className="mb-4 text-xs text-ink-soft">
-        <Link href="/dashboard" className="hover:text-ink">Dashboard</Link> / Favorites
+        <Link href={withLocale(locale, "/dashboard")} className="hover:text-ink">{d.title}</Link> / {d.favorites}
       </nav>
       <h1 className="font-display border-b border-stone-300 pb-6 text-2xl font-bold uppercase tracking-tight text-ink">
-        Favorites
+        {d.favorites}
       </h1>
 
       {favorites.length === 0 ? (
         <div className="mt-8 border border-dashed border-stone-300 bg-stone-100 px-6 py-16 text-center">
           <p className="text-sm text-ink-soft">
-            No favorites yet — tap the heart icon on any product to save it here for fast reordering.
+            {d.noFavouritesLong}
           </p>
-          <LinkButton href="/catalogue" className="mt-5 inline-flex">Browse Catalogue</LinkButton>
+          <LinkButton href={withLocale(locale, "/catalogue")} className="mt-5 inline-flex">{d.browseCatalogue}</LinkButton>
         </div>
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
