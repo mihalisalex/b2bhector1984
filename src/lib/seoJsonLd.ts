@@ -2,7 +2,7 @@ import "server-only";
 import type { Locale } from "@/i18n/config";
 import { originForLocale } from "@/i18n/domains";
 import { absoluteUrl } from "@/lib/seo";
-import { getSeoSettings, type SeoSettings } from "@/lib/data/seoSettings";
+import { getSeoSettingsForLocale, type SeoSettings } from "@/lib/data/seoSettings";
 import { generateProductDescription, type ProductSeoSource } from "@/lib/seoAutogen";
 import type { JournalPost, Style } from "@/lib/types";
 
@@ -340,7 +340,10 @@ export function buildBrandSchema(brand: { name: string; description?: string; lo
  * reference these by `@id`.
  */
 export async function buildSiteSchemas(locale: Locale = "en"): Promise<JsonLd[]> {
-  const settings = await getSeoSettings();
+  // Locale-aware: the Organization/LocalBusiness schema carries the postal address, and
+  // the Greek site should publish the Heraklion address written in Greek — see
+  // `seo_settings_locale`. Everything else in the graph is domain-level and shared.
+  const settings = await getSeoSettingsForLocale(locale);
   return [buildOrganizationSchema(settings, locale), buildWebsiteSchema(settings, locale)].filter(
     (schema): schema is JsonLd => schema !== null,
   );

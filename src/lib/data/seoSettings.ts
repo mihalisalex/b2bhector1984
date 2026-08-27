@@ -68,6 +68,14 @@ export interface SeoSettings {
   taxDoy?: string;
   taxEuVatId?: string;
   bingSiteVerification?: string;
+  /**
+   * Search Console verification is per DOMAIN, not per locale. The pair above belongs to
+   * hectorfootwear.gr; this pair belongs to hectorfootwear.com, which is a separate
+   * property to Google and Bing and cannot be verified with the .gr token. en/de/fr all
+   * live on .com and share these — see migration 0037.
+   */
+  googleSiteVerificationCom?: string;
+  bingSiteVerificationCom?: string;
 }
 
 export const DEFAULT_SEO_SETTINGS: SeoSettings = {
@@ -136,6 +144,8 @@ interface SeoSettingsRow {
   tax_doy?: string | null;
   tax_eu_vat_id?: string | null;
   bing_site_verification: string | null;
+  google_site_verification_com?: string | null;
+  bing_site_verification_com?: string | null;
 }
 
 /** Postgres/PostgREST returns null for an unset text column; the app models those as `undefined`. */
@@ -183,6 +193,8 @@ function mapSettings(row: SeoSettingsRow): SeoSettings {
     taxDoy: opt(row.tax_doy ?? null),
     taxEuVatId: opt(row.tax_eu_vat_id ?? null),
     bingSiteVerification: opt(row.bing_site_verification),
+    googleSiteVerificationCom: opt(row.google_site_verification_com ?? null),
+    bingSiteVerificationCom: opt(row.bing_site_verification_com ?? null),
   };
 }
 
@@ -270,7 +282,126 @@ export async function updateSeoSettings(input: SeoSettingsPatch): Promise<void> 
   set("schema_faq", input.schemaFaq);
   set("google_site_verification", input.googleSiteVerification);
   set("bing_site_verification", input.bingSiteVerification);
+  set("google_site_verification_com", input.googleSiteVerificationCom);
+  set("bing_site_verification_com", input.bingSiteVerificationCom);
 
   const { error } = await supabaseAdmin.from("seo_settings").update(patch).eq("id", "global");
   if (error) throw new Error(`seo_settings: ${error.message}`);
+}
+
+/* ---------------------------------------------------------------------------
+ * Per-locale copy (migration 0037, `seo_settings_locale`)
+ * ------------------------------------------------------------------------ */
+
+/**
+ * The seven fields that differ per language. Everything else in `seo_settings` — the
+ * indexing switches, sitemap toggles, schema toggles, verification tokens — governs both
+ * domains identically and deliberately has no per-locale form; duplicating those would let
+ * the two sites drift into contradicting each other.
+ *
+ * The address is here because the Greek site should carry the Heraklion address written in
+ * Greek. Google reads it as the LocalBusiness address, and the same street transliterated
+ * is not the same signal to a Greek searcher.
+ */
+export interface SeoLocaleOverrides {
+  titleTemplate?: string;
+  defaultTitle?: string;
+  defaultDescription?: string;
+  organizationStreet?: string;
+  organizationCity?: string;
+  organizationRegion?: string;
+  openingHours?: string;
+}
+
+interface SeoSettingsLocaleRow {
+  locale: string;
+  title_template: string | null;
+  default_title: string | null;
+  default_description: string | null;
+  organization_street: string | null;
+  organization_city: string | null;
+  organization_region: string | null;
+  opening_hours: string | null;
+}
+
+function mapLocaleRow(row: SeoSettingsLocaleRow): SeoLocaleOverrides {
+  return {
+    titleTemplate: opt(row.title_template),
+    defaultTitle: opt(row.default_title),
+    defaultDescription: opt(row.default_description),
+    organizationStreet: opt(row.organization_street),
+    organizationCity: opt(row.organization_city),
+    organizationRegion: opt(row.organization_region),
+    openingHours: opt(row.opening_hours),
+  };
+}
+
+/**
+ * All four locales in one query, keyed by locale.
+ *
+ * One read rather than one-per-locale: the table has at most four rows, every page needs
+ * exactly one of them, and a page that renders hreflang may want more than one. An
+ * unmigrated database returns an error here and gets `{}` — every lookup then falls back
+ * to the global row, which is the pre-0037 behaviour.
+ */
+async function fetchSeoLocaleOverrides(): Promise<Record<string, SeoLocaleOverrides>> {
+  const { data, error } = await supabaseAdmin.from("seo_settings_locale").select("*");
+  if (error || !data) return {};
+  const out: Record<string, SeoLocaleOverrides> = {};
+  for (const row of data as SeoSettingsLocaleRow[]) out[row.locale] = mapLocaleRow(row);
+  return out;
+}
+
+export const getSeoLocaleOverrides = cache(
+  unstable_cache(fetchSeoLocaleOverrides, ["seo-settings-locale"], {
+    tags: [CACHE_TAGS.seo],
+    revalidate: CACHE_TTL_SECONDS,
+  }),
+);
+
+/**
+ * Global settings with this locale's copy laid over the top.
+ *
+ * A NULL column falls back to the global row rather than blanking — that is what makes an
+ * un-edited locale behave exactly as it did before 0037, and it is why 0037 seeded `en`
+ * from the global values and left the rest null. Callers that are genuinely global
+ * (robots.ts, sitemap.ts, the admin) keep using `getSeoSettings()`.
+ */
+export async function getSeoSettingsForLocale(locale: string): Promise<SeoSettings> {
+  const [base, byLocale] = await Promise.all([getSeoSettings(), getSeoLocaleOverrides()]);
+  const o = byLocale[locale];
+  if (!o) return base;
+  return {
+    ...base,
+    titleTemplate: o.titleTemplate ?? base.titleTemplate,
+    defaultTitle: o.defaultTitle ?? base.defaultTitle,
+    defaultDescription: o.defaultDescription ?? base.defaultDescription,
+    organizationStreet: o.organizationStreet ?? base.organizationStreet,
+    organizationCity: o.organizationCity ?? base.organizationCity,
+    organizationRegion: o.organizationRegion ?? base.organizationRegion,
+    openingHours: o.openingHours ?? base.openingHours,
+  };
+}
+
+/** Write one locale's row. Absent keys are left alone, same contract as `updateSeoSettings`. */
+export async function updateSeoLocaleOverrides(
+  locale: string,
+  input: { [K in keyof SeoLocaleOverrides]?: string | null },
+): Promise<void> {
+  const patch: Record<string, unknown> = { locale, updated_at: new Date().toISOString() };
+  const set = (column: string, value: string | null | undefined) => {
+    if (value !== undefined) patch[column] = value === null ? null : value.trim() || null;
+  };
+  set("title_template", input.titleTemplate);
+  set("default_title", input.defaultTitle);
+  set("default_description", input.defaultDescription);
+  set("organization_street", input.organizationStreet);
+  set("organization_city", input.organizationCity);
+  set("organization_region", input.organizationRegion);
+  set("opening_hours", input.openingHours);
+
+  // Upsert, not update: 0037 seeds all four rows, but a database restored from an older
+  // dump might be missing one, and losing the admin's edit silently would be worse.
+  const { error } = await supabaseAdmin.from("seo_settings_locale").upsert(patch, { onConflict: "locale" });
+  if (error) throw new Error(`seo_settings_locale: ${error.message}`);
 }

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { SITE_URL } from "@/lib/siteUrl";
 import { LOCALES, DEFAULT_LOCALE, type Locale } from "@/i18n/paths";
 import { originForLocale, urlForLocale } from "@/i18n/domains";
-import { getSeoSettings, type SeoSettings } from "@/lib/data/seoSettings";
+import { getSeoSettingsForLocale, type SeoSettings } from "@/lib/data/seoSettings";
 import { getEntityMeta } from "@/lib/data/seoEntityMeta";
 import {
   generateArticleDescription,
@@ -252,7 +252,7 @@ export async function pageMetadata({
   /** See `BuildMetadataInput.hasLocaleVariants`. Defaults to `true`. */
   hasLocaleVariants?: boolean;
 }): Promise<Metadata> {
-  const [settings, override] = await Promise.all([getSeoSettings(), getEntityMeta("page", path)]);
+  const [settings, override] = await Promise.all([getSeoSettingsForLocale(locale ?? DEFAULT_LOCALE), getEntityMeta("page", path)]);
   return buildMetadata(
     {
       title: override?.seoTitle?.trim() || title,
@@ -327,7 +327,7 @@ export interface CommerceMetadataInput {
 }
 
 export async function commerceMetadata(input: CommerceMetadataInput): Promise<Metadata> {
-  const settings = await getSeoSettings();
+  const settings = await getSeoSettingsForLocale(input.locale ?? DEFAULT_LOCALE);
   return buildMetadata({ ...input, robots: commerceRobots(settings, input.robots) }, settings);
 }
 
@@ -340,7 +340,7 @@ export async function commerceMetadata(input: CommerceMetadataInput): Promise<Me
  * gated page.
  */
 export async function productMetadata(style: Style, imageUrl?: string, locale?: Locale): Promise<Metadata> {
-  const settings = await getSeoSettings();
+  const settings = await getSeoSettingsForLocale(locale ?? DEFAULT_LOCALE);
   // Per-locale override (migration 0038 lets seo_entity_meta describe a 'style'). Consulted
   // only for non-default locales: the English values live on `styles` itself and that path
   // is deliberately untouched. There is NO cross-locale fallback — a missing Greek override
@@ -399,8 +399,8 @@ export async function productMetadata(style: Style, imageUrl?: string, locale?: 
  * gated commerce surface, so unlike products this never runs through
  * `commerceRobots`.
  */
-export async function articleMetadata(post: JournalPost): Promise<Metadata> {
-  const settings = await getSeoSettings();
+export async function articleMetadata(post: JournalPost, locale?: Locale): Promise<Metadata> {
+  const settings = await getSeoSettingsForLocale(locale ?? DEFAULT_LOCALE);
   const source: ArticleSeoSource = {
     title: post.title,
     excerpt: post.excerpt,

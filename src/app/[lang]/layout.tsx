@@ -4,7 +4,7 @@ import { BackToTopButton } from "@/components/layout/BackToTopButton";
 import { CookieConsentBanner } from "@/components/layout/CookieConsentBanner";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { originForLocale } from "@/i18n/domains";
-import { getSeoSettings } from "@/lib/data/seoSettings";
+import { getSeoSettingsForLocale } from "@/lib/data/seoSettings";
 import { buildSiteSchemas } from "@/lib/seoJsonLd";
 import { LOCALES, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/getDictionary";
@@ -28,7 +28,8 @@ export async function generateMetadata({
   params: Promise<{ lang: string }>;
 }): Promise<Metadata> {
   const { lang } = await params;
-  const settings = await getSeoSettings();
+  const settings = await getSeoSettingsForLocale(lang);
+  const isGr = lang === "el";
 
   return {
     // Per DOMAIN, not one global base. Every absolute URL Next resolves for this page —
@@ -51,12 +52,23 @@ export async function generateMetadata({
       site: settings.twitterSite,
       description: settings.defaultDescription,
     },
-    verification: {
-      google: settings.googleSiteVerification,
-      other: settings.bingSiteVerification
-        ? { "msvalidate.01": settings.bingSiteVerification }
-        : undefined,
-    },
+    // Search Console is per DOMAIN: .com is a separate property from .gr and cannot be
+    // verified with the .gr token. el is the only locale on .gr; en/de/fr all live on
+    // .com and share its pair. An unset .com token emits nothing rather than emitting
+    // the .gr one, which would silently fail verification and look like a config bug.
+    verification: isGr
+      ? {
+          google: settings.googleSiteVerification,
+          other: settings.bingSiteVerification
+            ? { "msvalidate.01": settings.bingSiteVerification }
+            : undefined,
+        }
+      : {
+          google: settings.googleSiteVerificationCom,
+          other: settings.bingSiteVerificationCom
+            ? { "msvalidate.01": settings.bingSiteVerificationCom }
+            : undefined,
+        },
   };
 }
 

@@ -29,11 +29,11 @@ async function resolvePost(slug: string) {
   return { post: undefined, isPreview: false };
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params;
+export async function generateMetadata({ params }: { params: Promise<{ slug: string; lang: string }> }): Promise<Metadata> {
+  const { slug, lang } = await params;
   const { post } = await resolvePost(slug);
   if (!post) return {};
-  return articleMetadata(post);
+  return articleMetadata(post, lang as Locale);
 }
 
 function readTimeMinutes(html: string): number {

@@ -139,3 +139,28 @@ English — they are order codes, not prose.
 Journal posts are **single rows per language**, not translations, and are filtered by
 `journal_posts.locale`. `translation_group` exists but is unused; populate it if two posts
 ever become genuine translations of each other and per-article hreflang is wanted.
+
+### SEO settings: what is per language, and what is per domain
+
+Three tables, three different scopes. Getting these mixed up is the easiest way to make
+the two sites contradict each other.
+
+| Scope | Where | Examples |
+| --- | --- | --- |
+| Per **language** | `seo_settings_locale` | Title template, default title, default description, street/city/region, opening hours |
+| Per **domain** | `seo_settings` | Google/Bing verification — one pair per domain, `*_com` for `.com` |
+| **Shared** | `seo_settings` | Site name, social handles, indexing switches, sitemap and schema toggles |
+
+Read them with `getSeoSettingsForLocale(locale)`, which lays a locale's row over the global
+one. A blank column falls back to the global value, so an untranslated locale reads exactly
+as it did before — which is why migration 0037 seeded `en` from the global row and left the
+rest null. `getSeoSettings()` (no locale) stays correct for genuinely global readers:
+`robots.ts`, `sitemap.ts`, the SEO audit.
+
+Saving **English** in `/admin/seo/settings` writes the locale row *and* mirrors onto the
+global row, so those global readers never go stale. Other languages write only their own row.
+
+Verification is per domain because Search Console treats `.com` and `.gr` as separate
+properties — the `.gr` token cannot verify `.com`. An unset token emits no tag at all rather
+than falling back to the other domain's, which would silently fail verification and read as
+a config bug. Verifying by DNS instead is fine; leave the fields blank.
