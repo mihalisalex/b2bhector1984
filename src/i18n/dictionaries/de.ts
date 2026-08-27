@@ -675,6 +675,71 @@ const de: Dictionary = {
     body: "Diese Website verwendet ausschließlich notwendige Cookies, damit Sie angemeldet bleiben und Ihr Großhandelsantrag nachverfolgt werden kann. Details finden Sie in unserer {link}.",
     accept: "Verstanden",
   },
+  legal: {
+    eyebrow: "Rechtliches",
+    disclaimer:
+      "Diese Seite ist ein beispielhafter Platzhaltertext — sie stellt keine Rechtsberatung dar und sollte nicht als solche verstanden werden.",
+    contactUs: "Kontaktieren Sie uns",
+    contactSuffix: "— jede Anfrage wird von einem Menschen aus dem Team beantwortet, in der Regel innerhalb von zwei Werktagen.",
+
+    termsTitle: "Nutzungsbedingungen",
+    termsDescription: "Nutzungsbedingungen von Hector Footwear Wholesale.",
+    termsCtaHeading: "Fragen zu Ihrem Konto?",
+    termsCtaButton: "Zu den FAQ",
+    termsQ1: "Nur Großhandelskonten",
+    termsA1:
+      "Diese Website ist ein B2B-Bestellportal für freigegebene Großhandelskunden. Der Zugang setzt ein freigegebenes Konto voraus; die hier gezeigten Preise, Bestände und Bestellkonditionen richten sich nicht an die Allgemeinheit.",
+    termsQ2: "Bestellungen und Zahlungsbedingungen",
+    termsA2:
+      "Eine Bestellung ist eine Kaufanfrage zu den an der Kasse gewählten Zahlungsbedingungen (Vorkasse, Netto 30 oder Netto 60). Die Bestellung gilt als bestätigt, sobald sie angenommen wurde — den aktuellen Stand sehen Sie im Statusverlauf Ihrer Bestellung.",
+    termsQ3: "Zahlungsbedingungen und Mindestbestellmenge",
+    termsA3:
+      "Für jedes Konto werden Zahlungsbedingungen und eine Mindestbestellmenge mit Ihrem Gebietsbetreuer vereinbart. Bestellungen werden als Proformarechnungs-Anfragen übermittelt — Ihr Betreuer bestätigt Bestand, Produktion und Summen, bevor etwas berechnet wird.",
+    termsQ4: "Produktangaben",
+    termsA4:
+      "Materialien, Gewichte, Größen und Verfügbarkeit auf dieser Website gelten zum Zeitpunkt der Veröffentlichung als zutreffend, können sich vor der Produktion jedoch ohne Ankündigung ändern.",
+    termsQ5: "Kontosicherheit",
+    termsA5:
+      "Sie sind dafür verantwortlich, Ihre Zugangsdaten vertraulich zu behandeln, und für sämtliche Aktivitäten unter Ihrem Konto. Melden Sie sich sofort bei Ihrem Betreuer, wenn Sie unbefugten Zugriff vermuten.",
+
+    privacyTitle: "Datenschutzerklärung",
+    privacyDescription: "Datenschutzerklärung von Hector Footwear Wholesale.",
+    privacyCtaHeading: "Fragen zu Ihren Daten?",
+    privacyCtaButton: "Cookie-Hinweis",
+    privacyQ1: "Was wir erheben",
+    privacyA1:
+      "Firmen- und Kontaktdaten, die Sie bei der Beantragung oder Führung eines Großhandelskontos angeben (Firmenname, Ansprechpartner, E-Mail, Telefon, Gewerbenachweis, Lieferadressen), sowie Bestellhistorie und Kontoaktivität.",
+    privacyQ2: "Wie wir sie verwenden",
+    privacyA2:
+      "Zum Betrieb Ihres Großhandelskontos — Bearbeitung von Bestellungen, Anwendung Ihrer vereinbarten Konditionen, Abstimmung mit Ihrem Gebietsbetreuer und Versand bestellbezogener Benachrichtigungen.",
+    privacyQ3: "Mit wem wir sie teilen",
+    privacyA3:
+      "Ihre Daten werden intern von Hector Footwear Wholesale und Ihrem zuständigen Gebietsbetreuer genutzt. Wir verkaufen keine Kontodaten an Dritte.",
+    privacyQ4: "Speicherdauer",
+    privacyA4:
+      "Konto- und Bestelldaten werden gespeichert, solange Ihr Konto aktiv ist, sowie so lange, wie es geschäftliche und buchhalterische Anforderungen nach der Schließung erfordern.",
+    privacyQ5: "Ihre Möglichkeiten",
+    privacyA5:
+      "Sie können Ihre Firmen- und Kontaktdaten sowie Lieferadressen jederzeit in den Kontoeinstellungen einsehen und ändern oder sich an Ihren Betreuer wenden.",
+
+    cookiesTitle: "Cookie-Hinweis",
+    cookiesDescription: "Cookie-Hinweis von Hector Footwear Wholesale.",
+    cookiesCtaHeading: "Fragen zu Cookies oder Daten?",
+    cookiesCtaButton: "Datenschutzerklärung",
+    cookiesIntro:
+      "Hector Footwear Wholesale verwendet eine kleine Zahl notwendiger Cookies für den Betrieb des Bestellportals. Wir setzen keine Werbe- oder Tracking-Cookies Dritter ein.",
+    cookiesOutro:
+      "Da alle oben genannten Cookies für die Anmeldung und Bestellung notwendig sind, gibt es nichts Optionales abzulehnen — das Schließen des Cookie-Hinweises bestätigt lediglich, dass Sie ihn gelesen haben.",
+    cookieColName: "Cookie",
+    cookieColPurpose: "Zweck",
+    cookieColType: "Art",
+    cookie1Name: "Sitzungs-Cookie",
+    cookie1Purpose: "Hält Sie über Seitenaufrufe hinweg in Ihrem Großhandelskonto angemeldet.",
+    cookie1Type: "Notwendig — erforderlich zur Nutzung der Website im angemeldeten Zustand",
+    cookie2Name: "Cookie für laufende Anträge",
+    cookie2Purpose: "Verfolgt einen eingereichten Großhandelsantrag, damit Sie dessen Status prüfen können, bevor ein Konto besteht.",
+    cookie2Type: "Notwendig",
+  },
   footer: {
     tagline: "Schuhe aus Vollnarbenleder, so vertrieben, wie es anspruchsvolle Einzelhändler erwarten. Seit 1984.",
     wholesale: "Großhandel",

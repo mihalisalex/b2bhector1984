@@ -675,6 +675,71 @@ const fr: Dictionary = {
     body: "Ce site utilise uniquement des cookies essentiels, pour vous garder connecté et suivre votre demande de compte professionnel. Consultez notre {link} pour plus de détails.",
     accept: "J’ai compris",
   },
+  legal: {
+    eyebrow: "Mentions légales",
+    disclaimer:
+      "Cette page est un texte indicatif de démonstration — elle ne constitue pas un conseil juridique et ne doit pas être considérée comme tel.",
+    contactUs: "Contactez-nous",
+    contactSuffix: "— chaque demande reçoit une réponse d’une personne de l’équipe, généralement sous deux jours ouvrés.",
+
+    termsTitle: "Conditions d’utilisation",
+    termsDescription: "Conditions d’utilisation de Hector Footwear Wholesale.",
+    termsCtaHeading: "Des questions sur votre compte ?",
+    termsCtaButton: "Consulter la FAQ",
+    termsQ1: "Comptes professionnels uniquement",
+    termsA1:
+      "Ce site est un portail de commande B2B réservé aux acheteurs professionnels validés. L’accès nécessite un compte validé ; les tarifs, les stocks et les conditions de commande affichés ici ne sont pas proposés au grand public.",
+    termsQ2: "Commandes et conditions de paiement",
+    termsA2:
+      "Passer une commande constitue une demande d’achat aux conditions de paiement choisies lors de la validation (prépaiement, net 30 ou net 60). La commande est confirmée dès son acceptation — consultez son historique de statut pour connaître son état actuel.",
+    termsQ3: "Conditions de paiement et minimum de commande",
+    termsA3:
+      "Chaque compte dispose de conditions de paiement et d’une quantité minimale de commande convenues avec votre commercial. Les commandes sont transmises comme demandes de facture proforma — votre commercial confirme le stock, la production et les totaux avant tout débit.",
+    termsQ4: "Informations produits",
+    termsA4:
+      "Les matières, poids, tailles et disponibilités affichés sur ce site sont réputés exacts au moment de leur publication, mais peuvent changer sans préavis avant la production.",
+    termsQ5: "Sécurité du compte",
+    termsA5:
+      "Vous êtes responsable de la confidentialité de vos identifiants et de toute activité effectuée depuis votre compte. Contactez immédiatement votre commercial si vous suspectez un accès non autorisé.",
+
+    privacyTitle: "Politique de confidentialité",
+    privacyDescription: "Politique de confidentialité de Hector Footwear Wholesale.",
+    privacyCtaHeading: "Des questions sur vos données ?",
+    privacyCtaButton: "Politique de cookies",
+    privacyQ1: "Ce que nous collectons",
+    privacyA1:
+      "Les informations professionnelles et de contact que vous fournissez lors de la demande ou de la gestion d’un compte professionnel (raison sociale, nom du contact, e-mail, téléphone, numéro de TVA ou SIRET, adresses de livraison), ainsi que l’historique des commandes et l’activité du compte.",
+    privacyQ2: "Comment nous les utilisons",
+    privacyA2:
+      "Pour faire fonctionner votre compte professionnel — traitement des commandes, application de vos conditions négociées, coordination avec votre commercial et envoi des notifications liées aux commandes.",
+    privacyQ3: "Avec qui elles sont partagées",
+    privacyA3:
+      "Vos informations sont utilisées en interne par Hector Footwear Wholesale et par votre commercial attitré. Nous ne vendons pas les données de compte à des tiers.",
+    privacyQ4: "Conservation des données",
+    privacyA4:
+      "Les données de compte et de commande sont conservées tant que votre compte est actif, puis aussi longtemps que l’exigent les obligations commerciales et comptables après sa clôture.",
+    privacyQ5: "Vos choix",
+    privacyA5:
+      "Vous pouvez consulter et mettre à jour vos informations professionnelles, vos coordonnées et vos adresses de livraison à tout moment depuis les Paramètres du compte, ou en contactant votre commercial.",
+
+    cookiesTitle: "Politique de cookies",
+    cookiesDescription: "Politique de cookies de Hector Footwear Wholesale.",
+    cookiesCtaHeading: "Des questions sur les cookies ou vos données ?",
+    cookiesCtaButton: "Politique de confidentialité",
+    cookiesIntro:
+      "Hector Footwear Wholesale utilise un petit nombre de cookies essentiels pour faire fonctionner le portail de commande. Nous n’utilisons pas de cookies publicitaires ni de traceurs tiers.",
+    cookiesOutro:
+      "Tous les cookies ci-dessus étant essentiels à la connexion et à la commande, il n’y a rien d’optionnel à refuser — fermer le bandeau revient simplement à accuser réception de cet avis.",
+    cookieColName: "Cookie",
+    cookieColPurpose: "Finalité",
+    cookieColType: "Type",
+    cookie1Name: "Cookie de session",
+    cookie1Purpose: "Vous maintient connecté à votre compte professionnel d’une page à l’autre.",
+    cookie1Type: "Essentiel — nécessaire pour utiliser le site une fois connecté",
+    cookie2Name: "Cookie de demande en cours",
+    cookie2Purpose: "Suit une demande de compte professionnel envoyée, afin que vous puissiez en vérifier le statut avant la création du compte.",
+    cookie2Type: "Essentiel",
+  },
   footer: {
     tagline: "Des chaussures en cuir pleine fleur, distribuées comme les détaillants exigeants l'attendent. Depuis 1984.",
     wholesale: "Grossiste",

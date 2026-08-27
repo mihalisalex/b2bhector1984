@@ -727,6 +727,78 @@ const en = {
     body: "This site uses essential cookies only, to keep you signed in and track your wholesale application. See our {link} for details.",
     accept: "Got it",
   },
+  /**
+   * The three legal pages. Kept as flat numbered keys rather than an array of clauses so a
+   * missing translation is a compile error — same reason the dictionaries are .ts at all.
+   *
+   * `disclaimer` is deliberately translated rather than dropped: these are placeholder texts,
+   * and a Greek reader is entitled to the same warning an English one gets.
+   */
+  legal: {
+    eyebrow: "Legal",
+    disclaimer:
+      "This page is illustrative, demo-appropriate boilerplate — it is not real legal advice and shouldn’t be relied on as such.",
+    contactUs: "Contact us",
+    contactSuffix: "— every inquiry is answered by someone on the team, usually within two business days.",
+
+    termsTitle: "Terms of Service",
+    termsDescription: "Terms of Service for Hector Footwear Wholesale.",
+    termsCtaHeading: "Questions about your account?",
+    termsCtaButton: "Read the FAQ",
+    termsQ1: "Wholesale accounts only",
+    termsA1:
+      "This site is a business-to-business ordering portal for approved wholesale buyers. Access requires an approved account; pricing, inventory, and order terms shown here are not offered to the general public.",
+    termsQ2: "Orders and payment terms",
+    termsA2:
+      "Placing an order is a request to purchase at the payment terms selected at checkout (prepay, net-30, or net-60). An order is confirmed once accepted — see your order’s status timeline for its current state.",
+    termsQ3: "Payment terms and order minimums",
+    termsA3:
+      "Each account has payment terms and a minimum order quantity agreed with your territory rep. Orders are submitted as proforma-invoice requests — your rep confirms stock, production and totals before anything is charged.",
+    termsQ4: "Product information",
+    termsA4:
+      "Materials, weights, sizing, and availability shown on this site are believed accurate at time of publishing but may change without notice ahead of production.",
+    termsQ5: "Account security",
+    termsA5:
+      "You’re responsible for keeping your account credentials confidential and for all activity under your account. Contact your rep immediately if you suspect unauthorized access.",
+
+    privacyTitle: "Privacy Policy",
+    privacyDescription: "Privacy Policy for Hector Footwear Wholesale.",
+    privacyCtaHeading: "Questions about your data?",
+    privacyCtaButton: "Cookie Notice",
+    privacyQ1: "What we collect",
+    privacyA1:
+      "Business and contact details you provide when applying for or maintaining a wholesale account (business name, contact name, email, phone, resale certificate, ship-to addresses), plus order history and account activity.",
+    privacyQ2: "How we use it",
+    privacyA2:
+      "To operate your wholesale account — processing orders, applying your negotiated terms, coordinating with your territory rep, and sending order-related notifications.",
+    privacyQ3: "Who it’s shared with",
+    privacyA3:
+      "Your information is used internally by Hector Footwear Wholesale and your assigned territory rep. We don’t sell account data to third parties.",
+    privacyQ4: "Data retention",
+    privacyA4:
+      "Account and order records are retained for as long as your account is active, and as needed to satisfy business and accounting requirements after closure.",
+    privacyQ5: "Your choices",
+    privacyA5:
+      "You can review and update your business/contact details and ship-to addresses at any time from Account Settings, or by contacting your rep.",
+
+    cookiesTitle: "Cookie Notice",
+    cookiesDescription: "Cookie Notice for Hector Footwear Wholesale.",
+    cookiesCtaHeading: "Questions about cookies or data?",
+    cookiesCtaButton: "Privacy Policy",
+    cookiesIntro:
+      "Hector Footwear Wholesale uses a small number of essential cookies to run the ordering portal. We don’t use advertising or third-party tracking cookies.",
+    cookiesOutro:
+      "Since every cookie above is essential to signing in and placing orders, there’s nothing optional to opt out of — dismissing the cookie banner just acknowledges this notice.",
+    cookieColName: "Cookie",
+    cookieColPurpose: "Purpose",
+    cookieColType: "Type",
+    cookie1Name: "Session cookie",
+    cookie1Purpose: "Keeps you signed in to your wholesale account between page loads.",
+    cookie1Type: "Essential — required to use the site while logged in",
+    cookie2Name: "Application-in-progress cookie",
+    cookie2Purpose: "Tracks a submitted wholesale application so you can check its status before an account exists.",
+    cookie2Type: "Essential",
+  },
   footer: {
     tagline: "Full-grain leather footwear, wholesaled the way serious retailers expect. Est. 1984.",
     wholesale: "Wholesale",
