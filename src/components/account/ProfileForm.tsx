@@ -33,8 +33,8 @@ export function ProfileForm({ account, whatsappEnabled }: { account: Account; wh
       <p className="-mt-2.5 text-xs text-ink-soft">
         Include the country code.{" "}
         {whatsappEnabled
-          ? "Used to send an order confirmation by WhatsApp when you request a proforma invoice."
-          : "Used by your rep to reach you about an order. Order confirmations are sent by email."}
+          ? d.whatsappHelp
+          : d.phoneHelp}
       </p>
 
       {state.error && (

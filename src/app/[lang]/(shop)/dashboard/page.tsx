@@ -1,3 +1,6 @@
+import type { Metadata } from "next";
+import { t } from "@/i18n/format";
+import { withLocale } from "@/i18n/paths";
 import { getDictionary } from "@/i18n/getDictionary";
 import type { Locale } from "@/i18n/config";
 import Link from "next/link";
@@ -13,11 +16,16 @@ import { ReorderButton } from "@/components/dashboard/ReorderButton";
 import { LinkButton } from "@/components/ui/Button";
 import { TextActionLink } from "@/components/ui/TextAction";
 
-export const metadata = { title: "Dashboard", robots: { index: false, follow: false } };
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const dict = await getDictionary(lang as Locale);
+  return { title: dict.dashboard.title, robots: { index: false, follow: false } };
+}
 
 export default async function DashboardPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
   const d = (await getDictionary(lang as Locale)).dashboard;
+  const locale = lang as Locale;
   const account = await getCurrentAccount();
   if (!account) redirect("/login");
 
@@ -44,9 +52,9 @@ export default async function DashboardPage({ params }: { params: Promise<{ lang
         <div className="border border-stone-300 bg-white p-5 lg:col-span-2">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{d.account}</h2>
           <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
-            <Stat label="Terms" value={TERMS_LABEL[account.creditTerms]} />
-            <Stat label={d.minimumOrder} value={`${account.minOrderPairs ?? MIN_ORDER_PAIRS} pairs`} />
-            <Stat label="YTD ordered" value={formatEUR(ytdTotal)} isPrice />
+            <Stat label={d.termsShort} value={TERMS_LABEL[account.creditTerms]} />
+            <Stat label={d.minimumOrder} value={t(d.pairsValue, { count: account.minOrderPairs ?? MIN_ORDER_PAIRS })} />
+            <Stat label={d.ytdOrdered} value={formatEUR(ytdTotal, locale)} isPrice />
           </div>
           <p className="mt-4 border-t border-stone-200 pt-3 text-xs text-ink-soft">
             Wholesale price is set by payment terms at checkout — pay in full for 10% off, net-30 for 5% off,
@@ -81,7 +89,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ lang
           </div>
           {orders.length === 0 ? (
             <div className="mt-3 border border-dashed border-stone-300 bg-stone-100 px-6 py-10 text-center text-sm text-ink-soft">
-              No orders yet. Start with Quick Order or the catalog.
+              {d.noOrdersYet}
             </div>
           ) : (
             <div className="mt-3 flex flex-col gap-3">
@@ -92,25 +100,25 @@ export default async function DashboardPage({ params }: { params: Promise<{ lang
                   <div key={order.id} className="flex flex-wrap items-center justify-between gap-3 border border-stone-300 bg-white p-4">
                     <div>
                       <div className="flex items-center gap-2">
-                        <Link href={`/dashboard/orders/${order.id}`} className="font-mono-tab text-sm font-semibold text-ink hover:underline">
+                        <Link href={withLocale(locale, `/dashboard/orders/${order.id}`)} className="font-mono-tab text-sm font-semibold text-ink hover:underline">
                           {order.id}
                         </Link>
                         <StatusBadge status={order.status} />
                         {productionCount > 0 && (
                           <span className="border border-court/50 bg-court-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink">
-                            {productionCount} in production
+                            {t(d.inProduction, { count: productionCount })}
                           </span>
                         )}
                       </div>
                       <p className="mt-1 text-xs text-ink-soft">
-                        {formatDate(order.placedAt)} · {totalPairs} pairs
+                        {t(d.orderSummaryLine, { date: formatDate(order.placedAt, locale), pairs: totalPairs })}
                       </p>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="text-sm font-semibold tabular-nums text-ink">{formatEUR(grandTotal)}</span>
+                      <span className="text-sm font-semibold tabular-nums text-ink">{formatEUR(grandTotal, locale)}</span>
                       <ReorderButton order={order} />
-                      <TextActionLink href={`/dashboard/orders/${order.id}`} tone="neutral">
-                        Details
+                      <TextActionLink href={withLocale(locale, `/dashboard/orders/${order.id}`)} tone="neutral">
+                        {d.details}
                       </TextActionLink>
                     </div>
                   </div>
@@ -129,15 +137,15 @@ export default async function DashboardPage({ params }: { params: Promise<{ lang
           ) : (
             <div className="mt-3 flex flex-col gap-2">
               {assortments.map((a) => (
-                <Link key={a.id} href="/dashboard/assortments" className="block border border-stone-300 bg-white p-3 hover:border-ink">
+                <Link key={a.id} href={withLocale(locale, "/dashboard/assortments")} className="block border border-stone-300 bg-white p-3 hover:border-ink">
                   <p className="text-sm font-medium text-ink">{a.name}</p>
-                  <p className="text-xs text-ink-soft">{a.styleIds.length} styles · saved {formatDate(a.createdAt)}</p>
+                  <p className="text-xs text-ink-soft">{t(d.assortmentLine, { count: a.styleIds.length, date: formatDate(a.createdAt, locale) })}</p>
                 </Link>
               ))}
             </div>
           )}
-          <TextActionLink href="/dashboard/assortments" tone="accent" className="mt-3 inline-block">
-            View all assortments
+          <TextActionLink href={withLocale(locale, "/dashboard/assortments")} tone="accent" className="mt-3 inline-block">
+            {d.viewAllAssortments}
           </TextActionLink>
         </div>
       </div>

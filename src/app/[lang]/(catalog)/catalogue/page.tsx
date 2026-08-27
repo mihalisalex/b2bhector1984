@@ -128,7 +128,7 @@ export default async function CatalogPage({
           style is in view. */}
       {/* Quotes a discount rate and says it is "already applied to the prices below" —
           meaningless, and slightly misleading, when there are no prices below. */}
-      {showPricing && <SaleBanner styles={results} seasonFiltered={filters.season.length > 0} />}
+      {showPricing && <SaleBanner styles={results} seasonFiltered={filters.season.length > 0} dict={dict} locale={locale} />}
 
       {results.length === 0 ? (
         <div className="border border-dashed border-stone-300 bg-stone-100 px-6 py-20 text-center">

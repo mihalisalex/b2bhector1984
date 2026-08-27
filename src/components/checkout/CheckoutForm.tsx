@@ -193,7 +193,7 @@ export function CheckoutForm({ account }: { account: Account }) {
       </div>
 
       <div className="h-fit border border-stone-300 bg-white p-5 lg:sticky lg:top-[calc(var(--shell-header-h)+1.5rem)]">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Order Summary</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{dict.dashboard.orderSummary}</h2>
         <div className="mt-3 flex flex-col gap-2.5 border-b border-stone-200 pb-4">
           {styleGroups.map((g) => {
             // List price (no terms discount) for this line, so the terms-driven saving —

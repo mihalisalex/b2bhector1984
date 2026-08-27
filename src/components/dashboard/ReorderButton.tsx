@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/i18n/I18nProvider";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
@@ -8,6 +9,7 @@ import { textActionClassNames } from "@/components/ui/TextAction";
 import type { BoxTypeId, Order } from "@/lib/types";
 
 export function ReorderButton({ order, className }: { order: Order; className?: string }) {
+  const d = useI18n().dict.dashboard;
   const { addLines, lines } = useCart();
   const router = useRouter();
   const [done, setDone] = useState(false);
@@ -37,7 +39,7 @@ export function ReorderButton({ order, className }: { order: Order; className?: 
       onClick={handleReorder}
       className={className ?? textActionClassNames("accent")}
     >
-      {done ? "Added — opening cart…" : "Reorder"}
+      {done ? d.addedOpeningCart : d.reorder}
     </button>
   );
 }

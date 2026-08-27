@@ -1,5 +1,8 @@
 "use client";
 
+import { useI18n } from "@/i18n/I18nProvider";
+import { t } from "@/i18n/format";
+import { categoryLabel } from "@/lib/data/styleLabels";
 import type { Style } from "@/lib/types";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { getUnitPrice } from "@/lib/pricing";
@@ -7,25 +10,27 @@ import { toCsv } from "@/lib/csv";
 import { Button } from "@/components/ui/Button";
 
 export function LinesheetToolbar({ styles, priceMultiplier = 1 }: { styles: Style[]; priceMultiplier?: number }) {
+  const { dict } = useI18n();
+  const d = dict.dashboard;
   function exportCsv() {
     const header = [
-      "Style #",
-      "Name",
-      "Category",
-      "Availability",
-      "Colorways",
-      "Box Options",
-      "Wholesale Price (EUR, excl. VAT)",
-      "VAT Rate",
+      d.csvStyleNumber,
+      d.csvName,
+      d.csvCategory,
+      d.csvAvailability,
+      d.csvColorways,
+      d.csvBoxOptions,
+      d.csvPrice,
+      d.csvVatRate,
     ];
     const rows = styles.map((s) => {
       return [
         s.styleNumber,
         s.name,
-        s.category,
-        s.availability === "available" ? "Available now" : `Pre-book (${s.shipWindow ?? ""})`,
+        categoryLabel(dict, s.category),
+        s.availability === "available" ? dict.catalog.availableNow : t(d.csvPrebook, { window: s.shipWindow ?? "" }),
         s.colorways.map((c) => c.name).join(" / "),
-        getAvailableBoxTypes(s).map((b) => b.totalPairs).join(" / ") + "-pair",
+        getAvailableBoxTypes(s).map((b) => b.totalPairs).join(" / ") + d.csvPairSuffix,
         getUnitPrice(s, "net60", priceMultiplier).toFixed(2),
         s.vatRate ? `${Math.round(s.vatRate * 100)}%` : "—",
       ];
@@ -43,10 +48,10 @@ export function LinesheetToolbar({ styles, priceMultiplier = 1 }: { styles: Styl
   return (
     <div className="flex items-center gap-2 print:hidden">
       <Button type="button" variant="secondary" size="sm" onClick={() => window.print()}>
-        Print
+        {d.print}
       </Button>
       <Button type="button" size="sm" onClick={exportCsv}>
-        Export CSV
+        {d.exportCsv}
       </Button>
     </div>
   );

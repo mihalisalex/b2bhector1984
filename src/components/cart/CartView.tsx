@@ -159,7 +159,7 @@ export function CartView({
                     <span className="font-mono-tab text-ink">{styleId}</span> · {pairs} pair{pairs === 1 ? "" : "s"}
                   </span>
                   <TextAction tone="danger" onClick={() => removeStyle(styleId)}>
-                    Remove
+                    {dict.dashboard.remove}
                   </TextAction>
                 </li>
               );
@@ -196,7 +196,7 @@ export function CartView({
                   <p className="font-mono-tab text-xs text-ink-soft">{style.styleNumber}</p>
                 </div>
                 <TextAction tone="danger" onClick={() => removeStyle(styleId)}>
-                  Remove
+                  {dict.dashboard.remove}
                 </TextAction>
               </div>
 
@@ -379,11 +379,11 @@ export function CartView({
               (The server re-enforces the minimum in `placeOrder` either way.) */}
           {blockedReason ? (
             <Button size="lg" disabled className="w-full">
-              Proceed to Checkout
+              {dict.dashboard.proceedToCheckout}
             </Button>
           ) : (
             <LinkButton href="/checkout" size="lg">
-              Proceed to Checkout
+              {dict.dashboard.proceedToCheckout}
             </LinkButton>
           )}
         </div>
@@ -398,11 +398,11 @@ export function CartView({
           </div>
           {blockedReason ? (
             <Button disabled className="shrink-0">
-              Checkout
+              {dict.dashboard.checkout}
             </Button>
           ) : (
             <LinkButton href="/checkout" className="shrink-0">
-              Checkout
+              {dict.dashboard.checkout}
             </LinkButton>
           )}
         </div>

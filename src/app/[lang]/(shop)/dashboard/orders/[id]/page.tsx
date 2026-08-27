@@ -12,20 +12,32 @@ import { ReorderButton } from "@/components/dashboard/ReorderButton";
 import { ClearCartOnMount } from "@/components/dashboard/ClearCartOnMount";
 import { PrintButton } from "@/components/dashboard/PrintButton";
 import { StatusTimeline } from "@/components/order/StatusTimeline";
+import { getDictionary } from "@/i18n/getDictionary";
+import { withLocale } from "@/i18n/paths";
+import { t } from "@/i18n/format";
+import type { Locale } from "@/i18n/config";
+import type { Metadata } from "next";
 
-export const metadata = { title: "Order Detail", robots: { index: false, follow: false } };
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const dict = await getDictionary(lang as Locale);
+  return { title: dict.orderDetail.title, robots: { index: false, follow: false } };
+}
 
 export default async function OrderDetailPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; lang: string }>;
   searchParams: Promise<{ justPlaced?: string }>;
 }) {
-  const { id } = await params;
+  const { id, lang } = await params;
+  const locale = lang as Locale;
+  const dict = await getDictionary(locale);
+  const o = dict.orderDetail;
   const { justPlaced } = await searchParams;
   const account = await getCurrentAccount();
-  if (!account) redirect("/login");
+  if (!account) redirect(withLocale(locale, "/login"));
 
   const order = await getOrderById(account.id, id);
   if (!order) notFound();
@@ -50,13 +62,12 @@ export default async function OrderDetailPage({
       {justPlaced === "1" && <ClearCartOnMount />}
 
       <nav className="mb-6 text-xs text-ink-soft print:hidden">
-        <Link href="/dashboard" className="hover:text-ink">Dashboard</Link> / {order.id}
+        <Link href={withLocale(locale, "/dashboard")} className="hover:text-ink">{o.dashboard}</Link> / {order.id}
       </nav>
 
       {justPlaced === "1" && (
         <div className="mb-6 border border-positive/40 bg-positive-100 px-4 py-3 text-sm text-positive print:hidden">
-          Proforma invoice generated — this isn&rsquo;t a charge. {account.rep.name} will confirm stock and
-          production before it proceeds.
+          {t(o.proformaNotice, { rep: account.rep.name })}
         </div>
       )}
 
@@ -67,18 +78,16 @@ export default async function OrderDetailPage({
           already uses. */}
       {productionLines.length > 0 && (
         <div className="mb-6 border border-court/50 bg-court-100 px-4 py-3 text-sm text-ink">
-          {productionLines.length === 1 ? "One line in this order wasn't" : `${productionLines.length} lines in this order weren't`}{" "}
-          fully in stock and {productionLines.length === 1 ? "is" : "are"} in production.{" "}
+          {productionLines.length === 1 ? o.productionOne : t(o.productionMany, { count: productionLines.length })}{" "}
           {withEta.length > 0 && (
-            <>See &ldquo;Status&rdquo; below for the expected date on {withoutEta.length > 0 ? "the made-to-order items" : "each item"}.{" "}</>
+            <>{withoutEta.length > 0 ? o.seeStatusMadeToOrder : o.seeStatusEach}{" "}</>
           )}
           {withoutEta.length > 0 && (
             <>
-              {withEta.length > 0 ? "Pre-order items have" : "These are pre-order, so there's"} no fixed ship date
-              yet — {account.rep.name} will confirm timing once production is scheduled.{" "}
+              {t(withEta.length > 0 ? o.preOrderSome : o.preOrderAll, { rep: account.rep.name })}{" "}
             </>
           )}
-          Anything not marked is shipping from stock as normal.
+          {o.restShipsNormally}
         </div>
       )}
 
@@ -88,34 +97,34 @@ export default async function OrderDetailPage({
             <h1 className="font-mono-tab text-2xl font-bold text-ink">{order.id}</h1>
             <StatusBadge status={order.status} />
           </div>
-          <p className="mt-1 text-sm text-ink-soft">Placed {formatDate(order.placedAt)}</p>
+          <p className="mt-1 text-sm text-ink-soft">{t(o.placedOn, { date: formatDate(order.placedAt, locale) })}</p>
         </div>
         <div className="flex items-center gap-3 print:hidden">
           <ReorderButton order={order} className={buttonClassNames("secondary", "sm")} />
           <a href={`/api/orders/${order.id}/invoice`} className={buttonClassNames("secondary", "sm")}>
-            Download Invoice
+            {o.downloadInvoice}
           </a>
           <PrintButton />
         </div>
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-3">
-        <Detail label="Ship to">
+        <Detail label={o.shipTo}>
           {shipTo ? (
             <>
               {shipTo.label}<br />{shipTo.line1}<br />{shipTo.city}, {shipTo.state} {shipTo.zip}
             </>
           ) : "—"}
         </Detail>
-        <Detail label="Terms">{order.terms.toUpperCase()}</Detail>
-        <Detail label="Tracking">
+        <Detail label={o.terms}>{order.terms.toUpperCase()}</Detail>
+        <Detail label={o.tracking}>
           {order.trackingNumber ? `${order.carrier ?? ""} ${order.trackingNumber}`.trim() : "—"}
         </Detail>
-        <Detail label="Notes">{order.notes ?? "—"}</Detail>
+        <Detail label={o.notes}>{order.notes ?? "—"}</Detail>
       </div>
 
       <div className="mt-8 border border-stone-300 bg-white p-5 print:hidden">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Status History</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{o.statusHistory}</h2>
         <div className="mt-4">
           <StatusTimeline events={statusHistory} />
         </div>
@@ -125,13 +134,13 @@ export default async function OrderDetailPage({
         <table className="w-full min-w-[560px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-stone-300 bg-stone-100 text-left text-[11px] uppercase tracking-wide text-ink-soft">
-              <th className="px-4 py-2.5">Style</th>
-              <th className="px-3 py-2.5">Colorway</th>
-              <th className="px-3 py-2.5">Box</th>
-              <th className="px-3 py-2.5 text-right">Qty</th>
-              <th className="px-3 py-2.5 text-right">Unit (per pair)</th>
-              <th className="px-4 py-2.5 text-right">Total</th>
-              <th className="px-3 py-2.5">Status</th>
+              <th className="px-4 py-2.5">{o.thStyle}</th>
+              <th className="px-3 py-2.5">{o.thColorway}</th>
+              <th className="px-3 py-2.5">{o.thBox}</th>
+              <th className="px-3 py-2.5 text-right">{o.thQty}</th>
+              <th className="px-3 py-2.5 text-right">{o.thUnit}</th>
+              <th className="px-4 py-2.5 text-right">{o.thTotal}</th>
+              <th className="px-3 py-2.5">{o.thStatus}</th>
             </tr>
           </thead>
           <tbody>
@@ -146,17 +155,17 @@ export default async function OrderDetailPage({
                   <td className="px-3 py-2 text-ink-soft">{colorway?.name ?? line.colorwayId}</td>
                   <td className="font-mono-tab px-3 py-2 text-ink-soft">{box.label}</td>
                   <td className="font-mono-tab px-3 py-2 text-right tabular-nums text-ink">{line.qty}</td>
-                  <td className="px-3 py-2 text-right tabular-nums text-ink-soft">{formatEUR(line.unitPrice)}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-ink-soft">{formatEUR(line.unitPrice, locale)}</td>
                   <td className="px-4 py-2 text-right font-semibold tabular-nums text-ink">
-                    {formatEUR(lineTotal)}
+                    {formatEUR(lineTotal, locale)}
                   </td>
                   <td className="px-3 py-2">
                     {line.fulfillment === "production" ? (
                       <span className="whitespace-nowrap text-xs font-medium text-ink">
-                        Production{line.productionEta ? ` · ETA ${formatDate(line.productionEta)}` : ""}
+                        {line.productionEta ? t(o.productionEta, { date: formatDate(line.productionEta, locale) }) : o.production}
                       </span>
                     ) : (
-                      <span className="text-xs text-ink-soft">In stock</span>
+                      <span className="text-xs text-ink-soft">{o.inStock}</span>
                     )}
                   </td>
                 </tr>
@@ -170,27 +179,27 @@ export default async function OrderDetailPage({
                 rowSpan={vatTotal > 0 ? 3 : 2}
                 className="px-4 py-3 align-top text-xs font-semibold uppercase tracking-wide text-ink-soft"
               >
-                {totalBoxes} boxes · {totalPairs} pairs
+                {t(o.boxesPairs, { boxes: totalBoxes, pairs: totalPairs })}
               </td>
               <td colSpan={2} className="px-3 py-2 text-right text-xs uppercase tracking-wide text-ink-soft">
-                Subtotal
+                {o.subtotal}
               </td>
-              <td className="px-4 py-2 text-right text-sm tabular-nums text-ink-soft">{formatEUR(total)}</td>
+              <td className="px-4 py-2 text-right text-sm tabular-nums text-ink-soft">{formatEUR(total, locale)}</td>
             </tr>
             {vatTotal > 0 && (
               <tr className="bg-stone-50">
                 <td colSpan={2} className="px-3 py-2 text-right text-xs uppercase tracking-wide text-ink-soft">
-                  VAT
+                  {o.vat}
                 </td>
-                <td className="px-4 py-2 text-right text-sm tabular-nums text-ink-soft">{formatEUR(vatTotal)}</td>
+                <td className="px-4 py-2 text-right text-sm tabular-nums text-ink-soft">{formatEUR(vatTotal, locale)}</td>
               </tr>
             )}
             <tr className="bg-stone-50">
               <td colSpan={2} className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-ink-soft">
-                Order Total
+                {o.orderTotal}
               </td>
               <td className="px-4 py-3 text-right text-base font-semibold tabular-nums text-ink">
-                {formatEUR(grandTotal)}
+                {formatEUR(grandTotal, locale)}
               </td>
             </tr>
           </tfoot>

@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { withLocale } from "@/i18n/paths";
 import { getDictionary } from "@/i18n/getDictionary";
 import type { Locale } from "@/i18n/config";
 import Link from "next/link";
@@ -12,20 +14,25 @@ import { PasswordForm } from "@/components/account/PasswordForm";
 import { ShipToManager } from "@/components/account/ShipToManager";
 import { LinkButton } from "@/components/ui/Button";
 
-export const metadata = { title: "Account", robots: { index: false, follow: false } };
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const dict = await getDictionary(lang as Locale);
+  return { title: dict.dashboard.account, robots: { index: false, follow: false } };
+}
 
 export default async function AccountPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
-  const d = (await getDictionary(lang as Locale)).dashboard;
+  const locale = lang as Locale;
+  const d = (await getDictionary(locale)).dashboard;
   const account = await getCurrentAccount();
-  if (!account) redirect("/login");
+  if (!account) redirect(withLocale(locale, "/login"));
 
   return (
     <div className="mx-auto max-w-[1100px] px-6 py-8 lg:px-10">
       <div className="border-b border-stone-300 pb-6">
         <p className="text-xs text-ink-soft">
-          <Link href="/dashboard" className="hover:text-ink">
-            Dashboard
+          <Link href={withLocale(locale, "/dashboard")} className="hover:text-ink">
+            {d.title}
           </Link>{" "}
           / Account
         </p>
@@ -40,8 +47,8 @@ export default async function AccountPage({ params }: { params: Promise<{ lang: 
           <h2 className="font-display text-lg font-bold uppercase tracking-tight text-ink">{d.wholesaleDashboard}</h2>
           <p className="mt-1 text-sm text-ink-soft">{d.dashboardIntro}</p>
         </div>
-        <LinkButton href="/dashboard" variant="secondary" size="sm">
-          Go to Dashboard
+        <LinkButton href={withLocale(locale, "/dashboard")} variant="secondary" size="sm">
+          {d.goToDashboard}
         </LinkButton>
       </div>
 
@@ -77,7 +84,7 @@ export default async function AccountPage({ params }: { params: Promise<{ lang: 
             <Stat label={d.resaleCert} value={account.resaleCertId} />
             <Stat label={d.businessType} value={account.businessType} />
             <Stat label={d.storeLocation} value={account.storeLocation} />
-            <Stat label={d.applied} value={formatDate(account.appliedAt)} />
+            <Stat label={d.applied} value={formatDate(account.appliedAt, locale)} />
           </div>
           <p className="mt-4 border-t border-stone-200 pt-3 text-xs text-ink-soft">
             Payment terms, minimum order, and compliance fields are managed by your sales rep — contact them below to

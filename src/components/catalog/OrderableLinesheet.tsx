@@ -1,5 +1,8 @@
 "use client";
 
+import { t } from "@/i18n/format";
+import { useI18n } from "@/i18n/I18nProvider";
+import { withLocale } from "@/i18n/paths";
 import { useMemo } from "react";
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
@@ -33,6 +36,8 @@ export function OrderableLinesheet({
   priceMultiplier?: number;
 }) {
   const { eur } = useFormat();
+  const { dict, locale } = useI18n();
+  const d = dict.dashboard;
   const { lines, setLineQty } = useCart();
   const { productionLeadTimeDays } = useCatalog();
   const styleById = useMemo(() => new Map(styles.map((s) => [s.id, s])), [styles]);
@@ -148,16 +153,16 @@ export function OrderableLinesheet({
       {/* Desktop: full linesheet table. */}
       <div className="scroll-thin hidden overflow-x-auto border border-stone-300 lg:block">
         <table className="w-full min-w-[1100px] border-collapse text-sm">
-          <caption className="sr-only">Wholesale linesheet — order quantities by style and colorway</caption>
+          <caption className="sr-only">{d.linesheetCaption}</caption>
           <thead>
             <tr className="border-b border-stone-300 bg-stone-100 text-left text-[11px] uppercase tracking-wide text-ink-soft">
-              <Th>Style</Th>
-              <Th>Colorway</Th>
-              <Th>Delivery</Th>
-              <Th align="right">Price</Th>
-              <Th align="center">8-Pair</Th>
-              <Th align="center">10-Pair</Th>
-              <Th align="center">12-Pair</Th>
+              <Th>{dict.orderDetail.thStyle}</Th>
+              <Th>{dict.orderDetail.thColorway}</Th>
+              <Th>{d.thDelivery}</Th>
+              <Th align="right">{d.thPrice}</Th>
+              <Th align="center">{t(d.pairColumn, { pairs: 8 })}</Th>
+              <Th align="center">{t(d.pairColumn, { pairs: 10 })}</Th>
+              <Th align="center">{t(d.pairColumn, { pairs: 12 })}</Th>
             </tr>
           </thead>
           <tbody>
@@ -246,7 +251,7 @@ export function OrderableLinesheet({
 
       {validations.length > 0 && (
         <div className="mt-6 border border-stone-300 bg-stone-100 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">In your cart from this list</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{d.inYourCartFromList}</p>
           <div className="mt-2 flex flex-col gap-1.5">
             {validations.map((v) => (
               <div key={v.style.id} className="flex items-center justify-between text-sm">
@@ -275,8 +280,8 @@ export function OrderableLinesheet({
           )}
           <span className="font-semibold tabular-nums">Total: {eur(grandTotal)}</span>
         </div>
-        <LinkButton href="/cart" size="md" className={validations.length === 0 ? "pointer-events-none opacity-40" : ""}>
-          Go to Cart
+        <LinkButton href={withLocale(locale, "/cart")} size="md" className={validations.length === 0 ? "pointer-events-none opacity-40" : ""}>
+          {d.goToCart}
         </LinkButton>
       </div>
     </div>

@@ -1,3 +1,7 @@
+import { t } from "@/i18n/format";
+import { withLocale } from "@/i18n/paths";
+import type { Dictionary } from "@/i18n/dictionaries/en";
+import type { Locale } from "@/i18n/config";
 import Link from "next/link";
 import { getEffectiveBasePrice, isOnSale } from "@/lib/pricing";
 import type { Style } from "@/lib/types";
@@ -13,7 +17,18 @@ import type { Style } from "@/lib/types";
  * Reads through `isOnSale`/`getEffectiveBasePrice` rather than comparing `salePrice` itself,
  * so scheduled sale windows are respected exactly as they are at checkout.
  */
-export function SaleBanner({ styles, seasonFiltered = false }: { styles: Style[]; seasonFiltered?: boolean }) {
+export function SaleBanner({
+  styles,
+  seasonFiltered = false,
+  dict,
+  locale,
+}: {
+  styles: Style[];
+  seasonFiltered?: boolean;
+  dict: Dictionary;
+  locale: Locale;
+}) {
+  const d = dict.dashboard;
   const onSale = styles.filter((s) => isOnSale(s));
   if (onSale.length === 0) return null;
 
@@ -24,34 +39,34 @@ export function SaleBanner({ styles, seasonFiltered = false }: { styles: Style[]
   );
   const min = Math.min(...percents);
   const max = Math.max(...percents);
-  const rate = min === max ? `${max}%` : `up to ${max}%`;
+  const rate = min === max ? t(d.saleRateExact, { rate: max }) : t(d.saleRateUpTo, { rate: max });
 
   // Only call it a season sale when the discounted set really is that one season.
   const seasons = new Set(onSale.map((s) => s.season));
   const label =
     seasons.size === 1 && seasons.has("winter")
-      ? "Winter sale"
+      ? d.saleWinter
       : seasons.size === 1 && seasons.has("summer")
-        ? "Summer sale"
-        : "Sale";
+        ? d.saleSummer
+        : d.saleGeneric;
 
   return (
     <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 border-l-2 border-burgundy bg-stone-100 py-3 pl-4 pr-4">
       <span className="font-mono-tab text-[11px] uppercase tracking-[0.22em] text-burgundy">{label}</span>
       <p className="text-[13px] leading-snug text-ink">
-        <span className="font-semibold">{rate} off</span>{" "}
+        <span className="font-semibold">{rate}</span>{" "}
         <span className="text-ink-soft">
-          on {onSale.length} {onSale.length === 1 ? "style" : "styles"} — discount already applied to the prices below.
+          {onSale.length === 1 ? d.saleOnOneStyle : t(d.saleOnStyles, { count: onSale.length })}
         </span>
       </p>
       {/* Links to the sale facet, not the season: "View them" means the discounted styles,
           and `?season=winter` also matched every "both"-season style (17 instead of 8). */}
       {!seasonFiltered && (
         <Link
-          href="/catalogue?flag=sale"
+          href={withLocale(locale, "/catalogue?flag=sale")}
           className="ml-auto shrink-0 text-[11px] font-semibold uppercase tracking-[0.14em] text-burgundy underline-offset-4 hover:underline"
         >
-          View them →
+          {d.viewThem}
         </Link>
       )}
     </div>

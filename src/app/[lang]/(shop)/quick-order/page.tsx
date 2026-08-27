@@ -1,3 +1,5 @@
+import { getDictionary } from "@/i18n/getDictionary";
+import type { Locale } from "@/i18n/config";
 import { Suspense } from "react";
 import { getStorefrontStyles, searchStyleIds } from "@/lib/data/styles";
 import { availableFlagOptions, colorOptionsFromStyles, filterStyles, parseFilters } from "@/lib/catalogFilters";
@@ -11,21 +13,26 @@ import { OrderableLinesheet } from "@/components/catalog/OrderableLinesheet";
 import { commerceMetadata } from "@/lib/seo";
 
 /** Robots follows the global indexing policy — see the catalogue page's note. */
-export function generateMetadata() {
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const dict = await getDictionary(lang as Locale);
   return commerceMetadata({
-    title: "Quick Order",
-    description:
-      "Build a wholesale order across many styles at once — a linesheet view with live stock and box quantities.",
+    title: dict.dashboard.quickOrder,
+    description: dict.dashboard.quickOrderDescription,
     path: "/quick-order",
   });
 }
 
 export default async function QuickOrderPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ lang: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const sp = await searchParams;
+  const { lang } = await params;
+  const d = (await getDictionary(lang as Locale)).dashboard;
   const filters = parseFilters(sp);
   const sortParam = typeof sp.sort === "string" ? sp.sort : "newest";
   const sort = isSortKey(sortParam) ? sortParam : "newest";
@@ -50,10 +57,9 @@ export default async function QuickOrderPage({
     <div className="mx-auto max-w-[1800px] px-6 py-8 lg:px-10 print:px-0 print:py-0">
       <div className="mb-6 flex flex-col gap-3 border-b border-stone-300 pb-6 sm:flex-row sm:items-end sm:justify-between print:hidden">
         <div>
-          <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink sm:text-3xl">Quick Order</h1>
+          <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink sm:text-3xl">{d.quickOrder}</h1>
           <p className="mt-1 max-w-xl text-sm text-ink-soft">
-            The full collection at list price — press + or − on any box size to add it straight to your
-            cart. Payment terms (and any discount) are set at checkout.
+            {d.quickOrderIntro}
           </p>
         </div>
         <LinesheetToolbar styles={results} priceMultiplier={priceMultiplier} />
@@ -75,8 +81,8 @@ export default async function QuickOrderPage({
         <div className="min-w-0 flex-1">
           {results.length === 0 ? (
             <div className="border border-dashed border-stone-300 bg-stone-100 px-6 py-20 text-center">
-              <p className="font-display text-lg font-bold uppercase text-ink">No styles match this filter</p>
-              <p className="mt-2 text-sm text-ink-soft">Clear a filter to see more of the collection.</p>
+              <p className="font-display text-lg font-bold uppercase text-ink">{d.noStylesMatch}</p>
+              <p className="mt-2 text-sm text-ink-soft">{d.clearAFilter}</p>
             </div>
           ) : (
             <OrderableLinesheet styles={results} inventory={inventory} priceMultiplier={priceMultiplier} />

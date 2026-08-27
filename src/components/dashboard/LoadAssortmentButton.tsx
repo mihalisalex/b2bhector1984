@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/i18n/I18nProvider";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
@@ -10,6 +11,7 @@ import type { BoxTypeId, SavedAssortmentLine } from "@/lib/types";
 /** Only lines saved after migration 0021 carry colorway/box detail — older
  * assortments (style ids only) can't be loaded directly, just browsed below. */
 export function LoadAssortmentButton({ lines, className }: { lines: SavedAssortmentLine[]; className?: string }) {
+  const d = useI18n().dict.dashboard;
   const { addLines, lines: cartLines } = useCart();
   const router = useRouter();
   const [done, setDone] = useState(false);
@@ -42,7 +44,7 @@ export function LoadAssortmentButton({ lines, className }: { lines: SavedAssortm
       onClick={handleLoad}
       className={className ?? textActionClassNames("accent")}
     >
-      {done ? "Added — opening cart…" : "Load into cart"}
+      {done ? d.addedOpeningCart : d.loadIntoCart}
     </button>
   );
 }
