@@ -1,59 +1,44 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { LinkButton } from "@/components/ui/Button";
+import { getDictionary } from "@/i18n/getDictionary";
+import { withLocale } from "@/i18n/paths";
+import type { Locale } from "@/i18n/config";
 
-export const metadata = {
-  title: "Privacy Policy",
-  description: "Privacy Policy for Hector Footwear Wholesale.",
-  robots: { index: false, follow: false },
-};
-
-interface Clause {
-  q: string;
-  a: string;
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const l = (await getDictionary(lang as Locale)).legal;
+  return { title: l.privacyTitle, description: l.privacyDescription, robots: { index: false, follow: false } };
 }
 
-const CLAUSES: Clause[] = [
-  {
-    q: "What we collect",
-    a: "Business and contact details you provide when applying for or maintaining a wholesale account (business name, contact name, email, phone, resale certificate, ship-to addresses), plus order history and account activity.",
-  },
-  {
-    q: "How we use it",
-    a: "To operate your wholesale account — processing orders, applying your negotiated terms, coordinating with your territory rep, and sending order-related notifications.",
-  },
-  {
-    q: "Who it's shared with",
-    a: "Your information is used internally by Hector Footwear Wholesale and your assigned territory rep. We don't sell account data to third parties.",
-  },
-  {
-    q: "Data retention",
-    a: "Account and order records are retained for as long as your account is active, and as needed to satisfy business and accounting requirements after closure.",
-  },
-  {
-    q: "Your choices",
-    a: "You can review and update your business/contact details and ship-to addresses at any time from Account Settings, or by contacting your rep.",
-  },
-];
+export default async function PrivacyPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const locale = lang as Locale;
+  const l = (await getDictionary(locale)).legal;
 
-export default function PrivacyPage() {
+  const clauses = [
+    { q: l.privacyQ1, a: l.privacyA1 },
+    { q: l.privacyQ2, a: l.privacyA2 },
+    { q: l.privacyQ3, a: l.privacyA3 },
+    { q: l.privacyQ4, a: l.privacyA4 },
+    { q: l.privacyQ5, a: l.privacyA5 },
+  ];
+
   return (
     <div>
       {/* Flat, left-aligned header — matches /collections instead of the centered
           stone-100 card this used to open with. */}
       <div className="mx-auto max-w-[900px] px-6 pb-4 pt-12 lg:px-10">
-        <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">Legal</span>
+        <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">{l.eyebrow}</span>
         <h1 className="font-display mt-2 text-3xl font-bold uppercase leading-[1.05] tracking-tight text-ink sm:text-4xl">
-          Privacy Policy
+          {l.privacyTitle}
         </h1>
-        <p className="mt-2 max-w-lg text-sm leading-relaxed text-ink-soft">
-          This page is illustrative, demo-appropriate boilerplate — it is not real legal advice and
-          shouldn&rsquo;t be relied on as such.
-        </p>
+        <p className="mt-2 max-w-lg text-sm leading-relaxed text-ink-soft">{l.disclaimer}</p>
       </div>
 
       <section className="mx-auto max-w-[900px] px-6 py-12 lg:px-10">
         <div className="divide-y divide-stone-200">
-          {CLAUSES.map((clause) => (
+          {clauses.map((clause) => (
             <div key={clause.q} className="py-5">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-ink">{clause.q}</h2>
               <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-ink-soft">{clause.a}</p>
@@ -66,17 +51,17 @@ export default function PrivacyPage() {
         <div className="mx-auto flex max-w-[1440px] flex-col items-start justify-between gap-6 px-6 sm:flex-row sm:items-center lg:px-10">
           <div>
             <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-white">
-              Questions about your data?
+              {l.privacyCtaHeading}
             </h2>
             <p className="mt-1 text-sm text-stone-300/80">
-              <Link href="/contact" className="underline underline-offset-2 hover:text-white">
-                Contact us
+              <Link href={withLocale(locale, "/contact")} className="underline underline-offset-2 hover:text-white">
+                {l.contactUs}
               </Link>{" "}
-              — every inquiry is answered by someone on the team, usually within two business days.
+              {l.contactSuffix}
             </p>
           </div>
-          <LinkButton href="/cookies" size="lg" className="!bg-white !text-ink hover:!bg-stone-200">
-            Cookie Notice
+          <LinkButton href={withLocale(locale, "/cookies")} size="lg" className="!bg-white !text-ink hover:!bg-stone-200">
+            {l.privacyCtaButton}
           </LinkButton>
         </div>
       </section>
