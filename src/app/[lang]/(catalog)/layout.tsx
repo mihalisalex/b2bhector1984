@@ -52,6 +52,7 @@ export default async function CatalogLayout({
         <HomeAnnouncementBar
           enabled={hero.announcementEnabled}
           text={hero.announcementText}
+          textEl={hero.announcementTextEl}
           href={hero.announcementHref}
           color={hero.announcementColor}
         />

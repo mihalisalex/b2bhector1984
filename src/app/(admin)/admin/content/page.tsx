@@ -74,8 +74,8 @@ export default async function AdminContentPage() {
             <p className="mt-0.5 text-[11px] font-normal normal-case tracking-normal text-ink-soft/70">
               The bar above the hero on the homepage — e.g. a season or collection launch. Unchecked hides it.
             </p>
-            <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-[1fr_180px]">
-              <Field label="Text">
+            <div className="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <Field label="Text — English">
                 <input
                   type="text"
                   name="announcementText"
@@ -84,16 +84,26 @@ export default async function AdminContentPage() {
                   className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
                 />
               </Field>
-              <Field label="Links to">
+              <Field label="Text — Ελληνικά" hint="Empty falls back to the English text.">
                 <input
                   type="text"
-                  name="announcementHref"
-                  defaultValue={hero.announcementHref}
-                  placeholder="/catalogue"
+                  name="announcementTextEl"
+                  defaultValue={hero.announcementTextEl}
+                  lang="el"
+                  placeholder="Δεν έχει συμπληρωθεί"
                   className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
                 />
               </Field>
             </div>
+            <Field label="Links to">
+              <input
+                type="text"
+                name="announcementHref"
+                defaultValue={hero.announcementHref}
+                placeholder="/catalogue"
+                className="w-full max-w-[240px] border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
+              />
+            </Field>
             <Field label="Bar color">
               <select
                 name="announcementColor"

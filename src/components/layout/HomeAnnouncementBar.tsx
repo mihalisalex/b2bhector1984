@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { stripLocale } from "@/i18n/paths";
+import { stripLocale, withLocale } from "@/i18n/paths";
+import { useI18n } from "@/i18n/I18nProvider";
 import { cn } from "@/lib/cn";
 
 const COLOR_CLASSES: Record<"black" | "burgundy", string> = {
@@ -23,28 +24,35 @@ const COLOR_CLASSES: Record<"black" | "burgundy", string> = {
 export function HomeAnnouncementBar({
   enabled,
   text,
+  textEl,
   href,
   color = "black",
 }: {
   enabled: boolean;
   text: string;
+  /** Greek text (migration 0039). Empty falls back to `text` — the bar renders above the
+   * hero on BOTH domains, so before this existed whichever language it was written in
+   * was also what the other domain showed. */
+  textEl: string;
   href: string;
   /** Admin-selectable on /admin/content — see COLOR_CLASSES above. */
   color?: "black" | "burgundy";
 }) {
   const pathname = usePathname();
+  const { locale } = useI18n();
+  const copy = locale === "el" && textEl ? textEl : text;
   const { path } = stripLocale(pathname);
-  if (path !== "/" || !enabled || !text) return null;
+  if (path !== "/" || !enabled || !copy) return null;
 
   return (
     <Link
-      href={href}
+      href={withLocale(locale, href)}
       className={cn(
         "block px-4 py-2.5 text-center text-[11px] font-semibold uppercase tracking-[0.15em] text-white transition-colors",
         COLOR_CLASSES[color],
       )}
     >
-      {text}
+      {copy}
     </Link>
   );
 }

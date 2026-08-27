@@ -465,6 +465,7 @@ export async function updateHomepageHeroAction(formData: FormData) {
     secondaryCtaLabelEl: String(formData.get("secondaryCtaLabelEl") ?? ""),
     announcementEnabled: formData.get("announcementEnabled") === "on",
     announcementText: String(formData.get("announcementText") ?? ""),
+    announcementTextEl: String(formData.get("announcementTextEl") ?? ""),
     announcementHref: String(formData.get("announcementHref") ?? ""),
     announcementColor: formData.get("announcementColor") === "burgundy" ? "burgundy" : "black",
     whatsappClosingNote: String(formData.get("whatsappClosingNote") ?? ""),

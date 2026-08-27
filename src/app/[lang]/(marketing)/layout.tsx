@@ -26,6 +26,7 @@ export default async function MarketingLayout({
       <HomeAnnouncementBar
         enabled={hero.announcementEnabled}
         text={hero.announcementText}
+        textEl={hero.announcementTextEl}
         href={hero.announcementHref}
         color={hero.announcementColor}
       />
