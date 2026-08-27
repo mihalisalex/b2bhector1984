@@ -37,10 +37,10 @@ export default async function PrivacyPage({ params }: { params: Promise<{ lang: 
       </div>
 
       <section className="mx-auto max-w-[900px] px-6 py-12 lg:px-10">
-        <div className="flex flex-col gap-8">
+        <div className="divide-y divide-stone-200">
           {clauses.map((clause) => (
-            <div key={clause.q} className="border-t border-stone-300 pt-6">
-              <h2 className="font-display text-lg font-bold uppercase tracking-tight text-ink">{clause.q}</h2>
+            <div key={clause.q} className="py-5">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-ink">{clause.q}</h2>
               <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-ink-soft">{clause.a}</p>
             </div>
           ))}
