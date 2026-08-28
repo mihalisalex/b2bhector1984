@@ -51,7 +51,7 @@ export function MainNav({ account }: { account: Account | null }) {
     () => [
       { href: "/quick-order", label: dict.nav.quickOrder },
       { href: "/catalogue", label: dict.nav.catalogue },
-      { href: "/brand-story", label: dict.nav.theBrand },
+      { href: "/contact", label: dict.nav.contact },
     ],
     [dict],
   );
