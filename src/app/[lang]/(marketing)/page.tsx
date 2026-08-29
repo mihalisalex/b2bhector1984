@@ -1,22 +1,20 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getStorefrontStyles, getStyleImageUrl } from "@/lib/data/styles";
-import { categoryLabel } from "@/lib/data/styleLabels";
+import { getStorefrontStyles } from "@/lib/data/styles";
 import { getHomepageHero } from "@/lib/data/siteContent";
 import { getSeasonSettings, toSeasonOptions } from "@/lib/data/seasonSettings";
 import { getOrderPulse } from "@/lib/data/orderPulse";
 import { OrderPulse } from "@/components/marketing/OrderPulse";
 import { NewArrivals, pickNewArrivals } from "@/components/marketing/NewArrivals";
+import { SeasonShowcase } from "@/components/marketing/SeasonShowcase";
+import { pickSeasonStyles, countSeasonStyles } from "@/lib/seasonShowcase";
 import { listImagesForStyles } from "@/lib/data/styleImages";
 import { getCurrentAccount } from "@/lib/session";
-import type { Category, Season } from "@/lib/types";
 import { LinkButton } from "@/components/ui/Button";
-import { StylePlate } from "@/components/product/StylePlate";
 import { pageMetadata } from "@/lib/seo";
 import { getDictionary } from "@/i18n/getDictionary";
 import type { Locale } from "@/i18n/config";
 import { withLocale } from "@/i18n/paths";
-import { t } from "@/i18n/format";
 
 /** Declared here (not inherited from the root layout's defaults) so the homepage gets its
  * own canonical, hreflang set, and a self-referencing og:url like every other indexed page.
@@ -34,10 +32,6 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   });
 }
 
-const SEASON_CATEGORIES: Record<Season, Category[]> = {
-  summer: ["loafers", "wedding", "sneakers", "sandals"],
-  winter: ["boots", "sneakers", "formal", "anatomic"],
-};
 
 export default async function HomePage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang: rawLang } = await params;
@@ -55,8 +49,18 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const newArrivals = pickNewArrivals(styles);
   const newArrivalImages = newArrivals.length > 0 ? await listImagesForStyles(newArrivals.map((s) => s.id)) : {};
 
+
   const h = dict.home;
   const seasonOptions = toSeasonOptions(seasonSettings);
+
+  // Season showcase: three styles per season, so the image lookup covers exactly
+  // those and the new-arrival tiles, not the whole catalogue.
+  const seasonValues = seasonOptions.map((o) => o.value);
+  const seasonShowcaseStyles = pickSeasonStyles(styles, seasonValues);
+  const seasonShowcaseCounts = countSeasonStyles(styles, seasonValues);
+  const seasonShowcaseImages = await listImagesForStyles(
+    Object.values(seasonShowcaseStyles).flat().map((s) => s.id),
+  );
   // Hero copy, in precedence order.
   //
   // English uses the admin's live DB row, exactly as it always has. Greek now has its own
@@ -206,96 +210,20 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         </div>
       </section>
 
-      {/* Season spotlight — one full-width editorial row per enabled season, alternating
-          text/image sides, instead of a 2-up grid that left a dead cell whenever a season
-          had no styles yet (see the homepage redesign discussion for why). */}
-      {seasonOptions.map(({ value: season, label }, index) => {
-        // A "both" style belongs to Summer and Winter at once, so it counts toward each
-        // season's spotlight row regardless of which one is being rendered.
-        const seasonStyles = styles.filter((s) => s.season === season || s.season === "both");
-        const rep = seasonStyles[0];
-        if (!rep) return null;
-        const imageUrl = seasonSettings[season].teaserImageUrl || getStyleImageUrl(rep);
-        const imageOnRight = index % 2 === 0;
-
-        const imagePanel = (
-          <Link
-            href={withLocale(lang, `/collections?season=${season}`)}
-            className="group relative block aspect-[4/3] overflow-hidden bg-ink sm:aspect-[4/3] lg:aspect-[3/2]"
-          >
-            <StylePlate
-              swatch={rep.colorways[0].swatch}
-              imageUrl={imageUrl}
-              alt={rep.name}
-              // Deliberately NOT preloaded. This panel sits below a 94vh hero, so it is
-              // never the LCP element, but `priority` was emitting a second <link rel=
-              // preload> that competed with the hero image for bandwidth on slow mobile
-              // connections. Lazy (the default) is correct here.
-              className="h-full w-full transition-transform duration-500 ease-out group-hover:scale-[1.03]"
-            />
-            <div
-              className="absolute inset-0"
-              style={{
-                background: imageOnRight
-                  ? "linear-gradient(260deg, rgba(8,9,11,0.5) 0%, rgba(8,9,11,0.02) 40%)"
-                  : "linear-gradient(100deg, rgba(8,9,11,0.5) 0%, rgba(8,9,11,0.02) 40%)",
-              }}
-              aria-hidden
-            />
-            <span
-              aria-hidden
-              className="font-display absolute top-4 text-6xl font-extrabold leading-none text-white/20 sm:text-7xl"
-              style={imageOnRight ? { right: "1rem" } : { left: "1rem" }}
-            >
-              {String(index + 1).padStart(2, "0")}
-            </span>
-          </Link>
-        );
-
-        const textPanel = (
-          <div className="flex flex-col justify-center px-6 py-12 lg:px-14">
-            <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">
-              {index === 0 ? h.currentDrop : h.alsoAvailable}
-            </span>
-            <h2 className="font-display mt-3 text-2xl font-bold uppercase leading-[1.05] tracking-tight text-ink sm:text-3xl">
-              {label}
-            </h2>
-            <p className="mt-3 max-w-xs text-sm leading-relaxed text-ink-soft">
-              {t(h.stylesCount, {
-                count: seasonStyles.length,
-                categories: SEASON_CATEGORIES[season].map((c) => categoryLabel(dict, c)).join(", "),
-              })}
-            </p>
-            <Link
-              href={withLocale(lang, `/collections?season=${season}`)}
-              className="group mt-5 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-ink hover:text-signal"
-            >
-              {h.viewLookbook}
-              <span aria-hidden className="transition-transform duration-150 group-hover:translate-x-1">
-                →
-              </span>
-            </Link>
-          </div>
-        );
-
-        return (
-          <section key={season} className="border-b border-stone-300 bg-white">
-            <div className="grid grid-cols-1 sm:grid-cols-2">
-              {imageOnRight ? (
-                <>
-                  {textPanel}
-                  {imagePanel}
-                </>
-              ) : (
-                <>
-                  {imagePanel}
-                  {textPanel}
-                </>
-              )}
-            </div>
-          </section>
-        );
-      })}
+      {/* Season showcase: a toggle, three products, and a fourth cell into that
+          season on /collections. Replaced the two full-width editorial rows —
+          same information, one screen instead of two, and the products are real
+          tiles a buyer can click rather than a single representative photo. */}
+      <SeasonShowcase
+        seasonOptions={seasonOptions}
+        stylesBySeason={seasonShowcaseStyles}
+        countsBySeason={seasonShowcaseCounts}
+        imagesByStyle={seasonShowcaseImages}
+        showPricing={Boolean(account)}
+        priceMultiplier={account?.priceMultiplier ?? 1}
+        locale={lang}
+        dict={dict}
+      />
 
       {/* Built for operators */}
       <section className="border-y border-stone-300 bg-stone-100 py-20">
