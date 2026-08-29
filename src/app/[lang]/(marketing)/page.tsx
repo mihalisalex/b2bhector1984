@@ -6,6 +6,9 @@ import { getHomepageHero } from "@/lib/data/siteContent";
 import { getSeasonSettings, toSeasonOptions } from "@/lib/data/seasonSettings";
 import { getOrderPulse } from "@/lib/data/orderPulse";
 import { OrderPulse } from "@/components/marketing/OrderPulse";
+import { NewArrivals, pickNewArrivals } from "@/components/marketing/NewArrivals";
+import { listImagesForStyles } from "@/lib/data/styleImages";
+import { getCurrentAccount } from "@/lib/session";
 import type { Category, Season } from "@/lib/types";
 import { LinkButton } from "@/components/ui/Button";
 import { StylePlate } from "@/components/product/StylePlate";
@@ -39,13 +42,19 @@ const SEASON_CATEGORIES: Record<Season, Category[]> = {
 export default async function HomePage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang: rawLang } = await params;
   const lang = rawLang as Locale;
-  const [styles, hero, seasonSettings, dict, pulse] = await Promise.all([
+  const [styles, hero, seasonSettings, dict, pulse, account] = await Promise.all([
     getStorefrontStyles(),
     getHomepageHero(),
     getSeasonSettings(),
     getDictionary(lang),
     getOrderPulse(),
+    getCurrentAccount(),
   ]);
+  // Curated shelf (migration 0040). Only the flagged styles need their photos, so the
+  // image lookup is scoped to them rather than the whole catalogue.
+  const newArrivals = pickNewArrivals(styles);
+  const newArrivalImages = newArrivals.length > 0 ? await listImagesForStyles(newArrivals.map((s) => s.id)) : {};
+
   const h = dict.home;
   const seasonOptions = toSeasonOptions(seasonSettings);
   // Hero copy, in precedence order.
@@ -174,7 +183,17 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
       {/* Live order-activity strip (2026-08-14). Every figure is a real query — it renders
           nothing at all when there isn't enough genuine activity to report, rather than
           padding itself out. See OrderPulse / lib/data/orderPulse. */}
-      <OrderPulse pulse={pulse} locale={lang} dict={dict} />
+      {hero.orderPulseEnabled && <OrderPulse pulse={pulse} locale={lang} dict={dict} />}
+
+      {/* Curated "new arrivals" shelf, in the slot the live-order strip used to hold. */}
+      <NewArrivals
+        styles={newArrivals}
+        imagesByStyle={newArrivalImages}
+        showPricing={Boolean(account)}
+        priceMultiplier={account?.priceMultiplier ?? 1}
+        locale={lang}
+        dict={dict}
+      />
 
       {/* Easy steps to order, right up top for first-time buyers */}
       <section className="border-b border-stone-300 bg-white py-16">

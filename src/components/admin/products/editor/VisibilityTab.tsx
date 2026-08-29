@@ -78,6 +78,11 @@ export function VisibilityTab({ style, canEdit }: { style: Style; canEdit: boole
         Featured product
       </label>
 
+      <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
+        <input type="checkbox" name="newArrival" defaultChecked={style.newArrival} disabled={!canEdit} className="h-4 w-4 accent-ink" />
+        New arrival — show on the homepage
+      </label>
+
       {canEdit && (
         <button type="submit" disabled={isPending} className="border border-ink bg-ink px-5 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85 disabled:opacity-50">
           {isPending ? "Saving…" : "Save visibility"}

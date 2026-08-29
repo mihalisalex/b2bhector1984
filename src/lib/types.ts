@@ -219,6 +219,9 @@ export interface Style {
   collectionIds: string[];
   status: ProductStatus;
   featured: boolean;
+  /** Curated homepage shelf (migration 0040). Separate from `featured`, which drives the
+   * catalogue filter facet — see the migration for why they are not the same column. */
+  newArrival: boolean;
   publishAt?: string;
 
   // --- Pricing ---

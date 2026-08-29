@@ -464,6 +464,7 @@ export async function updateHomepageHeroAction(formData: FormData) {
     primaryCtaLabelEl: String(formData.get("primaryCtaLabelEl") ?? ""),
     secondaryCtaLabelEl: String(formData.get("secondaryCtaLabelEl") ?? ""),
     announcementEnabled: formData.get("announcementEnabled") === "on",
+    orderPulseEnabled: formData.get("orderPulseEnabled") === "on",
     announcementText: String(formData.get("announcementText") ?? ""),
     announcementTextEl: String(formData.get("announcementTextEl") ?? ""),
     announcementHref: String(formData.get("announcementHref") ?? ""),

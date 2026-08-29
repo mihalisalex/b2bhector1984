@@ -43,6 +43,7 @@ interface StyleRow {
   tags?: string[];
   status?: ProductStatus;
   featured?: boolean;
+  new_arrival?: boolean;
   publish_at?: string | null;
   cost_price?: number | string | null;
   distributor_price?: number | string | null;
@@ -194,6 +195,7 @@ function assembleStyles(
       collectionIds: [],
       status: s.status ?? "active",
       featured: s.featured ?? false,
+      newArrival: s.new_arrival ?? false,
       publishAt: s.publish_at ?? undefined,
 
       costPrice: toNumber(s.cost_price ?? 0),

@@ -116,6 +116,18 @@ export default async function AdminContentPage() {
             </Field>
           </div>
 
+          <div className="border border-stone-300 bg-stone-100 p-4">
+            <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-ink-soft">
+              <input type="checkbox" name="orderPulseEnabled" defaultChecked={hero.orderPulseEnabled} className="h-4 w-4 accent-ink" />
+              Live order activity strip
+            </label>
+            <p className="mt-0.5 text-[11px] font-normal normal-case tracking-normal text-ink-soft/70">
+              The dark band on the homepage showing today&rsquo;s order counts and the month&rsquo;s
+              best seller. Every figure is a real query, and it hides itself when there is not
+              enough genuine activity to report. Unchecked hides it outright.
+            </p>
+          </div>
+
           {/*
             English and Greek side by side. Greek fields are deliberately NOT `required`:
             an empty Greek hero is a valid, expected state (it falls back to English), and
