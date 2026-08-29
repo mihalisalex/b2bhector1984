@@ -56,7 +56,7 @@ export function NewArrivals({
           </LinkButton>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 sm:gap-y-10 lg:grid-cols-4">
           {styles.map((style) => (
             <ProductCard
               key={style.id}
