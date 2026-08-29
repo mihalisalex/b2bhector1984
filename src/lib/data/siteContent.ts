@@ -33,6 +33,9 @@ export interface HomepageHero {
    * migration 0024 — `mapHero` defaults these when the columns aren't there yet, so an
    * unmigrated database just doesn't show the bar instead of crashing the homepage. */
   announcementEnabled: boolean;
+  /** The live order-activity strip (migration 0040). Off by default — the component and its
+   * query stay in place so this is a switch, not a deletion. */
+  orderPulseEnabled: boolean;
   announcementText: string;
   /** Greek text for the same bar (migration 0039). Empty falls back to `announcementText`
    * — the bar sits above the hero on BOTH domains, so a single shared field meant whichever
@@ -66,6 +69,7 @@ interface HeroRow {
   primary_cta_label_el?: string | null;
   secondary_cta_label_el?: string | null;
   announcement_enabled?: boolean | null;
+  order_pulse_enabled?: boolean | null;
   announcement_text?: string | null;
   announcement_text_el?: string | null;
   announcement_href?: string | null;
@@ -90,6 +94,7 @@ function mapHero(row: HeroRow): HomepageHero {
     primaryCtaLabelEl: row.primary_cta_label_el ?? "",
     secondaryCtaLabelEl: row.secondary_cta_label_el ?? "",
     announcementEnabled: row.announcement_enabled ?? false,
+    orderPulseEnabled: row.order_pulse_enabled ?? false,
     announcementText: row.announcement_text ?? "",
     announcementTextEl: row.announcement_text_el ?? "",
     announcementHref: row.announcement_href ?? "/catalogue",
@@ -139,6 +144,9 @@ export async function updateHomepageHero(input: {
   primaryCtaLabelEl: string;
   secondaryCtaLabelEl: string;
   announcementEnabled: boolean;
+  /** The live order-activity strip (migration 0040). Off by default — the component and its
+   * query stay in place so this is a switch, not a deletion. */
+  orderPulseEnabled: boolean;
   announcementText: string;
   /** Greek text for the same bar (migration 0039). Empty falls back to `announcementText`
    * — the bar sits above the hero on BOTH domains, so a single shared field meant whichever
@@ -168,6 +176,7 @@ export async function updateHomepageHero(input: {
       primary_cta_label_el: input.primaryCtaLabelEl.trim() || null,
       secondary_cta_label_el: input.secondaryCtaLabelEl.trim() || null,
       announcement_enabled: input.announcementEnabled,
+      order_pulse_enabled: input.orderPulseEnabled,
       announcement_text: input.announcementText,
       announcement_text_el: input.announcementTextEl.trim() || null,
       announcement_color: input.announcementColor,

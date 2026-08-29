@@ -431,10 +431,11 @@ export async function updateStyleVisibility(
   status: ProductStatus,
   featured: boolean,
   publishAt?: string,
+  newArrival?: boolean,
 ): Promise<void> {
   const { error } = await supabaseAdmin
     .from("styles")
-    .update({ status, featured, publish_at: publishAt ?? null })
+    .update({ status, featured, new_arrival: newArrival ?? false, publish_at: publishAt ?? null })
     .eq("id", styleId);
   if (error) throw new Error(`styles: ${error.message}`);
 }

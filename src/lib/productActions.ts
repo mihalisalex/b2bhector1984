@@ -426,8 +426,9 @@ export async function updateVisibilityAction(styleId: string, _prev: FormState, 
   const admin = await requirePermission("products.edit");
   const status = String(formData.get("status") ?? "active") as ProductStatus;
   const featured = formData.get("featured") === "on";
+  const newArrival = formData.get("newArrival") === "on";
   const publishAt = String(formData.get("publishAt") ?? "").trim() || undefined;
-  const failure = await runOrError(() => updateStyleVisibility(styleId, status, featured, publishAt));
+  const failure = await runOrError(() => updateStyleVisibility(styleId, status, featured, publishAt, newArrival));
   if (failure) return failure;
   await logAudit(admin.id, "product.updated", "style", styleId, `status -> ${status}${featured ? " (featured)" : ""}`);
   revalidateProduct(styleId);

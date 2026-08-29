@@ -29,6 +29,7 @@ type SeedStyle = Omit<
   | "collectionIds"
   | "status"
   | "featured"
+  | "newArrival"
   | "publishAt"
   | "costPrice"
   | "distributorPrice"
