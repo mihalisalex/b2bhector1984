@@ -672,7 +672,7 @@ const de: Dictionary = {
     unavailableHintPlural: "Entfernen Sie diese auf der Warenkorbseite, um zur Kasse zu gehen.",
   },
   cookieBanner: {
-    body: "Diese Website verwendet ausschließlich notwendige Cookies, damit Sie angemeldet bleiben und Ihr Großhandelsantrag nachverfolgt werden kann. Details finden Sie in unserer {link}.",
+    body: "Diese Website verwendet notwendige Cookies, damit Sie angemeldet bleiben und Ihr Großhandelsantrag nachverfolgt werden kann, sowie Google Analytics zur Messung der Nutzung. Details finden Sie in unserer {link}.",
     accept: "Verstanden",
   },
   legal: {
@@ -726,10 +726,8 @@ const de: Dictionary = {
     cookiesDescription: "Cookie-Hinweis von Hector Footwear Wholesale.",
     cookiesCtaHeading: "Fragen zu Cookies oder Daten?",
     cookiesCtaButton: "Datenschutzerklärung",
-    cookiesIntro:
-      "Hector Footwear Wholesale verwendet eine kleine Zahl notwendiger Cookies für den Betrieb des Bestellportals. Wir setzen keine Werbe- oder Tracking-Cookies Dritter ein.",
-    cookiesOutro:
-      "Da alle oben genannten Cookies für die Anmeldung und Bestellung notwendig sind, gibt es nichts Optionales abzulehnen — das Schließen des Cookie-Hinweises bestätigt lediglich, dass Sie ihn gelesen haben.",
+    cookiesIntro: "Hector Footwear Wholesale verwendet eine kleine Zahl notwendiger Cookies für den Betrieb des Bestellportals sowie Google Analytics, um die Nutzung der Website zu verstehen. Wir setzen keine Werbe- oder Retargeting-Cookies ein und verkaufen unsere Messdaten nicht.",
+    cookiesOutro: "Die notwendigen Cookies lassen sich nicht abschalten, ohne Anmeldung und Bestellung unbrauchbar zu machen. Die Analyse-Cookies können Sie in den Einstellungen Ihres Browsers oder mit dem Opt-out-Add-on von Google blockieren — einen Schalter auf der Seite gibt es derzeit nicht. Das Schließen des Cookie-Hinweises bestätigt lediglich, dass Sie ihn gelesen haben; es ändert nichts an dem, was gesetzt wird.",
     cookieColName: "Cookie",
     cookieColPurpose: "Zweck",
     cookieColType: "Art",
@@ -739,6 +737,12 @@ const de: Dictionary = {
     cookie2Name: "Cookie für laufende Anträge",
     cookie2Purpose: "Verfolgt einen eingereichten Großhandelsantrag, damit Sie dessen Status prüfen können, bevor ein Konto besteht.",
     cookie2Type: "Notwendig",
+    cookie3Name: "_ga",
+    cookie3Purpose: "Google Analytics — unterscheidet Besucher voneinander, damit Besuche gezählt werden können.",
+    cookie3Type: "Analyse — optional",
+    cookie4Name: "_ga_GDV45R4P8D",
+    cookie4Purpose: "Google Analytics — hält den Sitzungsstatus für das Analyse-Konto dieser Website.",
+    cookie4Type: "Analyse — optional",
   },
   footer: {
     tagline: "Schuhe aus Vollnarbenleder, so vertrieben, wie es anspruchsvolle Einzelhändler erwarten. Seit 1984.",

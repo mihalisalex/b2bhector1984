@@ -672,7 +672,7 @@ const fr: Dictionary = {
     unavailableHintPlural: "Retirez-les sur la page du panier pour passer commande.",
   },
   cookieBanner: {
-    body: "Ce site utilise uniquement des cookies essentiels, pour vous garder connecté et suivre votre demande de compte professionnel. Consultez notre {link} pour plus de détails.",
+    body: "Ce site utilise des cookies essentiels pour vous garder connecté et suivre votre demande de compte professionnel, ainsi que Google Analytics pour mesurer l’utilisation du site. Consultez notre {link} pour plus de détails.",
     accept: "J’ai compris",
   },
   legal: {
@@ -726,10 +726,8 @@ const fr: Dictionary = {
     cookiesDescription: "Politique de cookies de Hector Footwear Wholesale.",
     cookiesCtaHeading: "Des questions sur les cookies ou vos données ?",
     cookiesCtaButton: "Politique de confidentialité",
-    cookiesIntro:
-      "Hector Footwear Wholesale utilise un petit nombre de cookies essentiels pour faire fonctionner le portail de commande. Nous n’utilisons pas de cookies publicitaires ni de traceurs tiers.",
-    cookiesOutro:
-      "Tous les cookies ci-dessus étant essentiels à la connexion et à la commande, il n’y a rien d’optionnel à refuser — fermer le bandeau revient simplement à accuser réception de cet avis.",
+    cookiesIntro: "Hector Footwear Wholesale utilise un petit nombre de cookies essentiels pour faire fonctionner le portail de commande, ainsi que Google Analytics pour comprendre l’usage du site. Nous n’utilisons pas de cookies publicitaires ni de reciblage, et nous ne vendons pas ce que nous mesurons.",
+    cookiesOutro: "Les cookies essentiels ne peuvent pas être désactivés sans casser la connexion et la commande. Les cookies de mesure peuvent être bloqués dans les paramètres de votre navigateur ou via le module de désactivation de Google — il n’existe pas de bouton sur la page aujourd’hui. Fermer le bandeau revient à accuser réception de cet avis ; cela ne change rien à ce qui est déposé.",
     cookieColName: "Cookie",
     cookieColPurpose: "Finalité",
     cookieColType: "Type",
@@ -739,6 +737,12 @@ const fr: Dictionary = {
     cookie2Name: "Cookie de demande en cours",
     cookie2Purpose: "Suit une demande de compte professionnel envoyée, afin que vous puissiez en vérifier le statut avant la création du compte.",
     cookie2Type: "Essentiel",
+    cookie3Name: "_ga",
+    cookie3Purpose: "Google Analytics — distingue les visiteurs afin de comptabiliser les visites.",
+    cookie3Type: "Mesure d’audience — optionnel",
+    cookie4Name: "_ga_GDV45R4P8D",
+    cookie4Purpose: "Google Analytics — conserve l’état de session pour le compte de mesure du site.",
+    cookie4Type: "Mesure d’audience — optionnel",
   },
   footer: {
     tagline: "Des chaussures en cuir pleine fleur, distribuées comme les détaillants exigeants l'attendent. Depuis 1984.",

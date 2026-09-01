@@ -16,12 +16,15 @@ export default async function CookiesPage({ params }: { params: Promise<{ lang: 
   const locale = lang as Locale;
   const l = (await getDictionary(locale)).legal;
 
-  // Both rows describe cookies this app actually sets — `hector_session` and
-  // `hector_application`. Adding a row here without adding the cookie (or vice versa) is
-  // how a cookie notice starts lying, so keep the two in step.
+  // Every row describes a cookie this site actually sets: `hector_session` and
+  // `hector_application` from the app itself, plus the two Google Analytics cookies added
+  // with the GA tag. A row without its cookie, or a cookie without its row, is how a
+  // cookie notice starts lying — keep them in step.
   const cookies = [
     { name: l.cookie1Name, purpose: l.cookie1Purpose, type: l.cookie1Type },
     { name: l.cookie2Name, purpose: l.cookie2Purpose, type: l.cookie2Type },
+    { name: l.cookie3Name, purpose: l.cookie3Purpose, type: l.cookie3Type },
+    { name: l.cookie4Name, purpose: l.cookie4Purpose, type: l.cookie4Type },
   ];
 
   return (
