@@ -1,4 +1,7 @@
+"use client";
+
 import Script from "next/script";
+import { useConsent } from "@/components/analytics/ConsentProvider";
 
 /**
  * GA4 measurement ID. Public by design — it ships in the page source of every site that
@@ -8,21 +11,29 @@ import Script from "next/script";
 export const GA_MEASUREMENT_ID = "G-GDV45R4P8D";
 
 /**
- * The Google tag, loaded once from the locale layout so it covers every buyer-facing page
- * on both domains.
+ * Google Analytics, loaded only after the visitor has said yes.
  *
- * `afterInteractive` rather than the raw `async` script Google hands you: it still loads on
- * every page, but after hydration, so it cannot compete with the hero image for bandwidth.
- * The homepage's LCP was tuned to 2.1s in August and a render-blocking third-party script
- * is the classic way to lose that.
+ * The gate is the absence of the script, not Google Consent Mode. Consent Mode would load
+ * gtag.js immediately and have it send cookieless pings until permission arrives; this
+ * loads nothing at all, sets no cookies and makes no requests to Google until `grant()` has
+ * been called. It is the stricter reading of the ePrivacy rules, and — the reason it was
+ * chosen here — it is the one that can be proved by looking: no script tag, no `_ga`, no
+ * request to google-analytics.com.
  *
- * NOT included in the admin layout. That is a separate root layout, and counting your own
- * team's sessions as traffic is how analytics starts lying to you.
+ * Rendering is also held until `ready`, so a visitor who accepted on a previous visit does
+ * not get a frame with analytics switched off, and one who declined never gets a frame with
+ * it switched on.
  *
- * GA4 tracks App Router client-side navigations on its own — its enhanced measurement
- * listens for History API changes — so there is no route-change handler to write here.
+ * `afterInteractive` keeps it out of the critical path once it does load — the homepage LCP
+ * was tuned to 2.1s in August and a third-party script in front of the hero undoes that.
+ *
+ * NOT rendered in the admin layout: counting the team's own sessions as traffic is how
+ * analytics starts lying.
  */
 export function GoogleAnalytics() {
+  const { consent, ready } = useConsent();
+  if (!ready || consent !== "granted") return null;
+
   return (
     <>
       <Script

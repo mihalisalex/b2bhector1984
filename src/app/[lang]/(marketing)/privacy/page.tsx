@@ -22,6 +22,7 @@ export default async function PrivacyPage({ params }: { params: Promise<{ lang: 
     { q: l.privacyQ3, a: l.privacyA3 },
     { q: l.privacyQ4, a: l.privacyA4 },
     { q: l.privacyQ5, a: l.privacyA5 },
+    { q: l.privacyQ6, a: l.privacyA6 },
   ];
 
   return (
