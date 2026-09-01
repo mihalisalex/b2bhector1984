@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { LinkButton } from "@/components/ui/Button";
+import { CookieChoice } from "@/components/analytics/CookieChoice";
 import { getDictionary } from "@/i18n/getDictionary";
 import { withLocale } from "@/i18n/paths";
 import type { Locale } from "@/i18n/config";
@@ -64,6 +65,10 @@ export default async function CookiesPage({ params }: { params: Promise<{ lang: 
         </div>
 
         <p className="mt-6 max-w-[65ch] text-sm leading-relaxed text-ink-soft">{l.cookiesOutro}</p>
+
+        {/* The live control, not a description of one: consent that cannot be withdrawn as
+            easily as it was given is not consent. */}
+        <CookieChoice />
       </section>
 
       <section className="border-t border-stone-300 bg-ink py-16">

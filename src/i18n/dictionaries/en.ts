@@ -724,8 +724,10 @@ const en = {
     unavailableHintPlural: "Remove them on the cart page to check out.",
   },
   cookieBanner: {
-    body: "This site uses essential cookies to keep you signed in and track your wholesale application, plus Google Analytics to measure how the site is used. See our {link} for details.",
-    accept: "Got it",
+    body: "This site uses essential cookies to keep you signed in and track your wholesale application — those can’t be switched off. We’d also like to use Google Analytics to measure how the site is used. See our {link}.",
+    accept: "Accept analytics",
+    decline: "Essential only",
+    ariaLabel: "Cookie choices",
   },
   /**
    * The three legal pages. Kept as flat numbered keys rather than an array of clauses so a
@@ -780,13 +782,15 @@ const en = {
     privacyQ5: "Your choices",
     privacyA5:
       "You can review and update your business/contact details and ship-to addresses at any time from Account Settings, or by contacting your rep.",
+    privacyQ6: "Analytics",
+    privacyA6: "If you accept analytics cookies we use Google Analytics to measure how the site is used — pages viewed, roughly where visitors come from, and which devices they use. It is switched off until you accept, you can withdraw at any time from the Cookie Notice, and it is never linked to your wholesale account or order history.",
 
     cookiesTitle: "Cookie Notice",
     cookiesDescription: "Cookie Notice for Hector Footwear Wholesale.",
     cookiesCtaHeading: "Questions about cookies or data?",
     cookiesCtaButton: "Privacy Policy",
     cookiesIntro: "Hector Footwear Wholesale uses a small number of essential cookies to run the ordering portal, and Google Analytics to understand how the site is used. We don’t use advertising or retargeting cookies, and we don’t sell what we measure.",
-    cookiesOutro: "The essential cookies can’t be switched off without breaking sign-in and ordering. The analytics cookies can be blocked in your browser’s settings or with Google’s opt-out add-on — there is no in-page toggle for them today. Dismissing the cookie banner acknowledges this notice; it does not change what is set.",
+    cookiesOutro: "The essential cookies can’t be switched off without breaking sign-in and ordering. The analytics cookies are only set if you accept them, and you can change your mind here at any time.",
     cookieColName: "Cookie",
     cookieColPurpose: "Purpose",
     cookieColType: "Type",
@@ -798,10 +802,15 @@ const en = {
     cookie2Type: "Essential",
     cookie3Name: "_ga",
     cookie3Purpose: "Google Analytics — distinguishes one visitor from another so visits can be counted.",
-    cookie3Type: "Analytics — optional",
+    cookie3Type: "Analytics — only with your consent",
     cookie4Name: "_ga_GDV45R4P8D",
     cookie4Purpose: "Google Analytics — holds the session state for this site’s analytics property.",
-    cookie4Type: "Analytics — optional",
+    cookie4Type: "Analytics — only with your consent",
+    consentHeading: "Your analytics choice",
+    consentStatusGranted: "You’ve accepted analytics cookies. Google Analytics is loaded on this site for you.",
+    consentStatusDenied: "You’ve declined analytics cookies. Google Analytics is not loaded for you and no _ga cookies are set.",
+    consentStatusUnknown: "You haven’t chosen yet. Until you do, Google Analytics is not loaded and no analytics cookies are set.",
+    consentNote: "Your choice is stored in this browser only. Clearing site data, or using a different browser or device, will ask again.",
   },
   footer: {
     tagline: "Full-grain leather footwear, wholesaled the way serious retailers expect. Est. 1984.",

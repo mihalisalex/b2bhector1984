@@ -4,6 +4,7 @@ import { BackToTopButton } from "@/components/layout/BackToTopButton";
 import { CookieConsentBanner } from "@/components/layout/CookieConsentBanner";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import { ConsentProvider } from "@/components/analytics/ConsentProvider";
 import { originForLocale } from "@/i18n/domains";
 import { getSeoSettingsForLocale } from "@/lib/data/seoSettings";
 import { buildSiteSchemas } from "@/lib/seoJsonLd";
@@ -98,15 +99,20 @@ export default async function LocaleLayout({
       } ${mono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-stone-50 text-ink">
-        <I18nProvider locale={lang} dict={dict}>
-          {children}
-          {/* Inside the provider: the banner reads the dictionary, and it is the one piece of
-              chrome a Greek visitor sees before anything else on the page. */}
-          <CookieConsentBanner />
-          <BackToTopButton />
-        </I18nProvider>
+        {/* ConsentProvider wraps I18nProvider so the banner, the /cookies control and the
+            analytics loader all read one source of truth for what this visitor agreed to. */}
+        <ConsentProvider>
+          <I18nProvider locale={lang} dict={dict}>
+            {children}
+            {/* Inside the i18n provider: the banner reads the dictionary, and it is the one
+                piece of chrome a Greek visitor sees before anything else on the page. */}
+            <CookieConsentBanner />
+            <BackToTopButton />
+            {/* Renders nothing at all until consent is granted — see GoogleAnalytics.tsx. */}
+            <GoogleAnalytics />
+          </I18nProvider>
+        </ConsentProvider>
         <JsonLd schema={siteSchemas} />
-        <GoogleAnalytics />
       </body>
     </html>
   );
