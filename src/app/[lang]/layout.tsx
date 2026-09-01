@@ -3,6 +3,7 @@ import { bodySans, bodySansGreek, displaySerif, displaySerifGreek, mono } from "
 import { BackToTopButton } from "@/components/layout/BackToTopButton";
 import { CookieConsentBanner } from "@/components/layout/CookieConsentBanner";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { originForLocale } from "@/i18n/domains";
 import { getSeoSettingsForLocale } from "@/lib/data/seoSettings";
 import { buildSiteSchemas } from "@/lib/seoJsonLd";
@@ -105,6 +106,7 @@ export default async function LocaleLayout({
           <BackToTopButton />
         </I18nProvider>
         <JsonLd schema={siteSchemas} />
+        <GoogleAnalytics />
       </body>
     </html>
   );
