@@ -53,3 +53,8 @@ greek-review.csv
 # PDF render samples from font verification
 greek-invoice-sample.pdf
 pdf-*.pdf
+
+# Cost prices, exported for editing (npx tsx scripts/exportCostPrices.ts).
+# This repository is PUBLIC — committing this file would publish the margin on
+# every style. The importer reads it from disk; it never needs to be tracked.
+cost-prices.csv
