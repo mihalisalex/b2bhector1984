@@ -164,3 +164,31 @@ Verification is per domain because Search Console treats `.com` and `.gr` as sep
 properties — the `.gr` token cannot verify `.com`. An unset token emits no tag at all rather
 than falling back to the other domain's, which would silently fail verification and read as
 a config bug. Verifying by DNS instead is fine; leave the fields blank.
+
+### Setting cost prices
+
+`cost_price` drives every margin figure in `/admin`. It is not guessable, so it is entered
+by hand — but 31 styles one product editor at a time is the kind of job that gets abandoned
+half-done, so there is a spreadsheet round-trip:
+
+```bash
+npx tsx scripts/exportCostPrices.ts     # writes cost-prices.csv
+npx tsx scripts/applyCostPrices.ts      # dry run — prints what would change
+npx tsx scripts/applyCostPrices.ts --commit
+```
+
+**The importer is a dry run unless you pass `--commit`.** It talks to production and there is
+no staging, so the default has to be the harmless one.
+
+It refuses to write anything at all if a style number is unknown, if an active style is
+missing from the file (a truncated save), or if a cost is not a number or is negative. It
+warns but proceeds when a cost is at or above list price — usually a misplaced decimal, but
+legitimate on a clearance style, so that call is yours.
+
+Blank cells are left alone rather than written as zero, so you can fill the file in passes.
+Both `18,50` and `18.50` are accepted; a Greek spreadsheet and an English one produce
+different decimal separators and rejecting either would fail the person most likely to be
+typing these.
+
+`cost-prices.csv` is gitignored. **This repository is public** — the file holds the margin
+on every style.
