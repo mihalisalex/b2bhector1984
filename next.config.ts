@@ -45,6 +45,20 @@ const nextConfig: NextConfig = {
      */
   },
   images: {
+    /**
+     * Resizing runs on Supabase, not Vercel.
+     *
+     * Vercel's optimizer began returning 402 OPTIMIZED_IMAGE_REQUEST_PAYMENT_REQUIRED once
+     * this project exhausted its image-transformation allowance, so /_next/image failed for
+     * every photo not already in its cache — which is why only SOME product pictures broke
+     * rather than all of them. Supabase serves the same objects through its own transformer,
+     * so the resizing still happens and this failure mode cannot recur.
+     *
+     * See src/lib/imageLoader.ts. remotePatterns is kept because it documents the one host
+     * images may come from, but note that a custom loader bypasses that check.
+     */
+    loader: "custom",
+    loaderFile: "./src/lib/imageLoader.ts",
     remotePatterns: supabaseHostname
       ? [
           {
