@@ -192,3 +192,20 @@ typing these.
 
 `cost-prices.csv` is gitignored. **This repository is public** — the file holds the margin
 on every style.
+
+### Smoke-testing every public route
+
+```bash
+npx tsx scripts/smokeRoutes.ts                    # both production domains
+npx tsx scripts/smokeRoutes.ts http://el.localhost:3000
+```
+
+Fetches every public route anonymously and asserts 200. Exits non-zero on any failure, so
+it can gate a deploy. Product and journal slugs come from the database, so the list cannot
+drift from the catalogue.
+
+**Run it after any deploy.** Twice a client-only hook has been used from a server component
+— typecheck passes, lint passes, and the page throws at request time. The second instance
+returned 500 on every product page, to every logged-out visitor and to Google, and was
+found by a person looking at the site. Requests here are anonymous on purpose: that outage
+only affected the logged-out branch.
