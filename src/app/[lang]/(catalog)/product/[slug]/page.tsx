@@ -202,8 +202,9 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
                   <PublicPurchasePanel
                     style={style}
                     inventory={inventory}
-                    applyHref="/apply"
-                    loginHref={`/login?next=${encodeURIComponent(`/product/${style.slug}`)}`}
+                    applyHref={withLocale(locale, "/apply")}
+                    loginHref={withLocale(locale, `/login?next=${encodeURIComponent(`/product/${style.slug}`)}`)}
+                    dict={dict}
                   />
                 )}
               </div>
