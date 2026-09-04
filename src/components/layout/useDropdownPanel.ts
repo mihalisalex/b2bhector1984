@@ -1,3 +1,9 @@
+"use client";
+
+// Declares itself rather than relying on every importer being a client component. The
+// hooks below only work in client code, and a server component importing this would fail
+// at request time with nothing caught by typecheck or lint — the same way a client hook in
+// PublicPurchasePanel took every product page down.
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 /**
