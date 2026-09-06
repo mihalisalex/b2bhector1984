@@ -248,7 +248,7 @@ const en = {
     proformaNotice:
       "This is a proforma invoice, not a charge — it reflects stock and production check before your order is confirmed.",
     invoiceFooter:
-      "Hector Footwear Wholesale · {email} · All pricing and inventory data on this document is illustrative.",
+      "Hector Footwear Wholesale · {email} · Proforma document, not a tax invoice. Prices exclude VAT and are confirmed on the final invoice.",
     // Spec sheet
     specSheet: "Spec Sheet",
     category: "Category",
@@ -259,7 +259,7 @@ const en = {
     sizeBreakdown: "Size breakdown (pairs per box)",
     box: "Box",
     specSheetFooter:
-      "Hector Footwear Wholesale · {email}. Materials, weights, and box breakdowns are illustrative and subject to production tolerances.",
+      "Hector Footwear Wholesale · {email}. Materials, weights and box breakdowns are given within normal production tolerances.",
     afm: "Tax ID",
     doy: "Tax office",
     wholesaleEst: "WHOLESALE — EST. 1984",
@@ -736,79 +736,187 @@ const en = {
    * The three legal pages. Kept as flat numbered keys rather than an array of clauses so a
    * missing translation is a compile error — same reason the dictionaries are .ts at all.
    *
-   * `disclaimer` is deliberately translated rather than dropped: these are placeholder texts,
-   * and a Greek reader is entitled to the same warning an English one gets.
+   * Written for this business rather than adapted from a template, and two facts about it
+   * shape everything below. It sells business-to-business only, so the consumer rules — the
+   * fourteen-day right of withdrawal above all — genuinely do not apply, and saying that
+   * plainly is fairer to a trade buyer than leaving them to assume otherwise. And it is a
+   * Greek company, so Greek law governs, Greek tax law sets the retention periods, and the
+   * trader identification that Π.Δ. 131/2003 requires has to be on the page. That
+   * identification renders from src/lib/legalEntity.ts rather than being written into these
+   * strings, so it cannot drift between four languages.
+   *
+   * NOT LEGAL ADVICE — but no longer labelled as boilerplate either. The old `disclaimer`
+   * key told live buyers the page was an illustrative demo, which stopped being true the day
+   * the site went live and started being a liability of its own.
    */
   legal: {
     eyebrow: "Legal",
-    disclaimer:
-      "This page is illustrative, demo-appropriate boilerplate — it is not real legal advice and shouldn’t be relied on as such.",
+    lastUpdated: "Last updated {date}",
     contactUs: "Contact us",
     contactSuffix: "— every inquiry is answered by someone on the team, usually within two business days.",
 
-    termsTitle: "Terms of Service",
-    termsDescription: "Terms of Service for Hector Footwear Wholesale.",
+    identityHeading: "Who you are dealing with",
+    identityRegisteredName: "Registered name",
+    identityTradingName: "Trading as",
+    identityAddress: "Registered address",
+    identityVatId: "Tax ID (Α.Φ.Μ.)",
+    identityTaxOffice: "Tax office (Δ.Ο.Υ.)",
+    identityGemi: "Business registry (Γ.Ε.ΜΗ.)",
+    identityEmail: "Email",
+    identityPhone: "Telephone",
+
+    termsTitle: "Terms of Sale",
+    termsDescription: "The terms on which Hector Footwear sells to approved wholesale accounts.",
+    termsIntro:
+      "These terms govern this wholesale ordering portal and every order placed through it. They apply between us and the business holding the account. Applying for an account, signing in, or placing an order means accepting them.",
     termsCtaHeading: "Questions about your account?",
     termsCtaButton: "Read the FAQ",
-    termsQ1: "Wholesale accounts only",
+    termsQ1: "Who you are contracting with",
     termsA1:
-      "This site is a business-to-business ordering portal for approved wholesale buyers. Access requires an approved account; pricing, inventory, and order terms shown here are not offered to the general public.",
-    termsQ2: "Orders and payment terms",
+      "Orders placed through this portal are with the business identified above — “we” and “us” below. “You” means the business holding the wholesale account and anyone you allow to use it. Nothing in these terms makes either of us the other’s agent, partner or franchisee.",
+    termsQ2: "Trade buyers only — consumer rules do not apply",
     termsA2:
-      "Placing an order is a request to purchase at the payment terms selected at checkout (prepay, net-30, or net-60). An order is confirmed once accepted — see your order’s status timeline for its current state.",
-    termsQ3: "Payment terms and order minimums",
+      "This is a business-to-business portal. Accounts are granted only to businesses buying for resale, and by applying you confirm you are acting for purposes relating to your trade. Because you are not a consumer, consumer-protection law does not apply to your orders — including the fourteen-day right of withdrawal that applies to distance selling to the public. Returns are governed by the clause below instead.",
+    termsQ3: "Accounts and approval",
     termsA3:
-      "Each account has payment terms and a minimum order quantity agreed with your territory rep. Orders are submitted as proforma-invoice requests — your rep confirms stock, production and totals before anything is charged.",
-    termsQ4: "Product information",
+      "Access requires an account we have approved. We review each application against the tax details and resale documentation you supply, and we may decline an application or withdraw an account. Keep your details current: order confirmations, proforma invoices and account notices go to the email on file and count as delivered when sent there.",
+    termsQ4: "Account security",
     termsA4:
-      "Materials, weights, sizing, and availability shown on this site are believed accurate at time of publishing but may change without notice ahead of production.",
-    termsQ5: "Account security",
+      "Your sign-in belongs to your business and should not be shared beyond it. You are responsible for orders placed through your account. Tell us at once if you think someone else has access and we will suspend it while you reset your password. We will never ask you for your password.",
+    termsQ5: "Prices, VAT and currency",
     termsA5:
-      "You’re responsible for keeping your account credentials confidential and for all activity under your account. Contact your rep immediately if you suspect unauthorized access.",
+      "Prices are in euro, wholesale, and exclude VAT unless stated otherwise. VAT is added at the rate in force on the invoice date. Where you give us a valid VAT number registered in another EU member state and the goods leave Greece, we invoice without Greek VAT under the reverse-charge rules and you account for the VAT in your own country. Prices are shown only to approved accounts that are signed in, and the price governing an order is the one on the proforma invoice we confirm.",
+    termsQ6: "Placing an order",
+    termsA6:
+      "Submitting a cart is a request to buy, not a concluded sale. We check stock, production capacity and your account terms, then send a proforma invoice. A contract is formed when we confirm the order. Until then we may adjust or decline any line, and we will tell you why.",
+    termsQ7: "Box quantities and order minimums",
+    termsA7:
+      "Footwear is sold in full size-run boxes; part-boxes are not available. Each account also has a minimum order size in pairs, shown at checkout and agreed with your rep. Orders below it cannot be submitted, and the minimum is normally reduced as an account builds a trading history.",
+    termsQ8: "Stock, pre-order and made-to-order",
+    termsA8:
+      "Styles marked available ship from stock. Styles marked pre-order or made-to-order are produced against confirmed orders, and the dates shown for them are production estimates, not guaranteed delivery dates. If a production window moves, we tell you as soon as we know.",
+    termsQ9: "Payment terms",
+    termsA9:
+      "Your account is approved for prepayment, net 30 or net 60, and the discount attached to each is shown at checkout. Asking for terms other than those approved sends the order to your rep for credit approval before it ships. We may require prepayment on a first order, or on any account carrying an overdue balance.",
+    termsQ10: "Late payment",
+    termsA10:
+      "Invoices fall due on the date stated on them. Overdue amounts carry default interest at the statutory rate for commercial transactions under Greek law implementing Directive 2011/7/EU, together with the recovery costs that law allows, running from the day after the due date until payment. We may hold or cancel undelivered orders on an account in arrears.",
+    termsQ11: "Retention of title",
+    termsA11:
+      "Goods remain our property until they have been paid for in full. You may resell them in the ordinary course of your business before then; until we are paid you hold the proceeds of that resale on our account, and you must keep the goods identifiable and insured.",
+    termsQ12: "Delivery, risk and delay",
+    termsA12:
+      "Unless agreed otherwise in writing, goods are dispatched from Greece and risk passes to you when they are handed to the carrier. Delivery dates are estimates. We are not liable for delay caused by a carrier, by customs, or by anything outside our reasonable control, but we will help you trace a shipment and pursue a claim against the carrier.",
+    termsQ13: "Checking your delivery",
+    termsA13:
+      "Check every shipment against the packing list on arrival. Report shortages, wrong items and damage apparent on inspection within eight calendar days of delivery, with photographs where they help. Defects that could not reasonably have been found on inspection should be reported without undue delay after you discover them. Your rights as a buyer under the Greek Civil Code are not restricted by this clause.",
+    termsQ14: "Returns and exchanges",
+    termsA14:
+      "As a trade buyer you have no right to return goods because you have changed your mind. We will replace, repair or credit anything faulty, wrongly supplied or short-shipped. Any other return needs our agreement in advance, and goods sent back without it may be refused. Returned stock must be unworn, in its original boxes, and in resaleable condition.",
+    termsQ15: "Product information",
+    termsA15:
+      "Leather is a natural material: grain, colour and finish vary between hides and between production runs, and the photography here is a fair representation rather than an exact match. Measurements, weights and box breakdowns are given within normal production tolerances, and specifications can change as a style develops. Variation of this kind is not a defect.",
+    termsQ16: "Reselling our footwear",
+    termsA16:
+      "Approval to buy is not a licence to use our name or marks beyond what is needed to advertise and sell the goods you have bought from us. Do not remove or alter labels, box markings or care information, and do not hold yourself out as our agent, distributor or authorised representative unless we have agreed that in writing.",
+    termsQ17: "Intellectual property in this site",
+    termsA17:
+      "The photography, product copy, linesheets and design of this portal belong to us or to our licensors. You may use them to market the footwear you buy from us. Copying them for a competing catalogue, or republishing them for any other purpose, is not permitted.",
+    termsQ18: "Availability of the portal",
+    termsA18:
+      "We keep the ordering portal running as reliably as we can, but we do not promise uninterrupted access and we may take it down for maintenance or change how it works. If it is unavailable when you need to order, your rep can take the order directly.",
+    termsQ19: "Our liability",
+    termsA19:
+      "Nothing here limits liability that cannot lawfully be limited, including for fraud, for gross negligence, or for death or personal injury caused by negligence. Subject to that, our liability in connection with an order is limited to the invoiced value of the goods concerned, and we are not liable for lost profit, lost sales or loss of goodwill.",
+    termsQ20: "Events outside our control",
+    termsA20:
+      "Neither of us is in breach of these terms where performance is prevented or delayed by something beyond reasonable control — tannery or factory failure, shortage of raw materials, strike, transport disruption, fire, flood, epidemic, or an act of government. If such an event lasts more than sixty days, either of us may cancel the affected order, and we refund anything paid for goods not delivered.",
+    termsQ21: "Personal data",
+    termsA21:
+      "How we handle the personal data behind your account — which people at your business we hold details for, what we keep, and for how long — is set out in our Privacy Policy, which forms part of these terms.",
+    termsQ22: "Changes to these terms",
+    termsA22:
+      "We may update these terms. The version in force when you place an order governs that order. We notify account holders by email before a change that materially affects them takes effect, and the date at the top of this page always shows when it last changed.",
+    termsQ23: "Governing law and disputes",
+    termsA23:
+      "These terms, and any dispute arising out of them, are governed by Greek law. The courts of {city} have exclusive jurisdiction, except that we may bring proceedings where you are established in order to recover sums owed to us. Talk to your rep first, though — almost everything is quicker to settle that way.",
 
     privacyTitle: "Privacy Policy",
-    privacyDescription: "Privacy Policy for Hector Footwear Wholesale.",
+    privacyDescription: "How Hector Footwear handles personal data for wholesale accounts and site visitors.",
+    privacyIntro:
+      "This policy explains what we do with personal data when a business applies for a wholesale account, orders through this site, or simply visits it. It is about people — the named contacts at our customers, and visitors — rather than about companies.",
     privacyCtaHeading: "Questions about your data?",
     privacyCtaButton: "Cookie Notice",
-    privacyQ1: "What we collect",
+    privacyQ1: "Who is responsible for your data",
     privacyA1:
-      "Business and contact details you provide when applying for or maintaining a wholesale account (business name, contact name, email, phone, resale certificate, ship-to addresses), plus order history and account activity.",
-    privacyQ2: "How we use it",
+      "The data controller is the business identified above. Write to the email address there with any question about this policy, or to exercise any of the rights below, and a person will answer you.",
+    privacyQ2: "What we collect",
     privacyA2:
-      "To operate your wholesale account — processing orders, applying your negotiated terms, coordinating with your territory rep, and sending order-related notifications.",
-    privacyQ3: "Who it’s shared with",
+      "When you apply: business name, contact name, email address, telephone number, tax identification or resale documentation, and the addresses you want to ship to. While you hold an account: your orders and their history, the payment terms and pricing agreed with you, invoices, the rep assigned to you, delivery addresses, and correspondence between us. Automatically from anyone who visits: the IP address, browser and pages requested that any web server records, plus the analytics described below if you have accepted them.",
+    privacyQ3: "Why we use it, and on what legal basis",
     privacyA3:
-      "Your information is used internally by Hector Footwear Wholesale and your assigned territory rep. We don’t sell account data to third parties.",
-    privacyQ4: "Data retention",
+      "To assess your application and run your account — taking orders, applying your terms, producing proforma invoices, arranging delivery and answering questions — because that is necessary to enter into and perform our contract with you. To issue invoices and keep accounting records, because Greek tax law requires it. To keep the portal secure, screen out fraudulent applications, and establish or defend legal claims, because we have a legitimate interest in doing so that does not override your rights. To measure how the site is used, only where you have given consent.",
+    privacyQ4: "Analytics and your consent",
     privacyA4:
-      "Account and order records are retained for as long as your account is active, and as needed to satisfy business and accounting requirements after closure.",
-    privacyQ5: "Your choices",
+      "Google Analytics is not loaded until you accept it. While you have not chosen, or have declined, nothing is measured and no analytics cookies are set — this is not a banner that records a preference and tracks you anyway. If you accept, we see aggregate figures: pages viewed, roughly which country visits come from, which devices are used. None of it is connected to your wholesale account or order history, and you can withdraw on the Cookie Notice page as easily as you gave it.",
+    privacyQ5: "Who we share it with",
     privacyA5:
-      "You can review and update your business/contact details and ship-to addresses at any time from Account Settings, or by contacting your rep.",
-    privacyQ6: "Analytics",
-    privacyA6: "If you accept analytics cookies we use Google Analytics to measure how the site is used — pages viewed, roughly where visitors come from, and which devices they use. It is switched off until you accept, you can withdraw at any time from the Cookie Notice, and it is never linked to your wholesale account or order history.",
+      "We do not sell personal data and we do not share it for anyone else’s marketing. It reaches only: the suppliers who run this service for us under contract — Vercel for hosting, Supabase for the database and image storage, Resend for transactional email, and, with your consent, Google for analytics; the carriers who deliver your orders, who need the ship-to address and a contact name; our accountants and auditors; and public authorities where the law requires it. Each of those suppliers is contractually bound to use the data only on our instructions.",
+    privacyQ6: "Transfers outside the EEA",
+    privacyA6:
+      "Those suppliers are established in the United States and may process data there or elsewhere. Where that happens, the transfer is covered by the European Commission’s standard contractual clauses or, for providers certified under it, by the EU–US Data Privacy Framework, so the protection travels with the data.",
+    privacyQ7: "How long we keep it",
+    privacyA7:
+      "An application we decline is kept for up to twelve months, so that we can recognise a repeat application and explain the earlier decision, and is then deleted. Account and order data is kept while the account is active and for five years after the last order. Invoices and the accounting records attached to them are kept for as long as Greek tax law obliges us to keep them, which is longer than we would otherwise choose. Server logs are kept briefly, for security. Analytics data is held for no more than fourteen months.",
+    privacyQ8: "How we keep it safe",
+    privacyA8:
+      "Traffic to this site is encrypted in transit. Passwords are stored only as salted hashes — we cannot read yours, which is why a reset link is the only way back into a locked account. Access to customer records is limited to staff who need it, and admin users hold named roles rather than sharing one login.",
+    privacyQ9: "Your rights",
+    privacyA9:
+      "You may ask for a copy of the personal data we hold about you, have it corrected, ask us to erase it, object to or restrict how we use it, receive it in a portable form, and withdraw any consent you have given. Some of it we must keep regardless — an invoice cannot be deleted on request, because tax law requires us to hold it. We answer within one month, and we do not charge for it.",
+    privacyQ10: "Complaints",
+    privacyA10:
+      "If you think we have handled your data badly, tell us first and we will try to put it right. You also have the right to complain to the Hellenic Data Protection Authority (Kifissias 1-3, 115 23 Athens, dpa.gr), or to the supervisory authority of the EU country where you live or work.",
+    privacyQ11: "No automated decision-making",
+    privacyA11:
+      "Applications are reviewed by a person. We do not take decisions about you by automated means alone, we do not profile visitors behaviourally, and nothing on this site scores or ranks you.",
+    privacyQ12: "Changes to this policy",
+    privacyA12:
+      "We update this policy when what we do with data changes. The date at the top shows the current version, and we notify account holders by email before a change that materially affects them takes effect.",
 
     cookiesTitle: "Cookie Notice",
-    cookiesDescription: "Cookie Notice for Hector Footwear Wholesale.",
+    cookiesDescription: "The cookies and browser storage this site uses, and how to control them.",
     cookiesCtaHeading: "Questions about cookies or data?",
     cookiesCtaButton: "Privacy Policy",
-    cookiesIntro: "Hector Footwear Wholesale uses a small number of essential cookies to run the ordering portal, and Google Analytics to understand how the site is used. We don’t use advertising or retargeting cookies, and we don’t sell what we measure.",
-    cookiesOutro: "The essential cookies can’t be switched off without breaking sign-in and ordering. The analytics cookies are only set if you accept them, and you can change your mind here at any time.",
-    cookieColName: "Cookie",
+    cookiesIntro:
+      "This site uses a small number of cookies to run the ordering portal, and Google Analytics — only if you accept it — to understand how the site is used. There are no advertising cookies, no retargeting pixels, and no third-party trackers beyond the one named below. Everything this site stores on your device is listed here.",
+    cookiesOutro:
+      "The essential entries cannot be switched off without breaking sign-in and ordering; they carry no advertising identifier and are read only by this site. The analytics cookies are set after you accept them, and never before.",
+    cookieColName: "Name",
     cookieColPurpose: "Purpose",
     cookieColType: "Type",
-    cookie1Name: "Session cookie",
+    cookie1Name: "hector_session",
     cookie1Purpose: "Keeps you signed in to your wholesale account between page loads.",
-    cookie1Type: "Essential — required to use the site while logged in",
-    cookie2Name: "Application-in-progress cookie",
+    cookie1Type: "Essential cookie — required to use the site while signed in",
+    cookie2Name: "hector_application",
     cookie2Purpose: "Tracks a submitted wholesale application so you can check its status before an account exists.",
-    cookie2Type: "Essential",
+    cookie2Type: "Essential cookie",
     cookie3Name: "_ga",
-    cookie3Purpose: "Google Analytics — distinguishes one visitor from another so visits can be counted.",
-    cookie3Type: "Analytics — only with your consent",
+    cookie3Purpose: "Google Analytics — distinguishes one visitor from another so that visits can be counted.",
+    cookie3Type: "Analytics cookie — set only with your consent",
     cookie4Name: "_ga_GDV45R4P8D",
     cookie4Purpose: "Google Analytics — holds the session state for this site’s analytics property.",
-    cookie4Type: "Analytics — only with your consent",
+    cookie4Type: "Analytics cookie — set only with your consent",
+    cookie5Name: "hector_cookie_consent",
+    cookie5Purpose: "Remembers whether you accepted or declined analytics, so you are not asked again on every page.",
+    cookie5Type: "Essential — stored in your browser, never sent to us",
+    cookie6Name: "hector_recently_viewed",
+    cookie6Purpose: "Lists the styles you looked at most recently, so the site can show them to you again.",
+    cookie6Type: "Essential — stored in your browser, never sent to us",
+    cookiesBrowserHeading: "Controlling cookies yourself",
+    cookiesBrowserBody:
+      "Your browser can block or delete cookies and site storage for any site, including this one. Blocking the essential entries will sign you out and prevent ordering. Clearing site data resets your analytics choice, so you will be asked again on your next visit.",
+
     consentHeading: "Your analytics choice",
     consentStatusGranted: "You’ve accepted analytics cookies. Google Analytics is loaded on this site for you.",
     consentStatusDenied: "You’ve declined analytics cookies. Google Analytics is not loaded for you and no _ga cookies are set.",
@@ -833,7 +941,7 @@ const en = {
     privacyPolicy: "Privacy Policy",
     cookieNotice: "Cookie Notice",
     copyright: "© {year} Hector Footwear Co. Wholesale accounts only.",
-    disclaimer: "All pricing and inventory data on this site is illustrative.",
+    disclaimer: "Trade sales only. All prices are wholesale and exclude VAT.",
   },
   shopFooter: {
     yourRep: "Your rep: {name} · {email} · {phone}",

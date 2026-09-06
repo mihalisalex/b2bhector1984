@@ -1,8 +1,11 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { LinkButton } from "@/components/ui/Button";
+import { LegalIdentity } from "@/components/legal/LegalIdentity";
 import { getDictionary } from "@/i18n/getDictionary";
 import { withLocale } from "@/i18n/paths";
+import { t } from "@/i18n/format";
+import { LEGAL_ENTITY, formatLastUpdated } from "@/lib/legalEntity";
 import type { Locale } from "@/i18n/config";
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
@@ -25,6 +28,26 @@ export default async function TermsPage({ params }: { params: Promise<{ lang: st
     { q: l.termsQ3, a: l.termsA3 },
     { q: l.termsQ4, a: l.termsA4 },
     { q: l.termsQ5, a: l.termsA5 },
+    { q: l.termsQ6, a: l.termsA6 },
+    { q: l.termsQ7, a: l.termsA7 },
+    { q: l.termsQ8, a: l.termsA8 },
+    { q: l.termsQ9, a: l.termsA9 },
+    { q: l.termsQ10, a: l.termsA10 },
+    { q: l.termsQ11, a: l.termsA11 },
+    { q: l.termsQ12, a: l.termsA12 },
+    { q: l.termsQ13, a: l.termsA13 },
+    { q: l.termsQ14, a: l.termsA14 },
+    { q: l.termsQ15, a: l.termsA15 },
+    { q: l.termsQ16, a: l.termsA16 },
+    { q: l.termsQ17, a: l.termsA17 },
+    { q: l.termsQ18, a: l.termsA18 },
+    { q: l.termsQ19, a: l.termsA19 },
+    { q: l.termsQ20, a: l.termsA20 },
+    { q: l.termsQ21, a: l.termsA21 },
+    // The only clause carrying a value from outside the dictionary: the competent court
+    // follows the registered seat, so it lives with the rest of the company's identity.
+    { q: l.termsQ22, a: l.termsA22 },
+    { q: l.termsQ23, a: t(l.termsA23, { city: LEGAL_ENTITY.jurisdictionCity[locale] }) },
   ];
 
   return (
@@ -36,14 +59,25 @@ export default async function TermsPage({ params }: { params: Promise<{ lang: st
         <h1 className="font-display mt-2 text-3xl font-bold uppercase leading-[1.05] tracking-tight text-ink sm:text-4xl">
           {l.termsTitle}
         </h1>
-        <p className="mt-2 max-w-lg text-sm leading-relaxed text-ink-soft">{l.disclaimer}</p>
+        <p className="mt-3 max-w-[65ch] text-sm leading-relaxed text-ink-soft">{l.termsIntro}</p>
+        <p className="font-mono-tab mt-3 text-xs uppercase tracking-[0.2em] text-ink-soft">
+          {t(l.lastUpdated, { date: formatLastUpdated(locale) })}
+        </p>
       </div>
+
+      <LegalIdentity locale={locale} dict={l} />
 
       <section className="mx-auto max-w-[900px] px-6 py-12 lg:px-10">
         <div className="divide-y divide-stone-200">
-          {clauses.map((clause) => (
+          {clauses.map((clause, i) => (
             <div key={clause.q} className="py-5">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-ink">{clause.q}</h2>
+              {/* Numbered because these get cited. A buyer disputing a delivery refers to
+                  clause 13, and a document whose clauses have no numbers cannot be argued
+                  from. Uses the eyebrow treatment already on the page rather than a new one. */}
+              <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <h2 className="mt-1 text-sm font-semibold uppercase tracking-wide text-ink">{clause.q}</h2>
               <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-ink-soft">{clause.a}</p>
             </div>
           ))}

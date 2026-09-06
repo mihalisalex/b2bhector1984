@@ -1,8 +1,11 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { LinkButton } from "@/components/ui/Button";
+import { LegalIdentity } from "@/components/legal/LegalIdentity";
 import { getDictionary } from "@/i18n/getDictionary";
 import { withLocale } from "@/i18n/paths";
+import { t } from "@/i18n/format";
+import { formatLastUpdated } from "@/lib/legalEntity";
 import type { Locale } from "@/i18n/config";
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
@@ -23,6 +26,12 @@ export default async function PrivacyPage({ params }: { params: Promise<{ lang: 
     { q: l.privacyQ4, a: l.privacyA4 },
     { q: l.privacyQ5, a: l.privacyA5 },
     { q: l.privacyQ6, a: l.privacyA6 },
+    { q: l.privacyQ7, a: l.privacyA7 },
+    { q: l.privacyQ8, a: l.privacyA8 },
+    { q: l.privacyQ9, a: l.privacyA9 },
+    { q: l.privacyQ10, a: l.privacyA10 },
+    { q: l.privacyQ11, a: l.privacyA11 },
+    { q: l.privacyQ12, a: l.privacyA12 },
   ];
 
   return (
@@ -34,14 +43,22 @@ export default async function PrivacyPage({ params }: { params: Promise<{ lang: 
         <h1 className="font-display mt-2 text-3xl font-bold uppercase leading-[1.05] tracking-tight text-ink sm:text-4xl">
           {l.privacyTitle}
         </h1>
-        <p className="mt-2 max-w-lg text-sm leading-relaxed text-ink-soft">{l.disclaimer}</p>
+        <p className="mt-3 max-w-[65ch] text-sm leading-relaxed text-ink-soft">{l.privacyIntro}</p>
+        <p className="font-mono-tab mt-3 text-xs uppercase tracking-[0.2em] text-ink-soft">
+          {t(l.lastUpdated, { date: formatLastUpdated(locale) })}
+        </p>
       </div>
+
+      <LegalIdentity locale={locale} dict={l} />
 
       <section className="mx-auto max-w-[900px] px-6 py-12 lg:px-10">
         <div className="divide-y divide-stone-200">
-          {clauses.map((clause) => (
+          {clauses.map((clause, i) => (
             <div key={clause.q} className="py-5">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-ink">{clause.q}</h2>
+              <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <h2 className="mt-1 text-sm font-semibold uppercase tracking-wide text-ink">{clause.q}</h2>
               <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-ink-soft">{clause.a}</p>
             </div>
           ))}

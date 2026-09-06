@@ -4,6 +4,8 @@ import { LinkButton } from "@/components/ui/Button";
 import { CookieChoice } from "@/components/analytics/CookieChoice";
 import { getDictionary } from "@/i18n/getDictionary";
 import { withLocale } from "@/i18n/paths";
+import { t } from "@/i18n/format";
+import { formatLastUpdated } from "@/lib/legalEntity";
 import type { Locale } from "@/i18n/config";
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
@@ -17,15 +19,20 @@ export default async function CookiesPage({ params }: { params: Promise<{ lang: 
   const locale = lang as Locale;
   const l = (await getDictionary(locale)).legal;
 
-  // Every row describes a cookie this site actually sets: `hector_session` and
-  // `hector_application` from the app itself, plus the two Google Analytics cookies added
-  // with the GA tag. A row without its cookie, or a cookie without its row, is how a
-  // cookie notice starts lying — keep them in step.
+  // Every row names something this site actually stores on the visitor's device, under the
+  // exact key it uses: the two app cookies from src/lib/session.ts, the two Google Analytics
+  // cookies the GA tag sets, and the two localStorage entries — the consent record itself
+  // (ConsentProvider) and the recently-viewed list (src/lib/recentlyViewed.ts). ePrivacy
+  // covers storage on terminal equipment, not the word "cookie", so leaving the localStorage
+  // pair out would have made this notice incomplete. A row without its entry, or an entry
+  // without its row, is how a cookie notice starts lying — keep them in step.
   const cookies = [
     { name: l.cookie1Name, purpose: l.cookie1Purpose, type: l.cookie1Type },
     { name: l.cookie2Name, purpose: l.cookie2Purpose, type: l.cookie2Type },
     { name: l.cookie3Name, purpose: l.cookie3Purpose, type: l.cookie3Type },
     { name: l.cookie4Name, purpose: l.cookie4Purpose, type: l.cookie4Type },
+    { name: l.cookie5Name, purpose: l.cookie5Purpose, type: l.cookie5Type },
+    { name: l.cookie6Name, purpose: l.cookie6Purpose, type: l.cookie6Type },
   ];
 
   return (
@@ -37,7 +44,9 @@ export default async function CookiesPage({ params }: { params: Promise<{ lang: 
         <h1 className="font-display mt-2 text-3xl font-bold uppercase leading-[1.05] tracking-tight text-ink sm:text-4xl">
           {l.cookiesTitle}
         </h1>
-        <p className="mt-2 max-w-lg text-sm leading-relaxed text-ink-soft">{l.disclaimer}</p>
+        <p className="font-mono-tab mt-3 text-xs uppercase tracking-[0.2em] text-ink-soft">
+          {t(l.lastUpdated, { date: formatLastUpdated(locale) })}
+        </p>
       </div>
 
       <section className="mx-auto max-w-[900px] px-6 py-12 lg:px-10">
@@ -69,6 +78,9 @@ export default async function CookiesPage({ params }: { params: Promise<{ lang: 
         {/* The live control, not a description of one: consent that cannot be withdrawn as
             easily as it was given is not consent. */}
         <CookieChoice />
+
+        <h2 className="mt-12 text-sm font-semibold uppercase tracking-wide text-ink">{l.cookiesBrowserHeading}</h2>
+        <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-ink-soft">{l.cookiesBrowserBody}</p>
       </section>
 
       <section className="border-t border-stone-300 bg-ink py-16">

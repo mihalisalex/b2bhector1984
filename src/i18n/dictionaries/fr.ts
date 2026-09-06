@@ -226,7 +226,7 @@ const fr: Dictionary = {
     proformaNotice:
       "Ceci est une facture proforma, pas un débit — elle reflète la vérification du stock et de la production avant confirmation de votre commande.",
     invoiceFooter:
-      "Hector Footwear Wholesale · {email} · Les prix et stocks figurant sur ce document sont indicatifs.",
+      "Hector Footwear Wholesale · {email} · Document proforma, ne constitue pas une facture fiscale. Les prix s’entendent hors TVA et sont confirmés sur la facture définitive.",
     specSheet: "Fiche technique",
     category: "Catégorie",
     gender: "Genre",
@@ -236,7 +236,7 @@ const fr: Dictionary = {
     sizeBreakdown: "Répartition des pointures (paires par carton)",
     box: "Carton",
     specSheetFooter:
-      "Hector Footwear Wholesale · {email}. Les matières, poids et répartitions par carton sont indicatifs et soumis aux tolérances de production.",
+      "Hector Footwear Wholesale · {email}. Les matières, poids et répartitions par carton sont donnés dans les tolérances de production usuelles.",
     afm: "N° fiscal",
     doy: "Centre des impôts",
     wholesaleEst: "VENTE EN GROS — DEPUIS 1984",
@@ -682,79 +682,177 @@ const fr: Dictionary = {
   },
   legal: {
     eyebrow: "Mentions légales",
-    disclaimer:
-      "Cette page est un texte indicatif de démonstration — elle ne constitue pas un conseil juridique et ne doit pas être considérée comme tel.",
+    lastUpdated: "Dernière mise à jour le {date}",
     contactUs: "Contactez-nous",
-    contactSuffix: "— chaque demande reçoit une réponse d’une personne de l’équipe, généralement sous deux jours ouvrés.",
+    contactSuffix: "— chaque demande reçoit la réponse d’une personne de l’équipe, généralement sous deux jours ouvrés.",
 
-    termsTitle: "Conditions d’utilisation",
-    termsDescription: "Conditions d’utilisation de Hector Footwear Wholesale.",
+    identityHeading: "Avec qui vous traitez",
+    identityRegisteredName: "Dénomination sociale",
+    identityTradingName: "Nom commercial",
+    identityAddress: "Siège",
+    identityVatId: "Numéro fiscal (Α.Φ.Μ.)",
+    identityTaxOffice: "Centre des impôts (Δ.Ο.Υ.)",
+    identityGemi: "Registre du commerce (Γ.Ε.ΜΗ.)",
+    identityEmail: "E-mail",
+    identityPhone: "Téléphone",
+
+    termsTitle: "Conditions de vente",
+    termsDescription: "Les conditions auxquelles Hector Footwear vend aux comptes de gros agréés.",
+    termsIntro:
+      "Les présentes conditions régissent ce portail de commande en gros et toute commande passée par son intermédiaire. Elles s’appliquent entre nous et l’entreprise titulaire du compte. Demander un compte, se connecter ou passer commande vaut acceptation.",
     termsCtaHeading: "Des questions sur votre compte ?",
-    termsCtaButton: "Consulter la FAQ",
-    termsQ1: "Comptes professionnels uniquement",
+    termsCtaButton: "Lire la FAQ",
+    termsQ1: "Avec qui vous contractez",
     termsA1:
-      "Ce site est un portail de commande B2B réservé aux acheteurs professionnels validés. L’accès nécessite un compte validé ; les tarifs, les stocks et les conditions de commande affichés ici ne sont pas proposés au grand public.",
-    termsQ2: "Commandes et conditions de paiement",
+      "Les commandes passées via ce portail sont conclues avec l’entreprise identifiée ci-dessus (« nous »). « Vous » désigne l’entreprise titulaire du compte de gros ainsi que toute personne que vous autorisez à l’utiliser. Les présentes conditions ne créent entre nous ni mandat, ni société, ni franchise.",
+    termsQ2: "Acheteurs professionnels uniquement — le droit de la consommation ne s’applique pas",
     termsA2:
-      "Passer une commande constitue une demande d’achat aux conditions de paiement choisies lors de la validation (prépaiement, net 30 ou net 60). La commande est confirmée dès son acceptation — consultez son historique de statut pour connaître son état actuel.",
-    termsQ3: "Conditions de paiement et minimum de commande",
+      "Il s’agit d’un portail strictement interentreprises. Les comptes ne sont ouverts qu’à des entreprises achetant pour la revente et, en déposant une demande, vous confirmez agir dans le cadre de votre activité professionnelle. N’étant pas consommateur, vous ne bénéficiez pas du droit de la consommation pour vos commandes — notamment pas du droit de rétractation de quatorze jours applicable à la vente à distance au public. Les retours sont régis par la clause ci-dessous.",
+    termsQ3: "Comptes et agrément",
     termsA3:
-      "Chaque compte dispose de conditions de paiement et d’une quantité minimale de commande convenues avec votre commercial. Les commandes sont transmises comme demandes de facture proforma — votre commercial confirme le stock, la production et les totaux avant tout débit.",
-    termsQ4: "Informations produits",
+      "L’accès suppose un compte que nous avons agréé. Nous examinons chaque demande au regard des informations fiscales et des justificatifs de revente que vous fournissez, et nous pouvons refuser une demande ou retirer un compte. Tenez vos coordonnées à jour : confirmations de commande, factures proforma et avis de compte sont adressés à l’e-mail enregistré et sont réputés reçus dès leur envoi.",
+    termsQ4: "Sécurité du compte",
     termsA4:
-      "Les matières, poids, tailles et disponibilités affichés sur ce site sont réputés exacts au moment de leur publication, mais peuvent changer sans préavis avant la production.",
-    termsQ5: "Sécurité du compte",
+      "Vos identifiants appartiennent à votre entreprise et ne doivent pas être partagés au-delà. Vous répondez des commandes passées depuis votre compte. Prévenez-nous immédiatement si vous soupçonnez un accès étranger : nous le suspendrons le temps que vous réinitialisiez votre mot de passe. Nous ne vous demanderons jamais votre mot de passe.",
+    termsQ5: "Prix, TVA et devise",
     termsA5:
-      "Vous êtes responsable de la confidentialité de vos identifiants et de toute activité effectuée depuis votre compte. Contactez immédiatement votre commercial si vous suspectez un accès non autorisé.",
+      "Les prix sont en euros, en gros, et hors TVA sauf mention contraire. La TVA est ajoutée au taux en vigueur à la date de facturation. Si vous nous communiquez un numéro de TVA valide enregistré dans un autre État membre de l’UE et que les marchandises quittent la Grèce, nous facturons sans TVA grecque sous le régime de l’autoliquidation et vous acquittez la TVA dans votre pays. Les prix ne s’affichent que pour les comptes agréés connectés, et le prix qui engage est celui de la facture proforma que nous confirmons.",
+    termsQ6: "Passation de commande",
+    termsA6:
+      "L’envoi du panier est une demande d’achat, non une vente conclue. Nous vérifions le stock, la capacité de production et les conditions de votre compte, puis nous envoyons une facture proforma. Le contrat se forme lorsque nous confirmons la commande. Jusque-là, nous pouvons ajuster ou refuser une ligne, en vous en expliquant la raison.",
+    termsQ7: "Cartons complets et minimum de commande",
+    termsA7:
+      "Les chaussures sont vendues en cartons complets couvrant une série de pointures ; les cartons partiels n’existent pas. Chaque compte a en outre un minimum de commande exprimé en paires, affiché au moment de valider et convenu avec votre commercial. Les commandes inférieures ne peuvent pas être envoyées, et ce minimum est généralement abaissé à mesure que le compte constitue un historique.",
+    termsQ8: "Stock, précommande et fabrication à la commande",
+    termsA8:
+      "Les modèles signalés comme disponibles partent du stock. Les modèles signalés en précommande ou en fabrication à la commande sont produits contre commandes confirmées, et les dates affichées sont des estimations de production, non des délais de livraison garantis. Si une fenêtre de production se décale, nous vous le disons dès que nous le savons.",
+    termsQ9: "Conditions de paiement",
+    termsA9:
+      "Votre compte est agréé pour le paiement d’avance, à 30 jours nets ou à 60 jours nets, la remise attachée à chaque option étant affichée à la validation. Demander des conditions autres que celles agréées adresse la commande à votre commercial pour accord de crédit avant expédition. Nous pouvons exiger un paiement d’avance sur une première commande ou sur un compte présentant un solde échu.",
+    termsQ10: "Retard de paiement",
+    termsA10:
+      "Les factures sont exigibles à la date qui y figure. Les sommes échues portent intérêts de retard au taux légal applicable aux transactions commerciales selon le droit grec transposant la directive 2011/7/UE, majorés des frais de recouvrement prévus par ce texte, à compter du lendemain de l’échéance et jusqu’au paiement. Nous pouvons suspendre ou annuler les commandes non livrées d’un compte en retard.",
+    termsQ11: "Réserve de propriété",
+    termsA11:
+      "Les marchandises restent notre propriété jusqu’à complet paiement. Vous pouvez les revendre auparavant dans le cours normal de votre activité ; jusqu’à notre paiement, vous détenez le produit de cette revente pour notre compte et devez conserver les marchandises identifiables et assurées.",
+    termsQ12: "Livraison, transfert des risques et retards",
+    termsA12:
+      "Sauf accord écrit contraire, les marchandises sont expédiées depuis la Grèce et les risques vous sont transférés à leur remise au transporteur. Les dates de livraison sont indicatives. Nous ne répondons pas des retards imputables au transporteur, à la douane ou à toute cause échappant à notre contrôle raisonnable, mais nous vous aiderons à suivre l’expédition et à agir contre le transporteur.",
+    termsQ13: "Contrôle à la réception",
+    termsA13:
+      "Contrôlez chaque expédition à l’arrivée au regard du bon de livraison. Signalez les manquants, les erreurs et les dommages apparents au contrôle dans les huit jours calendaires suivant la livraison, photographies à l’appui lorsque c’est utile. Les défauts que le contrôle ne pouvait raisonnablement révéler doivent être signalés sans retard injustifié après leur découverte. Vos droits d’acheteur au titre du Code civil grec ne sont pas restreints par la présente clause.",
+    termsQ14: "Retours et échanges",
+    termsA14:
+      "En tant qu’acheteur professionnel, vous n’avez pas le droit de retourner des marchandises au seul motif d’un changement d’avis. Nous remplaçons, réparons ou créditons ce qui est défectueux, mal livré ou manquant. Tout autre retour requiert notre accord préalable ; les marchandises renvoyées sans accord peuvent être refusées. Les retours doivent être non portés, dans leurs cartons d’origine et en état d’être revendus.",
+    termsQ15: "Informations produits",
+    termsA15:
+      "Le cuir est une matière naturelle : le grain, la couleur et la finition varient d’une peau à l’autre et d’une production à l’autre, et les photographies présentées sont une représentation fidèle, non une correspondance exacte. Les dimensions, poids et compositions de cartons sont donnés dans les tolérances de production usuelles, et les spécifications peuvent évoluer au fil du développement d’un modèle. De telles variations ne constituent pas un défaut.",
+    termsQ16: "Revente de nos chaussures",
+    termsA16:
+      "L’agrément d’achat ne vaut pas licence d’usage de notre nom ou de nos marques au-delà de ce qui est nécessaire pour annoncer et vendre les marchandises achetées chez nous. N’enlevez ni ne modifiez les étiquettes, marquages de cartons ou consignes d’entretien, et ne vous présentez pas comme notre agent, distributeur ou représentant agréé sans accord écrit de notre part.",
+    termsQ17: "Propriété intellectuelle sur ce site",
+    termsA17:
+      "Les photographies, textes produits, linesheets et la conception de ce portail nous appartiennent ou appartiennent à nos concédants. Vous pouvez les utiliser pour commercialiser les chaussures que vous nous achetez. Leur reprise dans un catalogue concurrent ou toute autre republication n’est pas autorisée.",
+    termsQ18: "Disponibilité du portail",
+    termsA18:
+      "Nous maintenons le portail de commande aussi disponible que possible, sans garantir un accès ininterrompu, et nous pouvons l’arrêter pour maintenance ou en modifier le fonctionnement. S’il est indisponible au moment où vous devez commander, votre commercial prendra la commande directement.",
+    termsQ19: "Notre responsabilité",
+    termsA19:
+      "Rien ici ne limite une responsabilité qui ne peut légalement l’être, notamment en cas de dol, de faute lourde, ou de décès et dommage corporel causés par négligence. Sous cette réserve, notre responsabilité liée à une commande est limitée à la valeur facturée des marchandises concernées, et nous ne répondons ni du manque à gagner, ni de la perte de ventes, ni de l’atteinte à la réputation.",
+    termsQ20: "Force majeure",
+    termsA20:
+      "Aucune des parties ne manque aux présentes conditions lorsque l’exécution est empêchée ou retardée par une cause échappant à son contrôle raisonnable — défaillance d’une tannerie ou d’une usine, pénurie de matières premières, grève, perturbation des transports, incendie, inondation, épidémie ou décision des pouvoirs publics. Si un tel événement se prolonge au-delà de soixante jours, chacune des parties peut annuler la commande concernée et nous remboursons ce qui a été payé pour des marchandises non livrées.",
+    termsQ21: "Données personnelles",
+    termsA21:
+      "La manière dont nous traitons les données personnelles liées à votre compte — de quelles personnes de votre entreprise nous conservons des informations, ce que nous gardons et pendant combien de temps — figure dans notre Politique de confidentialité, qui fait partie des présentes conditions.",
+    termsQ22: "Modification des conditions",
+    termsA22:
+      "Nous pouvons modifier les présentes conditions. Toute commande est régie par la version en vigueur au moment où elle est passée. Nous prévenons les titulaires de compte par e-mail avant qu’une modification substantielle ne prenne effet, et la date en haut de cette page indique toujours la dernière mise à jour.",
+    termsQ23: "Droit applicable et juridiction",
+    termsA23:
+      "Les présentes conditions et tout litige qui en découle sont régis par le droit grec. Les tribunaux de {city} sont seuls compétents, étant entendu que nous pouvons agir au lieu de votre établissement pour recouvrer les sommes dues. Parlez-en d’abord à votre commercial : presque tout se règle plus vite ainsi.",
 
     privacyTitle: "Politique de confidentialité",
-    privacyDescription: "Politique de confidentialité de Hector Footwear Wholesale.",
+    privacyDescription: "Comment Hector Footwear traite les données personnelles des comptes de gros et des visiteurs.",
+    privacyIntro:
+      "Cette politique explique ce que nous faisons des données personnelles lorsqu’une entreprise demande un compte de gros, commande sur ce site ou s’y rend simplement. Elle concerne des personnes — les contacts nommés chez nos clients et les visiteurs — et non des sociétés.",
     privacyCtaHeading: "Des questions sur vos données ?",
-    privacyCtaButton: "Politique de cookies",
-    privacyQ1: "Ce que nous collectons",
+    privacyCtaButton: "Avis relatif aux cookies",
+    privacyQ1: "Qui est responsable de vos données",
     privacyA1:
-      "Les informations professionnelles et de contact que vous fournissez lors de la demande ou de la gestion d’un compte professionnel (raison sociale, nom du contact, e-mail, téléphone, numéro de TVA ou SIRET, adresses de livraison), ainsi que l’historique des commandes et l’activité du compte.",
-    privacyQ2: "Comment nous les utilisons",
+      "Le responsable du traitement est l’entreprise identifiée ci-dessus. Écrivez à l’adresse e-mail qui y figure pour toute question sur cette politique ou pour exercer l’un des droits ci-dessous : une personne vous répondra.",
+    privacyQ2: "Ce que nous collectons",
     privacyA2:
-      "Pour faire fonctionner votre compte professionnel — traitement des commandes, application de vos conditions négociées, coordination avec votre commercial et envoi des notifications liées aux commandes.",
-    privacyQ3: "Avec qui elles sont partagées",
+      "Lors de la demande : raison sociale, nom du contact, adresse e-mail, numéro de téléphone, identifiant fiscal ou justificatif de revente, et les adresses de livraison souhaitées. Pendant la vie du compte : vos commandes et leur historique, les conditions de paiement et les prix convenus, les factures, le commercial qui vous est affecté, les adresses de livraison et nos échanges. Automatiquement, de tout visiteur : l’adresse IP, le navigateur et les pages demandées, tels que les journalise tout serveur web, ainsi que les mesures décrites ci-dessous si vous les avez acceptées.",
+    privacyQ3: "Pourquoi nous les utilisons, et sur quelle base légale",
     privacyA3:
-      "Vos informations sont utilisées en interne par Hector Footwear Wholesale et par votre commercial attitré. Nous ne vendons pas les données de compte à des tiers.",
-    privacyQ4: "Conservation des données",
+      "Pour instruire votre demande et gérer votre compte — prise de commandes, application de vos conditions, édition des factures proforma, organisation des livraisons et réponse à vos questions — parce que c’est nécessaire à la conclusion et à l’exécution de notre contrat. Pour émettre les factures et tenir la comptabilité, parce que le droit fiscal grec l’impose. Pour sécuriser le portail, écarter les demandes frauduleuses et faire valoir ou défendre des droits en justice, parce que nous y avons un intérêt légitime qui ne prévaut pas sur vos droits. Pour mesurer l’usage du site, uniquement sur la base de votre consentement.",
+    privacyQ4: "Mesure d’audience et consentement",
     privacyA4:
-      "Les données de compte et de commande sont conservées tant que votre compte est actif, puis aussi longtemps que l’exigent les obligations commerciales et comptables après sa clôture.",
-    privacyQ5: "Vos choix",
+      "Google Analytics n’est pas chargé tant que vous ne l’avez pas accepté. Tant que vous n’avez pas choisi, ou que vous avez refusé, rien n’est mesuré et aucun cookie de mesure n’est déposé — il ne s’agit pas d’une bannière qui enregistre une préférence et vous suit malgré tout. Si vous acceptez, nous voyons des chiffres agrégés : pages consultées, pays d’origine approximatif des visites, appareils utilisés. Rien n’est rattaché à votre compte de gros ni à votre historique de commandes, et vous pouvez retirer votre consentement sur la page dédiée aux cookies aussi facilement que vous l’avez donné.",
+    privacyQ5: "Avec qui nous les partageons",
     privacyA5:
-      "Vous pouvez consulter et mettre à jour vos informations professionnelles, vos coordonnées et vos adresses de livraison à tout moment depuis les Paramètres du compte, ou en contactant votre commercial.",
-    privacyQ6: "Mesure d’audience",
-    privacyA6: "Si vous acceptez les cookies de mesure, nous utilisons Google Analytics pour mesurer l’usage du site — pages consultées, provenance approximative des visiteurs et appareils utilisés. C’est désactivé tant que vous n’avez pas accepté, vous pouvez retirer votre accord à tout moment depuis la Politique de cookies, et cela n’est jamais rattaché à votre compte professionnel ni à votre historique de commandes.",
+      "Nous ne vendons pas de données personnelles et ne les partageons pour le marketing de personne. Elles ne parviennent qu’à : les prestataires qui exploitent ce service pour nous sous contrat — Vercel pour l’hébergement, Supabase pour la base de données et le stockage des images, Resend pour les e-mails transactionnels et, avec votre consentement, Google pour la mesure d’audience ; les transporteurs qui livrent vos commandes, qui ont besoin de l’adresse de livraison et d’un nom de contact ; nos comptables et auditeurs ; et les autorités publiques lorsque la loi l’exige. Chacun de ces prestataires est contractuellement tenu de n’utiliser les données que sur nos instructions.",
+    privacyQ6: "Transferts hors EEE",
+    privacyA6:
+      "Ces prestataires sont établis aux États-Unis et peuvent traiter des données là-bas ou ailleurs. Dans ce cas, le transfert est couvert par les clauses contractuelles types de la Commission européenne ou, pour les fournisseurs qui y sont certifiés, par le cadre de protection des données UE–États-Unis, de sorte que la protection accompagne les données.",
+    privacyQ7: "Combien de temps nous les conservons",
+    privacyA7:
+      "Une demande refusée est conservée jusqu’à douze mois, afin de reconnaître une nouvelle demande et d’expliquer la décision antérieure, puis supprimée. Les données de compte et de commande sont conservées tant que le compte est actif, puis cinq ans après la dernière commande. Les factures et les pièces comptables associées sont conservées aussi longtemps que le droit fiscal grec nous y oblige, soit plus longtemps que nous ne le choisirions autrement. Les journaux serveur sont conservés brièvement, pour la sécurité. Les données de mesure d’audience sont conservées quatorze mois au maximum.",
+    privacyQ8: "Comment nous les protégeons",
+    privacyA8:
+      "Le trafic vers ce site est chiffré en transit. Les mots de passe ne sont stockés que sous forme d’empreintes salées — nous ne pouvons pas lire le vôtre, ce qui explique que le lien de réinitialisation soit le seul retour possible dans un compte verrouillé. L’accès aux dossiers clients est limité au personnel qui en a besoin, et les administrateurs disposent de rôles nominatifs plutôt que d’un identifiant partagé.",
+    privacyQ9: "Vos droits",
+    privacyA9:
+      "Vous pouvez demander une copie des données personnelles que nous détenons sur vous, leur rectification, leur effacement, la limitation du traitement ou vous y opposer, les recevoir dans un format portable, et retirer tout consentement donné. Certaines doivent malgré tout être conservées — une facture ne s’efface pas sur demande, le droit fiscal nous imposant de la garder. Nous répondons dans le mois, sans frais.",
+    privacyQ10: "Réclamations",
+    privacyA10:
+      "Si vous estimez que nous avons mal traité vos données, dites-le-nous d’abord : nous essaierons d’y remédier. Vous avez également le droit de saisir l’Autorité hellénique de protection des données (Kifissias 1-3, 115 23 Athènes, dpa.gr) ou l’autorité de contrôle du pays de l’UE où vous résidez ou travaillez.",
+    privacyQ11: "Aucune décision automatisée",
+    privacyA11:
+      "Les demandes sont examinées par une personne. Nous ne prenons pas de décision vous concernant sur le seul fondement d’un traitement automatisé, nous n’établissons pas de profil comportemental des visiteurs, et rien sur ce site ne vous note ni ne vous classe.",
+    privacyQ12: "Modification de cette politique",
+    privacyA12:
+      "Nous mettons cette politique à jour lorsque notre usage des données change. La date en haut indique la version en vigueur, et nous prévenons les titulaires de compte par e-mail avant qu’une modification substantielle ne prenne effet.",
 
-    cookiesTitle: "Politique de cookies",
-    cookiesDescription: "Politique de cookies de Hector Footwear Wholesale.",
-    cookiesCtaHeading: "Des questions sur les cookies ou vos données ?",
+    cookiesTitle: "Avis relatif aux cookies",
+    cookiesDescription: "Les cookies et le stockage local utilisés par ce site, et comment les contrôler.",
+    cookiesCtaHeading: "Des questions sur les cookies ou les données ?",
     cookiesCtaButton: "Politique de confidentialité",
-    cookiesIntro: "Hector Footwear Wholesale utilise un petit nombre de cookies essentiels pour faire fonctionner le portail de commande, ainsi que Google Analytics pour comprendre l’usage du site. Nous n’utilisons pas de cookies publicitaires ni de reciblage, et nous ne vendons pas ce que nous mesurons.",
-    cookiesOutro: "Les cookies essentiels ne peuvent pas être désactivés sans casser la connexion et la commande. Les cookies de mesure ne sont déposés que si vous les acceptez, et vous pouvez changer d’avis ici à tout moment.",
-    cookieColName: "Cookie",
+    cookiesIntro:
+      "Ce site utilise un petit nombre de cookies pour faire fonctionner le portail de commande, et Google Analytics — uniquement si vous l’acceptez — pour comprendre comment il est utilisé. Il n’y a ni cookie publicitaire, ni pixel de reciblage, ni traceur tiers autre que celui nommé ci-dessous. Tout ce que ce site stocke sur votre appareil est listé ici.",
+    cookiesOutro:
+      "Les entrées essentielles ne peuvent pas être désactivées sans rendre la connexion et la commande inopérantes ; elles ne portent aucun identifiant publicitaire et ne sont lues que par ce site. Les cookies de mesure sont déposés après votre acceptation, jamais avant.",
+    cookieColName: "Nom",
     cookieColPurpose: "Finalité",
     cookieColType: "Type",
-    cookie1Name: "Cookie de session",
-    cookie1Purpose: "Vous maintient connecté à votre compte professionnel d’une page à l’autre.",
-    cookie1Type: "Essentiel — nécessaire pour utiliser le site une fois connecté",
-    cookie2Name: "Cookie de demande en cours",
-    cookie2Purpose: "Suit une demande de compte professionnel envoyée, afin que vous puissiez en vérifier le statut avant la création du compte.",
-    cookie2Type: "Essentiel",
+    cookie1Name: "hector_session",
+    cookie1Purpose: "Vous maintient connecté à votre compte de gros d’une page à l’autre.",
+    cookie1Type: "Cookie essentiel — nécessaire à l’utilisation du site une fois connecté",
+    cookie2Name: "hector_application",
+    cookie2Purpose: "Suit une demande de compte déposée, pour que vous puissiez en voir l’état avant l’ouverture du compte.",
+    cookie2Type: "Cookie essentiel",
     cookie3Name: "_ga",
-    cookie3Purpose: "Google Analytics — distingue les visiteurs afin de comptabiliser les visites.",
-    cookie3Type: "Mesure d’audience — seulement avec votre accord",
+    cookie3Purpose: "Google Analytics — distingue les visiteurs les uns des autres afin de compter les visites.",
+    cookie3Type: "Cookie de mesure — déposé uniquement avec votre consentement",
     cookie4Name: "_ga_GDV45R4P8D",
-    cookie4Purpose: "Google Analytics — conserve l’état de session pour le compte de mesure du site.",
-    cookie4Type: "Mesure d’audience — seulement avec votre accord",
-    consentHeading: "Votre choix de mesure d’audience",
+    cookie4Purpose: "Google Analytics — conserve l’état de session pour la propriété de mesure de ce site.",
+    cookie4Type: "Cookie de mesure — déposé uniquement avec votre consentement",
+    cookie5Name: "hector_cookie_consent",
+    cookie5Purpose: "Retient si vous avez accepté ou refusé la mesure d’audience, pour ne pas vous redemander à chaque page.",
+    cookie5Type: "Essentiel — conservé dans votre navigateur, jamais transmis à nous",
+    cookie6Name: "hector_recently_viewed",
+    cookie6Purpose: "Retient les modèles consultés récemment, pour que le site puisse vous les remontrer.",
+    cookie6Type: "Essentiel — conservé dans votre navigateur, jamais transmis à nous",
+    cookiesBrowserHeading: "Contrôler les cookies vous-même",
+    cookiesBrowserBody:
+      "Votre navigateur peut bloquer ou supprimer les cookies et le stockage de n’importe quel site, y compris celui-ci. Bloquer les entrées essentielles vous déconnectera et empêchera de commander. Effacer les données du site réinitialise votre choix de mesure d’audience : la question vous sera reposée à votre prochaine visite.",
+
+    consentHeading: "Votre choix en matière de mesure d’audience",
     consentStatusGranted: "Vous avez accepté les cookies de mesure. Google Analytics est chargé pour vous sur ce site.",
-    consentStatusDenied: "Vous avez refusé les cookies de mesure. Google Analytics n’est pas chargé et aucun cookie _ga n’est déposé.",
+    consentStatusDenied: "Vous avez refusé les cookies de mesure. Google Analytics n’est pas chargé pour vous et aucun cookie _ga n’est déposé.",
     consentStatusUnknown: "Vous n’avez pas encore choisi. D’ici là, Google Analytics n’est pas chargé et aucun cookie de mesure n’est déposé.",
-    consentNote: "Votre choix est enregistré dans ce navigateur uniquement. Effacer les données du site, ou utiliser un autre navigateur ou appareil, vous reposera la question.",
+    consentNote: "Votre choix n’est conservé que dans ce navigateur. Effacer les données du site, ou utiliser un autre navigateur ou appareil, reposera la question.",
   },
   footer: {
     tagline: "Des chaussures en cuir pleine fleur, distribuées comme les détaillants exigeants l'attendent. Depuis 1984.",
@@ -774,7 +872,7 @@ const fr: Dictionary = {
     privacyPolicy: "Politique de confidentialité",
     cookieNotice: "Avis relatif aux cookies",
     copyright: "© {year} Hector Footwear Co. Réservé aux comptes grossistes.",
-    disclaimer: "Les prix et les stocks indiqués sur ce site sont donnés à titre indicatif.",
+    disclaimer: "Vente en gros uniquement. Tous les prix sont des prix de gros et s’entendent hors TVA.",
   },
   shopFooter: {
     yourRep: "Votre représentant : {name} · {email} · {phone}",

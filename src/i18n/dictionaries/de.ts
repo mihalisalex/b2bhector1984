@@ -226,7 +226,7 @@ const de: Dictionary = {
     proformaNotice:
       "Dies ist eine Proforma-Rechnung, keine Belastung — sie bildet die Bestands- und Produktionsprüfung vor der Bestätigung Ihrer Bestellung ab.",
     invoiceFooter:
-      "Hector Footwear Wholesale · {email} · Alle Preis- und Bestandsangaben in diesem Dokument sind unverbindlich.",
+      "Hector Footwear Wholesale · {email} · Proformadokument, keine Steuerrechnung. Preise verstehen sich ohne Umsatzsteuer und werden mit der Endrechnung bestätigt.",
     specSheet: "Datenblatt",
     category: "Kategorie",
     gender: "Geschlecht",
@@ -236,7 +236,7 @@ const de: Dictionary = {
     sizeBreakdown: "Größenaufteilung (Paar pro Karton)",
     box: "Karton",
     specSheetFooter:
-      "Hector Footwear Wholesale · {email}. Materialien, Gewichte und Kartonaufteilungen sind unverbindlich und unterliegen Produktionstoleranzen.",
+      "Hector Footwear Wholesale · {email}. Materialien, Gewichte und Kartonaufteilungen gelten innerhalb üblicher Fertigungstoleranzen.",
     afm: "Steuernr.",
     doy: "Finanzamt",
     wholesaleEst: "GROSSHANDEL — SEIT 1984",
@@ -682,79 +682,177 @@ const de: Dictionary = {
   },
   legal: {
     eyebrow: "Rechtliches",
-    disclaimer:
-      "Diese Seite ist ein beispielhafter Platzhaltertext — sie stellt keine Rechtsberatung dar und sollte nicht als solche verstanden werden.",
+    lastUpdated: "Zuletzt aktualisiert am {date}",
     contactUs: "Kontaktieren Sie uns",
-    contactSuffix: "— jede Anfrage wird von einem Menschen aus dem Team beantwortet, in der Regel innerhalb von zwei Werktagen.",
+    contactSuffix: "— jede Anfrage wird von einem Menschen aus dem Team beantwortet, meist innerhalb von zwei Werktagen.",
 
-    termsTitle: "Nutzungsbedingungen",
-    termsDescription: "Nutzungsbedingungen von Hector Footwear Wholesale.",
+    identityHeading: "Mit wem Sie es zu tun haben",
+    identityRegisteredName: "Firma",
+    identityTradingName: "Geschäftsbezeichnung",
+    identityAddress: "Sitz",
+    identityVatId: "Steuernummer (Α.Φ.Μ.)",
+    identityTaxOffice: "Finanzamt (Δ.Ο.Υ.)",
+    identityGemi: "Handelsregister (Γ.Ε.ΜΗ.)",
+    identityEmail: "E-Mail",
+    identityPhone: "Telefon",
+
+    termsTitle: "Verkaufsbedingungen",
+    termsDescription: "Die Bedingungen, zu denen Hector Footwear an zugelassene Großhandelskonten verkauft.",
+    termsIntro:
+      "Diese Bedingungen gelten für dieses Großhandelsportal und für jede darüber aufgegebene Bestellung. Sie gelten zwischen uns und dem Unternehmen, das das Konto führt. Mit der Beantragung eines Kontos, der Anmeldung oder einer Bestellung erkennen Sie sie an.",
     termsCtaHeading: "Fragen zu Ihrem Konto?",
-    termsCtaButton: "Zu den FAQ",
-    termsQ1: "Nur Großhandelskonten",
+    termsCtaButton: "Zu den häufigen Fragen",
+    termsQ1: "Mit wem Sie den Vertrag schließen",
     termsA1:
-      "Diese Website ist ein B2B-Bestellportal für freigegebene Großhandelskunden. Der Zugang setzt ein freigegebenes Konto voraus; die hier gezeigten Preise, Bestände und Bestellkonditionen richten sich nicht an die Allgemeinheit.",
-    termsQ2: "Bestellungen und Zahlungsbedingungen",
+      "Bestellungen über dieses Portal kommen mit dem oben bezeichneten Unternehmen zustande — nachfolgend „wir“. „Sie“ ist das Unternehmen, das das Großhandelskonto führt, sowie jede Person, der Sie die Nutzung gestatten. Diese Bedingungen begründen weder ein Handelsvertreter-, Gesellschafts- noch ein Franchiseverhältnis.",
+    termsQ2: "Nur gewerbliche Käufer — Verbraucherrecht gilt nicht",
     termsA2:
-      "Eine Bestellung ist eine Kaufanfrage zu den an der Kasse gewählten Zahlungsbedingungen (Vorkasse, Netto 30 oder Netto 60). Die Bestellung gilt als bestätigt, sobald sie angenommen wurde — den aktuellen Stand sehen Sie im Statusverlauf Ihrer Bestellung.",
-    termsQ3: "Zahlungsbedingungen und Mindestbestellmenge",
+      "Dies ist ein reines B2B-Portal. Konten werden nur an Unternehmen vergeben, die zum Wiederverkauf einkaufen; mit der Beantragung bestätigen Sie, dass Sie im Rahmen Ihrer gewerblichen Tätigkeit handeln. Da Sie kein Verbraucher sind, gilt für Ihre Bestellungen kein Verbraucherschutzrecht — insbesondere nicht das vierzehntägige Widerrufsrecht im Fernabsatz an Verbraucher. Für Rücksendungen gilt stattdessen die untenstehende Klausel.",
+    termsQ3: "Konten und Zulassung",
     termsA3:
-      "Für jedes Konto werden Zahlungsbedingungen und eine Mindestbestellmenge mit Ihrem Gebietsbetreuer vereinbart. Bestellungen werden als Proformarechnungs-Anfragen übermittelt — Ihr Betreuer bestätigt Bestand, Produktion und Summen, bevor etwas berechnet wird.",
-    termsQ4: "Produktangaben",
+      "Der Zugang setzt ein von uns freigegebenes Konto voraus. Wir prüfen jeden Antrag anhand der von Ihnen vorgelegten Steuerdaten und Wiederverkaufsnachweise und können einen Antrag ablehnen oder ein Konto entziehen. Halten Sie Ihre Angaben aktuell: Auftragsbestätigungen, Proformarechnungen und Kontomitteilungen gehen an die hinterlegte E-Mail-Adresse und gelten mit Versand dorthin als zugegangen.",
+    termsQ4: "Kontosicherheit",
     termsA4:
-      "Materialien, Gewichte, Größen und Verfügbarkeit auf dieser Website gelten zum Zeitpunkt der Veröffentlichung als zutreffend, können sich vor der Produktion jedoch ohne Ankündigung ändern.",
-    termsQ5: "Kontosicherheit",
+      "Ihre Zugangsdaten gehören Ihrem Unternehmen und sind nicht darüber hinaus weiterzugeben. Für Bestellungen über Ihr Konto sind Sie verantwortlich. Melden Sie uns sofort, wenn Sie einen fremden Zugriff vermuten; wir sperren das Konto, bis Sie Ihr Passwort zurückgesetzt haben. Wir werden Sie niemals nach Ihrem Passwort fragen.",
+    termsQ5: "Preise, Umsatzsteuer und Währung",
     termsA5:
-      "Sie sind dafür verantwortlich, Ihre Zugangsdaten vertraulich zu behandeln, und für sämtliche Aktivitäten unter Ihrem Konto. Melden Sie sich sofort bei Ihrem Betreuer, wenn Sie unbefugten Zugriff vermuten.",
+      "Alle Preise verstehen sich in Euro, als Großhandelspreise und ohne Umsatzsteuer, sofern nichts anderes angegeben ist. Die Umsatzsteuer wird mit dem am Rechnungsdatum geltenden Satz hinzugerechnet. Teilen Sie uns eine gültige, in einem anderen EU-Mitgliedstaat registrierte USt-IdNr. mit und verlassen die Waren Griechenland, stellen wir im Reverse-Charge-Verfahren ohne griechische Umsatzsteuer in Rechnung; die Steuer schulden dann Sie in Ihrem Land. Preise sind nur angemeldeten, zugelassenen Konten sichtbar; maßgeblich ist der Preis auf der von uns bestätigten Proformarechnung.",
+    termsQ6: "Bestellung",
+    termsA6:
+      "Das Absenden des Warenkorbs ist eine Kaufanfrage, kein geschlossener Kauf. Wir prüfen Bestand, Produktionskapazität und Ihre Konditionen und senden eine Proformarechnung. Der Vertrag kommt mit unserer Auftragsbestätigung zustande. Bis dahin können wir einzelne Positionen anpassen oder ablehnen und nennen Ihnen den Grund.",
+    termsQ7: "Kartoneinheiten und Mindestbestellmenge",
+    termsA7:
+      "Schuhe werden in vollen Größenlauf-Kartons verkauft; Teilkartons gibt es nicht. Jedes Konto hat zudem eine Mindestbestellmenge in Paaren, die im Bestellabschluss angezeigt und mit Ihrem Betreuer vereinbart wird. Bestellungen darunter können nicht abgesendet werden; die Mindestmenge wird in der Regel gesenkt, sobald ein Konto eine Bestellhistorie aufgebaut hat.",
+    termsQ8: "Lagerware, Vorbestellung und Auftragsfertigung",
+    termsA8:
+      "Als verfügbar gekennzeichnete Modelle werden ab Lager versandt. Als Vorbestellung oder Auftragsfertigung gekennzeichnete Modelle werden gegen bestätigte Bestellungen produziert; die genannten Termine sind Produktionsschätzungen, keine zugesicherten Liefertermine. Verschiebt sich ein Produktionsfenster, sagen wir Ihnen sofort Bescheid.",
+    termsQ9: "Zahlungsbedingungen",
+    termsA9:
+      "Ihr Konto ist für Vorkasse, 30 oder 60 Tage netto freigegeben; der jeweils zugehörige Nachlass wird im Bestellabschluss angezeigt. Wünschen Sie andere als die freigegebenen Konditionen, geht die Bestellung vor dem Versand zur Kreditfreigabe an Ihren Betreuer. Bei einer Erstbestellung oder bei überfälligem Saldo können wir Vorkasse verlangen.",
+    termsQ10: "Zahlungsverzug",
+    termsA10:
+      "Rechnungen sind zum ausgewiesenen Datum fällig. Überfällige Beträge sind ab dem Tag nach Fälligkeit bis zur Zahlung mit dem gesetzlichen Verzugszins für Handelsgeschäfte nach griechischem Recht in Umsetzung der Richtlinie 2011/7/EU zu verzinsen, zuzüglich der dort vorgesehenen Beitreibungskosten. Bei Zahlungsrückstand können wir noch nicht ausgelieferte Bestellungen zurückstellen oder stornieren.",
+    termsQ11: "Eigentumsvorbehalt",
+    termsA11:
+      "Die Ware bleibt bis zur vollständigen Bezahlung unser Eigentum. Sie dürfen sie vorher im ordentlichen Geschäftsgang weiterverkaufen; bis zur Zahlung halten Sie den Weiterverkaufserlös für uns und müssen die Ware identifizierbar und versichert halten.",
+    termsQ12: "Lieferung, Gefahrübergang und Verzögerungen",
+    termsA12:
+      "Soweit nicht schriftlich anders vereinbart, wird ab Griechenland versandt und die Gefahr geht mit Übergabe an den Frachtführer auf Sie über. Liefertermine sind Schätzungen. Für Verzögerungen durch Frachtführer, Zoll oder Umstände außerhalb unseres zumutbaren Einflussbereichs haften wir nicht, helfen Ihnen aber, die Sendung zu verfolgen und Ansprüche gegen den Frachtführer zu verfolgen.",
+    termsQ13: "Prüfung der Lieferung",
+    termsA13:
+      "Prüfen Sie jede Sendung bei Ankunft gegen den Lieferschein. Melden Sie Fehlmengen, Falschlieferungen und bei der Prüfung erkennbare Schäden innerhalb von acht Kalendertagen nach Lieferung, nach Möglichkeit mit Fotos. Mängel, die bei der Prüfung nicht zumutbar erkennbar waren, sind unverzüglich nach Entdeckung zu melden. Ihre Käuferrechte nach dem griechischen Zivilgesetzbuch werden durch diese Klausel nicht eingeschränkt.",
+    termsQ14: "Rücksendungen und Umtausch",
+    termsA14:
+      "Als gewerblicher Käufer haben Sie kein Recht, Ware allein wegen Meinungsänderung zurückzugeben. Fehlerhafte, falsch gelieferte oder fehlende Ware ersetzen, reparieren oder erstatten wir. Jede andere Rücksendung bedarf unserer vorherigen Zustimmung; ohne sie eingesandte Ware können wir zurückweisen. Rücksendungen müssen ungetragen, in Originalkartons und in wiederverkaufsfähigem Zustand sein.",
+    termsQ15: "Produktangaben",
+    termsA15:
+      "Leder ist ein Naturmaterial: Narbung, Farbe und Finish variieren von Haut zu Haut und von Charge zu Charge, und die Fotografie hier ist eine getreue Darstellung, keine exakte Übereinstimmung. Maße, Gewichte und Kartonaufteilungen gelten innerhalb üblicher Fertigungstoleranzen, und Spezifikationen können sich in der Entwicklung eines Modells ändern. Abweichungen dieser Art sind kein Mangel.",
+    termsQ16: "Weiterverkauf unserer Schuhe",
+    termsA16:
+      "Die Zulassung zum Einkauf ist keine Lizenz zur Nutzung unseres Namens oder unserer Marken über das hinaus, was für Bewerbung und Verkauf der von uns gekauften Ware nötig ist. Entfernen oder verändern Sie keine Etiketten, Kartonkennzeichnungen oder Pflegehinweise, und treten Sie ohne unsere schriftliche Zustimmung nicht als unser Vertreter, Distributor oder autorisierter Händler auf.",
+    termsQ17: "Urheberrechte an dieser Website",
+    termsA17:
+      "Fotografie, Produkttexte, Linesheets und Gestaltung dieses Portals stehen uns oder unseren Lizenzgebern zu. Sie dürfen sie zur Vermarktung der bei uns gekauften Schuhe verwenden. Eine Übernahme in einen konkurrierenden Katalog oder eine sonstige Weiterveröffentlichung ist nicht gestattet.",
+    termsQ18: "Verfügbarkeit des Portals",
+    termsA18:
+      "Wir halten das Bestellportal so zuverlässig wie möglich verfügbar, sagen aber keinen unterbrechungsfreien Zugang zu und können es für Wartung abschalten oder seine Funktionsweise ändern. Ist es nicht erreichbar, wenn Sie bestellen müssen, nimmt Ihr Betreuer die Bestellung direkt auf.",
+    termsQ19: "Unsere Haftung",
+    termsA19:
+      "Nichts hierin beschränkt eine Haftung, die nicht wirksam beschränkt werden kann, insbesondere für Vorsatz, grobe Fahrlässigkeit sowie für Tod oder Körperverletzung aus Fahrlässigkeit. Im Übrigen ist unsere Haftung im Zusammenhang mit einer Bestellung auf den Rechnungswert der betroffenen Ware begrenzt; für entgangenen Gewinn, Umsatzausfall oder Rufschaden haften wir nicht.",
+    termsQ20: "Höhere Gewalt",
+    termsA20:
+      "Keine Seite verletzt diese Bedingungen, soweit die Leistung durch Umstände außerhalb ihres zumutbaren Einflussbereichs verhindert oder verzögert wird — Ausfall einer Gerberei oder Fabrik, Rohstoffmangel, Streik, Transportstörung, Feuer, Überschwemmung, Epidemie oder hoheitliche Maßnahme. Dauert ein solches Ereignis länger als sechzig Tage, kann jede Seite die betroffene Bestellung stornieren; für nicht gelieferte Ware Gezahltes erstatten wir.",
+    termsQ21: "Personenbezogene Daten",
+    termsA21:
+      "Wie wir die personenbezogenen Daten hinter Ihrem Konto verarbeiten — von welchen Personen Ihres Unternehmens wir Daten führen, was wir speichern und wie lange — steht in unserer Datenschutzerklärung, die Bestandteil dieser Bedingungen ist.",
+    termsQ22: "Änderungen dieser Bedingungen",
+    termsA22:
+      "Wir können diese Bedingungen ändern. Für eine Bestellung gilt die bei ihrer Aufgabe geltende Fassung. Vor dem Wirksamwerden einer wesentlichen Änderung informieren wir Kontoinhaber per E-Mail; das Datum oben auf dieser Seite zeigt stets die letzte Änderung.",
+    termsQ23: "Anwendbares Recht und Gerichtsstand",
+    termsA23:
+      "Diese Bedingungen und alle daraus entstehenden Streitigkeiten unterliegen griechischem Recht. Ausschließlich zuständig sind die Gerichte in {city}; zur Beitreibung offener Forderungen können wir auch an Ihrem Sitz klagen. Sprechen Sie aber zuerst mit Ihrem Betreuer — fast alles lässt sich so schneller klären.",
 
     privacyTitle: "Datenschutzerklärung",
-    privacyDescription: "Datenschutzerklärung von Hector Footwear Wholesale.",
+    privacyDescription: "Wie Hector Footwear personenbezogene Daten von Großhandelskonten und Website-Besuchern verarbeitet.",
+    privacyIntro:
+      "Diese Erklärung beschreibt, was wir mit personenbezogenen Daten tun, wenn ein Unternehmen ein Großhandelskonto beantragt, über diese Website bestellt oder sie einfach nur besucht. Es geht um Menschen — die benannten Ansprechpartner unserer Kunden und die Besucher — nicht um Unternehmen.",
     privacyCtaHeading: "Fragen zu Ihren Daten?",
     privacyCtaButton: "Cookie-Hinweis",
-    privacyQ1: "Was wir erheben",
+    privacyQ1: "Wer für Ihre Daten verantwortlich ist",
     privacyA1:
-      "Firmen- und Kontaktdaten, die Sie bei der Beantragung oder Führung eines Großhandelskontos angeben (Firmenname, Ansprechpartner, E-Mail, Telefon, Gewerbenachweis, Lieferadressen), sowie Bestellhistorie und Kontoaktivität.",
-    privacyQ2: "Wie wir sie verwenden",
+      "Verantwortlicher ist das oben bezeichnete Unternehmen. Schreiben Sie an die dort genannte E-Mail-Adresse, wenn Sie eine Frage zu dieser Erklärung haben oder eines der unten genannten Rechte ausüben möchten — es antwortet Ihnen ein Mensch.",
+    privacyQ2: "Was wir erheben",
     privacyA2:
-      "Zum Betrieb Ihres Großhandelskontos — Bearbeitung von Bestellungen, Anwendung Ihrer vereinbarten Konditionen, Abstimmung mit Ihrem Gebietsbetreuer und Versand bestellbezogener Benachrichtigungen.",
-    privacyQ3: "Mit wem wir sie teilen",
+      "Bei der Antragstellung: Firma, Ansprechpartner, E-Mail-Adresse, Telefonnummer, Steuernummer oder Wiederverkaufsnachweis sowie die gewünschten Lieferadressen. Während der Kontoführung: Ihre Bestellungen und deren Historie, die vereinbarten Zahlungs- und Preiskonditionen, Rechnungen, den zugeordneten Betreuer, Lieferadressen und die Korrespondenz mit uns. Automatisch von allen Besuchern: IP-Adresse, Browser und aufgerufene Seiten, wie sie jeder Webserver protokolliert, sowie die unten beschriebene Analyse, sofern Sie ihr zugestimmt haben.",
+    privacyQ3: "Wozu wir sie nutzen und auf welcher Rechtsgrundlage",
     privacyA3:
-      "Ihre Daten werden intern von Hector Footwear Wholesale und Ihrem zuständigen Gebietsbetreuer genutzt. Wir verkaufen keine Kontodaten an Dritte.",
-    privacyQ4: "Speicherdauer",
+      "Zur Prüfung Ihres Antrags und zur Führung Ihres Kontos — Bestellannahme, Anwendung Ihrer Konditionen, Erstellung von Proformarechnungen, Versandabwicklung und Beantwortung von Fragen — weil dies zur Anbahnung und Erfüllung unseres Vertrags erforderlich ist. Zur Rechnungsstellung und Buchführung, weil das griechische Steuerrecht dies verlangt. Zur Sicherheit des Portals, zur Abwehr betrügerischer Anträge und zur Geltendmachung oder Abwehr von Rechtsansprüchen, weil wir daran ein berechtigtes Interesse haben, das Ihre Rechte nicht überwiegt. Zur Messung der Websitenutzung ausschließlich auf Grundlage Ihrer Einwilligung.",
+    privacyQ4: "Analyse und Ihre Einwilligung",
     privacyA4:
-      "Konto- und Bestelldaten werden gespeichert, solange Ihr Konto aktiv ist, sowie so lange, wie es geschäftliche und buchhalterische Anforderungen nach der Schließung erfordern.",
-    privacyQ5: "Ihre Möglichkeiten",
+      "Google Analytics wird erst geladen, wenn Sie zustimmen. Solange Sie nicht gewählt oder abgelehnt haben, wird nichts gemessen und kein Analyse-Cookie gesetzt — dies ist kein Banner, das eine Präferenz speichert und trotzdem misst. Stimmen Sie zu, sehen wir aggregierte Zahlen: aufgerufene Seiten, ungefähre Herkunftsländer der Besuche, verwendete Geräte. Nichts davon wird mit Ihrem Großhandelskonto oder Ihrer Bestellhistorie verknüpft, und Sie können die Einwilligung im Cookie-Hinweis genauso einfach widerrufen, wie Sie sie erteilt haben.",
+    privacyQ5: "An wen wir sie weitergeben",
     privacyA5:
-      "Sie können Ihre Firmen- und Kontaktdaten sowie Lieferadressen jederzeit in den Kontoeinstellungen einsehen und ändern oder sich an Ihren Betreuer wenden.",
-    privacyQ6: "Analyse",
-    privacyA6: "Wenn Sie Analyse-Cookies akzeptieren, nutzen wir Google Analytics, um die Nutzung der Website zu messen — aufgerufene Seiten, die ungefähre Herkunft der Besucher und die verwendeten Geräte. Bis zu Ihrer Zustimmung ist es deaktiviert, Sie können sie jederzeit im Cookie-Hinweis widerrufen, und es wird nie mit Ihrem Großhandelskonto oder Ihrer Bestellhistorie verknüpft.",
+      "Wir verkaufen keine personenbezogenen Daten und geben sie nicht für fremde Werbung weiter. Sie erreichen nur: die Dienstleister, die diesen Dienst vertraglich für uns betreiben — Vercel für das Hosting, Supabase für Datenbank und Bildspeicher, Resend für Transaktions-E-Mails und, mit Ihrer Einwilligung, Google für die Analyse; die Speditionen, die Ihre Bestellungen ausliefern und dafür Lieferadresse und Ansprechpartner benötigen; unsere Steuerberater und Prüfer; sowie Behörden, soweit gesetzlich vorgeschrieben. Jeder dieser Dienstleister ist vertraglich verpflichtet, die Daten nur nach unserer Weisung zu verarbeiten.",
+    privacyQ6: "Übermittlungen außerhalb des EWR",
+    privacyA6:
+      "Diese Dienstleister sitzen in den Vereinigten Staaten und verarbeiten Daten möglicherweise dort oder anderswo. Wo das geschieht, ist die Übermittlung durch die Standardvertragsklauseln der Europäischen Kommission oder — bei entsprechend zertifizierten Anbietern — durch das EU-US Data Privacy Framework abgedeckt, sodass der Schutz die Daten begleitet.",
+    privacyQ7: "Wie lange wir sie speichern",
+    privacyA7:
+      "Einen abgelehnten Antrag bewahren wir bis zu zwölf Monate auf, um eine erneute Antragstellung zu erkennen und die frühere Entscheidung erklären zu können, und löschen ihn dann. Konto- und Bestelldaten speichern wir, solange das Konto aktiv ist, und fünf Jahre nach der letzten Bestellung. Rechnungen und die zugehörigen Buchhaltungsunterlagen bewahren wir so lange auf, wie das griechische Steuerrecht es verlangt — länger, als wir es sonst täten. Serverprotokolle werden aus Sicherheitsgründen kurz aufbewahrt. Analysedaten werden höchstens vierzehn Monate gespeichert.",
+    privacyQ8: "Wie wir sie schützen",
+    privacyA8:
+      "Der Datenverkehr zu dieser Website ist auf dem Transportweg verschlüsselt. Passwörter werden nur als gesalzene Hashes gespeichert — wir können Ihres nicht lesen, weshalb der Zurücksetzungslink der einzige Weg zurück in ein gesperrtes Konto ist. Der Zugriff auf Kundendaten ist auf die Mitarbeitenden beschränkt, die ihn benötigen, und Administratoren haben namentliche Rollen statt eines gemeinsamen Zugangs.",
+    privacyQ9: "Ihre Rechte",
+    privacyA9:
+      "Sie können Auskunft über die zu Ihnen gespeicherten Daten verlangen, deren Berichtigung, Löschung, Einschränkung oder Widerspruch gegen die Verarbeitung, die Übertragung in einem gängigen Format sowie den Widerruf jeder erteilten Einwilligung. Manches müssen wir gleichwohl aufbewahren — eine Rechnung lässt sich nicht auf Wunsch löschen, weil das Steuerrecht ihre Aufbewahrung vorschreibt. Wir antworten innerhalb eines Monats und berechnen dafür nichts.",
+    privacyQ10: "Beschwerden",
+    privacyA10:
+      "Wenn Sie meinen, wir seien mit Ihren Daten falsch umgegangen, sagen Sie es zuerst uns — wir versuchen, es in Ordnung zu bringen. Sie haben außerdem das Recht, sich bei der griechischen Datenschutzbehörde (Kifissias 1-3, 115 23 Athen, dpa.gr) oder bei der Aufsichtsbehörde des EU-Landes zu beschweren, in dem Sie wohnen oder arbeiten.",
+    privacyQ11: "Keine automatisierte Entscheidungsfindung",
+    privacyA11:
+      "Anträge werden von Menschen geprüft. Wir treffen keine Entscheidungen allein durch automatisierte Verarbeitung, erstellen keine Verhaltensprofile von Besuchern, und nichts auf dieser Website bewertet oder sortiert Sie.",
+    privacyQ12: "Änderungen dieser Erklärung",
+    privacyA12:
+      "Wir aktualisieren diese Erklärung, wenn sich unser Umgang mit Daten ändert. Das Datum oben zeigt die aktuelle Fassung; vor dem Wirksamwerden einer wesentlichen Änderung informieren wir Kontoinhaber per E-Mail.",
 
     cookiesTitle: "Cookie-Hinweis",
-    cookiesDescription: "Cookie-Hinweis von Hector Footwear Wholesale.",
+    cookiesDescription: "Die Cookies und Browser-Speicher, die diese Website nutzt, und wie Sie sie steuern.",
     cookiesCtaHeading: "Fragen zu Cookies oder Daten?",
     cookiesCtaButton: "Datenschutzerklärung",
-    cookiesIntro: "Hector Footwear Wholesale verwendet eine kleine Zahl notwendiger Cookies für den Betrieb des Bestellportals sowie Google Analytics, um die Nutzung der Website zu verstehen. Wir setzen keine Werbe- oder Retargeting-Cookies ein und verkaufen unsere Messdaten nicht.",
-    cookiesOutro: "Die notwendigen Cookies lassen sich nicht abschalten, ohne Anmeldung und Bestellung unbrauchbar zu machen. Die Analyse-Cookies werden nur gesetzt, wenn Sie zustimmen, und Sie können Ihre Wahl hier jederzeit ändern.",
-    cookieColName: "Cookie",
+    cookiesIntro:
+      "Diese Website nutzt einige wenige Cookies für den Betrieb des Bestellportals und Google Analytics — nur mit Ihrer Zustimmung —, um zu verstehen, wie sie genutzt wird. Es gibt keine Werbe-Cookies, keine Retargeting-Pixel und keine Tracker Dritter außer dem unten genannten. Alles, was diese Website auf Ihrem Gerät speichert, ist hier aufgeführt.",
+    cookiesOutro:
+      "Die notwendigen Einträge lassen sich nicht abschalten, ohne Anmeldung und Bestellung unbrauchbar zu machen; sie enthalten keine Werbekennung und werden nur von dieser Website gelesen. Die Analyse-Cookies werden gesetzt, nachdem Sie zugestimmt haben, und niemals vorher.",
+    cookieColName: "Name",
     cookieColPurpose: "Zweck",
     cookieColType: "Art",
-    cookie1Name: "Sitzungs-Cookie",
-    cookie1Purpose: "Hält Sie über Seitenaufrufe hinweg in Ihrem Großhandelskonto angemeldet.",
-    cookie1Type: "Notwendig — erforderlich zur Nutzung der Website im angemeldeten Zustand",
-    cookie2Name: "Cookie für laufende Anträge",
-    cookie2Purpose: "Verfolgt einen eingereichten Großhandelsantrag, damit Sie dessen Status prüfen können, bevor ein Konto besteht.",
-    cookie2Type: "Notwendig",
+    cookie1Name: "hector_session",
+    cookie1Purpose: "Hält Sie zwischen den Seitenaufrufen in Ihrem Großhandelskonto angemeldet.",
+    cookie1Type: "Notwendiges Cookie — für die Nutzung im angemeldeten Zustand erforderlich",
+    cookie2Name: "hector_application",
+    cookie2Purpose: "Verfolgt einen eingereichten Großhandelsantrag, damit Sie dessen Status vor Kontoeröffnung sehen können.",
+    cookie2Type: "Notwendiges Cookie",
     cookie3Name: "_ga",
     cookie3Purpose: "Google Analytics — unterscheidet Besucher voneinander, damit Besuche gezählt werden können.",
-    cookie3Type: "Analyse — nur mit Ihrer Einwilligung",
+    cookie3Type: "Analyse-Cookie — nur mit Ihrer Einwilligung",
     cookie4Name: "_ga_GDV45R4P8D",
-    cookie4Purpose: "Google Analytics — hält den Sitzungsstatus für das Analyse-Konto dieser Website.",
-    cookie4Type: "Analyse — nur mit Ihrer Einwilligung",
-    consentHeading: "Ihre Analyse-Einstellung",
-    consentStatusGranted: "Sie haben Analyse-Cookies akzeptiert. Google Analytics wird für Sie geladen.",
+    cookie4Purpose: "Google Analytics — speichert den Sitzungsstatus für die Analyse-Property dieser Website.",
+    cookie4Type: "Analyse-Cookie — nur mit Ihrer Einwilligung",
+    cookie5Name: "hector_cookie_consent",
+    cookie5Purpose: "Merkt sich, ob Sie die Analyse akzeptiert oder abgelehnt haben, damit Sie nicht auf jeder Seite gefragt werden.",
+    cookie5Type: "Notwendig — in Ihrem Browser gespeichert, wird nie an uns übertragen",
+    cookie6Name: "hector_recently_viewed",
+    cookie6Purpose: "Merkt sich die zuletzt angesehenen Modelle, damit die Website sie Ihnen erneut zeigen kann.",
+    cookie6Type: "Notwendig — in Ihrem Browser gespeichert, wird nie an uns übertragen",
+    cookiesBrowserHeading: "Cookies selbst steuern",
+    cookiesBrowserBody:
+      "Ihr Browser kann Cookies und Website-Speicher für jede Website blockieren oder löschen, auch für diese. Werden die notwendigen Einträge blockiert, werden Sie abgemeldet und können nicht bestellen. Das Löschen der Websitedaten setzt Ihre Analyse-Entscheidung zurück, sodass Sie beim nächsten Besuch erneut gefragt werden.",
+
+    consentHeading: "Ihre Analyse-Entscheidung",
+    consentStatusGranted: "Sie haben Analyse-Cookies akzeptiert. Google Analytics wird für Sie auf dieser Website geladen.",
     consentStatusDenied: "Sie haben Analyse-Cookies abgelehnt. Google Analytics wird für Sie nicht geladen und es werden keine _ga-Cookies gesetzt.",
     consentStatusUnknown: "Sie haben noch nicht gewählt. Bis dahin wird Google Analytics nicht geladen und es werden keine Analyse-Cookies gesetzt.",
-    consentNote: "Ihre Wahl wird nur in diesem Browser gespeichert. Beim Löschen der Websitedaten oder in einem anderen Browser bzw. auf einem anderen Gerät werden Sie erneut gefragt.",
+    consentNote: "Ihre Entscheidung wird nur in diesem Browser gespeichert. Nach dem Löschen der Websitedaten oder in einem anderen Browser bzw. auf einem anderen Gerät werden Sie erneut gefragt.",
   },
   footer: {
     tagline: "Schuhe aus Vollnarbenleder, so vertrieben, wie es anspruchsvolle Einzelhändler erwarten. Seit 1984.",
@@ -774,7 +872,7 @@ const de: Dictionary = {
     privacyPolicy: "Datenschutzerklärung",
     cookieNotice: "Cookie-Hinweis",
     copyright: "© {year} Hector Footwear Co. Nur für Großhandelskunden.",
-    disclaimer: "Alle Preis- und Bestandsdaten auf dieser Website dienen nur zur Veranschaulichung.",
+    disclaimer: "Nur Großhandel. Alle Preise sind Großhandelspreise und verstehen sich ohne Umsatzsteuer.",
   },
   shopFooter: {
     yourRep: "Ihr Vertriebspartner: {name} · {email} · {phone}",
