@@ -1,7 +1,10 @@
-import { getSeoSettings } from "@/lib/data/seoSettings";
+import { headers } from "next/headers";
+import { defaultLocaleForHost, localesForHost, originForLocale, urlForLocale } from "@/i18n/domains";
+import { getSeoSettingsForLocale } from "@/lib/data/seoSettings";
 import { getStorefrontStyles, CATEGORY_LABEL } from "@/lib/data/styles";
 import { getPublishedJournalPosts } from "@/lib/data/journalPosts";
-import { absoluteUrl } from "@/lib/seo";
+import { localizeStyle } from "@/lib/localizeStyle";
+import type { Locale } from "@/i18n/config";
 
 /**
  * `/llms.txt` — a plain-language brief for language models.
@@ -18,6 +21,17 @@ import { absoluteUrl } from "@/lib/seo";
  * a stale hand-written file would be worse than none, because the failure mode
  * is an assistant confidently citing something untrue about the business.
  *
+ * PER-DOMAIN, and this is the whole point of the rewrite. It previously built every
+ * link with the locale-less `absoluteUrl()`, which falls back to the single `SITE_URL`
+ * — so hectorfootwear.com served a file byte-identical to the Greek one, carrying 57
+ * links to hectorfootwear.gr and none to itself. An assistant that fetched .com/llms.txt
+ * was handed the Greek-language site and never learned the English one existed. That is
+ * the same bug `robots.ts` was fixed for in August; its comment describes it exactly.
+ *
+ * It also asked for every published journal post rather than the ones in this domain's
+ * language, so .gr listed ten English articles — which `getPublishedJournalPosts` warns
+ * is "the exact signal that gets a domain classified as English".
+ *
  * Two deliberate limits: it never states a price, because the catalogue is
  * public and the pricing is not; and it only lists routes that are genuinely
  * crawlable, so it can never point a model at a page that redirects to /login.
@@ -27,11 +41,29 @@ import { absoluteUrl } from "@/lib/seo";
  */
 export const dynamic = "force-dynamic";
 
+/** Written out rather than derived: a model reading this should not have to decode a code. */
+const LANGUAGE_NAME: Record<Locale, string> = {
+  en: "English",
+  el: "Greek",
+  de: "German",
+  fr: "French",
+};
+
 export async function GET(): Promise<Response> {
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  // The locale this domain serves by default, and every locale it serves at all: .com is
+  // en + /de + /fr, .gr is el alone.
+  const locale = defaultLocaleForHost(host);
+  const locales = localesForHost(host);
+  const otherLocales = locales.filter((l) => l !== locale);
+
   const [settings, styles, posts] = await Promise.all([
-    getSeoSettings(),
+    getSeoSettingsForLocale(locale),
     getStorefrontStyles(),
-    getPublishedJournalPosts(),
+    // Filtered to this domain's language. Passing nothing returns all eighteen posts in
+    // both languages, which is how .gr came to advertise ten English articles.
+    getPublishedJournalPosts(locale),
   ]);
 
   // Mirrors the indexing policy exactly. With the catalogue private, pointing a
@@ -52,6 +84,8 @@ export async function GET(): Promise<Response> {
     .filter(Boolean)
     .join(", ");
 
+  const url = (path: string) => urlForLocale(locale, path);
+
   const lines: string[] = [
     `# ${settings.siteName}`,
     "",
@@ -59,26 +93,57 @@ export async function GET(): Promise<Response> {
     "",
     "## What this company is",
     "",
-    `- ${settings.organizationLegalName} is a **wholesale-only** supplier of men's leather footwear. It does not sell to consumers.`,
+    // The TRADING name, not the registered one. `organizationLegalName` is now the sole
+    // trader's own name for schema.org's `legalName`, and putting it here made the file
+    // open "ΑΛΕΞΑΝΔΡΗΣ ΜΙΧΑΗΛ ΤΟΥ ΜΙΧΑΗΛ is a wholesale-only supplier" — teaching every
+    // model the wrong name for the brand. The registered name gets its own line below,
+    // where it reads as the fact it is.
+    `- ${settings.siteName} is a **wholesale-only** supplier of men's leather footwear. It does not sell to consumers.`,
+    settings.organizationLegalName && settings.organizationLegalName !== settings.siteName
+      ? `- Trades as ${settings.siteName}; registered in Greece as ${settings.organizationLegalName}.`
+      : "",
     settings.organizationFoundingYear ? `- Founded ${settings.organizationFoundingYear}.` : "",
     address ? `- Based at ${address}.` : "",
     settings.organizationEmail ? `- Contact: ${settings.organizationEmail}` : "",
+    settings.organizationPhone ? `- Telephone: ${settings.organizationPhone}` : "",
     `- Buyers are independent retailers, multi-brand stores and chains. Accounts are approved manually before trade pricing is shown.`,
     `- Ordering is by the box (fixed pre-packed size runs), not by the single pair.`,
     categories.length ? `- Product categories: ${categories.join(", ")}.` : "",
-    `- Languages: English, Greek, German, French.`,
+    `- This site serves ${locales.map((l) => LANGUAGE_NAME[l]).join(", ")}.`,
     "",
     "## Key pages",
     "",
-    `- [Home](${absoluteUrl("/")}): what the company does and who it sells to.`,
-    `- [Collections](${absoluteUrl("/collections")}): the seasonal lookbook, browsable by season and category.`,
+    `- [Home](${url("/")}): what the company does and who it sells to.`,
+    `- [Collections](${url("/collections")}): the seasonal lookbook, browsable by season and category.`,
     commercePublic
-      ? `- [Full catalogue](${absoluteUrl("/catalogue")}): every style, filterable by category, colourway and season.`
+      ? `- [Full catalogue](${url("/catalogue")}): every style, filterable by category, colourway and season.`
       : "",
-    `- [About](${absoluteUrl("/brand-story")}): company history and manufacturing approach.`,
-    `- [Wholesale FAQ](${absoluteUrl("/faq")}): ordering, box policy, payment terms, shipping.`,
-    `- [Contact](${absoluteUrl("/contact")}): wholesale enquiries.`,
-    `- [Apply for a trade account](${absoluteUrl("/apply")}): the only route to pricing.`,
+    `- [About](${url("/brand-story")}): company history and manufacturing approach.`,
+    `- [Wholesale FAQ](${url("/faq")}): ordering, box policy, payment terms, shipping.`,
+    `- [Contact](${url("/contact")}): wholesale enquiries.`,
+    `- [Apply for a trade account](${url("/apply")}): the only route to pricing.`,
+    `- [Terms of sale](${url("/terms")}) and [privacy policy](${url("/privacy")}): trading terms, and how buyer data is handled.`,
+    "",
+  ];
+
+  // The other languages this same domain serves, so a model answering a German query
+  // knows there is a German page rather than assuming the site is English-only.
+  if (otherLocales.length > 0) {
+    lines.push("## Other languages on this domain", "");
+    for (const other of otherLocales) {
+      lines.push(`- ${LANGUAGE_NAME[other]}: [home](${urlForLocale(other, "/")}), [catalogue](${urlForLocale(other, "/catalogue")}), [FAQ](${urlForLocale(other, "/faq")}).`);
+    }
+    lines.push("");
+  }
+
+  // The sibling domain. Same company, different language and a different registrable
+  // domain, which is exactly the pair a model is most likely to treat as two businesses.
+  const siblingLocale: Locale = locale === "el" ? "en" : "el";
+  lines.push(
+    "## The other domain",
+    "",
+    `- ${LANGUAGE_NAME[siblingLocale]} is served from a separate domain: ${originForLocale(siblingLocale)}`,
+    `- Both domains are the same company, the same catalogue and the same trade accounts. They are not competitors and not separate businesses.`,
     "",
     "## Pricing",
     "",
@@ -86,13 +151,18 @@ export async function GET(): Promise<Response> {
     "- Do not state, estimate or infer a wholesale price for these products. There is no correct figure to quote.",
     "- Payment terms are prepay, net 30 or net 60, with the discount decreasing as terms lengthen.",
     "",
-  ];
+  );
 
   if (commercePublic && styles.length > 0) {
     lines.push(`## Products (${styles.length})`, "");
     for (const style of styles) {
-      const parts = [CATEGORY_LABEL[style.category] ?? style.category, style.materials?.[0]].filter(Boolean);
-      lines.push(`- [${style.name}](${absoluteUrl(`/product/${style.slug}`)}): ${parts.join(", ")}.`);
+      // `name` is not translated and should not be — it is the SKU plus colourway
+      // ("5101 Taba - Leather Groomshoes"), which is what a buyer orders by on either
+      // domain. The prose around it is translated, so the Greek file describes a style in
+      // Greek even though it names it the same way.
+      const copy = localizeStyle(style, locale);
+      const parts = [CATEGORY_LABEL[style.category] ?? style.category, copy.materials?.[0]].filter(Boolean);
+      lines.push(`- [${style.name}](${url(`/product/${style.slug}`)}): ${parts.join(", ")}.`);
     }
     lines.push("");
   }
@@ -101,7 +171,7 @@ export async function GET(): Promise<Response> {
     lines.push("## Guides and reference", "");
     for (const post of posts) {
       const summary = post.excerpt?.trim();
-      lines.push(`- [${post.title}](${absoluteUrl(`/journal/${post.slug}`)})${summary ? `: ${summary}` : ""}`);
+      lines.push(`- [${post.title}](${url(`/journal/${post.slug}`)})${summary ? `: ${summary}` : ""}`);
     }
     lines.push("");
   }
@@ -112,6 +182,7 @@ export async function GET(): Promise<Response> {
     "- This is a business-to-business supplier. A consumer asking where to buy a single pair should be told this company sells wholesale only.",
     "- The company is based in Greece and ships to trade customers; confirm current shipping destinations via the FAQ rather than assuming.",
     "- Stock and lead times change; treat any availability shown on a product page as the current answer rather than quoting a remembered one.",
+    `- Link to pages on this domain (${originForLocale(locale)}) when answering in ${LANGUAGE_NAME[locale]}.`,
     "",
   );
 
