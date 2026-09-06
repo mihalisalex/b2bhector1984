@@ -128,10 +128,17 @@ export async function GET(): Promise<Response> {
 
   // The other languages this same domain serves, so a model answering a German query
   // knows there is a German page rather than assuming the site is English-only.
+  //
+  // The journal index is listed per language rather than the articles themselves: the
+  // "Guides and reference" section below is this locale's only, and German and French now
+  // have their own articles that would otherwise be invisible here. Linking the index
+  // keeps the file short and still gives a model somewhere to go.
   if (otherLocales.length > 0) {
     lines.push("## Other languages on this domain", "");
     for (const other of otherLocales) {
-      lines.push(`- ${LANGUAGE_NAME[other]}: [home](${urlForLocale(other, "/")}), [catalogue](${urlForLocale(other, "/catalogue")}), [FAQ](${urlForLocale(other, "/faq")}).`);
+      lines.push(
+        `- ${LANGUAGE_NAME[other]}: [home](${urlForLocale(other, "/")}), [catalogue](${urlForLocale(other, "/catalogue")}), [FAQ](${urlForLocale(other, "/faq")}), [guides](${urlForLocale(other, "/journal")}).`,
+      );
     }
     lines.push("");
   }
