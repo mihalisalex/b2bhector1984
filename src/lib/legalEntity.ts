@@ -63,9 +63,8 @@ const ADDRESS: Record<Locale, string[]> = {
 export const LEGAL_ENTITY: LegalEntity = {
   tradingName: "Hector Footwear",
   registeredName: {
-    // NOTE: the Greek form is a back-transliteration of the Latin name the Γ.Ε.ΜΗ. record
-    // supplies (ALEXANDRIS MICHAIL TOU MICHAIL). Check it character-for-character against
-    // the registry printout before treating it as verified.
+    // Checked against the Γ.Ε.ΜΗ. record by the owner, 2026-09-06. The Latin form below is
+    // the registry's own transliteration for cross-border use, not a second registered name.
     el: "ΑΛΕΞΑΝΔΡΗΣ ΜΙΧΑΗΛ ΤΟΥ ΜΙΧΑΗΛ",
     en: "ALEXANDRIS MICHAIL TOU MICHAIL",
     de: "ALEXANDRIS MICHAIL TOU MICHAIL",
