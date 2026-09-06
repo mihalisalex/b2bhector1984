@@ -62,12 +62,20 @@ export default async function JournalPage({
       { name: "Journal", path: withLocale(locale, "/journal") },
     ],
     settings,
+    locale,
   );
   const collectionSchema = buildCollectionSchema({
     name: "Journal",
     description: "Wholesale buying guides, supplier sourcing advice, and footwear industry insights.",
-    path: "/journal",
-    items: filtered.map((post) => ({ name: post.title, path: `/journal/${post.slug}`, imageUrl: post.featuredImageUrl })),
+    path: withLocale(locale, "/journal"),
+    // Prefixed like the breadcrumbs above: an item URL without the locale prefix points at
+    // the English article, and on .gr at an article that does not exist there at all.
+    items: filtered.map((post) => ({
+      name: post.title,
+      path: withLocale(locale, `/journal/${post.slug}`),
+      imageUrl: post.featuredImageUrl,
+    })),
+    locale,
   });
 
   return (

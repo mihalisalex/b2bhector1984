@@ -103,7 +103,11 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
     // styleId-keyed record `totalOnHandForStyle` expects), so it sums directly.
     inStock: totalOnHandForStyle(style.id, { [style.id]: inventory }) > 0,
     showPricing,
+    locale,
   });
+  // Paths stay unprefixed on purpose — product pages keep the English canonical (see the
+  // pre-launch audit). `locale` here only picks the ORIGIN, so .gr stops publishing
+  // breadcrumbs that claim to live on .com and vice versa.
   const breadcrumbSchema = buildBreadcrumbSchema(
     [
       { name: "Catalogue", path: "/catalogue" },
@@ -111,6 +115,7 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
       { name: style.name, path: `/product/${style.slug}` },
     ],
     seoSettings,
+    locale,
   );
 
   return (

@@ -136,7 +136,18 @@ export interface Breadcrumb {
   path: string;
 }
 
-export function buildBreadcrumbSchema(trail: Breadcrumb[], settings: SeoSettings): JsonLd | null {
+/**
+ * `locale` decides the ORIGIN, not the path prefix — callers pass paths that already carry
+ * whatever prefix their route uses. Without it every breadcrumb fell back to `SITE_URL`,
+ * so hectorfootwear.com published breadcrumbs pointing at hectorfootwear.gr, and the German
+ * articles published `hectorfootwear.gr/de/journal/…` — a host that serves no /de at all,
+ * i.e. structured data citing URLs that do not exist.
+ */
+export function buildBreadcrumbSchema(
+  trail: Breadcrumb[],
+  settings: SeoSettings,
+  locale: Locale = "en",
+): JsonLd | null {
   if (!settings.schemaBreadcrumbs || trail.length === 0) return null;
   return {
     "@context": "https://schema.org",
@@ -145,7 +156,7 @@ export function buildBreadcrumbSchema(trail: Breadcrumb[], settings: SeoSettings
       "@type": "ListItem",
       position: index + 1,
       name: crumb.name,
-      item: absoluteUrl(crumb.path),
+      item: absoluteUrl(crumb.path, locale),
     })),
   };
 }
@@ -192,7 +203,7 @@ export function buildProductSchema(
 
   const offer = compact({
     "@type": "Offer",
-    url: absoluteUrl(`/product/${style.slug}`),
+    url: absoluteUrl(`/product/${style.slug}`, options.locale),
     priceCurrency: style.currency || "EUR",
     // Only when the viewer is entitled to see prices at all. This markup is rendered
     // into a page that is now public, so emitting the wholesale figure here would
@@ -279,8 +290,8 @@ export function buildCollectionSchema({
         "@type": "ListItem",
         position: index + 1,
         name: item.name,
-        url: absoluteUrl(item.path),
-        ...(item.imageUrl ? { image: absoluteUrl(item.imageUrl) } : {}),
+        url: absoluteUrl(item.path, locale),
+        ...(item.imageUrl ? { image: absoluteUrl(item.imageUrl, locale) } : {}),
       })),
     },
   });

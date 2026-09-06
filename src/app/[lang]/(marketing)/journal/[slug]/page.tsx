@@ -62,8 +62,8 @@ export default async function JournalArticlePage({
     { name: post.category, path: withLocale(locale, `/journal?category=${encodeURIComponent(post.category)}`) },
     { name: post.title, path: withLocale(locale, `/journal/${post.slug}`) },
   ];
-  const breadcrumbSchema = buildBreadcrumbSchema(trail, settings);
-  const articleSchema = buildArticleSchema(post, settings);
+  const breadcrumbSchema = buildBreadcrumbSchema(trail, settings, locale);
+  const articleSchema = buildArticleSchema(post, settings, locale);
 
   return (
     <div>
