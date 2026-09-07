@@ -259,6 +259,9 @@ const de: Dictionary = {
     orderConfirmationBody:
       "Wir haben Ihre Bestellung {id} erhalten. Wir melden uns, sobald sie in der Produktion weiterkommt.",
     invoiceAttached: "Ihre Proforma-Rechnung ist als PDF angehängt.",
+    proformaSubject: "Proforma-Rechnung {id} — Hector Footwear",
+    proformaBody:
+      "Anbei die Proforma-Rechnung {id}, die wir für Sie erstellt haben. Es handelt sich um ein Angebot, nicht um eine Zahlungsaufforderung — es wurde nichts bestellt und es ist nichts fällig. Antworten Sie einfach auf diese E-Mail, wenn Sie etwas geändert haben möchten oder bestellen wollen.",
     madeToOrderNote:
       "Einige Artikel dieser Bestellung waren nicht auf Lager und werden auf Bestellung gefertigt — rechnen Sie mit etwa {days} Tagen.",
     preOrderNote:
@@ -286,7 +289,7 @@ const de: Dictionary = {
 
     shellEyebrow: "Großhandelsportal",
     shellButton: "Weiter →",
-    shellFooterLine1: "Hector Footwear Co. — Nur für Großhandelskonten.",
+    shellFooterLine1: "Hector Footwear — Nur für Großhandelskonten.",
     shellFooterLine2: "Dies ist eine transaktionale E-Mail zu Ihrem Großhandelskonto.",
   },
   dashboard: {

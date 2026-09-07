@@ -295,6 +295,9 @@ const en = {
     orderConfirmationSubject: "Order confirmation — {id}",
     orderConfirmationBody: "We've received your order {id}. We'll be in touch as it moves through production.",
     invoiceAttached: "Your proforma invoice is attached as a PDF.",
+    proformaSubject: "Proforma invoice {id} — Hector Footwear",
+    proformaBody:
+      "Here is the proforma invoice {id} we put together for you. It is a quote rather than a charge — nothing has been ordered and no payment is due. Reply to this email if you would like anything changed, or to go ahead.",
     madeToOrderNote:
       "Some items in this order weren't in stock and are made to order — expect those in about {days} days.",
     preOrderNote:
@@ -323,7 +326,7 @@ const en = {
     // The branded HTML shell in textToHtml.
     shellEyebrow: "Wholesale Portal",
     shellButton: "Continue →",
-    shellFooterLine1: "Hector Footwear Co. — Wholesale accounts only.",
+    shellFooterLine1: "Hector Footwear — Wholesale accounts only.",
     shellFooterLine2: "This is a transactional email about your wholesale account.",
   },
   /** The signed-in buyer's own area: dashboard, account settings, order history. */

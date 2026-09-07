@@ -259,6 +259,9 @@ const fr: Dictionary = {
     orderConfirmationBody:
       "Nous avons bien reçu votre commande {id}. Nous vous tiendrons informé au fil de la production.",
     invoiceAttached: "Votre facture proforma est jointe au format PDF.",
+    proformaSubject: "Facture proforma {id} — Hector Footwear",
+    proformaBody:
+      "Voici la facture proforma {id} que nous avons préparée pour vous. Il s'agit d'un devis et non d'une facture à régler : rien n'a été commandé et aucun paiement n'est dû. Répondez à cet e-mail si vous souhaitez une modification ou pour donner suite.",
     madeToOrderNote:
       "Certains articles de cette commande n'étaient pas en stock et sont fabriqués sur commande — comptez environ {days} jours.",
     preOrderNote:
@@ -286,7 +289,7 @@ const fr: Dictionary = {
 
     shellEyebrow: "Portail de gros",
     shellButton: "Continuer →",
-    shellFooterLine1: "Hector Footwear Co. — Comptes de gros uniquement.",
+    shellFooterLine1: "Hector Footwear — Comptes de gros uniquement.",
     shellFooterLine2: "Ceci est un e-mail transactionnel concernant votre compte de gros.",
   },
   dashboard: {

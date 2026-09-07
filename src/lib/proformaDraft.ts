@@ -28,12 +28,17 @@ import type { StyleInventory } from "@/lib/data/inventory";
 export interface ProformaRecipient {
   businessName: string;
   contactName: string;
+  /** Required only when delivering by email; a downloaded quote needs no address. */
+  email?: string;
   addressLine1?: string;
   addressLine2?: string;
   city?: string;
   region?: string;
   postalCode?: string;
 }
+
+/** How the finished document reaches the recipient. */
+export type ProformaDelivery = "download" | "email";
 
 export interface ProformaDraftLine {
   styleId: string;
@@ -49,7 +54,17 @@ export interface ProformaDraft {
   /** Language of the document, not of the admin. A Greek walk-in gets a Greek proforma. */
   locale: Locale;
   lines: ProformaDraftLine[];
+  delivery: ProformaDelivery;
 }
+
+/**
+ * Deliberately permissive: one @, something either side, a dot in the domain, no spaces.
+ *
+ * Stricter patterns reject addresses that are perfectly deliverable, and the real check is
+ * the send itself. This exists to catch the typo you make with a customer standing in front
+ * of you — a missing @, a trailing comma — before a quote is mailed into a void.
+ */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const TERMS: CreditTerms[] = ["prepay", "net30", "net60"];
 /** Same ceiling the storefront steppers use. A quote for 10,000 boxes is a typo. */
@@ -96,10 +111,19 @@ export function parseProformaDraft(input: unknown): ProformaDraft {
     return { styleId, colorwayId, boxTypeId: boxTypeId as BoxTypeId, qty };
   });
 
+  const delivery = raw.delivery === "email" ? "email" : "download";
+  const email = str(recipientRaw.email);
+  if (delivery === "email") {
+    if (!email) throw new ProformaError("Add the recipient's email address, or download the PDF instead.");
+    if (!EMAIL_RE.test(email)) throw new ProformaError(`“${email}” does not look like an email address.`);
+  }
+
   return {
+    delivery,
     recipient: {
       businessName,
       contactName,
+      email: email || undefined,
       addressLine1: str(recipientRaw.addressLine1) || undefined,
       addressLine2: str(recipientRaw.addressLine2) || undefined,
       city: str(recipientRaw.city) || undefined,

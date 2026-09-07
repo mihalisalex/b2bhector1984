@@ -19,6 +19,7 @@ export interface ProformaAccount {
   id: string;
   businessName: string;
   contactName: string;
+  email: string;
   priceMultiplier: number;
   locale: Locale;
   shipTo: { label: string; line1: string; line2?: string; city: string; state: string; zip: string; isDefault?: boolean }[];
@@ -51,6 +52,7 @@ export function ProformaBuilder({ styles, accounts }: { styles: ProformaStyle[];
   const [accountId, setAccountId] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [contactName, setContactName] = useState("");
+  const [email, setEmail] = useState("");
   const [addressLine1, setAddressLine1] = useState("");
   const [addressLine2, setAddressLine2] = useState("");
   const [city, setCity] = useState("");
@@ -59,8 +61,9 @@ export function ProformaBuilder({ styles, accounts }: { styles: ProformaStyle[];
   const [terms, setTerms] = useState<CreditTerms>("net60");
   const [locale, setLocale] = useState<Locale>("el");
   const [lines, setLines] = useState<Line[]>([]);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<"" | "download" | "email">("");
   const [error, setError] = useState("");
+  const [sent, setSent] = useState("");
 
   const selectedAccount = accounts.find((a) => a.id === accountId);
 
@@ -72,6 +75,7 @@ export function ProformaBuilder({ styles, accounts }: { styles: ProformaStyle[];
     if (!account) return;
     setBusinessName(account.businessName);
     setContactName(account.contactName);
+    setEmail(account.email);
     setLocale(account.locale);
     const ship = account.shipTo.find((s) => s.isDefault) ?? account.shipTo[0];
     setAddressLine1(ship?.line1 ?? "");
@@ -133,22 +137,29 @@ export function ProformaBuilder({ styles, accounts }: { styles: ProformaStyle[];
 
   const eur = (n: number) => n.toLocaleString("el-GR", { style: "currency", currency: "EUR" });
 
-  async function generate() {
-    setBusy(true);
+  async function generate(delivery: "download" | "email") {
+    setBusy(delivery);
     setError("");
+    setSent("");
     try {
       const res = await fetch("/api/admin/proforma", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          recipient: { businessName, contactName, addressLine1, addressLine2, city, region, postalCode },
+          recipient: { businessName, contactName, email, addressLine1, addressLine2, city, region, postalCode },
           terms,
           locale,
+          delivery,
           lines: lines.map(({ styleId, colorwayId, boxTypeId, qty }) => ({ styleId, colorwayId, boxTypeId, qty })),
         }),
       });
       if (!res.ok) {
         setError((await res.text()) || "Could not generate the proforma.");
+        return;
+      }
+      if (delivery === "email") {
+        const { sentTo, reference } = (await res.json()) as { sentTo: string; reference: string };
+        setSent(`${reference} sent to ${sentTo}.`);
         return;
       }
       // The filename comes from the server's Content-Disposition so the downloaded file is
@@ -167,11 +178,12 @@ export function ProformaBuilder({ styles, accounts }: { styles: ProformaStyle[];
     } catch {
       setError("Could not reach the server. Check your connection and try again.");
     } finally {
-      setBusy(false);
+      setBusy("");
     }
   }
 
-  const canGenerate = businessName.trim().length > 0 && lines.length > 0 && !busy;
+  const ready = businessName.trim().length > 0 && lines.length > 0 && !busy;
+  const canEmail = ready && email.trim().length > 0;
 
   return (
     <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_20rem] lg:items-start">
@@ -194,6 +206,14 @@ export function ProformaBuilder({ styles, accounts }: { styles: ProformaStyle[];
 
             <input value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="Business name *" className={INPUT} />
             <input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Contact name" className={INPUT} />
+            {/* Only required to email it — a quote you print and hand over needs no address. */}
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              type="email"
+              placeholder="Email (needed to send)"
+              className={`${INPUT} sm:col-span-2`}
+            />
             <input value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} placeholder="Address line 1" className={INPUT} />
             <input value={addressLine2} onChange={(e) => setAddressLine2(e.target.value)} placeholder="Address line 2" className={INPUT} />
             <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" className={INPUT} />
@@ -357,17 +377,28 @@ export function ProformaBuilder({ styles, accounts }: { styles: ProformaStyle[];
         </dl>
 
         {error && <p className="mt-3 text-xs leading-relaxed text-ember">{error}</p>}
+        {sent && <p className="mt-3 border border-stone-300 bg-stone-100 px-3 py-2 text-xs leading-relaxed text-ink">{sent}</p>}
 
         <button
           type="button"
-          onClick={generate}
-          disabled={!canGenerate}
+          onClick={() => generate("email")}
+          disabled={!canEmail}
           className="mt-4 w-full border border-ink bg-ink px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85 disabled:opacity-50"
         >
-          {busy ? "Generating…" : "Generate proforma PDF"}
+          {busy === "email" ? "Sending…" : "Email proforma to recipient"}
+        </button>
+        <button
+          type="button"
+          onClick={() => generate("download")}
+          disabled={!ready}
+          className="mt-2 w-full border border-ink px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-white disabled:opacity-50"
+        >
+          {busy === "download" ? "Generating…" : "Download PDF instead"}
         </button>
         <p className="mt-2 text-[11px] leading-relaxed text-ink-soft">
-          Downloads a PDF. No order is created and no stock is reserved.
+          {canEmail
+            ? `Sends the PDF to ${email} in ${LOCALE_LABEL[locale]}. No order is created and no stock is reserved.`
+            : "Add an email address to send it, or download the PDF. No order is created and no stock is reserved."}
         </p>
       </aside>
     </div>

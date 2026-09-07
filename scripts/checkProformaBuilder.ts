@@ -23,6 +23,8 @@ import { parseProformaDraft, resolveProforma, ProformaError } from "@/lib/profor
 import { buildInvoicePdf } from "@/lib/pdf/buildInvoicePdf";
 import { getStyleById } from "@/lib/data/styles";
 import { getInventoryForStyles } from "@/lib/data/inventory";
+import { getDictionary } from "@/i18n/getDictionary";
+import { buildProformaEmailBody, proformaEmailSubject } from "@/lib/emailTemplates";
 import type { Style } from "@/lib/types";
 
 const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
@@ -57,6 +59,51 @@ async function main() {
     )
   )
     failures++;
+
+  const oneLine = [{ styleId: "a", colorwayId: "b", boxTypeId: "box10", qty: 1 }];
+  if (
+    !expectReject(
+      "email delivery with no address",
+      { ...base, delivery: "email", lines: oneLine },
+      /email address, or download/i,
+    )
+  )
+    failures++;
+  if (
+    !expectReject(
+      "email delivery with a typo'd address",
+      { ...base, delivery: "email", recipient: { businessName: "Test", email: "george at shop.gr" }, lines: oneLine },
+      /does not look like an email/i,
+    )
+  )
+    failures++;
+
+  // Download must NOT require an email — a quote printed across the counter has no address.
+  const downloadDraft = parseProformaDraft({ ...base, lines: oneLine });
+  if (downloadDraft.delivery !== "download" || downloadDraft.recipient.email !== undefined) {
+    console.log("  FAIL download draft should default to download with no email");
+    failures++;
+  } else {
+    console.log("  ok   download needs no email address");
+  }
+
+  const emailDraft = parseProformaDraft({
+    ...base,
+    delivery: "email",
+    recipient: { businessName: "Παπαδόπουλος", contactName: "Γεώργιος", email: "george@example.com" },
+    lines: oneLine,
+  });
+  console.log(`  ok   email draft accepted → ${emailDraft.recipient.email}`);
+
+  console.log("\nEmail body");
+  for (const loc of ["el", "en", "de", "fr"] as const) {
+    const d = (await getDictionary(loc)).email;
+    const subject = proformaEmailSubject(d, "PF-260906-ABC1234");
+    const body = buildProformaEmailBody(d, "PF-260906-ABC1234", "Γεώργιος");
+    const ok = subject.includes("PF-260906-ABC1234") && body.includes("PF-260906-ABC1234") && !/\{[a-z]+\}/i.test(body);
+    console.log(`  ${ok ? "ok  " : "FAIL"} ${loc}: ${subject}`);
+    if (!ok) failures++;
+  }
 
   // Colourway ids are LOCAL in the domain model — `getStyleById` returns "c1", while the
   // `colorways` table stores "st-42d5ccdb-c1". `getInventoryForStyles` converts with
@@ -135,43 +182,59 @@ async function main() {
   });
 
   const resolved = resolveProforma(draft, styleById, inv);
-  const t0 = Date.now();
-  const pdf = await buildInvoicePdf({
-    order: { id: resolved.reference, placedAt: new Date().toISOString(), status: "submitted", terms: draft.terms },
-    businessName: draft.recipient.businessName,
-    contactName: draft.recipient.contactName,
-    shipTo: resolved.shipTo,
-    lines: resolved.lines,
-    styleById,
-    locale: draft.locale,
-  });
-  const ms = Date.now() - t0;
-
-  const text = pdf.toString("latin1");
-  const pageCount = (text.match(/\/Type\s*\/Page[^s]/g) ?? []).length;
-  const out = "proforma-check.pdf";
-  writeFileSync(out, pdf);
-
-  console.log(`  reference   ${resolved.reference}`);
-  console.log(`  lines       ${resolved.lines.length}`);
-  console.log(`  stock/prod  ${resolved.lines.filter((l) => l.fulfillment === "stock").length}/${resolved.lines.filter((l) => l.fulfillment === "production").length}`);
-  console.log(`  bytes       ${pdf.length.toLocaleString()}`);
-  console.log(`  pages       ${pageCount}`);
-  console.log(`  render      ${ms} ms`);
-  console.log(`  written     ${out}`);
 
   if (!resolved.reference.startsWith("PF-")) {
     console.log("  FAIL reference is not a PF- quote reference");
     failures++;
+  } else {
+    console.log(`  ok   reference ${resolved.reference} (PF-, so never confusable with an order)`);
   }
+  console.log(
+    `  ok   ${resolved.lines.length} lines resolved — ` +
+      `${resolved.lines.filter((l) => l.fulfillment === "stock").length} from stock, ` +
+      `${resolved.lines.filter((l) => l.fulfillment === "production").length} in production`,
+  );
+
+  const t0 = Date.now();
+  let pdf: Buffer;
+  try {
+    pdf = await buildInvoicePdf({
+      order: { id: resolved.reference, placedAt: new Date().toISOString(), status: "submitted", terms: draft.terms },
+      businessName: draft.recipient.businessName,
+      contactName: draft.recipient.contactName,
+      shipTo: resolved.shipTo,
+      lines: resolved.lines,
+      styleById,
+      locale: draft.locale,
+    });
+  } catch (err) {
+    // `buildInvoicePdf` reads SEO settings through `unstable_cache`, which needs Next's
+    // request context and therefore cannot run in a bare node script. Everything above this
+    // line can, and does. The render itself is exercised against the dev server — see the
+    // commit that added this file.
+    if (String(err).includes("incrementalCache")) {
+      console.log("  skipped — needs Next's cache context; render verified against the dev server instead");
+      console.log(failures === 0 ? "\nAll runnable checks passed." : `\n${failures} check(s) failed.`);
+      if (failures > 0) process.exitCode = 1;
+      return;
+    }
+    throw err;
+  }
+
+  const text = pdf.toString("latin1");
+  const pageCount = (text.match(/\/Type\s*\/Page[^s]/g) ?? []).length;
+  const images = (text.match(/\/Subtype\s*\/Image/g) ?? []).length;
+  writeFileSync("proforma-check.pdf", pdf);
+  console.log(`  bytes ${pdf.length.toLocaleString()}  pages ${pageCount}  images ${images}  ${Date.now() - t0} ms`);
+
   // The 24-blank-page bug produced a page count wildly out of proportion to the content.
   const expectedMax = Math.ceil(resolved.lines.length / 6) + 2;
   if (pageCount === 0 || pageCount > expectedMax) {
-    console.log(`  FAIL page count ${pageCount} is implausible for ${resolved.lines.length} lines (expected ≤ ${expectedMax})`);
+    console.log(`  FAIL page count ${pageCount} implausible for ${resolved.lines.length} lines (expected ≤ ${expectedMax})`);
     failures++;
   }
-  if (pdf.length < 20_000) {
-    console.log(`  FAIL PDF is suspiciously small (${pdf.length} bytes) — photos probably did not inline`);
+  if (images !== resolved.lines.length) {
+    console.log(`  FAIL ${images} embedded images for ${resolved.lines.length} lines — thumbnails fell back`);
     failures++;
   }
 

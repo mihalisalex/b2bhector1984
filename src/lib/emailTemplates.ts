@@ -93,6 +93,23 @@ export function buildOrderConfirmationEmailBody(
   return `${greet(dict, contactName)}\n\n${body}${productionNote}\n\n${dict.signoff}`;
 }
 
+/**
+ * The admin's hand-built proforma, sent from /admin/proforma.
+ *
+ * Deliberately says the quote is not a charge. This document goes to people who never
+ * placed an order — a visitor who was quoted across the counter, or someone who has no
+ * account at all — so it arrives unprompted and must not read as an invoice demanding
+ * payment. `attachedInvoice` is not optional here the way it is on the confirmation email:
+ * the attachment is the entire point, and the route refuses to send without one.
+ */
+export function buildProformaEmailBody(dict: EmailDict, reference: string, contactName: string): string {
+  return `${greet(dict, contactName)}\n\n${t(dict.proformaBody, { id: reference })} ${dict.invoiceAttached}\n\n${dict.signoff}`;
+}
+
+export function proformaEmailSubject(dict: EmailDict, reference: string): string {
+  return t(dict.proformaSubject, { id: reference });
+}
+
 export function orderStatusEmailSubject(dict: EmailDict, order: { id: string; status: string }): string {
   return t(dict.orderStatusSubject, { id: order.id, status: statusLabel(dict, order.status) });
 }

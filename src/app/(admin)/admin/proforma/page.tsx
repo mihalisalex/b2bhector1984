@@ -44,6 +44,7 @@ export default async function AdminProformaPage() {
     id: a.id,
     businessName: a.businessName,
     contactName: a.contactName,
+    email: a.email,
     priceMultiplier: a.priceMultiplier,
     // Same resolution the order invoice uses: the stored locale, else a guess from the
     // store location. An account with no language on file still gets a sensible default

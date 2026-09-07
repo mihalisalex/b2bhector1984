@@ -3,6 +3,9 @@ import { getStyleById } from "@/lib/data/styles";
 import { getInventoryForStyles } from "@/lib/data/inventory";
 import { buildInvoicePdf } from "@/lib/pdf/buildInvoicePdf";
 import { parseProformaDraft, resolveProforma, ProformaError } from "@/lib/proformaDraft";
+import { sendEmail } from "@/lib/email";
+import { buildProformaEmailBody, proformaEmailSubject, textToHtml } from "@/lib/emailTemplates";
+import { getDictionary } from "@/i18n/getDictionary";
 import type { Style } from "@/lib/types";
 
 /**
@@ -67,6 +70,39 @@ export async function POST(request: Request) {
     // format react-pdf can't decode fails the whole render.
     console.error("[proforma] Failed to render custom proforma:", err);
     return new Response("Could not generate this proforma right now — please try again shortly.", { status: 500 });
+  }
+
+  if (draft.delivery === "email") {
+    const to = draft.recipient.email;
+    // `parseProformaDraft` already refuses email delivery without an address; this is the
+    // type-level echo of that, not a second policy.
+    if (!to) return new Response("No recipient email address.", { status: 400 });
+
+    const dict = (await getDictionary(draft.locale)).email;
+    const subject = proformaEmailSubject(dict, resolved.reference);
+
+    // sendEmail never throws — it logs and returns, so a provider outage cannot 500 this
+    // route. That also means it cannot report failure, so the reply below says the message
+    // was sent for delivery rather than claiming it arrived.
+    await sendEmail({
+      to,
+      subject,
+      html: textToHtml(
+        buildProformaEmailBody(dict, resolved.reference, draft.recipient.contactName),
+        subject,
+        dict,
+        draft.locale,
+      ),
+      attachments: [
+        {
+          filename: `${resolved.reference}.pdf`,
+          contentBase64: buffer.toString("base64"),
+          contentType: "application/pdf",
+        },
+      ],
+    });
+
+    return Response.json({ sentTo: to, reference: resolved.reference });
   }
 
   return new Response(new Uint8Array(buffer), {
