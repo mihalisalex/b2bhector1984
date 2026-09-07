@@ -39,9 +39,34 @@ export interface BuildInvoicePdfInput {
  * (`/images/products/loafers.jpg`) — meaningful in a browser, not to a plain `fetch()`,
  * which needs an absolute URL regardless of which case it is.
  */
+/**
+ * The thumbnail is drawn at 34×34 points. Inlining the full-resolution product photograph
+ * for it — 300-400 KB each — made a 12-line document 4.2 MB and a 31-line one 11.5 MB,
+ * which is both slow to mail and close enough to platform response limits to be a real
+ * risk. Supabase's own transformer is one path segment away from the object URL, so the
+ * same trick `src/lib/imageLoader.ts` uses for the storefront applies here: ask for 200px
+ * (comfortably above 34pt even at print density) and inline that instead.
+ *
+ * Anything that is not a Supabase object — the local category placeholders in /public —
+ * is returned untouched and resolved against SITE_URL, since `fetch` needs an absolute URL.
+ */
+const OBJECT_SEGMENT = "/storage/v1/object/public/";
+const RENDER_SEGMENT = "/storage/v1/render/image/public/";
+const THUMB_WIDTH = 200;
+
 function absoluteImageUrl(style: Style): string {
   const url = getStyleImageUrl(style);
-  return url.startsWith("http") ? url : `${SITE_URL}${url}`;
+  const absolute = url.startsWith("http") ? url : `${SITE_URL}${url}`;
+  if (!absolute.includes(OBJECT_SEGMENT)) return absolute;
+
+  const [base, existingQuery] = absolute.split("?");
+  const params = new URLSearchParams(existingQuery);
+  params.set("width", String(THUMB_WIDTH));
+  params.set("quality", "70");
+  // `contain`, matching the storefront loader: the default crops to fill, which on a
+  // wide product photo would cut the toe or heel off the thumbnail.
+  params.set("resize", "contain");
+  return `${base.replace(OBJECT_SEGMENT, RENDER_SEGMENT)}?${params.toString()}`;
 }
 
 /**

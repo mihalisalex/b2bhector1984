@@ -58,7 +58,14 @@ const SUFFIX_LENGTH = 7;
 /** How many ids `placeOrder` will try before giving up and surfacing an error. */
 export const ORDER_ID_MAX_ATTEMPTS = 5;
 
-export function generateOrderId(now: Date = new Date()): string {
+/**
+ * `prefix` exists so the admin's custom proforma builder can mint `PF-…` references from
+ * the same collision-resistant scheme without a second generator to keep in step. It is a
+ * deliberately visible difference: a `PF-` reference is a quote that was never an order,
+ * has no row in `orders`, and reserved no stock, and nobody reading one should have to
+ * check which it is.
+ */
+export function generateOrderId(now: Date = new Date(), prefix = "ORD"): string {
   // "2026-08-17T…" -> "260817". UTC on purpose: the stamp must not shift with the
   // server's timezone, or two ids generated seconds apart could disagree on the date.
   const datePart = now.toISOString().slice(2, 10).replace(/-/g, "");
@@ -67,5 +74,5 @@ export function generateOrderId(now: Date = new Date()): string {
   let suffix = "";
   for (let i = 0; i < SUFFIX_LENGTH; i += 1) suffix += ALPHABET[bytes[i] % ALPHABET.length];
 
-  return `ORD-${datePart}-${suffix}`;
+  return `${prefix}-${datePart}-${suffix}`;
 }
