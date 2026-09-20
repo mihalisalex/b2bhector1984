@@ -457,6 +457,8 @@ const en = {
   catalog: {
     catLoafers: "Loafers", catWedding: "Wedding", catSneakers: "Sneakers", catSandals: "Sandals",
     catBoots: "Boots", catFormal: "Formal", catAnatomic: "Anatomic",
+    /** Heading over the journal articles shown beneath a product. */
+    relatedGuides: "Buying guides",
     genderMens: "Men's", genderWomens: "Women's", genderUnisex: "Unisex",
     seasonSummer: "Summer", seasonWinter: "Winter", seasonBoth: "Both seasons",
     assortment: "{sizes}-pair assortment",

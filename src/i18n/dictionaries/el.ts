@@ -417,6 +417,8 @@ const el: Dictionary = {
   catalog: {
     catLoafers: "Loafers", catWedding: "Γαμήλια", catSneakers: "Sneakers", catSandals: "Σανδάλια",
     catBoots: "Μπότες", catFormal: "Επίσημα", catAnatomic: "Ανατομικά",
+    /** Heading over the journal articles shown beneath a product. */
+    relatedGuides: "Οδηγοί αγοράς",
     genderMens: "Ανδρικά", genderWomens: "Γυναικεία", genderUnisex: "Unisex",
     seasonSummer: "Καλοκαίρι", seasonWinter: "Χειμώνας", seasonBoth: "Και οι δύο σεζόν",
     assortment: "Συσκευασία {sizes} ζευγαριών",

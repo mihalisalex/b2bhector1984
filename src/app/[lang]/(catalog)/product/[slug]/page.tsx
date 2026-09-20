@@ -17,6 +17,8 @@ import { PrimaryPurchasePanel, BUY_BAR_RELEASE_ID } from "@/components/product/P
 import { PublicPurchasePanel } from "@/components/product/PublicPurchasePanel";
 import { TrackRecentlyViewed } from "@/components/product/TrackRecentlyViewed";
 import { RecentlyViewedStrip } from "@/components/product/RecentlyViewedStrip";
+import { ArticleCard } from "@/components/journal/ArticleCard";
+import { getGuidesForStyle } from "@/lib/data/guidesForStyle";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getDictionary } from "@/i18n/getDictionary";
 import { localizeStyle } from "@/lib/localizeStyle";
@@ -80,9 +82,11 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
     getCurrentAccount(),
     getDictionary(locale),
   ]);
-  const [relatedInventory, relatedImages] = await Promise.all([
+  const [relatedInventory, relatedImages, guides] = await Promise.all([
     getInventoryForStyles(related.map((s) => s.id)),
     listImagesForStyles(related.map((s) => s.id)),
+    // Needs `dict` for the localised category label, so it waits for the first batch.
+    getGuidesForStyle(style, locale, categoryLabel(dict, style.category)),
   ]);
   const priceMultiplier = account?.priceMultiplier ?? 1;
   const favorited = account ? await isFavorite(account.id, style.id) : false;
@@ -247,6 +251,22 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
                 showPricing={showPricing}
                 images={relatedImages[r.id] ?? []}
               />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Articles link into the catalogue; until this block nothing linked back out. Same
+          heading treatment as "You May Also Like" above so the two read as one band. See
+          getGuidesForStyle for how the three are chosen. */}
+      {guides.length > 0 && (
+        <div className="mt-14 border-t border-stone-300 pt-8">
+          <h2 className="font-display mb-4 text-lg font-bold uppercase tracking-tight text-ink">
+            {dict.catalog.relatedGuides}
+          </h2>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {guides.map((post) => (
+              <ArticleCard key={post.id} post={post} locale={locale} dict={dict} />
             ))}
           </div>
         </div>

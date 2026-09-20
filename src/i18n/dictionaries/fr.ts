@@ -412,6 +412,8 @@ const fr: Dictionary = {
   catalog: {
     catLoafers: "Mocassins", catWedding: "Mariage", catSneakers: "Sneakers", catSandals: "Sandales",
     catBoots: "Bottes", catFormal: "Ville", catAnatomic: "Anatomique",
+    /** Heading over the journal articles shown beneath a product. */
+    relatedGuides: "Guides d’achat",
     genderMens: "Homme", genderWomens: "Femme", genderUnisex: "Mixte",
     seasonSummer: "Été", seasonWinter: "Hiver", seasonBoth: "Deux saisons",
     assortment: "Assortiment de {sizes} paires",
