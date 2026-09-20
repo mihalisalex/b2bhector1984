@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { LinkButton } from "@/components/ui/Button";
 import { LegalIdentity } from "@/components/legal/LegalIdentity";
 import { getDictionary } from "@/i18n/getDictionary";
+import { pageMetadata } from "@/lib/seo";
 import { withLocale } from "@/i18n/paths";
 import { t } from "@/i18n/format";
 import { LEGAL_ENTITY, formatLastUpdated } from "@/lib/legalEntity";
@@ -10,8 +11,15 @@ import type { Locale } from "@/i18n/config";
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
   const { lang } = await params;
-  const l = (await getDictionary(lang as Locale)).legal;
-  return { title: l.termsTitle, description: l.termsDescription, robots: { index: false, follow: false } };
+  const locale = lang as Locale;
+  const l = (await getDictionary(locale)).legal;
+  // Indexable since 2026-09-20, and through `pageMetadata` like every other public page.
+  // These were noindex for as long as they were placeholder text, and returned a bare
+  // object — no canonical, no hreflang — which was harmless while nothing could index them
+  // and would have been a duplicate-content problem the moment something could: the same
+  // page exists at four URLs across two domains, and a crawler needs to be told which is
+  // which.
+  return pageMetadata({ title: l.termsTitle, description: l.termsDescription, path: "/terms", locale });
 }
 
 export default async function TermsPage({ params }: { params: Promise<{ lang: string }> }) {

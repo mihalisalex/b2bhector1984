@@ -100,6 +100,35 @@ export const PUBLIC_PAGES: PublicPage[] = [
     changeFrequency: "yearly",
     priority: 0.3,
   },
+  // The three legal pages were noindex and absent from here for as long as they were
+  // placeholder boilerplate. Since 2026-09-06 they are real, unique copy in four languages
+  // carrying the trader identification Greek e-commerce law requires — which is exactly the
+  // kind of page search engines read as a trust signal for a business, and which a customer
+  // searching for the shop's terms should be able to find. Low priority, rarely changing.
+  {
+    path: "/terms",
+    label: "Terms of Sale",
+    defaultTitle: "Terms of Sale",
+    defaultDescription: "The terms on which Hector Footwear sells to approved wholesale accounts.",
+    changeFrequency: "yearly",
+    priority: 0.2,
+  },
+  {
+    path: "/privacy",
+    label: "Privacy Policy",
+    defaultTitle: "Privacy Policy",
+    defaultDescription: "How Hector Footwear handles personal data for wholesale accounts and site visitors.",
+    changeFrequency: "yearly",
+    priority: 0.2,
+  },
+  {
+    path: "/cookies",
+    label: "Cookie Notice",
+    defaultTitle: "Cookie Notice",
+    defaultDescription: "The cookies and browser storage this site uses, and how to control them.",
+    changeFrequency: "yearly",
+    priority: 0.2,
+  },
 ];
 
 /**
