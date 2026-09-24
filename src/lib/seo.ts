@@ -429,15 +429,23 @@ export function articleUrl(post: JournalPost): string {
 }
 
 /**
- * hreflang for an article that has translations: every version by its own URL, with English
- * as x-default when there is one. Undefined for a single-language article, which gets no
+ * hreflang for an article that has translations: every version by its own URL, and one
+ * shared x-default. Undefined for a single-language article, which gets no
  * alternates at all (see `hasLocaleVariants` below).
  */
 export function articleAlternates(post: JournalPost, translations: JournalPost[]): Record<string, string> | undefined {
   if (translations.length === 0) return undefined;
   const versions = [post, ...translations];
   const languages: Record<string, string> = Object.fromEntries(versions.map((p) => [p.locale ?? DEFAULT_LOCALE, articleUrl(p)]));
-  languages["x-default"] = articleUrl(versions.find((p) => p.locale === "en") ?? post);
+  // Every version must name the SAME x-default, so it can't fall back to "this post": English
+  // when it exists, otherwise the first version in LOCALES order (de before fr, for a
+  // German/French pair with no English edition).
+  const rank = (p: JournalPost) => {
+    const i = (LOCALES as readonly string[]).indexOf(p.locale ?? "");
+    return i === -1 ? LOCALES.length : i;
+  };
+  const xDefault = [...versions].sort((a, b) => rank(a) - rank(b))[0];
+  languages["x-default"] = articleUrl(xDefault);
   return languages;
 }
 
