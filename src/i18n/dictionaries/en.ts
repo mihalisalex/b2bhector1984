@@ -966,7 +966,7 @@ const en = {
   seo: {
     homeTitle: "Men's Leather Shoes Wholesale | Hector Footwear",
     homeDescription:
-      "Men's leather footwear wholesaler since 1984 — full-grain loafers, boots, formal shoes and sneakers for independent retailers. Box-only ordering.",
+      "Men's leather footwear maker and wholesaler since 1984 — full-grain loafers, boots, formal shoes and sneakers for independent retailers. Box-only ordering.",
     collectionsTitle: "Men's Leather Shoes Wholesale",
     collectionsDescription:
       "Men's leather loafers, boots, formal shoes, sneakers and sandals, wholesale by the box. Sign in for trade pricing or apply for an account.",
@@ -981,7 +981,7 @@ const en = {
     catalogueHeading: "The Full Wholesale Catalogue",
     catalogueIntro:
       "Every men's leather shoe we make, filterable by category, colourway, season and delivery window. Wholesale pricing and box quantities are shown to approved trade accounts.",
-    brandStoryTitle: "About Us — Men's Leather Footwear Wholesaler Since 1984",
+    brandStoryTitle: "About Us — Men's Leather Footwear Maker Since 1984",
     brandStoryDescription:
       "Hector Footwear has built full-grain men's leather footwear — loafers, boots, formal and more — for independent retailers since 1984. Wholesale only.",
     faqTitle: "Wholesale FAQ — Ordering, Pricing & Shipping",

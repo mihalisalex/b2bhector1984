@@ -896,7 +896,7 @@ const de: Dictionary = {
   seo: {
     homeTitle: "Herren Lederschuhe Großhandel | Hector Footwear",
     homeDescription:
-      "Großhändler für Herren-Lederschuhe seit 1984 — Loafer, Stiefel, elegante Schuhe und Sneaker aus Vollnarbenleder für den Fachhandel. Bestellung im Karton.",
+      "Hersteller und Großhändler für Herren-Lederschuhe seit 1984 — Loafer, Stiefel, elegante Schuhe und Sneaker aus Vollnarbenleder. Bestellung im Karton.",
     collectionsTitle: "Herren Lederschuhe im Großhandel",
     collectionsDescription:
       "Herren-Lederschuhe im Großhandel — Loafer, Stiefel, elegante Schuhe, Sneaker und Sandalen. Anmelden für Händlerpreise oder Händlerkonto beantragen.",
@@ -906,7 +906,7 @@ const de: Dictionary = {
     catalogueHeading: "Der vollständige Großhandelskatalog",
     catalogueIntro:
       "Alle Herren-Lederschuhe unseres Sortiments, filterbar nach Kategorie, Farbe, Saison und Lieferfenster. Großhandelspreise und Kartonmengen sehen freigegebene Händlerkonten.",
-    brandStoryTitle: "Über uns — Großhändler für Herren-Lederschuhe seit 1984",
+    brandStoryTitle: "Über uns — Hersteller von Herren-Lederschuhen seit 1984",
     brandStoryDescription:
       "Hector Footwear fertigt seit 1984 Herren-Lederschuhe aus Vollnarbenleder — Loafer, Stiefel, elegante Schuhe und mehr — für den Fachhandel. Nur Großhandel.",
     faqTitle: "Großhandel-FAQ — Bestellung, Preise & Versand",

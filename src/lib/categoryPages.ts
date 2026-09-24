@@ -9,7 +9,8 @@ import type { Category } from "@/lib/types";
  * /collections and /catalogue — a query string, which Google treats as the same page. Each
  * category now has one indexable URL with its own title, copy and product list.
  *
- * Every claim here is checked against the data, not the brand story:
+ * Every claim here is checked against the data or confirmed by the owner (Hector makes its
+ * own shoes — confirmed 2026-09-24; production location deliberately not stated):
  *  - box format is fixed per style, never chosen: 8 pairs (EU 40–44) or 10 pairs (EU 40–45),
  *    and the product page says which (see scripts/fixBoxSizeClaims.ts for why this matters);
  *  - the minimum is per account, in pairs, across the whole order — styles can be mixed;
@@ -95,11 +96,11 @@ export const CATEGORY_PAGES: CategoryPage[] = [
       el: {
         title: "Ανδρικά Δερμάτινα Μοκασίνια & Loafers Χονδρική",
         description:
-          "Ανδρικά loafers, boat shoes και εσπαντρίγιες από γνήσιο δέρμα και καστόρι, χονδρική ανά κιβώτιο για καταστήματα. Hector Footwear, από το 1984.",
+          "Ανδρικά loafers, boat shoes και εσπαντρίγιες από γνήσιο δέρμα και καστόρι, χονδρική ανά κιβώτιο για καταστήματα. Κατασκευή Hector Footwear από το 1984.",
         h1: "Ανδρικά Μοκασίνια & Loafers Χονδρική",
         label: "Μοκασίνια & Loafers",
         intro: [
-          "Τα loafers είναι η μεγαλύτερη κατηγορία της Hector Footwear και το παπούτσι που κρατά την καλοκαιρινή βιτρίνα ενός ανδρικού καταστήματος. Η σειρά περιλαμβάνει κλασικά δερμάτινα loafers, boat shoes και μοκασίνια από καστόρι σε ταμπά, μπεζ και μπλε, καθώς και δερμάτινες εσπαντρίγιες για τους πιο ζεστούς μήνες.",
+          "Τα loafers είναι η μεγαλύτερη κατηγορία της Hector Footwear και το παπούτσι που κρατά την καλοκαιρινή βιτρίνα ενός ανδρικού καταστήματος. Η σειρά περιλαμβάνει κλασικά δερμάτινα loafers, boat shoes και μοκασίνια από καστόρι σε ταμπά, μπεζ και μπλε, καθώς και δερμάτινες εσπαντρίγιες για τους πιο ζεστούς μήνες. Όλα τα μοντέλα είναι δικής μας κατασκευής.",
           "Τα περισσότερα μοντέλα έχουν επάνω μέρος από γνήσιο δέρμα ή καστόρι, εσωτερική φόδρα που αναπνέει και αντιολισθητική σόλα — ελαφριά κατασκευή που φοριέται όλη μέρα χωρίς κάλτσα. Διατίθενται σε ουδέτερα χρώματα που συνδυάζονται εύκολα με λινό και chino, ώστε να πουλιούνται σε ευρύ κοινό.",
           `${BOX_EL} Τα loafers παραγγέλνονται ως προπαραγγελία, και ο χρόνος αποστολής επιβεβαιώνεται μόλις προγραμματιστεί η παραγωγή — γι' αυτό αξίζει να κλείνετε την καλοκαιρινή παραγγελία νωρίς.`,
         ],
@@ -115,11 +116,11 @@ export const CATEGORY_PAGES: CategoryPage[] = [
       en: {
         title: "Men's Leather Loafers Wholesale",
         description:
-          "Men's leather and suede loafers, boat shoes and espadrilles, wholesale by the box for independent retailers. Hector Footwear, since 1984.",
+          "Men's leather and suede loafers, boat shoes and espadrilles, wholesale by the box for independent retailers. Made by Hector Footwear since 1984.",
         h1: "Men's Leather Loafers Wholesale",
         label: "Loafers",
         intro: [
-          "Loafers are Hector Footwear's largest category and the shoe that carries a menswear store's summer window. The range covers classic leather loafers, boat shoes and suede slip-ons in taba, beige and blue, plus leather espadrilles for the warmest months.",
+          "Loafers are Hector Footwear's largest category and the shoe that carries a menswear store's summer window. The range covers classic leather loafers, boat shoes and suede slip-ons in taba, beige and blue, plus leather espadrilles for the warmest months. Every style is made by us.",
           "Most styles pair a genuine leather or suede upper with a breathable lining and a slip-resistant outsole — a light build that can be worn all day without socks. The colours are deliberately neutral, so they sit easily with linen and chinos and sell to a broad customer.",
           `${BOX_EN} Loafers are sold on pre-order, with shipping timed once production is scheduled — so the summer buy is worth placing early.`,
         ],
@@ -135,11 +136,11 @@ export const CATEGORY_PAGES: CategoryPage[] = [
       de: {
         title: "Herren-Loafer aus Leder im Großhandel",
         description:
-          "Herren-Loafer, Bootsschuhe und Espadrilles aus Leder und Veloursleder im Großhandel, kartonweise für den Fachhandel. Hector Footwear seit 1984.",
+          "Herren-Loafer, Bootsschuhe und Espadrilles aus Leder und Veloursleder im Großhandel, kartonweise. Hergestellt von Hector Footwear seit 1984.",
         h1: "Herren-Loafer aus Leder im Großhandel",
         label: "Loafer",
         intro: [
-          "Loafer sind die größte Kategorie von Hector Footwear: klassische Leder-Loafer, Bootsschuhe und Slipper aus Veloursleder in Taba, Beige und Blau, dazu Leder-Espadrilles für die warmen Monate.",
+          "Loafer sind die größte Kategorie von Hector Footwear: klassische Leder-Loafer, Bootsschuhe und Slipper aus Veloursleder in Taba, Beige und Blau, dazu Leder-Espadrilles für die warmen Monate. Alle Modelle stammen aus eigener Herstellung.",
           "Die meisten Modelle kombinieren ein Obermaterial aus echtem Leder oder Veloursleder mit atmungsaktivem Futter und rutschfester Laufsohle. Die neutralen Farben passen zu Leinen und Chinos und sprechen eine breite Kundschaft an.",
           `${BOX_DE} Loafer werden auf Vorbestellung verkauft; der Versandtermin wird bestätigt, sobald die Produktion eingeplant ist.`,
         ],
@@ -148,11 +149,11 @@ export const CATEGORY_PAGES: CategoryPage[] = [
       fr: {
         title: "Mocassins homme en cuir en gros",
         description:
-          "Mocassins, chaussures bateau et espadrilles homme en cuir et daim, en gros par carton pour les détaillants. Hector Footwear, depuis 1984.",
+          "Mocassins, chaussures bateau et espadrilles homme en cuir et daim, en gros par carton pour les détaillants. Fabriqué par Hector Footwear depuis 1984.",
         h1: "Mocassins homme en cuir en gros",
         label: "Mocassins",
         intro: [
-          "Les mocassins sont la plus grande catégorie de Hector Footwear : mocassins en cuir classiques, chaussures bateau et slip-on en daim en taba, beige et bleu, ainsi que des espadrilles en cuir pour les mois chauds.",
+          "Les mocassins sont la plus grande catégorie de Hector Footwear : mocassins en cuir classiques, chaussures bateau et slip-on en daim en taba, beige et bleu, ainsi que des espadrilles en cuir pour les mois chauds. Tous les modèles sont de notre propre fabrication.",
           "La plupart des modèles associent une tige en cuir véritable ou en daim, une doublure respirante et une semelle antidérapante. Les coloris neutres s'accordent au lin et au chino et plaisent à une large clientèle.",
           `${BOX_FR} Les mocassins sont vendus en précommande ; la date d'expédition est confirmée dès que la production est planifiée.`,
         ],
@@ -167,11 +168,11 @@ export const CATEGORY_PAGES: CategoryPage[] = [
       el: {
         title: "Ανδρικά Επίσημα Παπούτσια & Παπούτσια Γαμπρού Χονδρική",
         description:
-          "Ανδρικά επίσημα δετά, επίσημα loafers και παπούτσια γαμπρού από γνήσιο δέρμα, χονδρική ανά κιβώτιο για καταστήματα. Hector Footwear, από το 1984.",
+          "Ανδρικά επίσημα δετά, επίσημα loafers και παπούτσια γαμπρού από γνήσιο δέρμα, χονδρική ανά κιβώτιο για καταστήματα. Κατασκευή Hector Footwear από το 1984.",
         h1: "Ανδρικά Επίσημα Παπούτσια & Παπούτσια Γαμπρού",
         label: "Επίσημα & Γαμπρού",
         intro: [
-          "Τα επίσημα παπούτσια είναι η κατηγορία που πουλά όλο τον χρόνο: γάμοι, βαπτίσεις, τελετές και το καθημερινό κοστούμι του γραφείου. Η σειρά της Hector Footwear περιλαμβάνει κλασικά δετά σε μαύρο, καφέ και κάμελ, επίσημα loafers και παπούτσια γαμπρού σε μαύρο και ταμπά.",
+          "Τα επίσημα παπούτσια είναι η κατηγορία που πουλά όλο τον χρόνο: γάμοι, βαπτίσεις, τελετές και το καθημερινό κοστούμι του γραφείου. Η σειρά της Hector Footwear περιλαμβάνει κλασικά δετά σε μαύρο, καφέ και κάμελ, επίσημα loafers και παπούτσια γαμπρού σε μαύρο και ταμπά. Όλα τα μοντέλα είναι δικής μας κατασκευής.",
           "Τα παπούτσια γαμπρού ταιριάζουν με μπλε, γκρι ή μπεζ κοστούμι και είναι φτιαγμένα για πολλές ώρες ορθοστασίας. Όλα τα μοντέλα έχουν επάνω μέρος από γνήσιο δέρμα, φόδρα που αναπνέει και αντιολισθητική σόλα — ορισμένα με σόλα από φυσικό καουτσούκ.",
           `${BOX_EL} Ανάλογα με το μοντέλο, τα επίσημα πωλούνται ως προπαραγγελία ή κατασκευάζονται κατόπιν παραγγελίας, με εκτιμώμενη ημερομηνία που εμφανίζεται στην παραγγελία. Για τη γαμήλια σεζόν, παραγγείλετε με αρκετό περιθώριο πριν από την άνοιξη.`,
         ],
@@ -187,11 +188,11 @@ export const CATEGORY_PAGES: CategoryPage[] = [
       en: {
         title: "Men's Formal & Groom Shoes Wholesale",
         description:
-          "Men's leather lace-ups, formal loafers and groom's shoes, wholesale by the box for independent retailers. Hector Footwear, since 1984.",
+          "Men's leather lace-ups, formal loafers and groom's shoes, wholesale by the box for independent retailers. Made by Hector Footwear since 1984.",
         h1: "Men's Formal & Groom Shoes Wholesale",
         label: "Formal & Groom",
         intro: [
-          "Formal shoes sell all year round: weddings, christenings, ceremonies and the everyday office suit. Hector Footwear's range covers classic lace-ups in black, brown and tan, formal loafers, and groom's shoes in black and taba.",
+          "Formal shoes sell all year round: weddings, christenings, ceremonies and the everyday office suit. Hector Footwear's range covers classic lace-ups in black, brown and tan, formal loafers, and groom's shoes in black and taba. Every style is made by us.",
           "The groom's shoes are built for long hours on your feet and suit a navy, grey or beige suit. Every style has a genuine leather upper, a breathable lining and a slip-resistant outsole — some on a real rubber sole.",
           `${BOX_EN} Depending on the style, formal shoes are sold on pre-order or made to order, with an estimated date shown on your order. For wedding season, order well ahead of spring.`,
         ],
@@ -207,11 +208,11 @@ export const CATEGORY_PAGES: CategoryPage[] = [
       de: {
         title: "Elegante Herrenschuhe & Hochzeitsschuhe im Großhandel",
         description:
-          "Elegante Herren-Schnürschuhe, Business-Loafer und Hochzeitsschuhe aus Leder im Großhandel, kartonweise für den Fachhandel. Hector Footwear seit 1984.",
+          "Herren-Schnürschuhe, Business-Loafer und Hochzeitsschuhe aus Leder im Großhandel, kartonweise. Hergestellt von Hector Footwear seit 1984.",
         h1: "Elegante Herrenschuhe & Hochzeitsschuhe",
         label: "Elegant & Hochzeit",
         intro: [
-          "Elegante Schuhe verkaufen sich das ganze Jahr: Hochzeiten, Taufen, Feiern und der Anzug im Büro. Das Sortiment umfasst klassische Schnürschuhe in Schwarz, Braun und Tan, elegante Loafer sowie Hochzeitsschuhe in Schwarz und Taba.",
+          "Elegante Schuhe verkaufen sich das ganze Jahr: Hochzeiten, Taufen, Feiern und der Anzug im Büro. Das Sortiment umfasst klassische Schnürschuhe in Schwarz, Braun und Tan, elegante Loafer sowie Hochzeitsschuhe in Schwarz und Taba. Alle Modelle stammen aus eigener Herstellung.",
           "Alle Modelle haben ein Obermaterial aus echtem Leder, atmungsaktives Futter und eine rutschfeste Laufsohle — einige mit Sohle aus Naturkautschuk.",
           `${BOX_DE} Je nach Modell auf Vorbestellung oder als Anfertigung nach Auftrag, mit voraussichtlichem Termin in der Bestellung.`,
         ],
@@ -220,11 +221,11 @@ export const CATEGORY_PAGES: CategoryPage[] = [
       fr: {
         title: "Chaussures habillées et de mariage homme en gros",
         description:
-          "Richelieus, mocassins habillés et chaussures de mariage homme en cuir, en gros par carton pour les détaillants. Hector Footwear, depuis 1984.",
+          "Richelieus, mocassins habillés et chaussures de mariage homme en cuir, en gros par carton pour les détaillants. Fabriqué par Hector Footwear depuis 1984.",
         h1: "Chaussures habillées et de mariage homme",
         label: "Habillées & mariage",
         intro: [
-          "Les chaussures habillées se vendent toute l'année : mariages, baptêmes, cérémonies et costume de bureau. La gamme comprend des richelieus classiques en noir, marron et camel, des mocassins habillés et des chaussures de mariage en noir et taba.",
+          "Les chaussures habillées se vendent toute l'année : mariages, baptêmes, cérémonies et costume de bureau. La gamme comprend des richelieus classiques en noir, marron et camel, des mocassins habillés et des chaussures de mariage en noir et taba. Tous les modèles sont de notre propre fabrication.",
           "Tous les modèles ont une tige en cuir véritable, une doublure respirante et une semelle antidérapante — certains sur semelle en caoutchouc naturel.",
           `${BOX_FR} Selon le modèle, vente en précommande ou fabrication à la commande, avec une date estimée indiquée sur la commande.`,
         ],
@@ -239,11 +240,11 @@ export const CATEGORY_PAGES: CategoryPage[] = [
       el: {
         title: "Ανδρικά Δερμάτινα Μποτάκια Χονδρική",
         description:
-          "Ανδρικά δερμάτινα μποτάκια, casual και επίσημα, σε μαύρο, καφέ και ταμπά. Χονδρική ανά κιβώτιο για καταστήματα. Hector Footwear, από το 1984.",
+          "Ανδρικά δερμάτινα μποτάκια, casual και επίσημα, σε μαύρο, καφέ και ταμπά. Χονδρική ανά κιβώτιο για καταστήματα. Κατασκευή Hector Footwear από το 1984.",
         h1: "Ανδρικά Δερμάτινα Μποτάκια Χονδρική",
         label: "Μποτάκια",
         intro: [
-          "Τα δερμάτινα μποτάκια είναι το βασικό παπούτσι της χειμερινής σεζόν. Η Hector Footwear προσφέρει ανδρικά μποτάκια σε μαύρο, καφέ και ταμπά — από casual σχέδια για τζιν μέχρι επίσημα μποτάκια που φοριούνται με κοστούμι.",
+          "Τα δερμάτινα μποτάκια είναι το βασικό παπούτσι της χειμερινής σεζόν. Η Hector Footwear προσφέρει ανδρικά μποτάκια σε μαύρο, καφέ και ταμπά — από casual σχέδια για τζιν μέχρι επίσημα μποτάκια που φοριούνται με κοστούμι. Όλα τα μοντέλα είναι δικής μας κατασκευής.",
           "Όλα τα μοντέλα έχουν επάνω μέρος από γνήσιο δέρμα, φόδρα που αναπνέει και αντιολισθητική σόλα για βρεγμένα πεζοδρόμια.",
           `${BOX_EL} Τα μποτάκια κατασκευάζονται κατόπιν παραγγελίας, με εκτιμώμενη ημερομηνία αποστολής που εμφανίζεται στην παραγγελία — γι' αυτό η χειμερινή παραγγελία αξίζει να κλείνει από το καλοκαίρι.`,
         ],
@@ -259,11 +260,11 @@ export const CATEGORY_PAGES: CategoryPage[] = [
       en: {
         title: "Men's Leather Boots Wholesale",
         description:
-          "Men's leather boots, casual and formal, in black, brown and taba. Wholesale by the box for independent retailers. Hector Footwear, since 1984.",
+          "Men's leather boots, casual and formal, in black, brown and taba. Wholesale by the box for independent retailers. Made by Hector Footwear since 1984.",
         h1: "Men's Leather Boots Wholesale",
         label: "Boots",
         intro: [
-          "Leather boots are the backbone of the winter season. Hector Footwear offers men's boots in black, brown and taba — from casual styles for denim to formal boots worn with a suit.",
+          "Leather boots are the backbone of the winter season. Hector Footwear offers men's boots in black, brown and taba — from casual styles for denim to formal boots worn with a suit. Every style is made by us.",
           "Every style has a genuine leather upper, a breathable lining and a slip-resistant outsole for wet pavements.",
           `${BOX_EN} Boots are made to order, with an estimated ship date shown on your order — so the winter buy is best placed during summer.`,
         ],
@@ -279,11 +280,11 @@ export const CATEGORY_PAGES: CategoryPage[] = [
       de: {
         title: "Herren-Lederstiefel im Großhandel",
         description:
-          "Herren-Stiefel und Stiefeletten aus Leder, casual und elegant, in Schwarz, Braun und Taba. Großhandel kartonweise. Hector Footwear seit 1984.",
+          "Herren-Stiefel aus Leder, casual und elegant, in Schwarz, Braun und Taba. Großhandel kartonweise. Hergestellt von Hector Footwear seit 1984.",
         h1: "Herren-Lederstiefel im Großhandel",
         label: "Stiefel",
         intro: [
-          "Lederstiefel tragen die Wintersaison. Hector Footwear bietet Herrenstiefel in Schwarz, Braun und Taba — von Casual-Modellen zur Jeans bis zu eleganten Stiefeletten zum Anzug.",
+          "Lederstiefel tragen die Wintersaison. Hector Footwear bietet Herrenstiefel in Schwarz, Braun und Taba — von Casual-Modellen zur Jeans bis zu eleganten Stiefeletten zum Anzug. Alle Modelle stammen aus eigener Herstellung.",
           "Alle Modelle haben ein Obermaterial aus echtem Leder, atmungsaktives Futter und eine rutschfeste Laufsohle.",
           `${BOX_DE} Stiefel werden nach Auftrag gefertigt, mit voraussichtlichem Versandtermin in der Bestellung — die Winterorder lohnt sich daher schon im Sommer.`,
         ],
@@ -292,11 +293,11 @@ export const CATEGORY_PAGES: CategoryPage[] = [
       fr: {
         title: "Bottes homme en cuir en gros",
         description:
-          "Bottes et boots homme en cuir, casual et habillées, en noir, marron et taba. En gros par carton pour les détaillants. Hector Footwear, depuis 1984.",
+          "Bottes homme en cuir, casual et habillées, en noir, marron et taba. En gros par carton pour les détaillants. Fabriqué par Hector Footwear depuis 1984.",
         h1: "Bottes homme en cuir en gros",
         label: "Bottes",
         intro: [
-          "Les bottes en cuir portent la saison d'hiver. Hector Footwear propose des bottes homme en noir, marron et taba — du modèle casuel pour le jean à la bottine habillée pour le costume.",
+          "Les bottes en cuir portent la saison d'hiver. Hector Footwear propose des bottes homme en noir, marron et taba — du modèle casuel pour le jean à la bottine habillée pour le costume. Tous les modèles sont de notre propre fabrication.",
           "Tous les modèles ont une tige en cuir véritable, une doublure respirante et une semelle antidérapante.",
           `${BOX_FR} Les bottes sont fabriquées à la commande, avec une date d'expédition estimée sur la commande — mieux vaut passer la commande d'hiver dès l'été.`,
         ],
@@ -311,11 +312,11 @@ export const CATEGORY_PAGES: CategoryPage[] = [
       el: {
         title: "Ανδρικά Δερμάτινα Sneakers Χονδρική",
         description:
-          "Ανδρικά sneakers από γνήσιο δέρμα και καστόρι σε μπεζ, γκρι και καφέ, με σόλα από καουτσούκ. Χονδρική ανά κιβώτιο. Hector Footwear, από το 1984.",
+          "Ανδρικά sneakers από γνήσιο δέρμα και καστόρι σε μπεζ, γκρι και καφέ, με σόλα από καουτσούκ. Χονδρική ανά κιβώτιο. Κατασκευή Hector Footwear από το 1984.",
         h1: "Ανδρικά Δερμάτινα Sneakers Χονδρική",
         label: "Sneakers",
         intro: [
-          "Τα δερμάτινα sneakers γεφυρώνουν το casual με το smart — το παπούτσι που ο πελάτης φορά από το γραφείο μέχρι το βράδυ. Η σειρά της Hector Footwear περιλαμβάνει sneakers από γνήσιο δέρμα και καστόρι σε μπεζ, γκρι και καφέ.",
+          "Τα δερμάτινα sneakers γεφυρώνουν το casual με το smart — το παπούτσι που ο πελάτης φορά από το γραφείο μέχρι το βράδυ. Η σειρά της Hector Footwear περιλαμβάνει sneakers από γνήσιο δέρμα και καστόρι σε μπεζ, γκρι και καφέ. Όλα τα μοντέλα είναι δικής μας κατασκευής.",
           "Έχουν φόδρα που αναπνέει και σόλα από καουτσούκ, με καθαρές γραμμές που ταιριάζουν τόσο με τζιν όσο και με chino.",
           `${BOX_EL} Τα sneakers παραγγέλνονται ως προπαραγγελία, και ο χρόνος αποστολής επιβεβαιώνεται μόλις προγραμματιστεί η παραγωγή.`,
         ],
@@ -324,11 +325,11 @@ export const CATEGORY_PAGES: CategoryPage[] = [
       en: {
         title: "Men's Leather Sneakers Wholesale",
         description:
-          "Men's leather and suede sneakers in beige, grey and brown on a rubber outsole. Wholesale by the box for retailers. Hector Footwear, since 1984.",
+          "Men's leather and suede sneakers in beige, grey and brown on a rubber outsole. Wholesale by the box for retailers. Made by Hector Footwear since 1984.",
         h1: "Men's Leather Sneakers Wholesale",
         label: "Sneakers",
         intro: [
-          "Leather sneakers bridge casual and smart — the shoe a customer wears from the office into the evening. Hector Footwear's range includes sneakers in genuine leather and suede, in beige, grey and brown.",
+          "Leather sneakers bridge casual and smart — the shoe a customer wears from the office into the evening. Hector Footwear's range includes sneakers in genuine leather and suede, in beige, grey and brown. Every style is made by us.",
           "They have a breathable lining and a rubber outsole, with clean lines that work with denim and chinos alike.",
           `${BOX_EN} Sneakers are sold on pre-order, with shipping timed once production is scheduled.`,
         ],
@@ -341,7 +342,7 @@ export const CATEGORY_PAGES: CategoryPage[] = [
         h1: "Herren-Ledersneaker im Großhandel",
         label: "Sneaker",
         intro: [
-          "Leder-Sneaker verbinden Casual und Smart — der Schuh vom Büro bis in den Abend. Das Sortiment umfasst Sneaker aus echtem Leder und Veloursleder in Beige, Grau und Braun.",
+          "Leder-Sneaker verbinden Casual und Smart — der Schuh vom Büro bis in den Abend. Das Sortiment umfasst Sneaker aus echtem Leder und Veloursleder in Beige, Grau und Braun. Alle Modelle stammen aus eigener Herstellung.",
           "Atmungsaktives Futter, Gummilaufsohle und klare Linien, die zu Jeans und Chinos passen.",
           `${BOX_DE} Sneaker werden auf Vorbestellung verkauft; der Versandtermin wird bestätigt, sobald die Produktion eingeplant ist.`,
         ],
@@ -354,7 +355,7 @@ export const CATEGORY_PAGES: CategoryPage[] = [
         h1: "Sneakers homme en cuir en gros",
         label: "Sneakers",
         intro: [
-          "Les sneakers en cuir font le lien entre casual et habillé — la chaussure qu'on porte du bureau jusqu'au soir. La gamme comprend des sneakers en cuir véritable et en daim, en beige, gris et marron.",
+          "Les sneakers en cuir font le lien entre casual et habillé — la chaussure qu'on porte du bureau jusqu'au soir. La gamme comprend des sneakers en cuir véritable et en daim, en beige, gris et marron. Tous les modèles sont de notre propre fabrication.",
           "Doublure respirante, semelle en caoutchouc et lignes épurées qui vont avec le jean comme avec le chino.",
           `${BOX_FR} Les sneakers sont vendues en précommande ; la date d'expédition est confirmée dès que la production est planifiée.`,
         ],
@@ -369,11 +370,11 @@ export const CATEGORY_PAGES: CategoryPage[] = [
       el: {
         title: "Ανδρικά Δερμάτινα Σανδάλια Χονδρική",
         description:
-          "Ανδρικά δερμάτινα σανδάλια σε μαύρο και καφέ, με ανατομικό πάτο. Χονδρική ανά κιβώτιο 10 ζευγαριών, νούμερα 40–45. Hector Footwear, από το 1984.",
+          "Ανδρικά δερμάτινα σανδάλια σε μαύρο και καφέ, με ανατομικό πάτο. Χονδρική ανά κιβώτιο 10 ζευγαριών, νούμερα 40–45. Κατασκευή Hector Footwear από το 1984.",
         h1: "Ανδρικά Δερμάτινα Σανδάλια Χονδρική",
         label: "Σανδάλια",
         intro: [
-          "Τα ανδρικά δερμάτινα σανδάλια είναι από τα πρώτα παπούτσια που ζητά ο πελάτης μόλις ανεβεί η θερμοκρασία — και στην Ελλάδα η σεζόν τους κρατά μήνες. Η Hector Footwear προσφέρει σανδάλια με λουριά από γνήσιο δέρμα σε μαύρο και καφέ.",
+          "Τα ανδρικά δερμάτινα σανδάλια είναι από τα πρώτα παπούτσια που ζητά ο πελάτης μόλις ανεβεί η θερμοκρασία — και στην Ελλάδα η σεζόν τους κρατά μήνες. Η Hector Footwear προσφέρει σανδάλια με λουριά από γνήσιο δέρμα σε μαύρο και καφέ. Όλα τα μοντέλα είναι δικής μας κατασκευής.",
           "Ο ανατομικός πάτος με επένδυση και η αντιολισθητική σόλα τα κάνουν άνετα για όλη μέρα, στην πόλη ή στο νησί.",
           "Τα σανδάλια πωλούνται σε κιβώτιο 10 ζευγαριών με νούμερα 40–45 και παραγγέλνονται ως προπαραγγελία, με χρόνο αποστολής που επιβεβαιώνεται μόλις προγραμματιστεί η παραγωγή — γι' αυτό η καλοκαιρινή παραγγελία αξίζει να κλείνει νωρίς.",
         ],
@@ -389,11 +390,11 @@ export const CATEGORY_PAGES: CategoryPage[] = [
       en: {
         title: "Men's Leather Sandals Wholesale",
         description:
-          "Men's leather sandals in black and brown with a cushioned footbed. Wholesale in 10-pair boxes, EU 40–45, for retailers. Hector Footwear, since 1984.",
+          "Men's leather sandals in black and brown with a cushioned footbed. Wholesale in 10-pair boxes, EU 40–45, for retailers. Made by Hector Footwear since 1984.",
         h1: "Men's Leather Sandals Wholesale",
         label: "Sandals",
         intro: [
-          "Men's leather sandals are among the first shoes customers ask for once the weather turns, and in southern markets the season runs for months. Hector Footwear offers sandals with genuine leather straps in black and brown.",
+          "Men's leather sandals are among the first shoes customers ask for once the weather turns, and in southern markets the season runs for months. Hector Footwear offers sandals with genuine leather straps in black and brown. Every style is made by us.",
           "A contoured, cushioned footbed and a slip-resistant outsole make them comfortable all day, in town or on holiday.",
           "Sandals ship in a 10-pair box running EU 40–45 and are sold on pre-order, with shipping timed once production is scheduled — so the summer buy is worth placing early.",
         ],
@@ -409,11 +410,11 @@ export const CATEGORY_PAGES: CategoryPage[] = [
       de: {
         title: "Herren-Ledersandalen im Großhandel",
         description:
-          "Herren-Sandalen aus Leder in Schwarz und Braun mit gepolstertem Fußbett. Großhandel im 10-Paar-Karton, EU 40–45. Hector Footwear seit 1984.",
+          "Herren-Sandalen aus Leder in Schwarz und Braun mit gepolstertem Fußbett. Großhandel im 10-Paar-Karton, EU 40–45. Hergestellt von Hector Footwear seit 1984.",
         h1: "Herren-Ledersandalen im Großhandel",
         label: "Sandalen",
         intro: [
-          "Herren-Ledersandalen gehören zu den ersten Schuhen, nach denen Kunden bei warmem Wetter fragen. Hector Footwear bietet Sandalen mit Riemen aus echtem Leder in Schwarz und Braun.",
+          "Herren-Ledersandalen gehören zu den ersten Schuhen, nach denen Kunden bei warmem Wetter fragen. Hector Footwear bietet Sandalen mit Riemen aus echtem Leder in Schwarz und Braun. Alle Modelle stammen aus eigener Herstellung.",
           "Ein anatomisch geformtes, gepolstertes Fußbett und eine rutschfeste Laufsohle sorgen für ganztägigen Komfort.",
           "Sandalen werden im 10-Paar-Karton (EU 40–45) auf Vorbestellung verkauft; der Versandtermin wird bestätigt, sobald die Produktion eingeplant ist.",
         ],
@@ -422,11 +423,11 @@ export const CATEGORY_PAGES: CategoryPage[] = [
       fr: {
         title: "Sandales homme en cuir en gros",
         description:
-          "Sandales homme en cuir noir et marron avec semelle intérieure rembourrée. En gros par carton de 10 paires, 40–45. Hector Footwear, depuis 1984.",
+          "Sandales homme en cuir noir et marron avec semelle intérieure rembourrée. En gros par carton de 10 paires, 40–45. Fabriqué par Hector Footwear depuis 1984.",
         h1: "Sandales homme en cuir en gros",
         label: "Sandales",
         intro: [
-          "Les sandales homme en cuir sont parmi les premières chaussures demandées dès les beaux jours. Hector Footwear propose des sandales à brides en cuir véritable, en noir et marron.",
+          "Les sandales homme en cuir sont parmi les premières chaussures demandées dès les beaux jours. Hector Footwear propose des sandales à brides en cuir véritable, en noir et marron. Tous les modèles sont de notre propre fabrication.",
           "Une semelle intérieure anatomique rembourrée et une semelle antidérapante assurent le confort toute la journée.",
           "Les sandales sont vendues en carton de 10 paires (40–45) et en précommande ; la date d'expédition est confirmée dès que la production est planifiée.",
         ],
