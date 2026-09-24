@@ -2,7 +2,8 @@ import "server-only";
 import type { Locale } from "@/i18n/config";
 import { originForLocale } from "@/i18n/domains";
 import { absoluteUrl } from "@/lib/seo";
-import { getSeoSettingsForLocale, type SeoSettings } from "@/lib/data/seoSettings";
+import { getSeoLocaleOverrides, getSeoSettingsForLocale, type SeoSettings } from "@/lib/data/seoSettings";
+import { getDictionary } from "@/i18n/getDictionary";
 import { generateProductDescription, type ProductSeoSource } from "@/lib/seoAutogen";
 import type { JournalPost, Style } from "@/lib/types";
 
@@ -194,12 +195,20 @@ export function buildProductSchema(
   // `.map((u) => ...)`, not `.map(absoluteUrl)`: Array.map passes (value, index), and once
   // absoluteUrl gained a second parameter the index was being handed in as the locale.
   const images = (options.imageUrls ?? []).filter(Boolean).map((u) => absoluteUrl(u, options.locale));
+  // No stock on hand is not "out of stock" when the style can still be ordered: every style
+  // with `allowBackorder` goes to production instead, as a pre-order or made to order. This
+  // used to say OutOfStock for all 31 styles — the stock table is empty because the whole
+  // range is sold ahead of production — which is what Google showed in results.
   const availability =
     options.inStock === undefined
       ? undefined
       : options.inStock
         ? "https://schema.org/InStock"
-        : "https://schema.org/OutOfStock";
+        : style.allowBackorder === false
+          ? "https://schema.org/OutOfStock"
+          : style.backorderMode === "pre_order"
+            ? "https://schema.org/PreOrder"
+            : "https://schema.org/MadeToOrder";
 
   const offer = compact({
     "@type": "Offer",
@@ -300,7 +309,7 @@ export function buildCollectionSchema({
 /**
  * BlogPosting for a journal article. Not gated behind a settings switch (the
  * journal has no dedicated on/off flag the way Product/FAQ schema do) — same
- * treatment as `buildCollectionSchema`/`buildBrandSchema`, which are always
+ * treatment as `buildCollectionSchema`, which is always
  * emitted because there's nothing to fabricate here, only real post data.
  */
 export function buildArticleSchema(post: JournalPost, settings: SeoSettings, locale: Locale = "en"): JsonLd {
@@ -334,17 +343,6 @@ export function buildFaqSchema(items: { q: string; a: string }[], settings: SeoS
   };
 }
 
-export function buildBrandSchema(brand: { name: string; description?: string; logoUrl?: string; path: string }): JsonLd {
-  return compact({
-    "@context": "https://schema.org",
-    "@type": "Brand",
-    name: brand.name,
-    description: brand.description,
-    logo: brand.logoUrl ? absoluteUrl(brand.logoUrl) : undefined,
-    url: absoluteUrl(brand.path),
-  });
-}
-
 /**
  * The site-wide graph (Organization + WebSite), emitted once from the root
  * layout. Page-specific schemas are emitted by the pages themselves and
@@ -354,7 +352,14 @@ export async function buildSiteSchemas(locale: Locale = "en"): Promise<JsonLd[]>
   // Locale-aware: the Organization/LocalBusiness schema carries the postal address, and
   // the Greek site should publish the Heraklion address written in Greek — see
   // `seo_settings_locale`. Everything else in the graph is domain-level and shared.
-  const settings = await getSeoSettingsForLocale(locale);
+  const [merged, overrides] = await Promise.all([getSeoSettingsForLocale(locale), getSeoLocaleOverrides()]);
+  // The description falls back to the base (English) setting when a locale has no override
+  // of its own — so hectorfootwear.gr described the business to Google in English. Without an
+  // override, a non-English site uses its own homepage description instead.
+  const settings =
+    locale !== "en" && !overrides[locale]?.defaultDescription
+      ? { ...merged, defaultDescription: (await getDictionary(locale)).seo.homeDescription }
+      : merged;
   return [buildOrganizationSchema(settings, locale), buildWebsiteSchema(settings, locale)].filter(
     (schema): schema is JsonLd => schema !== null,
   );

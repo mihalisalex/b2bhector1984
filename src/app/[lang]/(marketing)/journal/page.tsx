@@ -20,10 +20,10 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
     description: dict.seo.journalDescription,
     path: "/journal",
     locale,
-    // Every post is a single un-translated row (no per-locale content yet — see migration
-    // 0027's header comment) — the exact same article renders under every locale prefix, so
-    // hreflang alternates here would claim translated siblings that don't actually exist.
-    hasLocaleVariants: false,
+    // Since migration 0037 each locale's index lists that locale's own posts under its own
+    // title, so the four indexes ARE language versions of one page and get hreflang — which
+    // the sitemap already declared for them. (Individual articles still don't: see
+    // `articleMetadata`.)
   });
 }
 

@@ -54,8 +54,6 @@ export function localizeStyle(style: Style, locale: Locale): LocalizedStyleCopy 
  * trade-vocabulary, and a page is not English-looking for missing them — so they are
  * reported but do not make a style "missing Greek".
  */
-export const GREEK_COPY_REQUIRED_FIELDS = ["tagline", "description"] as const;
-
 export function missingGreekFields(style: Style): string[] {
   const missing: string[] = [];
   if (!style.taglineEl?.trim()) missing.push("tagline");

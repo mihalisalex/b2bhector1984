@@ -896,34 +896,34 @@ const fr: Dictionary = {
   seo: {
     homeTitle: "Chaussures en Cuir Homme en Gros | Hector Footwear",
     homeDescription:
-      "Hector Footwear est un grossiste en chaussures en cuir pour homme depuis 1984 — mocassins, bottes, chaussures habillées et sneakers en cuir pleine fleur pour détaillants indépendants. Commande par carton, tarification selon les conditions de paiement.",
+      "Grossiste en chaussures en cuir pour homme depuis 1984 — mocassins, bottes, chaussures habillées et sneakers en cuir pleine fleur. Commande par carton.",
     collectionsTitle: "Chaussures en Cuir Homme, en Gros",
     collectionsDescription:
-      "Chaussures en cuir homme en gros — mocassins, bottes, chaussures habillées, sneakers et sandales en cuir pleine fleur. Connectez-vous pour les tarifs grossistes ou demandez un compte professionnel.",
+      "Chaussures en cuir homme en gros — mocassins, bottes, chaussures habillées, sneakers et sandales. Connectez-vous pour les tarifs ou ouvrez un compte pro.",
     catalogueTitle: "Catalogue de Gros — Toutes les Chaussures Homme en Cuir",
     catalogueDescription:
-      "Toute la collection Hector Footwear — mocassins, bottes, chaussures habillées, sneakers et sandales en cuir pour homme, filtrables par catégorie, coloris et saison. Vente en gros par carton ; tarifs réservés aux comptes validés.",
+      "Toute la collection Hector Footwear — mocassins, bottes, chaussures habillées, sneakers et sandales en cuir. Vente par carton, tarifs aux comptes validés.",
     catalogueHeading: "Le Catalogue de Gros Complet",
     catalogueIntro:
       "Toutes nos chaussures homme en cuir, filtrables par catégorie, coloris, saison et délai de livraison. Les tarifs de gros et les quantités par carton sont réservés aux comptes professionnels validés.",
     brandStoryTitle: "À propos — Grossiste en Chaussures en Cuir Homme depuis 1984",
     brandStoryDescription:
-      "Hector Footwear fabrique des chaussures en cuir pleine fleur pour homme — mocassins, bottes, chaussures habillées et plus — pour détaillants indépendants depuis 1984. Vente en gros uniquement.",
+      "Depuis 1984, Hector Footwear fabrique des chaussures homme en cuir pleine fleur — mocassins, bottes, habillées — pour les détaillants. Gros uniquement.",
     faqTitle: "FAQ Grossiste — Commande, Tarifs & Livraison",
     faqDescription:
-      "Réponses pour les acheteurs professionnels qui commandent des chaussures en cuir homme chez Hector Footwear — politique de cartons, tarification, comptes et livraison.",
+      "Réponses pour les acheteurs professionnels de chaussures en cuir homme Hector Footwear — cartons, tarification, comptes et livraison.",
     contactTitle: "Contact — Demandes Grossistes",
     contactDescription:
-      "Contactez Hector Footwear au sujet d'un compte grossiste pour chaussures en cuir homme — demandes générales, nouveaux comptes et support aux clients existants.",
+      "Contactez Hector Footwear pour un compte grossiste en chaussures en cuir homme — questions générales, nouveaux comptes et support client.",
     journalTitle: "Journal — Guides d'Achat en Gros pour la Chaussure",
     journalDescription:
-      "Guides d'achat, conseils d'approvisionnement et tendances de marché pour les détaillants qui achètent des chaussures en cuir homme en gros, par Hector Footwear.",
+      "Guides d'achat, conseils d'approvisionnement et tendances pour les détaillants qui achètent des chaussures en cuir homme en gros, par Hector Footwear.",
     applyTitle: "Demander un Compte Grossiste",
     applyDescription:
-      "Demandez un compte grossiste Hector Footwear pour acheter des chaussures en cuir homme à prix professionnel. La plupart des candidatures sont examinées sous 2 jours ouvrés.",
+      "Demandez un compte grossiste Hector Footwear pour acheter des chaussures en cuir homme à prix professionnel. Réponse sous 2 jours ouvrés en général.",
     loginTitle: "Connexion Acheteur",
     loginDescription:
-      "Connectez-vous à votre compte grossiste Hector Footwear pour les tarifs complets des chaussures en cuir homme, la commande matricielle et l'historique des commandes.",
+      "Connectez-vous à votre compte grossiste Hector Footwear : tarifs des chaussures en cuir homme, commande matricielle et historique des commandes.",
   },
   contact: {
     eyebrow: "Contactez-nous",
@@ -980,6 +980,9 @@ const fr: Dictionary = {
     sortFeatured: "En vedette",
     sortNameAsc: "Nom A–Z",
     resultsCount: "{count} modèles",
+    faqHeading: "Questions fréquentes",
+    browseByCategory: "Par catégorie",
+    allCollections: "Toutes les collections",
     noResults: "Aucun modèle ne correspond à ce filtre.",
   },
   home: {

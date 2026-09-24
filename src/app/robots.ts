@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { headers } from "next/headers";
-import { defaultLocaleForHost, originForLocale } from "@/i18n/domains";
+import { defaultLocaleForHost, localesForHost, originForLocale } from "@/i18n/domains";
 import { getSeoSettings } from "@/lib/data/seoSettings";
 import { ALWAYS_DISALLOWED, COMMERCE_PREFIXES, PUBLIC_PAGES } from "@/lib/seoRoutes";
 
@@ -32,7 +32,15 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
   // nothing extra — and a single hardcoded SITE_URL would have hectorfootwear.com telling
   // crawlers its canonical host and sitemap were both on hectorfootwear.gr.
   const h = await headers();
-  const origin = originForLocale(defaultLocaleForHost(h.get("x-forwarded-host") ?? h.get("host")));
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  const hostDefault = defaultLocaleForHost(host);
+  const origin = originForLocale(hostDefault);
+  // The locales this host serves under a path prefix (/de, /fr on .com; none on .gr). Robots
+  // rules are plain prefixes, so `Disallow: /cart` says nothing about `/de/cart` — every
+  // private route has to be listed once more per prefix, or crawlers keep landing on the
+  // German and French checkout and dashboard only to be bounced to a login page.
+  const prefixes = localesForHost(host).filter((locale) => locale !== hostDefault);
+  const withPrefixes = (paths: string[]) => [...paths, ...prefixes.flatMap((p) => paths.map((path) => `/${p}${path}`))];
   const settings = await getSeoSettings();
 
   // The kill switch. Turning robots off blocks the whole site — only ever
@@ -46,8 +54,10 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
   // either way — carts, checkouts and dashboards are per-account and have no
   // business in an index under any policy.
   const disallow = [
-    ...ALWAYS_DISALLOWED,
-    ...(settings.commerceIndexable ? [] : COMMERCE_PREFIXES),
+    ...withPrefixes(ALWAYS_DISALLOWED.filter((path) => path !== "/api")),
+    // /api is never locale-prefixed.
+    "/api",
+    ...withPrefixes(settings.commerceIndexable ? [] : COMMERCE_PREFIXES),
     ...settings.extraDisallow,
   ];
 

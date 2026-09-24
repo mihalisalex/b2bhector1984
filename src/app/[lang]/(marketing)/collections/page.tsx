@@ -9,6 +9,8 @@ import { buildCollectionSchema } from "@/lib/seoJsonLd";
 import { getDictionary } from "@/i18n/getDictionary";
 import type { Locale } from "@/i18n/config";
 import { withLocale } from "@/i18n/paths";
+import Link from "next/link";
+import { CATEGORY_PAGES } from "@/lib/categoryPages";
 
 /**
  * This is the site's primary public "men's leather shoes wholesale" page — the one
@@ -73,7 +75,10 @@ export default async function CollectionsPage({
     name: initialCategory ? CATEGORY_LABEL[initialCategory] : d.heading,
     description: `${seeded.length} styles from the Hector Footwear ${initialSeason ?? "current"} collection.`,
     path: withLocale(locale, "/collections"),
-    items: seeded.map((style) => ({ name: style.name, path: withLocale(locale, "/collections") })),
+    // Each item is the product's own page, on this locale's domain. Every entry used to be
+    // /collections itself, resolved against the English domain even on .gr.
+    items: seeded.map((style) => ({ name: style.name, path: withLocale(locale, `/product/${style.slug}`) })),
+    locale,
   });
 
   return (
@@ -86,6 +91,22 @@ export default async function CollectionsPage({
           {d.heading}
         </h1>
         <p className="mt-2 max-w-xl text-sm text-ink-soft">{d.intro}</p>
+        {/* Plain links to each category's landing page. The explorer's category pills below
+            filter in the browser and are invisible to a crawler; these are not. */}
+        <nav aria-label={d.browseByCategory} className="mt-5">
+          <ul className="flex flex-wrap gap-2">
+            {CATEGORY_PAGES.map((page) => (
+              <li key={page.slug}>
+                <Link
+                  href={withLocale(locale, `/collections/${page.slug}`)}
+                  className="inline-block border border-stone-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-ink transition-colors hover:border-ink"
+                >
+                  {page.copy[locale].label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </div>
 
       <CollectionsExplorer

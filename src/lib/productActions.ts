@@ -46,7 +46,6 @@ import {
   deleteStyleImage,
   updateImageAltText,
   updateImageColorway,
-  reorderStyleImages,
 } from "@/lib/data/styleImages";
 import {
   createStyleDocumentUploadTarget,
@@ -602,12 +601,6 @@ export async function updateImageColorwayAction(_prev: FormState, formData: Form
   if (failure) return failure;
   revalidateProduct(styleId);
   return { success: "Colorway saved." };
-}
-
-export async function reorderProductImagesAction(styleId: string, orderedImageIds: string[]) {
-  await requirePermission("products.edit");
-  await runBestEffort("reorderProductImagesAction", () => reorderStyleImages(styleId, orderedImageIds));
-  revalidateProduct(styleId);
 }
 
 export async function deleteProductImageAction(_prev: FormState, formData: FormData): Promise<FormState> {

@@ -7,6 +7,7 @@ import { getStyleImageUrl } from "@/lib/data/styleLabels";
 import { getPublishedJournalPosts } from "@/lib/data/journalPosts";
 import { absoluteUrl } from "@/lib/seo";
 import { PUBLIC_PAGES } from "@/lib/seoRoutes";
+import { CATEGORY_PAGES } from "@/lib/categoryPages";
 import { LOCALES, type Locale } from "@/i18n/config";
 import { headers } from "next/headers";
 import { defaultLocaleForHost, localesForHost, urlForLocale } from "@/i18n/domains";
@@ -47,6 +48,8 @@ export const dynamic = "force-dynamic";
  * haven't changed since it, and bumping it is a deliberate act.
  */
 const STATIC_PAGE_LAST_MODIFIED = new Date("2026-08-17T00:00:00Z");
+/** When the category landing pages' copy was written — bump it when that copy changes. */
+const CATEGORY_PAGES_LAST_MODIFIED = new Date("2026-09-24T00:00:00Z");
 
 /**
  * The storefront serves four locales: English unprefixed (`/collections`) and the rest
@@ -122,6 +125,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         // editions of the same page and should not compete with it for crawl budget.
         priority: locale === hostDefault ? page.priority : Math.max(0.1, page.priority - 0.2),
         alternates: { languages: localeAlternates(page.path) },
+      });
+    }
+  }
+
+  // Category landing pages (see categoryPages.ts) — public, translated into every locale, so
+  // listed per locale this host serves, with the full cross-domain alternate set.
+  for (const page of CATEGORY_PAGES) {
+    const path = `/collections/${page.slug}`;
+    const override = overrides.get(`page:${path}`);
+    if (override?.robots?.includes("noindex")) continue;
+    for (const locale of hostLocales) {
+      entries.push({
+        url: here(locale, path),
+        lastModified: override?.updatedAt ? new Date(override.updatedAt) : CATEGORY_PAGES_LAST_MODIFIED,
+        changeFrequency: "weekly",
+        priority: locale === hostDefault ? 0.8 : 0.6,
+        alternates: { languages: localeAlternates(path) },
       });
     }
   }

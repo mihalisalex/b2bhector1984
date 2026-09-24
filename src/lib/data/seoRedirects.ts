@@ -206,18 +206,6 @@ export async function deleteRedirects(ids: string[]): Promise<void> {
 }
 
 /**
- * Fire-and-forget hit counter for the proxy. Deliberately swallows every
- * error: a redirect must never fail because analytics bookkeeping did.
- */
-export async function recordRedirectHit(id: string): Promise<void> {
-  try {
-    await supabaseAdmin.rpc("bump_redirect_hit", { p_id: id });
-  } catch {
-    // Intentionally ignored — see doc comment.
-  }
-}
-
-/**
  * Records the slug a product is moving away from and installs a permanent
  * redirect to its new URL. Called from the product SEO tab's slug editor.
  *

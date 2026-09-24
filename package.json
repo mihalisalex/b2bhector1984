@@ -16,17 +16,17 @@
     "rehash-passwords": "tsx scripts/rehashPasswords.ts"
   },
   "dependencies": {
-    "@react-pdf/renderer": "^4.5.1",
-    "@supabase/supabase-js": "^2.110.8",
+    "@react-pdf/renderer": "^4.9.0",
+    "@supabase/supabase-js": "^2.117.1",
     "clsx": "^2.1.1",
-    "fast-xml-parser": "^5.10.1",
+    "fast-xml-parser": "^5.11.1",
     "next": "16.3.6",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
     "sanitize-html": "^2.17.6",
     "server-only": "^0.0.1",
-    "tailwind-merge": "^3.6.0",
-    "zod": "^4.4.3"
+    "tailwind-merge": "^3.7.0",
+    "zod": "^4.6.5"
   },
   "comment:overrides": "sharp/postcss are pinned above the versions Next 16.3.6 pulls in, to clear high-severity advisories (libvips CVEs in sharp <0.35, postcss sourcemap path traversal). Next declares sharp as an optionalDependency at ^0.34.5, so this intentionally forces a newer minor than it asks for — verified working: build, image optimization and the E2E suite all pass. Revisit when Next bumps its own range. Deliberately NOT overriding brace-expansion: v5 changed to named exports and breaks minimatch/ESLint, and the advisory is a dev-only tooling DoS that never reaches the deployed app.",
   "overrides": {
@@ -34,17 +34,17 @@
     "postcss": "^8.5.6"
   },
   "devDependencies": {
-    "@playwright/test": "^1.62.0",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "@types/sanitize-html": "^2.16.1",
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.3.6",
     "tailwindcss": "^4",
-    "tsx": "^4.23.1",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   },
   "allowScripts": {

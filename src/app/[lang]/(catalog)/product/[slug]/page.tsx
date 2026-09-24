@@ -27,6 +27,7 @@ import { categoryLabel, genderLabel } from "@/lib/data/styleLabels";
 import type { Locale } from "@/i18n/config";
 import { productMetadata } from "@/lib/seo";
 import { buildBreadcrumbSchema, buildProductSchema } from "@/lib/seoJsonLd";
+import { getCategoryPageForCategory } from "@/lib/categoryPages";
 import { getSeoSettings } from "@/lib/data/seoSettings";
 import type { Metadata } from "next";
 import type { SalesRep } from "@/lib/types";
@@ -112,10 +113,16 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
   // Paths stay unprefixed on purpose — product pages keep the English canonical (see the
   // pre-launch audit). `locale` here only picks the ORIGIN, so .gr stops publishing
   // breadcrumbs that claim to live on .com and vice versa.
+  //
+  // The category crumb points at the category's landing page where one exists — the
+  // indexable page for that category — rather than a catalogue filter URL Google folds into
+  // /catalogue.
+  const categoryPage = getCategoryPageForCategory(style.category);
+  const categoryHref = categoryPage ? `/collections/${categoryPage.slug}` : `/catalogue?category=${style.category}`;
   const breadcrumbSchema = buildBreadcrumbSchema(
     [
       { name: "Catalogue", path: "/catalogue" },
-      { name: CATEGORY_LABEL[style.category], path: `/catalogue?category=${style.category}` },
+      { name: CATEGORY_LABEL[style.category], path: categoryHref },
       { name: style.name, path: `/product/${style.slug}` },
     ],
     seoSettings,
@@ -138,7 +145,12 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
         <nav className="mb-4 flex items-center gap-1.5 text-[11px] uppercase tracking-[0.06em] text-ink-soft">
           <Link href={withLocale(locale, "/catalogue")} className="hover:text-ink">{dict.nav.catalogue}</Link>
           <span>/</span>
-          <Link href={withLocale(locale, `/catalogue?category=${style.category}`)} className="hover:text-ink">
+          {/* Buyers go to the orderable catalogue filter; everyone else (crawlers included)
+              to the category's public landing page. */}
+          <Link
+            href={withLocale(locale, showPricing ? `/catalogue?category=${style.category}` : categoryHref)}
+            className="hover:text-ink"
+          >
             {categoryLabel(dict, style.category)}
           </Link>
           <span>/</span>

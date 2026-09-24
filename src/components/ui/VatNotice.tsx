@@ -35,9 +35,3 @@ export function VatNotice({
     </p>
   );
 }
-
-/** Plain-text equivalent for PDF and email, which cannot render JSX. */
-export function vatNoticeText(dict: Dictionary, rates?: readonly (number | undefined)[]): string {
-  const rate = rates ? commonVatRate(rates) : DEFAULT_VAT_RATE;
-  return rate === null ? dict.tax.vatExcludedMixed : t(dict.tax.vatExcludedNotice, { rate: vatPercent(rate) });
-}

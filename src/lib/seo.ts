@@ -110,6 +110,9 @@ export interface BuildMetadataInput {
    * tag set never claims a translated sibling that doesn't really exist. The canonical still
    * gets the current locale's own prefix either way. Defaults to `true`. */
   hasLocaleVariants?: boolean;
+  /** The locales that really have their own version of this page, when that is fewer than
+   * all of them — hreflang then lists only these. Defaults to every locale. */
+  hreflangLocales?: readonly Locale[];
 }
 
 /**
@@ -150,10 +153,14 @@ function buildMetadata(input: BuildMetadataInput, settings: SeoSettings): Metada
   // exactly the point the suffix would begin, so appending it adds length no one ever sees
   // — which is how the two Greek journal overrides (65 and 67 characters) would have gone
   // out at 95. Past the budget, the title stands on its own.
+  //
+  // "Past the budget" means the finished title, not the bare one: checking only the input let
+  // a 50-character title through to become 78 once " — Hector Footwear Wholesale" was added,
+  // which is how 28 pages (every Greek product among them) went out over the limit.
   const skipTemplate =
     isHome ||
     input.titleIsFinal ||
-    input.title.length >= TITLE_MAX ||
+    settings.titleTemplate.replace("%s", input.title).length > TITLE_MAX ||
     titleCarriesBrand(input.title, settings);
   const fullTitle = skipTemplate ? input.title : settings.titleTemplate.replace("%s", input.title);
 
@@ -196,7 +203,7 @@ function buildMetadata(input: BuildMetadataInput, settings: SeoSettings): Metada
   const languages =
     !input.canonicalPath && input.hasLocaleVariants !== false
       ? (Object.fromEntries([
-          ...LOCALES.map((loc) => [loc, urlForLocale(loc, input.path)]),
+          ...(input.hreflangLocales ?? LOCALES).map((loc) => [loc, urlForLocale(loc, input.path)]),
           ["x-default", urlForLocale("en", input.path)],
         ]) as Record<string, string>)
       : undefined;
@@ -339,6 +346,15 @@ export async function commerceMetadata(input: CommerceMetadataInput): Promise<Me
  * photo and the style name is the whole point of the Open Graph fields on a
  * gated page.
  */
+/**
+ * Product copy exists in English (on `styles`) and Greek (the `el` rows in seo_entity_meta
+ * and `description_el`). The /de and /fr product routes render the English copy inside
+ * German/French chrome — the same page again, not a translation — so they canonicalise to
+ * the English original and hreflang advertises only the two real versions. When German or
+ * French copy is written, add the locale here.
+ */
+const PRODUCT_COPY_LOCALES: readonly Locale[] = ["en", "el"];
+
 export async function productMetadata(style: Style, imageUrl?: string, locale?: Locale): Promise<Metadata> {
   const settings = await getSeoSettingsForLocale(locale ?? DEFAULT_LOCALE);
   // Per-locale override (migration 0038 lets seo_entity_meta describe a 'style'). Consulted
@@ -373,8 +389,11 @@ export async function productMetadata(style: Style, imageUrl?: string, locale?: 
       path: `/product/${style.slug}`,
       // Only an explicit admin override; otherwise buildMetadata computes the per-domain
       // absolute canonical itself. Passing a path here would bypass that.
-      canonicalPath: style.canonicalUrl?.trim() || undefined,
+      canonicalPath:
+        style.canonicalUrl?.trim() ||
+        (locale && !PRODUCT_COPY_LOCALES.includes(locale) ? urlForLocale("en", `/product/${style.slug}`) : undefined),
       locale,
+      hreflangLocales: PRODUCT_COPY_LOCALES,
       robots: commerceRobots(settings, style.robots),
       ogTitle: style.ogTitle,
       ogDescription: style.ogDescription,
@@ -399,8 +418,13 @@ export async function productMetadata(style: Style, imageUrl?: string, locale?: 
  * gated commerce surface, so unlike products this never runs through
  * `commerceRobots`.
  */
-export async function articleMetadata(post: JournalPost, locale?: Locale): Promise<Metadata> {
-  const settings = await getSeoSettingsForLocale(locale ?? DEFAULT_LOCALE);
+export async function articleMetadata(post: JournalPost): Promise<Metadata> {
+  // The article's own language decides everything here — not the route it was requested on
+  // (the page redirects any other locale to this one). This used to take the route's locale
+  // and then not pass it on, so every German and French article canonicalised to the
+  // English .com address.
+  const locale = (post.locale as Locale | undefined) ?? DEFAULT_LOCALE;
+  const settings = await getSeoSettingsForLocale(locale);
   const source: ArticleSeoSource = {
     title: post.title,
     excerpt: post.excerpt,
@@ -420,7 +444,12 @@ export async function articleMetadata(post: JournalPost, locale?: Locale): Promi
       titleIsFinal: !adminTitle,
       description,
       path: `/journal/${post.slug}`,
-      canonicalPath: post.canonicalUrl?.trim() || `/journal/${post.slug}`,
+      // Only an admin override goes here; otherwise buildMetadata derives the canonical from
+      // `locale`, on the right domain and prefix.
+      canonicalPath: post.canonicalUrl?.trim() || undefined,
+      locale,
+      // Posts are single rows per language, not translations of each other.
+      hasLocaleVariants: false,
       robots: post.robots,
       ogImageUrl: image,
       ogType: "article",

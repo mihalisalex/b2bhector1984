@@ -6,14 +6,15 @@ import { withLocale } from "@/i18n/paths";
 import { t } from "@/i18n/format";
 import { SUPPORT_EMAIL, SUPPORT_EMAIL_HREF } from "@/lib/contact";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
+import { CATEGORY_PAGES } from "@/lib/categoryPages";
 
 export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const f = dict.footer;
   return (
     <footer className="border-t border-stone-300 bg-ink text-stone-200">
       <div className="mx-auto max-w-[1440px] px-6 py-14 lg:px-10">
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-5">
-          <div>
+        <div className="grid grid-cols-2 gap-10 md:grid-cols-6">
+          <div className="col-span-2 md:col-span-1">
             <Logo inverted />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-stone-300/80">{f.tagline}</p>
           </div>
@@ -26,6 +27,13 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
               { href: "/login", label: f.buyerLogin },
               { href: "/catalogue", label: f.catalogue },
             ]}
+          />
+          {/* Every page links to every category landing page — the strongest internal-link
+              signal those pages can get, and how a crawler finds them from anywhere. */}
+          <FooterCol
+            title={dict.collections.browseByCategory}
+            locale={locale}
+            links={CATEGORY_PAGES.map((page) => ({ href: `/collections/${page.slug}`, label: page.copy[locale].label }))}
           />
           <FooterCol
             title={f.company}

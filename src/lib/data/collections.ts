@@ -1,6 +1,5 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/server";
-import { slugify } from "@/lib/slug";
 import type { Collection } from "@/lib/types";
 
 interface CollectionRow {
@@ -21,18 +20,6 @@ export async function getAllCollections(): Promise<Collection[]> {
     return [];
   }
   return (data ?? []).map(mapCollection);
-}
-
-export async function createCollection(name: string): Promise<Collection> {
-  const slug = slugify(name);
-  const { count } = await supabaseAdmin.from("collections").select("id", { count: "exact", head: true });
-  const { data, error } = await supabaseAdmin
-    .from("collections")
-    .insert({ id: slug, name, slug, sort_order: count ?? 0 })
-    .select()
-    .single();
-  if (error) throw new Error(`collections: ${error.message}`);
-  return mapCollection(data);
 }
 
 /** styleId -> collectionIds, for a batch of styles. */

@@ -1,7 +1,7 @@
 import { t } from "@/i18n/format";
 import { formatDateLong } from "@/lib/format";
 import { getDictionary } from "@/i18n/getDictionary";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { getCurrentAccount } from "@/lib/session";
@@ -14,8 +14,22 @@ import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { ArticleCard } from "@/components/journal/ArticleCard";
 import { LinkButton } from "@/components/ui/Button";
 import { withLocale } from "@/i18n/paths";
+import { urlForLocale } from "@/i18n/domains";
 import type { Locale } from "@/i18n/config";
 import type { Metadata } from "next";
+
+/**
+ * An article belongs to one language (`post.locale`, migration 0037) and lives at exactly one
+ * URL. The route itself exists under every locale, so without this the German article also
+ * rendered at hectorfootwear.gr/journal/… (self-canonical, labelled Greek) and at the English
+ * and French addresses on .com — five indexable copies of one page. Any other address is sent,
+ * permanently, to the article's own.
+ */
+function redirectToOwnLocale(post: { slug: string; locale?: string }, lang: string) {
+  if (post.locale && post.locale !== lang) {
+    permanentRedirect(urlForLocale(post.locale as Locale, `/journal/${post.slug}`));
+  }
+}
 
 async function resolvePost(slug: string) {
   const published = await getJournalPostBySlug(slug);
@@ -33,7 +47,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug, lang } = await params;
   const { post } = await resolvePost(slug);
   if (!post) return {};
-  return articleMetadata(post, lang as Locale);
+  redirectToOwnLocale(post, lang);
+  return articleMetadata(post);
 }
 
 function readTimeMinutes(html: string): number {
@@ -50,6 +65,7 @@ export default async function JournalArticlePage({
   const locale = lang as Locale;
   const { post, isPreview } = await resolvePost(slug);
   if (!post) notFound();
+  redirectToOwnLocale(post, lang);
 
   const [settings, related, dict] = await Promise.all([getSeoSettings(), getRelatedJournalPosts(post, 3), getDictionary(locale)]);
 
