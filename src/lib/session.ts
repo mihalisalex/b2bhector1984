@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { randomBytes } from "node:crypto";
 import { supabaseAdmin } from "@/lib/supabase/server";
@@ -86,11 +87,17 @@ export async function getSessionAccountId(): Promise<string | null> {
   return row.account_id;
 }
 
-export async function getCurrentAccount(): Promise<Account | null> {
+/**
+ * Memoised per request with React `cache()`. The layout, the page, headers and metadata all
+ * ask "who is signed in?", and each call was a `sessions` lookup plus an accounts/sales_reps
+ * join — several identical round trips per page view. The memo never outlives the request,
+ * so a login or logout is still seen by the very next one.
+ */
+export const getCurrentAccount = cache(async (): Promise<Account | null> => {
   const id = await getSessionAccountId();
   if (!id) return null;
   return (await getAccountById(id)) ?? null;
-}
+});
 
 export async function getApplication(): Promise<Application | null> {
   const store = await cookies();

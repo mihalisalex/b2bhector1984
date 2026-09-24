@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { requirePermission } from "@/lib/adminGuard";
 import { redirect } from "next/navigation";
-import { getCurrentAccount } from "@/lib/session";
 import { sanitizeJournalBody } from "@/lib/sanitizeHtml";
 import { slugifyForSeo } from "@/lib/seoAutogen";
 import {
@@ -19,12 +19,6 @@ import {
 import type { FormState } from "@/lib/actions";
 import type { UploadState, UploadTarget } from "@/lib/adminActions";
 import type { JournalCategory, JournalStatus } from "@/lib/types";
-
-async function requireAdmin() {
-  const account = await getCurrentAccount();
-  if (!account || account.role !== "admin") redirect("/login");
-  return account;
-}
 
 /** Same "don't crash on a missing migration" contract as productActions.ts's
  * friendlyDbError — journal_posts is new in migration 0027. */
@@ -71,7 +65,7 @@ function readGeneralInput(formData: FormData): JournalGeneralInput {
 }
 
 export async function createJournalPostAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("content.manage");
   const input = readGeneralInput(formData);
   if (!input.title) return { error: "Title is required." };
   if (!input.slug) return { error: "Couldn't derive a URL slug from that title — try adding one manually." };
@@ -87,7 +81,7 @@ export async function createJournalPostAction(_prev: FormState, formData: FormDa
 }
 
 export async function updateGeneralAction(postId: string, slug: string, _prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("content.manage");
   const input = readGeneralInput(formData);
   if (!input.title) return { error: "Title is required." };
   if (!input.slug) return { error: "Couldn't derive a URL slug from that title — try adding one manually." };
@@ -99,7 +93,7 @@ export async function updateGeneralAction(postId: string, slug: string, _prev: F
 }
 
 export async function updateContentAction(postId: string, slug: string, _prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("content.manage");
   const contentHtml = sanitizeJournalBody(String(formData.get("contentHtml") ?? ""));
   const result = await runOrError(() => updateJournalPostContent(postId, contentHtml));
   if (result) return result;
@@ -108,7 +102,7 @@ export async function updateContentAction(postId: string, slug: string, _prev: F
 }
 
 export async function updateSeoAction(postId: string, slug: string, _prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("content.manage");
   const result = await runOrError(() =>
     updateJournalPostSeo(postId, {
       seoTitle: String(formData.get("seoTitle") ?? "").trim(),
@@ -124,7 +118,7 @@ export async function updateSeoAction(postId: string, slug: string, _prev: FormS
 }
 
 export async function updateVisibilityAction(postId: string, slug: string, _prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requirePermission("content.manage");
   const publishAtRaw = String(formData.get("publishAt") ?? "").trim();
   const result = await runOrError(() =>
     updateJournalPostVisibility(postId, {
@@ -139,7 +133,7 @@ export async function updateVisibilityAction(postId: string, slug: string, _prev
 }
 
 export async function deleteJournalPostAction(postId: string): Promise<void> {
-  await requireAdmin();
+  await requirePermission("content.manage");
   try {
     await deleteJournalPost(postId);
   } catch (err) {
@@ -151,7 +145,7 @@ export async function deleteJournalPostAction(postId: string): Promise<void> {
 }
 
 export async function createJournalImageUploadUrlAction(postId: string, fileName: string): Promise<UploadTarget> {
-  await requireAdmin();
+  await requirePermission("content.manage");
   try {
     return await createJournalImageUploadTarget(postId, fileName);
   } catch (err) {
@@ -160,7 +154,7 @@ export async function createJournalImageUploadUrlAction(postId: string, fileName
 }
 
 export async function finalizeJournalImageUploadAction(postId: string, path: string): Promise<UploadState> {
-  await requireAdmin();
+  await requirePermission("content.manage");
   try {
     await finalizeJournalImageUpload(postId, path);
   } catch (err) {

@@ -42,7 +42,7 @@ async function fetchOrderPulse(): Promise<OrderPulse> {
   const monthAgo = new Date(now.getTime() - 30 * 864e5).toISOString();
 
   const [ordersRes, stylesRes] = await Promise.all([
-    supabaseAdmin.from("orders").select("id,placed_at").gte("placed_at", monthAgo),
+    supabaseAdmin.from("orders").select("id,placed_at").gte("placed_at", monthAgo).neq("status", "cancelled"),
     supabaseAdmin.from("styles").select("id,name,style_number,slug,status"),
   ]);
   if (ordersRes.error) throw new Error(`orders: ${ordersRes.error.message}`);

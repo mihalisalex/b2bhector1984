@@ -24,12 +24,15 @@ export async function searchStylesAction(query: string): Promise<SearchResult[]>
   if (!trimmed) return [];
 
   try {
-    const [styles, account, matchedIds] = await Promise.all([
-      getStorefrontStyles(),
-      getCurrentAccount(),
-      searchStyleIds(trimmed),
-    ]);
-    const priceMultiplier = account?.priceMultiplier ?? 1;
+    // Signed-in buyers only. The overlay is only rendered for them, but a Server Action is
+    // a public endpoint whatever the UI does — without this check anyone could POST to it
+    // and walk the whole catalogue's trade prices, which the storefront withholds from
+    // logged-out visitors (see `showPricing`).
+    const account = await getCurrentAccount();
+    if (!account) return [];
+
+    const [styles, matchedIds] = await Promise.all([getStorefrontStyles(), searchStyleIds(trimmed)]);
+    const priceMultiplier = account.priceMultiplier ?? 1;
     const q = trimmed.toLowerCase();
 
     const matches = styles.filter(

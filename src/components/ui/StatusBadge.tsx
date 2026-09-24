@@ -7,6 +7,7 @@ const STATUS: Record<OrderStatus, { label: string; className: string }> = {
   in_production: { label: "In Production", className: "border-court/50 bg-court-100 text-ink" },
   shipped: { label: "Shipped", className: "border-signal/40 bg-signal-100 text-signal-600" },
   delivered: { label: "Delivered", className: "border-positive/40 bg-positive-100 text-positive" },
+  cancelled: { label: "Cancelled", className: "border-ember/40 bg-ember-100 text-ember" },
 };
 
 export function StatusBadge({ status }: { status: OrderStatus }) {

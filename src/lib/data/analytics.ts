@@ -29,7 +29,9 @@ function monthKey(iso: string): string {
 }
 
 export async function getAnalyticsSummary(): Promise<AnalyticsSummary> {
-  const [orders, styles] = await Promise.all([listAllOrders(), getAllStyles()]);
+  const [allOrders, styles] = await Promise.all([listAllOrders(), getAllStyles()]);
+  // A cancelled order is revenue that never happened.
+  const orders = allOrders.filter((o) => o.status !== "cancelled");
   const styleNameById = new Map(styles.map((s) => [s.id, s.name]));
 
   const now = new Date();

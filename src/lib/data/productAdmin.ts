@@ -82,7 +82,11 @@ export async function listProductsForAdmin(params: ProductListParams): Promise<P
     getAllStyles(),
     getAllBrands(),
     getAllSuppliers(),
-    supabaseAdmin.from("order_lines").select("style_id, box_type_id, qty"),
+    supabaseAdmin
+      .from("order_lines")
+      // Cancelled orders never sold anything; keep them out of sales counts.
+      .select("style_id, box_type_id, qty, orders!inner(status)")
+      .neq("orders.status", "cancelled"),
   ]);
 
   const styleIds = styles.map((s) => s.id);

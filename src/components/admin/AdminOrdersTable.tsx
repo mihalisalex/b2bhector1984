@@ -12,6 +12,8 @@ import type { OrderStatus } from "@/lib/types";
 
 const PAGE_SIZE = 25;
 
+// Bulk targets. `cancelled` is deliberately absent: it returns stock and can't be undone,
+// so it is a per-order decision made on the order page, not a checkbox sweep.
 const STATUSES: OrderStatus[] = ["submitted", "confirmed", "in_production", "shipped", "delivered"];
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
@@ -20,6 +22,7 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
   in_production: "In Production",
   shipped: "Shipped",
   delivered: "Delivered",
+  cancelled: "Cancelled",
 };
 
 export function AdminOrdersTable({ orders }: { orders: AdminOrder[] }) {

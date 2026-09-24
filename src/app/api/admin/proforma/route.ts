@@ -1,4 +1,5 @@
 import { getCurrentAccount } from "@/lib/session";
+import { hasPermission } from "@/lib/data/permissions";
 import { getStyleById } from "@/lib/data/styles";
 import { getInventoryForStyles } from "@/lib/data/inventory";
 import { buildInvoicePdf } from "@/lib/pdf/buildInvoicePdf";
@@ -14,7 +15,7 @@ import type { Style } from "@/lib/types";
  * READ-ONLY. It reads styles and inventory and returns a PDF. Nothing is inserted, nothing
  * is decremented — see the note at the top of `proformaDraft.ts` for why that matters here.
  *
- * Guarded the same way `/api/orders/[id]/invoice` is: a session, and the admin role. This
+ * Guarded by a session, the admin role, and the `orders.manage` permission. This
  * endpoint prices the whole catalogue at every terms level, so it must never be reachable
  * by a buyer — wholesale prices are withheld from logged-out visitors on the storefront,
  * and an open quote endpoint would hand them over in a document instead.
@@ -23,6 +24,9 @@ export async function POST(request: Request) {
   const account = await getCurrentAccount();
   if (!account) return new Response("Unauthorized", { status: 401 });
   if (account.role !== "admin") return new Response("Forbidden", { status: 403 });
+  // Quotes carry trade prices and go out under the business's name, so they belong to the
+  // same staff who can manage orders — not to every admin sub-role.
+  if (!(await hasPermission(account.adminRole, "orders.manage"))) return new Response("Forbidden", { status: 403 });
 
   let draft;
   try {

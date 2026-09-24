@@ -30,11 +30,7 @@ import {
 } from "@/lib/data/accounts";
 import { insertApplication, updateApplicationStatus, getApplicationById } from "@/lib/data/applications";
 import { getStylesByIds } from "@/lib/data/styles";
-import {
-  createPasswordResetToken,
-  getValidPasswordResetAccountId,
-  markPasswordResetTokenUsed,
-} from "@/lib/data/passwordReset";
+import { createPasswordResetToken, consumePasswordResetToken } from "@/lib/data/passwordReset";
 import { z } from "zod";
 import { hashPassword, verifyPassword } from "@/lib/passwords";
 import { MIN_PASSWORD_LENGTH } from "@/lib/passwordPolicy";
@@ -42,7 +38,7 @@ import { formatEUR, getOrderMinimumError, getUnitPrice, MAX_BACKORDER_QTY, summa
 import { createSavedAssortment, deleteSavedAssortment as deleteSavedAssortmentData } from "@/lib/data/assortments";
 import { addFavorite, removeFavorite } from "@/lib/data/favorites";
 import { decrementInventoryForOrder, restoreInventoryForLines, type StockLine } from "@/lib/data/inventory";
-import { getBoxType } from "@/lib/data/boxTypes";
+import { getAvailableBoxTypes, getBoxType } from "@/lib/data/boxTypes";
 import { buildInvoicePdf } from "@/lib/pdf/buildInvoicePdf";
 import { sendEmail, type EmailAttachment } from "@/lib/email";
 import { sendWhatsAppTemplate, buildProformaInvoiceParams } from "@/lib/whatsapp";
@@ -133,8 +129,24 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   await setSessionCookie(token);
 
   if (account.role === "admin") redirect("/admin");
-  const next = String(formData.get("next") ?? "");
-  redirect(next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard");
+  redirect(safeNextPath(String(formData.get("next") ?? "")) ?? "/dashboard");
+}
+
+/**
+ * The post-login `next` target, only if it stays on this site. A prefix check alone isn't
+ * enough: `/\evil.com` starts with a single slash, but URL parsers treat the backslash as a
+ * slash and resolve it to `//evil.com` — a freshly signed-in buyer bounced to a lookalike.
+ * Resolving against a throwaway origin and comparing origins catches every such spelling.
+ */
+function safeNextPath(next: string): string | null {
+  if (!next.startsWith("/")) return null;
+  try {
+    const base = "https://same-origin.invalid";
+    const url = new URL(next, base);
+    return url.origin === base ? `${url.pathname}${url.search}${url.hash}` : null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -195,11 +207,12 @@ export async function resetPassword(_prev: ResetPasswordState, formData: FormDat
 
   const invalidTokenError = { error: m.resetLinkInvalid };
   try {
-    const accountId = await getValidPasswordResetAccountId(token);
+    // Spent before the password is written, so a second submission of the same link can
+    // never also get through. If the write below then fails, the buyer requests a new link.
+    const accountId = await consumePasswordResetToken(token);
     if (!accountId) return invalidTokenError;
 
     await updateAccountPasswordData(accountId, await hashPassword(password));
-    await markPasswordResetTokenUsed(token);
     // A reset is the "I may be compromised" path — drop every existing session so an
     // attacker holding one can't outlive the password that let them in.
     await destroyAllSessionsForAccount(accountId);
@@ -448,10 +461,31 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
   const orderLines: OrderLine[] = [];
   const fetchedStyles = await getStylesByIds([...byStyle.keys()]);
   const styleById = new Map(fetchedStyles.map((s) => [s.id, s]));
-  let totalPairs = 0;
+
+  // Every line must name a style that is still on sale, one of THAT style's colorways, and
+  // a box format the style is actually sold in — the same guards resolveProforma applies.
+  // The cart is an untrusted body (and can be a stale localStorage copy), and a line that
+  // fails any of these used to be ordered anyway: priced, sent to production because
+  // adjust_inventory found no such stock row, and left out of the pair count that the
+  // order minimum is checked against. A deleted or archived style used to be dropped
+  // silently, which shipped the buyer a smaller order than they submitted.
   for (const [styleId, qtyMap] of byStyle.entries()) {
     const style = styleById.get(styleId);
-    if (!style) continue;
+    const onSale = style !== undefined && (style.status ?? "active") === "active";
+    const allowedBoxes = style ? new Set(getAvailableBoxTypes(style).map((b) => b.id)) : new Set<BoxTypeId>();
+    const valid =
+      onSale &&
+      Object.entries(qtyMap).every(
+        ([colorwayId, boxes]) =>
+          style.colorways.some((c) => c.id === colorwayId) &&
+          Object.keys(boxes).every((boxTypeId) => allowedBoxes.has(boxTypeId as BoxTypeId)),
+      );
+    if (!valid) return { error: t(m.cartLineUnavailable, { name: style?.name ?? styleId }) };
+  }
+
+  let totalPairs = 0;
+  for (const [styleId, qtyMap] of byStyle.entries()) {
+    const style = styleById.get(styleId)!;
     const validation = validateMatrix(style, qtyMap, terms, account.priceMultiplier);
     totalPairs += validation.totalPairs;
     const unitPrice = getUnitPrice(style, terms, account.priceMultiplier);
@@ -791,13 +825,19 @@ export async function updateShipToAddress(_prev: FormState, formData: FormData):
   return { success: m.addressUpdated };
 }
 
-export async function deleteShipToAddress(formData: FormData): Promise<void> {
+export async function deleteShipToAddress(_prev: FormState, formData: FormData): Promise<FormState> {
   const account = await getCurrentAccount();
   if (!account) redirect("/login");
 
   const shipToId = String(formData.get("shipToId") ?? "");
-  if (shipToId) await deleteShipToAddressRow(account.id, shipToId);
+  if (!shipToId) return {};
+  const { inUse } = await deleteShipToAddressRow(account.id, shipToId);
+  if (inUse) {
+    const m = (await getDictionary(await getLocaleForAccount(account.locale))).actions;
+    return { error: m.addressInUse };
+  }
   revalidatePath("/dashboard/account");
+  return {};
 }
 
 export async function setDefaultShipToAddress(formData: FormData): Promise<void> {

@@ -60,7 +60,11 @@ export default async function CatalogPage({
     getSeasonSettings(),
     getCurrentAccount(),
     sort === "best_selling"
-      ? supabaseAdmin.from("order_lines").select("style_id, box_type_id, qty")
+      ? supabaseAdmin
+          .from("order_lines")
+          // Cancelled orders never sold anything; keep them out of "best selling".
+          .select("style_id, box_type_id, qty, orders!inner(status)")
+          .neq("orders.status", "cancelled")
       : Promise.resolve({ data: null }),
   ]);
   const seasonOptions = toSeasonOptions(seasonSettings);

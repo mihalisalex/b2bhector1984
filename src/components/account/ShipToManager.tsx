@@ -59,6 +59,7 @@ function AddressCard({
   onEdit: () => void;
 }) {
   const d = useI18n().dict.dashboard;
+  const [deleteState, deleteAction] = useActionState(deleteShipToAddress, initialState);
   return (
     <div className="flex flex-wrap items-start justify-between gap-3 border border-stone-300 bg-white p-4">
       <div>
@@ -90,7 +91,7 @@ function AddressCard({
           </form>
         )}
         {canDelete && (
-          <form action={deleteShipToAddress}>
+          <form action={deleteAction}>
             <input type="hidden" name="shipToId" value={address.id} />
             <TextAction type="submit" tone="danger">
               {d.delete}
@@ -98,6 +99,11 @@ function AddressCard({
           </form>
         )}
       </div>
+      {deleteState.error && (
+        <p role="alert" className="w-full border border-ember/40 bg-ember-100 px-3 py-2 text-sm text-ember">
+          {deleteState.error}
+        </p>
+      )}
     </div>
   );
 }

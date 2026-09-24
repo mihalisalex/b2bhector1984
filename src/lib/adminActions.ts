@@ -1,8 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-import { getCurrentAccount } from "@/lib/session";
+import { requirePermission } from "@/lib/adminGuard";
 import { getApplicationById, updateApplicationStatus, approveApplicationWithAssignment } from "@/lib/data/applications";
 import { updateAvailableBoxTypes } from "@/lib/data/styles";
 import {
@@ -41,12 +40,6 @@ import { resolveLocale } from "@/lib/localeHeuristic";
 import { SITE_URL } from "@/lib/siteUrl";
 import type { FormState } from "@/lib/actions";
 import type { BoxTypeId, CreditTerms, OrderStatus, Season } from "@/lib/types";
-
-async function requireAdmin() {
-  const account = await getCurrentAccount();
-  if (!account || account.role !== "admin") redirect("/login");
-  return account;
-}
 
 /** Best-effort — `sendEmail` never throws, so this can't fail the status update that triggered it. */
 async function notifyOrderStatusChange(orderId: string, status: OrderStatus) {
@@ -104,14 +97,14 @@ async function notifyApplicationDecision(applicationId: string, decision: "appro
   }
 }
 
-const ORDER_STATUSES: OrderStatus[] = ["submitted", "confirmed", "in_production", "shipped", "delivered"];
+const ORDER_STATUSES: OrderStatus[] = ["submitted", "confirmed", "in_production", "shipped", "delivered", "cancelled"];
 
 /** Bound to `.bind(null, orderId)` for use as a <form action>. */
 export async function updateOrderStatus(orderId: string, _prev: FormState, formData: FormData): Promise<FormState> {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("orders.manage");
   const status = String(formData.get("status") ?? "");
   if (!ORDER_STATUSES.includes(status as OrderStatus)) return { error: "Invalid status." };
-  const result = await updateOrderStatusInDb(orderId, status as OrderStatus);
+  const result = await updateOrderStatusInDb(orderId, status as OrderStatus, admin.id);
   if (result.error) return { error: result.error };
   await logAudit(admin.id, "order.status_changed", "order", orderId, status);
   await notifyOrderStatusChange(orderId, status as OrderStatus);
@@ -130,7 +123,7 @@ export async function updateOrderDetailsAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("orders.manage");
 
   const terms = String(formData.get("terms") ?? "");
   const shipToId = String(formData.get("shipToId") ?? "");
@@ -163,7 +156,7 @@ export async function updateOrderDetailsAction(
 
 /** Bound to `.bind(null, orderId)` — a <form action> per line row's qty stepper. */
 export async function updateOrderLineQtyAction(orderId: string, formData: FormData) {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("orders.manage");
   const lineId = String(formData.get("lineId") ?? "");
   const qty = Number(formData.get("qty") ?? 0);
   if (!lineId || !Number.isFinite(qty) || qty < 1) return;
@@ -183,7 +176,7 @@ export async function updateOrderLineQtyAction(orderId: string, formData: FormDa
 
 /** Bound to `.bind(null, orderId, lineId)` — a <form action> per line row's remove button. */
 export async function deleteOrderLineAction(orderId: string, lineId: string) {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("orders.manage");
   const result = await deleteOrderLineInDb(lineId, admin.id);
   if (result.error) return; // last remaining line — refused, nothing to revalidate
   await logAudit(admin.id, "order.line_deleted", "order", orderId, `line ${lineId}`);
@@ -201,7 +194,7 @@ export async function deleteOrderLineAction(orderId: string, lineId: string) {
  * approving without touching either field behaves exactly like the old plain Approve button.
  */
 export async function approveApplication(applicationId: string, _prev: FormState, formData: FormData): Promise<FormState> {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("accounts.manage");
   const repId = String(formData.get("repId") ?? "").trim() || null;
   const rawMultiplier = String(formData.get("priceMultiplier") ?? "").trim();
   const priceMultiplier = rawMultiplier ? Number(rawMultiplier) : 1;
@@ -236,7 +229,7 @@ export async function approveApplication(applicationId: string, _prev: FormState
 // still requires the previous-state parameter to be in the signature, so it can't be dropped.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- positional, required by the useActionState contract
 export async function resendActivationEmail(applicationId: string, _prev: FormState): Promise<FormState> {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("accounts.manage");
   const application = await getApplicationById(applicationId);
   // Each of these three outcomes used to be a bare `return`, which rendered as
   // absolutely nothing: the button was indistinguishable from a dead control
@@ -257,7 +250,7 @@ export async function resendActivationEmail(applicationId: string, _prev: FormSt
 }
 
 export async function declineApplication(applicationId: string) {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("accounts.manage");
   const { changed } = await updateApplicationStatus(applicationId, "declined");
   if (changed) {
     await logAudit(admin.id, "application.declined", "application", applicationId);
@@ -268,11 +261,11 @@ export async function declineApplication(applicationId: string) {
 
 /** Bulk status update — loops the same per-order guard (e.g. shipped requires tracking). */
 export async function bulkUpdateOrderStatus(orderIds: string[], status: OrderStatus): Promise<FormState> {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("orders.manage");
   if (!ORDER_STATUSES.includes(status)) return { error: "Invalid status." };
   const failures: string[] = [];
   for (const orderId of orderIds) {
-    const result = await updateOrderStatusInDb(orderId, status);
+    const result = await updateOrderStatusInDb(orderId, status, admin.id);
     if (result.error) {
       failures.push(`${orderId}: ${result.error}`);
     } else {
@@ -287,7 +280,7 @@ export async function bulkUpdateOrderStatus(orderIds: string[], status: OrderSta
 
 /** Bulk approve — loops the same single-application approval path. */
 export async function bulkApproveApplications(applicationIds: string[]): Promise<FormState> {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("accounts.manage");
   for (const applicationId of applicationIds) {
     const { changed } = await updateApplicationStatus(applicationId, "approved");
     if (!changed) continue;
@@ -307,7 +300,7 @@ export type UploadTarget = { bucket: string; path: string; token: string } | { e
 const ALL_BOX_TYPES: BoxTypeId[] = ["box8", "box10", "box12"];
 
 export async function updateAvailableBoxTypesAction(formData: FormData) {
-  await requireAdmin();
+  await requirePermission("products.edit");
   const styleId = String(formData.get("styleId") ?? "");
   if (!styleId) return;
   const selected = ALL_BOX_TYPES.filter((id) => formData.get(id) === "on");
@@ -324,7 +317,7 @@ export async function updateAvailableBoxTypesAction(formData: FormData) {
 
 /** Bound to `.bind(null, accountId)` — a <form action> per account row on /admin/accounts. */
 export async function updateAccountPriceMultiplierAction(accountId: string, _prev: FormState, formData: FormData): Promise<FormState> {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("accounts.manage");
   const priceMultiplier = Number(formData.get("priceMultiplier") ?? 1);
   if (!Number.isFinite(priceMultiplier) || priceMultiplier <= 0 || priceMultiplier > 5) return { error: "Price multiplier must be between 0.01 and 5." };
   await updateAccountPriceMultiplier(accountId, priceMultiplier);
@@ -340,7 +333,7 @@ export async function updateAccountPriceMultiplierAction(accountId: string, _pre
  * meant for an account that's already been trading a while, not a decision made on day one.
  */
 export async function updateAccountMinOrderPairsAction(accountId: string, _prev: FormState, formData: FormData): Promise<FormState> {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("accounts.manage");
   const raw = String(formData.get("minOrderPairs") ?? "").trim();
   if (!raw) {
     await updateAccountMinOrderPairs(accountId, null);
@@ -360,7 +353,7 @@ export async function updateAccountMinOrderPairsAction(accountId: string, _prev:
 
 /** Backfills/corrects the WhatsApp number for accounts that predate this feature or never went through the application flow. */
 export async function updateAccountPhoneAction(accountId: string, _prev: FormState, formData: FormData): Promise<FormState> {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("accounts.manage");
   const phone = String(formData.get("phone") ?? "").trim();
   if (phone && phone.replace(/\D/g, "").length < 7) return { error: "Enter a valid phone number, including country code." };
   await updateAccountPhoneAdmin(accountId, phone);
@@ -373,7 +366,7 @@ const ACCOUNT_TERMS: CreditTerms[] = ["prepay", "net30", "net60"];
 
 /** Bound to `.bind(null, accountId)` — a <form action> per account row's terms select. */
 export async function updateAccountCreditTermsAction(accountId: string, _prev: FormState, formData: FormData): Promise<FormState> {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("accounts.manage");
   const terms = String(formData.get("creditTerms") ?? "");
   if (!ACCOUNT_TERMS.includes(terms as CreditTerms)) return { error: "Invalid credit terms." };
   await updateAccountCreditTerms(accountId, terms as CreditTerms);
@@ -384,7 +377,7 @@ export async function updateAccountCreditTermsAction(accountId: string, _prev: F
 
 /** Bound to `.bind(null, accountId)` — a <form action> per account row's credit-limit input. */
 export async function updateAccountCreditLimitAction(accountId: string, _prev: FormState, formData: FormData): Promise<FormState> {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("accounts.manage");
   const creditLimit = Number(formData.get("creditLimit") ?? 0);
   if (!Number.isFinite(creditLimit) || creditLimit < 0 || creditLimit > 10_000_000) return { error: "Credit limit must be between €0 and €10,000,000." };
   await updateAccountCreditLimit(accountId, creditLimit);
@@ -395,7 +388,7 @@ export async function updateAccountCreditLimitAction(accountId: string, _prev: F
 
 /** Bound to `.bind(null, accountId)` — a <form action> per account row's rep select. */
 export async function updateAccountRepAction(accountId: string, _prev: FormState, formData: FormData): Promise<FormState> {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("accounts.manage");
   const repId = String(formData.get("repId") ?? "").trim();
   await updateAccountRep(accountId, repId || null);
   await logAudit(admin.id, "account.rep_updated", "account", accountId, repId || "unassigned");
@@ -405,7 +398,7 @@ export async function updateAccountRepAction(accountId: string, _prev: FormState
 
 /** Bound to `.bind(null, repId)` — a <form action> per sales-rep row on /admin/sales-reps. */
 export async function updateSalesRepAction(repId: string, _prev: FormState, formData: FormData): Promise<FormState> {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("accounts.manage");
   const name = String(formData.get("name") ?? "").trim();
   const title = String(formData.get("title") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
@@ -421,7 +414,7 @@ export async function updateSalesRepAction(repId: string, _prev: FormState, form
 }
 
 export async function createSalesRepAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("accounts.manage");
   const name = String(formData.get("name") ?? "").trim();
   const title = String(formData.get("title") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
@@ -438,7 +431,7 @@ export async function createSalesRepAction(_prev: FormState, formData: FormData)
 /** Bound to `.bind(null, repId)` — uses useActionState so a "rep still assigned" error can surface inline. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- signature required by useActionState, neither param is needed
 export async function deleteSalesRepAction(repId: string, _prev: FormState, _formData: FormData): Promise<FormState> {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("accounts.manage");
   const result = await deleteSalesRep(repId);
   if (result.error) return { error: result.error };
   await logAudit(admin.id, "sales_rep.deleted", "sales_rep", repId);
@@ -447,7 +440,7 @@ export async function deleteSalesRepAction(repId: string, _prev: FormState, _for
 }
 
 export async function updateHomepageHeroAction(formData: FormData) {
-  await requireAdmin();
+  await requirePermission("content.manage");
   await updateHomepageHero({
     eyebrow: String(formData.get("eyebrow") ?? ""),
     heading: String(formData.get("heading") ?? "").replace(/\r\n/g, "\n"),
@@ -478,7 +471,7 @@ export async function updateHomepageHeroAction(formData: FormData) {
 }
 
 export async function updateSeasonSettingsAction(formData: FormData) {
-  await requireAdmin();
+  await requirePermission("content.manage");
   await updateSeasonSettings({
     summer: {
       enabled: formData.get("summerEnabled") === "on",
@@ -498,7 +491,7 @@ export async function updateSeasonSettingsAction(formData: FormData) {
 }
 
 export async function createSeasonTeaserUploadUrlAction(season: Season, fileName: string): Promise<UploadTarget> {
-  await requireAdmin();
+  await requirePermission("content.manage");
   try {
     return await createSeasonTeaserUploadTarget(season, fileName);
   } catch (err) {
@@ -507,7 +500,7 @@ export async function createSeasonTeaserUploadUrlAction(season: Season, fileName
 }
 
 export async function finalizeSeasonTeaserUploadAction(season: Season, path: string): Promise<UploadState> {
-  await requireAdmin();
+  await requirePermission("content.manage");
   try {
     await finalizeSeasonTeaserUpload(season, path);
   } catch (err) {
@@ -520,7 +513,7 @@ export async function finalizeSeasonTeaserUploadAction(season: Season, path: str
 }
 
 export async function createHeroImageUploadUrlAction(fileName: string): Promise<UploadTarget> {
-  await requireAdmin();
+  await requirePermission("content.manage");
   try {
     return await createHeroImageUploadTarget(fileName);
   } catch (err) {
@@ -529,7 +522,7 @@ export async function createHeroImageUploadUrlAction(fileName: string): Promise<
 }
 
 export async function finalizeHeroImageUploadAction(path: string): Promise<UploadState> {
-  await requireAdmin();
+  await requirePermission("content.manage");
   try {
     await finalizeHeroImageUpload(path);
   } catch (err) {

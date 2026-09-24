@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import type { AdminRole, ProductPermissionKey } from "@/lib/types";
 
@@ -31,6 +32,9 @@ export const PRODUCT_PERMISSION_KEYS: ProductPermissionKey[] = [
   "products.bulk",
   "products.import_export",
   "products.permissions",
+  "orders.manage",
+  "accounts.manage",
+  "content.manage",
 ];
 
 export const PRODUCT_PERMISSION_LABEL: Record<ProductPermissionKey, string> = {
@@ -44,11 +48,17 @@ export const PRODUCT_PERMISSION_LABEL: Record<ProductPermissionKey, string> = {
   "products.bulk": "Bulk actions",
   "products.import_export": "Import / export",
   "products.permissions": "Manage role permissions",
+  "orders.manage": "Manage orders & proformas",
+  "accounts.manage": "Manage buyer accounts, applications & reps",
+  "content.manage": "Edit homepage, seasons & journal",
 };
 
 /** role -> permission_key -> allowed. Fails open to "super_admin can do everything,
- * nobody else can do anything" if migration 0015 hasn't run yet. */
-export async function getPermissionMatrix(): Promise<Record<string, Partial<Record<ProductPermissionKey, boolean>>>> {
+ * nobody else can do anything" if migration 0015 hasn't run yet.
+ *
+ * Memoised per request: `hasPermission` reads the whole table, and the product editor
+ * alone asks about every permission key in one render. */
+export const getPermissionMatrix = cache(async (): Promise<Record<string, Partial<Record<ProductPermissionKey, boolean>>>> => {
   const { data, error } = await supabaseAdmin.from("role_permissions").select("*");
   if (error) {
     console.warn(`role_permissions query failed (has migration 0015 been run?): ${error.message}`);
@@ -62,7 +72,7 @@ export async function getPermissionMatrix(): Promise<Record<string, Partial<Reco
     matrix[row.role][row.permission_key as ProductPermissionKey] = row.allowed;
   }
   return matrix;
-}
+});
 
 export async function setPermission(role: AdminRole, permissionKey: ProductPermissionKey, allowed: boolean): Promise<void> {
   const { error } = await supabaseAdmin

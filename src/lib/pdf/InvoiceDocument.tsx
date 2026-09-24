@@ -242,6 +242,7 @@ export function InvoiceDocument({
     in_production: dict.statusInProduction,
     shipped: dict.statusShipped,
     delivered: dict.statusDelivered,
+    cancelled: dict.statusCancelled,
   };
   return (
     <Document title={`${order.id} — Hector Footwear`}>

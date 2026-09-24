@@ -14,6 +14,10 @@ export default async function AdminPermissionsPage() {
     getCurrentAccount(),
   ]);
   const roleOptions = ADMIN_ROLES.map((role) => ({ value: role, label: ADMIN_ROLE_LABEL[role] }));
+  // Mirrors setAdminRoleAction: only a Super Admin can grant or remove Super Admin. Other
+  // staff don't get it as a choice (a Super Admin's own row keeps it, but is disabled).
+  const meIsSuperAdmin = !me?.adminRole || me.adminRole === "super_admin";
+  const grantableRoleOptions = meIsSuperAdmin ? roleOptions : roleOptions.filter((r) => r.value !== "super_admin");
 
   return (
     <div>
@@ -21,8 +25,8 @@ export default async function AdminPermissionsPage() {
         Permissions
       </h1>
       <p className="mt-2 max-w-2xl text-sm text-ink-soft">
-        Role-based access control for the Products module. Super Admin always has every permission (can&rsquo;t be
-        revoked, so nobody can lock themselves out).
+        Role-based access control for the admin: products, orders, buyer accounts and site content. Super Admin always
+        has every permission (can&rsquo;t be revoked, so nobody can lock themselves out).
       </p>
 
       {/* This list is the half that was missing. The matrix below has always been editable,
@@ -42,7 +46,9 @@ export default async function AdminPermissionsPage() {
               ? "You can't change your own role — you'd lose access to this screen."
               : isLastSuperAdmin
                 ? "The last Super Admin can't be demoted — nobody would be left who could grant the role back."
-                : undefined;
+                : !meIsSuperAdmin && (account.adminRole ?? "super_admin") === "super_admin"
+                  ? "Only a Super Admin can change a Super Admin's role."
+                  : undefined;
 
             return (
               <div
@@ -61,7 +67,7 @@ export default async function AdminPermissionsPage() {
                   <AdminRoleSelect
                     accountId={account.id}
                     currentRole={account.adminRole ?? "super_admin"}
-                    roles={roleOptions}
+                    roles={(account.adminRole ?? "super_admin") === "super_admin" ? roleOptions : grantableRoleOptions}
                     disabledReason={disabledReason}
                   />
                 </div>

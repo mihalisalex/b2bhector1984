@@ -57,7 +57,7 @@ export async function getStyleAnalytics(style: Style, onHandNow: number): Promis
   const views = viewCount ?? 0;
   const businessNameByAccount = new Map(accounts.map((a) => [a.id, a.businessName]));
 
-  const relevantLines = orders.flatMap((order) =>
+  const relevantLines = orders.filter((order) => order.status !== "cancelled").flatMap((order) =>
     order.lines
       .filter((line) => line.styleId === style.id)
       .map((line) => ({ order, line, pairs: line.qty * getBoxType(line.boxTypeId).totalPairs })),

@@ -24,6 +24,7 @@ export function StatusTimeline({
       in_production: dict.statusInProduction,
       shipped: dict.statusShipped,
       delivered: dict.statusDelivered,
+    cancelled: dict.statusCancelled,
     })[status] ?? status;
 
   return (

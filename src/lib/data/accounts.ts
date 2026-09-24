@@ -406,7 +406,13 @@ export async function updateShipToAddress(
   if (error) throw new Error(`ship_to_addresses: ${error.message}`);
 }
 
-export async function deleteShipToAddress(accountId: string, localId: string): Promise<void> {
+/**
+ * Returns `{ inUse: true }` instead of deleting when an order still points at the address.
+ * `orders.ship_to_id` references this table with no ON DELETE rule, so Postgres refuses the
+ * delete (23503) — and it should: the address is part of what that order and its invoice
+ * say. That refusal used to surface as an uncaught throw and an error page.
+ */
+export async function deleteShipToAddress(accountId: string, localId: string): Promise<{ inUse?: true }> {
   const { data: rows, error: fetchError } = await supabaseAdmin
     .from("ship_to_addresses")
     .select("id, is_default")
@@ -415,12 +421,13 @@ export async function deleteShipToAddress(accountId: string, localId: string): P
 
   const dbId = toDbId(accountId, localId);
   const remaining = (rows ?? []).filter((r) => r.id !== dbId);
-  if (remaining.length === (rows ?? []).length) return; // already gone
-  if (remaining.length === 0) return; // never delete the last ship-to address
+  if (remaining.length === (rows ?? []).length) return {}; // already gone
+  if (remaining.length === 0) return {}; // never delete the last ship-to address
 
   const wasDefault = (rows ?? []).find((r) => r.id === dbId)?.is_default;
 
   const { error } = await supabaseAdmin.from("ship_to_addresses").delete().eq("id", dbId).eq("account_id", accountId);
+  if (error?.code === "23503") return { inUse: true };
   if (error) throw new Error(`ship_to_addresses: ${error.message}`);
 
   if (wasDefault) {
@@ -430,6 +437,7 @@ export async function deleteShipToAddress(accountId: string, localId: string): P
       .eq("id", remaining[0].id);
     if (promoteError) throw new Error(`ship_to_addresses: ${promoteError.message}`);
   }
+  return {};
 }
 
 export async function setDefaultShipToAddress(accountId: string, localId: string): Promise<void> {

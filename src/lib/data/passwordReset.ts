@@ -14,22 +14,37 @@ export async function createPasswordResetToken(accountId: string): Promise<strin
   return token;
 }
 
-export async function getValidPasswordResetAccountId(token: string): Promise<string | null> {
+/**
+ * Validates AND spends a reset token in one conditional UPDATE, returning the account it
+ * belongs to — or null if it was unknown, expired, or already used.
+ *
+ * This used to be a read ("is it valid?") followed later by a separate "mark used" write.
+ * Two submissions of the same link could both pass the read before either wrote, so both
+ * reset the password and whichever landed last won — someone holding an intercepted link
+ * could race the real owner. Filtering on `used_at is null` inside the UPDATE lets exactly
+ * one caller claim the token.
+ *
+ * On success every other outstanding reset link for the account is spent too: after a
+ * reset, an older link sitting in the inbox must not be able to reset it again.
+ */
+export async function consumePasswordResetToken(token: string): Promise<string | null> {
+  const now = new Date().toISOString();
   const { data, error } = await supabaseAdmin
     .from("password_reset_tokens")
-    .select("account_id, expires_at, used_at")
+    .update({ used_at: now })
     .eq("token", token)
-    .limit(1);
+    .is("used_at", null)
+    .gt("expires_at", now)
+    .select("account_id");
   if (error) throw new Error(`password_reset_tokens: ${error.message}`);
-  const row = data?.[0];
-  if (!row || row.used_at || new Date(row.expires_at) < new Date()) return null;
-  return row.account_id;
-}
+  const accountId = data?.[0]?.account_id as string | undefined;
+  if (!accountId) return null;
 
-export async function markPasswordResetTokenUsed(token: string): Promise<void> {
-  const { error } = await supabaseAdmin
+  const { error: revokeError } = await supabaseAdmin
     .from("password_reset_tokens")
-    .update({ used_at: new Date().toISOString() })
-    .eq("token", token);
-  if (error) throw new Error(`password_reset_tokens: ${error.message}`);
+    .update({ used_at: now })
+    .eq("account_id", accountId)
+    .is("used_at", null);
+  if (revokeError) throw new Error(`password_reset_tokens: ${revokeError.message}`);
+  return accountId;
 }

@@ -50,6 +50,7 @@ function statusLabel(dict: EmailDict, status: string): string {
     in_production: dict.statusInProduction,
     shipped: dict.statusShipped,
     delivered: dict.statusDelivered,
+    cancelled: dict.statusCancelled,
   };
   return map[status] ?? status;
 }

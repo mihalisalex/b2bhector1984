@@ -10,6 +10,7 @@ const STATUS_OPTIONS: { value: OrderStatus | ""; label: string }[] = [
   { value: "in_production", label: "In Production" },
   { value: "shipped", label: "Shipped" },
   { value: "delivered", label: "Delivered" },
+  { value: "cancelled", label: "Cancelled" },
 ];
 
 export function AdminOrderFilters() {

@@ -1,11 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { requirePermission } from "@/lib/adminGuard";
 import { redirect } from "next/navigation";
 import { invalidateCatalog } from "@/lib/cacheInvalidation";
-import { getCurrentAccount } from "@/lib/session";
 import { logAudit } from "@/lib/data/auditLog";
-import { hasPermission } from "@/lib/data/permissions";
 import { sanitizeProductDescription } from "@/lib/sanitizeHtml";
 import { formatEUR } from "@/lib/pricing";
 import {
@@ -61,19 +60,6 @@ import { getAccountById, updateAdminRole, countSuperAdmins } from "@/lib/data/ac
 import { importProductRows, validateImportRows, type ImportRow, type ImportRowPreview, type ImportRowResult } from "@/lib/data/productImport";
 import type { FormState } from "@/lib/actions";
 import type { AdminRole, BoxTypeId, DocumentKind, ProductPermissionKey, ProductStatus, RelationType } from "@/lib/types";
-
-async function requireAdmin() {
-  const account = await getCurrentAccount();
-  if (!account || account.role !== "admin") redirect("/login");
-  return account;
-}
-
-async function requirePermission(key: ProductPermissionKey) {
-  const admin = await requireAdmin();
-  const allowed = await hasPermission(admin.adminRole, key);
-  if (!allowed) throw new Error(`Your role (${admin.adminRole ?? "admin"}) doesn't have the "${key}" permission.`);
-  return admin;
-}
 
 /**
  * The single choke point for "a product changed" — called by all 26 mutations in this file,
@@ -1056,6 +1042,14 @@ export async function setAdminRoleAction(accountId: string, formData: FormData) 
 
   const target = await getAccountById(accountId);
   if (!target || target.role !== "admin") return;
+
+  // Only a super_admin may hand out or take away super_admin. `products.permissions` can be
+  // granted to other roles, and without this an `admin` holding it could promote a second
+  // account they control to the one role whose permissions can't be revoked in the matrix.
+  // A missing adminRole counts as super_admin, matching `hasPermission`.
+  const actorIsSuperAdmin = !admin.adminRole || admin.adminRole === "super_admin";
+  const touchesSuperAdmin = role === "super_admin" || (target.adminRole ?? "super_admin") === "super_admin";
+  if (touchesSuperAdmin && !actorIsSuperAdmin) return;
 
   if (target.adminRole === "super_admin" && role !== "super_admin" && (await countSuperAdmins()) <= 1) return;
 

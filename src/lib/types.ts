@@ -151,7 +151,13 @@ export type ProductPermissionKey =
   | "products.seo"
   | "products.bulk"
   | "products.import_export"
-  | "products.permissions";
+  | "products.permissions"
+  // Not product permissions, despite the type's name — the matrix grew to cover the rest of
+  // the admin (adminActions.ts, journalActions.ts, the proforma builder) rather than leaving
+  // those gated on "is an admin" alone. Migration 0041 seeds them.
+  | "orders.manage"
+  | "accounts.manage"
+  | "content.manage";
 
 /**
  * Footwear is sold wholesale only in fixed pre-pack box configurations, never
@@ -398,7 +404,8 @@ export type OrderStatus =
   | "confirmed"
   | "in_production"
   | "shipped"
-  | "delivered";
+  | "delivered"
+  | "cancelled";
 
 export interface Order {
   id: string;

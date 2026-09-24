@@ -222,25 +222,92 @@ export async function listAllOrders(): Promise<AdminOrder[]> {
   }));
 }
 
-/** Shipping requires tracking info to already be saved (see OrderDetailsForm) — a real carrier/tracking number, not a status flip with no way to actually track the box. */
-export async function updateOrderStatus(orderId: string, status: Order["status"]): Promise<{ error?: string }> {
-  if (status === "shipped") {
-    const { data, error: fetchError } = await supabaseAdmin
-      .from("orders")
-      .select("tracking_number, carrier")
-      .eq("id", orderId)
-      .limit(1);
-    if (fetchError) throw new Error(`orders: ${fetchError.message}`);
-    const row = data?.[0];
-    if (!row?.tracking_number || !row?.carrier) {
-      return { error: "Add a tracking number and carrier in Order Details before marking this shipped." };
+/** Statuses an order can still be cancelled from — nothing has left the warehouse yet. */
+const CANCELLABLE_FROM: Order["status"][] = ["submitted", "confirmed", "in_production"];
+
+/**
+ * Shipping requires tracking info to already be saved (see OrderDetailsForm) — a real
+ * carrier/tracking number, not a status flip with no way to actually track the box.
+ *
+ * Cancelling puts the order's stock back. Checkout takes `on_hand` at placement, and with
+ * no cancelled state a proforma request that never went ahead held those boxes forever:
+ * line edits could shrink it but never below one line. `cancelled` is terminal — reopening
+ * would mean taking the stock again, which may no longer be there — and it is refused once
+ * an order has shipped, because that stock really has left the building.
+ */
+export async function updateOrderStatus(
+  orderId: string,
+  status: Order["status"],
+  actorAccountId: string | null = null,
+): Promise<{ error?: string }> {
+  const { data, error: fetchError } = await supabaseAdmin
+    .from("orders")
+    .select("status, tracking_number, carrier")
+    .eq("id", orderId)
+    .limit(1);
+  if (fetchError) throw new Error(`orders: ${fetchError.message}`);
+  const row = data?.[0];
+  if (!row) return { error: "That order no longer exists." };
+  if (row.status === status) return {};
+
+  if (row.status === "cancelled") {
+    return { error: "This order was cancelled and its stock returned. Place a new order instead of reopening it." };
+  }
+  if (status === "shipped" && (!row.tracking_number || !row.carrier)) {
+    return { error: "Add a tracking number and carrier in Order Details before marking this shipped." };
+  }
+
+  if (status === "cancelled") {
+    if (!CANCELLABLE_FROM.includes(row.status)) {
+      return { error: "Orders that have shipped can't be cancelled — their stock has already left the warehouse." };
     }
+    // Conditional on the status just read, so two simultaneous cancels can't both return
+    // the same stock: only the update that actually flips the row goes on to restore it.
+    const { data: flipped, error } = await supabaseAdmin
+      .from("orders")
+      .update({ status })
+      .eq("id", orderId)
+      .eq("status", row.status)
+      .select("id");
+    if (error) throw new Error(`orders: ${error.message}`);
+    if (!flipped?.length) return { error: "This order changed while you were editing it. Reload and try again." };
+
+    await supabaseAdmin.from("order_status_history").insert({ order_id: orderId, status });
+    await restoreOrderStock(orderId, actorAccountId);
+    return {};
   }
 
   const { error } = await supabaseAdmin.from("orders").update({ status }).eq("id", orderId);
   if (error) throw new Error(`orders: ${error.message}`);
   await supabaseAdmin.from("order_status_history").insert({ order_id: orderId, status });
   return {};
+}
+
+/** Puts every `"stock"` line of an order back on the shelf — `"production"` lines never took any. */
+async function restoreOrderStock(orderId: string, actorAccountId: string | null): Promise<void> {
+  const { data: lines, error } = await supabaseAdmin
+    .from("order_lines")
+    .select("style_id, colorway_id, box_type_id, qty, fulfillment")
+    .eq("order_id", orderId);
+  if (error) throw new Error(`order_lines: ${error.message}`);
+  for (const line of lines ?? []) {
+    if ((line.fulfillment ?? "stock") !== "stock") continue;
+    await applyOrderLineStockDelta({
+      styleId: line.style_id,
+      colorwayDbId: line.colorway_id,
+      boxTypeId: line.box_type_id as BoxTypeId,
+      delta: -line.qty, // negative puts stock back
+      reason: "order_cancelled",
+      actorAccountId,
+    });
+  }
+}
+
+/** Line edits move stock, so they must not touch an order whose stock was already returned. */
+async function isOrderCancelled(orderId: string): Promise<boolean> {
+  const { data, error } = await supabaseAdmin.from("orders").select("status").eq("id", orderId).limit(1);
+  if (error) throw new Error(`orders: ${error.message}`);
+  return data?.[0]?.status === "cancelled";
 }
 
 export async function getOrderStatusHistory(orderId: string): Promise<OrderStatusEvent[]> {
@@ -355,6 +422,7 @@ async function getLineForStockAdjust(lineId: string) {
 export async function updateOrderLineQty(lineId: string, qty: number, actorAccountId: string | null = null): Promise<{ error?: string }> {
   const line = await getLineForStockAdjust(lineId);
   if (!line) return { error: "That line no longer exists." };
+  if (await isOrderCancelled(line.order_id)) return { error: "This order is cancelled; its lines can't be changed." };
 
   const fulfillment = line.fulfillment ?? "stock";
   if (fulfillment === "stock" && qty !== line.qty) {
@@ -388,6 +456,7 @@ export async function deleteOrderLine(lineId: string, actorAccountId: string | n
   const line = await getLineForStockAdjust(lineId);
   if (!line) return {};
   const orderId = line.order_id;
+  if (await isOrderCancelled(orderId)) return { error: "This order is cancelled; its lines can't be changed." };
 
   const { count, error: countError } = await supabaseAdmin
     .from("order_lines")
