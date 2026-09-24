@@ -50,6 +50,7 @@ const en = {
     heading: "Wholesale, decoded.",
     intro:
       "Sourcing guides, market trends, and procurement insight for buyers and suppliers in the footwear trade — written by the same team that runs the marketplace.",
+    alsoAvailableIn: "Also available in:",
     featured: "Featured",
     noResults: "No articles match that search yet.",
     ctaHeading: "Ready to see the collection?",

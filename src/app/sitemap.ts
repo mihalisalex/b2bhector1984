@@ -4,8 +4,8 @@ import { getAllEntityMeta } from "@/lib/data/seoEntityMeta";
 import { getStorefrontStyles } from "@/lib/data/styles";
 import { listImagesForStyles } from "@/lib/data/styleImages";
 import { getStyleImageUrl } from "@/lib/data/styleLabels";
-import { getPublishedJournalPosts } from "@/lib/data/journalPosts";
-import { absoluteUrl } from "@/lib/seo";
+import { getJournalTranslations, getPublishedJournalPosts } from "@/lib/data/journalPosts";
+import { absoluteUrl, articleAlternates } from "@/lib/seo";
 import { PUBLIC_PAGES } from "@/lib/seoRoutes";
 import { CATEGORY_PAGES } from "@/lib/categoryPages";
 import { LOCALES, type Locale } from "@/i18n/config";
@@ -154,6 +154,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   );
   for (const post of posts) {
     if (post.robots.includes("noindex")) continue;
+    const languages = post.canonicalUrl?.trim() ? undefined : articleAlternates(post, await getJournalTranslations(post));
     entries.push({
       // Journal posts are single rows per language, not translations, so each belongs to
       // exactly one domain — `post.locale` (migration 0037), not the host default.
@@ -161,6 +162,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(post.updatedAt),
       changeFrequency: "monthly",
       priority: post.featured ? 0.7 : 0.5,
+      // Translations share a translation_group and are listed as each other's alternates —
+      // the same set the article's own <head> declares (see articleAlternates).
+      ...(languages ? { alternates: { languages } } : {}),
       ...(post.featuredImageUrl ? { images: [absoluteUrl(post.featuredImageUrl, hostDefault)] } : {}),
     });
   }

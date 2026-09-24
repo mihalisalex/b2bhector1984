@@ -5,9 +5,9 @@ import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { getCurrentAccount } from "@/lib/session";
-import { getJournalPostBySlug, getJournalPostBySlugAny, getRelatedJournalPosts } from "@/lib/data/journalPosts";
+import { getJournalPostBySlug, getJournalPostBySlugAny, getJournalTranslations, getRelatedJournalPosts } from "@/lib/data/journalPosts";
 import { getSeoSettings } from "@/lib/data/seoSettings";
-import { articleMetadata } from "@/lib/seo";
+import { articleMetadata, articleUrl } from "@/lib/seo";
 import { buildArticleSchema, buildBreadcrumbSchema } from "@/lib/seoJsonLd";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
@@ -15,7 +15,7 @@ import { ArticleCard } from "@/components/journal/ArticleCard";
 import { LinkButton } from "@/components/ui/Button";
 import { withLocale } from "@/i18n/paths";
 import { urlForLocale } from "@/i18n/domains";
-import type { Locale } from "@/i18n/config";
+import { LOCALE_NAME, type Locale } from "@/i18n/config";
 import type { Metadata } from "next";
 
 /**
@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { post } = await resolvePost(slug);
   if (!post) return {};
   redirectToOwnLocale(post, lang);
-  return articleMetadata(post);
+  return articleMetadata(post, await getJournalTranslations(post));
 }
 
 function readTimeMinutes(html: string): number {
@@ -67,7 +67,12 @@ export default async function JournalArticlePage({
   if (!post) notFound();
   redirectToOwnLocale(post, lang);
 
-  const [settings, related, dict] = await Promise.all([getSeoSettings(), getRelatedJournalPosts(post, 3), getDictionary(locale)]);
+  const [settings, related, dict, translations] = await Promise.all([
+    getSeoSettings(),
+    getRelatedJournalPosts(post, 3),
+    getDictionary(locale),
+    getJournalTranslations(post),
+  ]);
 
   // `trail` feeds both the visible breadcrumbs and `buildBreadcrumbSchema`, so leaving these
   // unprefixed published BreadcrumbList JSON-LD pointing at English URLs from every
@@ -112,6 +117,21 @@ export default async function JournalArticlePage({
               )}{" "}
               · {t(dict.journal.minRead, { minutes: readTimeMinutes(post.contentHtml) })}
             </p>
+            {/* The header's language switcher maps a path onto the other domain, which cannot
+                work for articles — a translation has its own slug. This links the real one. */}
+            {translations.length > 0 && (
+              <p className="mt-2 text-xs text-ink-soft">
+                {dict.journal.alsoAvailableIn}{" "}
+                {translations.map((other, i) => (
+                  <span key={other.id}>
+                    {i > 0 && ", "}
+                    <a href={articleUrl(other)} hrefLang={other.locale} lang={other.locale} className="text-signal underline">
+                      {LOCALE_NAME[other.locale as Locale]}
+                    </a>
+                  </span>
+                ))}
+              </p>
+            )}
           </div>
         </header>
 

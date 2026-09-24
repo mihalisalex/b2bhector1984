@@ -489,9 +489,12 @@ export type JournalCategory = (typeof JOURNAL_CATEGORIES)[number];
 export interface JournalPost {
   id: string;
   slug: string;
-  /** Which site this post belongs to (migration 0037). Journal posts are single rows per
-   * language, not translations of one another. */
+  /** Which site this post belongs to (migration 0037). Each post is a single row in one
+   * language; translations are separate rows linked by `translationGroup`. */
   locale?: string;
+  /** Shared by an article and its translations (migration 0037). Drives the hreflang set and
+   * the "also available in" link. Unset for an article that exists in one language only. */
+  translationGroup?: string;
   title: string;
   excerpt: string;
   contentHtml: string;

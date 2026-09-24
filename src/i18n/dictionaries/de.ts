@@ -43,6 +43,7 @@ const de: Dictionary = {
     heading: "Großhandel, erklärt.",
     intro:
       "Beschaffungsleitfäden, Markttrends und Einkaufswissen für Einkäufer und Lieferanten der Schuhbranche — geschrieben vom selben Team, das die Plattform betreibt.",
+    alsoAvailableIn: "Auch verfügbar auf:",
     featured: "Empfohlen",
     noResults: "Keine Artikel für diese Suche gefunden.",
     ctaHeading: "Bereit für die Kollektion?",

@@ -3,13 +3,12 @@
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { useI18n } from "@/i18n/I18nProvider";
-import { type Locale } from "@/i18n/config";
+import { LOCALE_NAME, type Locale } from "@/i18n/config";
 import { stripLocale } from "@/i18n/paths";
 import { urlForLocale } from "@/i18n/domains";
 import { useDropdownPanel } from "@/components/layout/useDropdownPanel";
 
 const LOCALE_LABEL: Record<Locale, string> = { en: "EN", de: "DE", fr: "FR", el: "EL" };
-const LOCALE_NAME: Record<Locale, string> = { en: "English", de: "Deutsch", fr: "Français", el: "Ελληνικά" };
 
 /**
  * The two markets that have their own domain and their own content. The header offers only

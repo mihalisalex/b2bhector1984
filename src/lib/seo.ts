@@ -113,6 +113,10 @@ export interface BuildMetadataInput {
   /** The locales that really have their own version of this page, when that is fewer than
    * all of them — hreflang then lists only these. Defaults to every locale. */
   hreflangLocales?: readonly Locale[];
+  /** An explicit hreflang set (language -> absolute URL), for pages whose translations do
+   * not share a path — a journal article and its translation have different slugs. Used
+   * instead of the computed set; ignored when an admin canonical override is in play. */
+  alternateUrls?: Record<string, string>;
 }
 
 /**
@@ -200,13 +204,14 @@ function buildMetadata(input: BuildMetadataInput, settings: SeoSettings): Metada
   // Skipped when an admin canonical override is in play (same reasoning as above) or when
   // the page has no real per-locale variants — the journal, whose posts are single rows
   // per language rather than translations of each other.
-  const languages =
-    !input.canonicalPath && input.hasLocaleVariants !== false
+  const computedLanguages =
+    input.hasLocaleVariants !== false
       ? (Object.fromEntries([
           ...(input.hreflangLocales ?? LOCALES).map((loc) => [loc, urlForLocale(loc, input.path)]),
           ["x-default", urlForLocale("en", input.path)],
         ]) as Record<string, string>)
       : undefined;
+  const languages = input.canonicalPath ? undefined : (input.alternateUrls ?? computedLanguages);
 
   return {
     title: skipTemplate ? { absolute: input.title } : input.title,
@@ -418,7 +423,25 @@ export async function productMetadata(style: Style, imageUrl?: string, locale?: 
  * gated commerce surface, so unlike products this never runs through
  * `commerceRobots`.
  */
-export async function articleMetadata(post: JournalPost): Promise<Metadata> {
+/** Where an article lives: its admin canonical if set, otherwise its own locale's URL. */
+export function articleUrl(post: JournalPost): string {
+  return post.canonicalUrl?.trim() || urlForLocale((post.locale as Locale | undefined) ?? DEFAULT_LOCALE, `/journal/${post.slug}`);
+}
+
+/**
+ * hreflang for an article that has translations: every version by its own URL, with English
+ * as x-default when there is one. Undefined for a single-language article, which gets no
+ * alternates at all (see `hasLocaleVariants` below).
+ */
+export function articleAlternates(post: JournalPost, translations: JournalPost[]): Record<string, string> | undefined {
+  if (translations.length === 0) return undefined;
+  const versions = [post, ...translations];
+  const languages: Record<string, string> = Object.fromEntries(versions.map((p) => [p.locale ?? DEFAULT_LOCALE, articleUrl(p)]));
+  languages["x-default"] = articleUrl(versions.find((p) => p.locale === "en") ?? post);
+  return languages;
+}
+
+export async function articleMetadata(post: JournalPost, translations: JournalPost[] = []): Promise<Metadata> {
   // The article's own language decides everything here — not the route it was requested on
   // (the page redirects any other locale to this one). This used to take the route's locale
   // and then not pass it on, so every German and French article canonicalised to the
@@ -448,8 +471,9 @@ export async function articleMetadata(post: JournalPost): Promise<Metadata> {
       // `locale`, on the right domain and prefix.
       canonicalPath: post.canonicalUrl?.trim() || undefined,
       locale,
-      // Posts are single rows per language, not translations of each other.
+      // Posts are single rows per language; the only real alternates are its translations.
       hasLocaleVariants: false,
+      alternateUrls: articleAlternates(post, translations),
       robots: post.robots,
       ogImageUrl: image,
       ogType: "article",

@@ -20,6 +20,7 @@ interface JournalPostRow {
   featured: boolean;
   status: JournalStatus;
   locale?: string | null;
+  translation_group?: string | null;
   publish_at: string | null;
   published_at: string | null;
   created_at: string;
@@ -46,6 +47,7 @@ function mapPost(row: JournalPostRow): JournalPost {
     featured: row.featured,
     status: row.status,
     locale: row.locale ?? undefined,
+    translationGroup: row.translation_group ?? undefined,
     publishAt: row.publish_at ?? undefined,
     publishedAt: row.published_at ?? undefined,
     createdAt: row.created_at,
@@ -97,6 +99,19 @@ export async function getJournalPostBySlugAny(slug: string): Promise<JournalPost
 
 /** Same category first, tops up with the newest other published posts — mirrors
  * getRelatedStyles' same-category-then-fill-in shape. */
+/** The published, indexable translations of `post` — same translation group, other languages. */
+export async function getJournalTranslations(post: JournalPost): Promise<JournalPost[]> {
+  if (!post.translationGroup) return [];
+  return (await getPublishedJournalPosts()).filter(
+    (p) =>
+      p.translationGroup === post.translationGroup &&
+      p.id !== post.id &&
+      p.locale !== undefined &&
+      p.locale !== post.locale &&
+      !p.robots.includes("noindex"),
+  );
+}
+
 export async function getRelatedJournalPosts(post: JournalPost, limit = 3): Promise<JournalPost[]> {
   // Related articles must share the post's language — an English "related" card under a
   // Greek article is the same mixed-language problem the listing filter fixes.

@@ -43,6 +43,7 @@ const fr: Dictionary = {
     heading: "Le gros, décrypté.",
     intro:
       "Guides d’approvisionnement, tendances du marché et conseils d’achat pour les acheteurs et fournisseurs de la chaussure — rédigés par l’équipe qui gère la plateforme.",
+    alsoAvailableIn: "Également disponible en :",
     featured: "À la une",
     noResults: "Aucun article ne correspond à cette recherche.",
     ctaHeading: "Prêt à découvrir la collection ?",
