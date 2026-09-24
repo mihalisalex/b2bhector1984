@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { assertAllowedExtension, IMAGE_EXTENSIONS } from "@/lib/uploadValidation";
 import { fromDbId, toDbId } from "@/lib/data/dbIds";
@@ -59,6 +60,11 @@ export async function listImagesForStyle(styleId: string): Promise<StyleImage[]>
 }
 
 /** Batch variant for catalogue grids — one query instead of one per card. */
+/** `listImagesForStyle`, deduplicated per request — the product page and its metadata both
+ * need the gallery, and each call was its own round trip. Mutations keep using the uncached
+ * function so they always see the rows they just wrote. */
+export const getImagesForStyle = cache(listImagesForStyle);
+
 export async function listImagesForStyles(styleIds: string[]): Promise<Record<string, StyleImage[]>> {
   if (styleIds.length === 0) return {};
   const { data, error } = await supabaseAdmin

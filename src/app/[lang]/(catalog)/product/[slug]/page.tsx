@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { CATEGORY_LABEL, getRelatedStyles, getStyleBySlug, getStyleImageUrl } from "@/lib/data/styles";
 import { getInventoryForStyle, getInventoryForStyles, totalOnHandForStyle } from "@/lib/data/inventory";
-import { listImagesForStyle, listImagesForStyles } from "@/lib/data/styleImages";
+import { getImagesForStyle, listImagesForStyles } from "@/lib/data/styleImages";
 import { getCurrentAccount } from "@/lib/session";
 import { recordStyleView } from "@/lib/data/styleAnalytics";
 import { isFavorite } from "@/lib/data/favorites";
@@ -62,7 +62,7 @@ export async function generateMetadata({
   // value is clamped by the global indexing policy inside `productMetadata`, so
   // a per-product "index,follow" can never leak trade pricing while the
   // catalogue is private.
-  const images = await listImagesForStyle(style.id);
+  const images = await getImagesForStyle(style.id);
   const primary = images.find((image) => image.isPrimary) ?? images[0];
   return productMetadata(style, primary?.publicUrl, lang as Locale);
 }
@@ -76,18 +76,19 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
   // assumes colorways[0] exists), should 404 rather than crash the page for anyone who
   // hits the URL — including via a stale cart/search/bookmark link.
   if (!style || (style.status ?? "active") !== "active" || style.colorways.length === 0) notFound();
-  const [inventory, images, related, account, dict] = await Promise.all([
+  // Related styles come from the cached catalogue and the dictionary is a local import, so
+  // both resolve without a database trip. That lets every real query below go out in ONE
+  // parallel batch — this used to be two batches back to back, then a third for favourites.
+  const [related, dict] = await Promise.all([getRelatedStyles(style), getDictionary(locale)]);
+  const relatedIds = related.map((s) => s.id);
+  const [inventory, images, account, relatedInventory, relatedImages, guides, seoSettings] = await Promise.all([
     getInventoryForStyle(style.id),
-    listImagesForStyle(style.id),
-    getRelatedStyles(style),
+    getImagesForStyle(style.id),
     getCurrentAccount(),
-    getDictionary(locale),
-  ]);
-  const [relatedInventory, relatedImages, guides] = await Promise.all([
-    getInventoryForStyles(related.map((s) => s.id)),
-    listImagesForStyles(related.map((s) => s.id)),
-    // Needs `dict` for the localised category label, so it waits for the first batch.
+    getInventoryForStyles(relatedIds),
+    listImagesForStyles(relatedIds),
     getGuidesForStyle(style, locale, categoryLabel(dict, style.category)),
+    getSeoSettings(),
   ]);
   const priceMultiplier = account?.priceMultiplier ?? 1;
   const favorited = account ? await isFavorite(account.id, style.id) : false;
@@ -101,7 +102,6 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
   // Structured data. Both builders return null when the corresponding schema
   // type is switched off in the SEO settings, and JsonLd renders nothing for a
   // null — so an admin can disable either without touching this page.
-  const seoSettings = await getSeoSettings();
   const productSchema = buildProductSchema(style, seoSettings, {
     imageUrls: images.length > 0 ? images.map((image) => image.publicUrl) : [getStyleImageUrl(style)],
     // `inventory` here is this style's own colorway→box map (not the batched

@@ -311,7 +311,16 @@ export const getAllStyles = cache(
   }),
 );
 
+/**
+ * Served from the cross-request catalogue cache (`getAllStyles`) when the style is in it —
+ * every storefront product page asks for exactly one style, and a fresh read was 2–3
+ * Supabase round trips (styles, then colorways and images) before the page could start its
+ * own queries. Falls back to the database for anything the cached list leaves out: styles
+ * in a season that is currently switched off, or one created in the last minute.
+ */
 export const getStyleBySlug = cache(async (slug: string): Promise<Style | undefined> => {
+  const cached = (await getAllStyles()).find((style) => style.slug === slug);
+  if (cached) return cached;
   const { data, error } = await supabaseAdmin.from("styles").select("*").eq("slug", slug).limit(1);
   if (error) throw new Error(`styles: ${error.message}`);
   const [style] = await fetchStyles(data ?? []);

@@ -46,6 +46,11 @@ export function ImageUploadForm({
         .from(target.bucket)
         .uploadToSignedUrl(target.path, target.token, file, {
           contentType: file.type || "application/octet-stream",
+          // One year. Every upload path carries a fresh UUID (see the create*UploadTarget
+          // helpers), so a file at a given URL never changes — replacing a photo means a new
+          // URL. Supabase's default of one hour made its CDN re-run the resize for every
+          // product photo, every hour, at ~0.7s a time on the first view.
+          cacheControl: "31536000",
         });
       if (uploadError) {
         setError(uploadError.message);
