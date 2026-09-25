@@ -11,6 +11,8 @@ import { isGatedPath } from "@/lib/seoRoutes";
 // and domains.ts adds only pure string functions over it.
 import { LOCALES, type Locale } from "@/i18n/config";
 import { defaultLocaleForHost, localesForHost, originForLocale } from "@/i18n/domains";
+// Constants and pure functions only, no imports — same reasoning as the two above.
+import { isPublicCacheable } from "@/lib/audience";
 
 // Kept as a literal: session.ts pulls in `next/headers`, which is unusable here. Must stay
 // in sync with SESSION_COOKIE in session.ts.
@@ -126,9 +128,15 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
   // Always, for every non-admin request — including the prefixed de/fr ones, whose prefix
   // already matches the segment the router wants. Rewriting unconditionally means the
   // `[lang]` segment is populated the same way on every path through this function.
+  //
+  // A logged-out request (no session cookie — decided without the database, so this stays
+  // cheap) for a page that has a cached public version goes to `/{lang}/public/…`. Everything
+  // else — signed-in buyers, and pages without a public version — goes to the live tree as
+  // before. See src/app/[lang]/public/layout.tsx.
   if (!isAdmin) {
+    const base = !request.cookies.has(SESSION_COOKIE) && isPublicCacheable(logicalPath) ? `/${locale}/public` : `/${locale}`;
     const url = request.nextUrl.clone();
-    url.pathname = logicalPath === "/" ? `/${locale}` : `/${locale}${logicalPath}`;
+    url.pathname = logicalPath === "/" ? base : `${base}${logicalPath}`;
     return NextResponse.rewrite(url);
   }
 

@@ -4,7 +4,7 @@ import { getDictionary } from "@/i18n/getDictionary";
 import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { getCurrentAccount } from "@/lib/session";
+import { getAccountForAudience } from "@/lib/session";
 import { getJournalPostBySlug, getJournalPostBySlugAny, getJournalTranslations, getRelatedJournalPosts } from "@/lib/data/journalPosts";
 import { getSeoSettings } from "@/lib/data/seoSettings";
 import { articleMetadata, articleUrl } from "@/lib/seo";
@@ -31,11 +31,13 @@ function redirectToOwnLocale(post: { slug: string; locale?: string }, lang: stri
   }
 }
 
-async function resolvePost(slug: string) {
+async function resolvePost(slug: string, audience?: string) {
   const published = await getJournalPostBySlug(slug);
   if (published) return { post: published, isPreview: false };
 
-  const account = await getCurrentAccount();
+  // Draft previews are for signed-in admins, so only the live tree looks — the cached public
+  // tree never reads cookies (see src/app/[lang]/public/layout.tsx) and 404s an unpublished slug.
+  const account = await getAccountForAudience(audience);
   if (account?.role === "admin") {
     const any = await getJournalPostBySlugAny(slug);
     if (any) return { post: any, isPreview: true };
@@ -43,9 +45,13 @@ async function resolvePost(slug: string) {
   return { post: undefined, isPreview: false };
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string; lang: string }> }): Promise<Metadata> {
-  const { slug, lang } = await params;
-  const { post } = await resolvePost(slug);
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string; lang: string; audience?: string }>;
+}): Promise<Metadata> {
+  const { slug, lang, audience } = await params;
+  const { post } = await resolvePost(slug, audience);
   if (!post) return {};
   redirectToOwnLocale(post, lang);
   return articleMetadata(post, await getJournalTranslations(post));
@@ -59,11 +65,11 @@ function readTimeMinutes(html: string): number {
 export default async function JournalArticlePage({
   params,
 }: {
-  params: Promise<{ lang: string; slug: string }>;
+  params: Promise<{ lang: string; audience?: string; slug: string }>;
 }) {
-  const { lang, slug } = await params;
+  const { lang, audience, slug } = await params;
   const locale = lang as Locale;
-  const { post, isPreview } = await resolvePost(slug);
+  const { post, isPreview } = await resolvePost(slug, audience);
   if (!post) notFound();
   redirectToOwnLocale(post, lang);
 

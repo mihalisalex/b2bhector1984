@@ -1,4 +1,4 @@
-import { getCurrentAccount } from "@/lib/session";
+import { getAccountForAudience } from "@/lib/session";
 import { getStorefrontStyles } from "@/lib/data/styles";
 import { getHomepageHero } from "@/lib/data/siteContent";
 import { getInventoryForStyles } from "@/lib/data/inventory";
@@ -40,11 +40,11 @@ export default async function CatalogLayout({
 }: {
   children: React.ReactNode;
   // string, not Locale — see the comment on src/app/[lang]/layout.tsx's params type.
-  params: Promise<{ lang: string }>;
+  params: Promise<{ lang: string; audience?: string }>;
 }) {
-  const { lang: rawLang } = await params;
+  const { lang: rawLang, audience } = await params;
   const lang = rawLang as Locale;
-  const [account, hero, dict] = await Promise.all([getCurrentAccount(), getHomepageHero(), getDictionary(lang)]);
+  const [account, hero, dict] = await Promise.all([getAccountForAudience(audience), getHomepageHero(), getDictionary(lang)]);
 
   if (!account) {
     return (

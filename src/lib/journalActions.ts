@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "@/lib/adminGuard";
+import { revalidateStorefront } from "@/lib/cacheInvalidation";
 import { redirect } from "next/navigation";
 import { sanitizeJournalBody } from "@/lib/sanitizeHtml";
 import { slugifyForSeo } from "@/lib/seoAutogen";
@@ -43,6 +44,7 @@ async function runOrError(fn: () => Promise<void>): Promise<FormState | undefine
 }
 
 function revalidateJournal(slug?: string) {
+  revalidateStorefront();
   revalidatePath("/admin/journal");
   revalidatePath("/journal");
   if (slug) revalidatePath(`/journal/${slug}`);

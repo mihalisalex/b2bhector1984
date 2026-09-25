@@ -3,8 +3,7 @@ import Link from "next/link";
 import { CATEGORY_LABEL, getRelatedStyles, getStyleBySlug, getStyleImageUrl } from "@/lib/data/styles";
 import { getInventoryForStyle, getInventoryForStyles, totalOnHandForStyle } from "@/lib/data/inventory";
 import { getImagesForStyle, listImagesForStyles } from "@/lib/data/styleImages";
-import { getCurrentAccount } from "@/lib/session";
-import { recordStyleView } from "@/lib/data/styleAnalytics";
+import { getAccountForAudience } from "@/lib/session";
 import { isFavorite } from "@/lib/data/favorites";
 import { pickDefaultColorway } from "@/lib/productSelectionDefaults";
 import { ColorwaySelectionProvider } from "@/lib/colorway-selection-context";
@@ -67,8 +66,8 @@ export async function generateMetadata({
   return productMetadata(style, primary?.publicUrl, lang as Locale);
 }
 
-export default async function ProductPage({ params }: { params: Promise<{ lang: string; slug: string }> }) {
-  const { lang, slug } = await params;
+export default async function ProductPage({ params }: { params: Promise<{ lang: string; audience?: string; slug: string }> }) {
+  const { lang, audience, slug } = await params;
   const locale = lang as Locale;
   if (LEGACY_SLUG_REDIRECTS[slug]) redirect(`/product/${LEGACY_SLUG_REDIRECTS[slug]}`);
   const style = await getStyleBySlug(slug);
@@ -84,7 +83,7 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
   const [inventory, images, account, relatedInventory, relatedImages, guides, seoSettings] = await Promise.all([
     getInventoryForStyle(style.id),
     getImagesForStyle(style.id),
-    getCurrentAccount(),
+    getAccountForAudience(audience),
     getInventoryForStyles(relatedIds),
     listImagesForStyles(relatedIds),
     getGuidesForStyle(style, locale, categoryLabel(dict, style.category)),
@@ -92,7 +91,6 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
   ]);
   const priceMultiplier = account?.priceMultiplier ?? 1;
   const favorited = account ? await isFavorite(account.id, style.id) : false;
-  void recordStyleView(style.id, account?.id ?? null);
 
   // This page is public so it can be indexed, but everything priced or orderable
   // belongs to an approved account. One flag drives all of it, so there is no way

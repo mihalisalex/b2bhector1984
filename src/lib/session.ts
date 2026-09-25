@@ -5,6 +5,7 @@ import { randomBytes } from "node:crypto";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { getAccountById } from "@/lib/data/accounts";
 import { getApplicationById } from "@/lib/data/applications";
+import { AUDIENCES } from "@/lib/audience";
 import type { Account, Application } from "@/lib/types";
 
 export const SESSION_COOKIE = "hector_session";
@@ -98,6 +99,18 @@ export const getCurrentAccount = cache(async (): Promise<Account | null> => {
   if (!id) return null;
   return (await getAccountById(id)) ?? null;
 });
+
+/**
+ * The signed-in account for a page that can render for logged-out visitors.
+ *
+ * On the cached public tree (`src/app/[lang]/public`, which passes `audience: "public"`) it is
+ * always null WITHOUT reading cookies — that is what lets those pages be cached, and why a
+ * cached page can never carry a buyer's prices. Anywhere else the audience is absent and this
+ * is simply `getCurrentAccount()`, as before.
+ */
+export async function getAccountForAudience(audience?: string): Promise<Account | null> {
+  return audience === AUDIENCES.public ? null : getCurrentAccount();
+}
 
 export async function getApplication(): Promise<Application | null> {
   const store = await cookies();

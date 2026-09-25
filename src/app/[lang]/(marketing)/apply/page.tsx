@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { getCurrentAccount } from "@/lib/session";
+import { getAccountForAudience } from "@/lib/session";
 import { ApplyForm } from "@/components/auth/ApplyForm";
 import { pageMetadata } from "@/lib/seo";
 import { getDictionary } from "@/i18n/getDictionary";
@@ -18,8 +18,8 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   });
 }
 
-export default async function ApplyPage() {
-  const account = await getCurrentAccount();
+export default async function ApplyPage({ params }: { params: Promise<{ audience?: string }> }) {
+  const account = await getAccountForAudience((await params).audience);
   if (account) redirect(account.role === "admin" ? "/admin" : "/dashboard");
 
   return <ApplyForm />;

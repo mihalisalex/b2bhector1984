@@ -1,5 +1,5 @@
 import "server-only";
-import { updateTag } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { CACHE_TAGS, type CacheTag } from "@/lib/cacheTags";
 
 /**
@@ -20,6 +20,20 @@ import { CACHE_TAGS, type CacheTag } from "@/lib/cacheTags";
  */
 export function invalidateCache(...tags: CacheTag[]): void {
   for (const tag of tags) updateTag(tag);
+  revalidateStorefront();
+}
+
+/**
+ * Drops every cached public page, so an admin edit shows on the next visit rather than after
+ * the minute-long `revalidate` window.
+ *
+ * It has to name the INTERNAL route: the proxy rewrites a logged-out `/faq` to
+ * `/{lang}/public/faq`, and revalidatePath matches route files, not browser URLs — which is
+ * why the `revalidatePath("/catalogue")`-style calls in the actions files never reached a
+ * cached page. One layout-level call on the public tree covers every page in every locale.
+ */
+export function revalidateStorefront(): void {
+  revalidatePath("/[lang]/public", "layout");
 }
 
 /**

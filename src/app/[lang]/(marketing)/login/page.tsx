@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { getCurrentAccount } from "@/lib/session";
+import { getAccountForAudience } from "@/lib/session";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { pageMetadata } from "@/lib/seo";
 import { getDictionary } from "@/i18n/getDictionary";
@@ -19,8 +19,8 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   });
 }
 
-export default async function LoginPage() {
-  const account = await getCurrentAccount();
+export default async function LoginPage({ params }: { params: Promise<{ audience?: string }> }) {
+  const account = await getAccountForAudience((await params).audience);
   if (account) redirect(account.role === "admin" ? "/admin" : "/dashboard");
 
   return (

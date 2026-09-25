@@ -9,7 +9,7 @@ import { NewArrivals, pickNewArrivals } from "@/components/marketing/NewArrivals
 import { SeasonShowcase } from "@/components/marketing/SeasonShowcase";
 import { pickSeasonStyles, countSeasonStyles } from "@/lib/seasonShowcase";
 import { listImagesForStyles } from "@/lib/data/styleImages";
-import { getCurrentAccount } from "@/lib/session";
+import { getAccountForAudience } from "@/lib/session";
 import { LinkButton } from "@/components/ui/Button";
 import { pageMetadata } from "@/lib/seo";
 import { getDictionary } from "@/i18n/getDictionary";
@@ -33,8 +33,8 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
 }
 
 
-export default async function HomePage({ params }: { params: Promise<{ lang: string }> }) {
-  const { lang: rawLang } = await params;
+export default async function HomePage({ params }: { params: Promise<{ lang: string; audience?: string }> }) {
+  const { lang: rawLang, audience } = await params;
   const lang = rawLang as Locale;
   const [styles, hero, seasonSettings, dict, pulse, account] = await Promise.all([
     getStorefrontStyles(),
@@ -42,7 +42,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
     getSeasonSettings(),
     getDictionary(lang),
     getOrderPulse(),
-    getCurrentAccount(),
+    getAccountForAudience(audience),
   ]);
   // Curated shelf (migration 0040). Only the flagged styles need their photos, so the
   // image lookup is scoped to them rather than the whole catalogue.

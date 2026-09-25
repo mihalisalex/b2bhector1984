@@ -7,7 +7,7 @@ import { isSortKey, pairsSoldByStyle, sortStyles } from "@/lib/catalogSort";
 import { getInventoryForStyles, totalOnHandForStyle } from "@/lib/data/inventory";
 import { listImagesForStyles } from "@/lib/data/styleImages";
 import { getFavoriteStyleIds } from "@/lib/data/favorites";
-import { getCurrentAccount } from "@/lib/session";
+import { getAccountForAudience } from "@/lib/session";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { getSeasonSettings, toSeasonOptions } from "@/lib/data/seasonSettings";
 import { CatalogSearchInput, CatalogFiltersPanel, CatalogResultsToolbar } from "@/components/catalog/CatalogToolbar";
@@ -40,10 +40,10 @@ export default async function CatalogPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ lang: string }>;
+  params: Promise<{ lang: string; audience?: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { lang } = await params;
+  const { lang, audience } = await params;
   const locale = lang as Locale;
   const sp = await searchParams;
   const filters = parseFilters(sp);
@@ -58,7 +58,7 @@ export default async function CatalogPage({
   const [styles, seasonSettings, account, { data: orderLineRows }] = await Promise.all([
     getStorefrontStyles(),
     getSeasonSettings(),
-    getCurrentAccount(),
+    getAccountForAudience(audience),
     sort === "best_selling"
       ? supabaseAdmin
           .from("order_lines")
