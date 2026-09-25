@@ -58,3 +58,7 @@ pdf-*.pdf
 # This repository is PUBLIC — committing this file would publish the margin on
 # every style. The importer reads it from disk; it never needs to be tracked.
 cost-prices.csv
+
+# Easy to save without the leading dot from Finder or an editor — never commit it either way.
+env.local
+env*.local
