@@ -188,3 +188,22 @@ export function buildProformaInvoiceParams(input: {
  * it reads as promotional.
  * ---------------------------------------------------------------------------
  */
+
+/**
+ * A mobile number as wa.me wants it — digits only, with country code. Greek numbers are
+ * usually typed without one ("6946439965"), so a bare 10-digit number starting 69 gets 30.
+ * Returns null when there is nothing usable.
+ */
+export function waDigits(phone: string | undefined | null): string | null {
+  if (!phone) return null;
+  let digits = phone.replace(/\D/g, "");
+  if (digits.startsWith("00")) digits = digits.slice(2);
+  if (/^69\d{8}$/.test(digits)) digits = `30${digits}`;
+  return digits.length >= 10 ? digits : null;
+}
+
+/** Click-to-send WhatsApp link to a buyer, message pre-written. The admin still presses send. */
+export function waLinkTo(phone: string | undefined | null, message: string): string | null {
+  const digits = waDigits(phone);
+  return digits ? `https://wa.me/${digits}?text=${encodeURIComponent(message)}` : null;
+}

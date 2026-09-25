@@ -5,14 +5,19 @@ import { getAccountById } from "@/lib/data/accounts";
 import { getStyleById } from "@/lib/data/styles";
 import { getBoxType } from "@/lib/data/boxTypes";
 import { formatEUR, summarizeOrder } from "@/lib/pricing";
-import { formatDate, telHref } from "@/lib/format";
+import { formatDate, formatDayMonth, telHref } from "@/lib/format";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { OrderStatusForm } from "@/components/admin/OrderStatusForm";
 import { OrderDetailsForm } from "@/components/admin/OrderDetailsForm";
 import { OrderLineRow } from "@/components/admin/OrderLineRow";
 import { EmailBuyerPanel } from "@/components/admin/EmailBuyerPanel";
 import { StatusTimeline } from "@/components/order/StatusTimeline";
-import { buildOrderStatusEmailBody } from "@/lib/emailTemplates";
+import { buildOrderStatusEmailBody, orderStatusMessage } from "@/lib/emailTemplates";
+import { OrderNextStep } from "@/components/admin/OrderNextStep";
+import { getHomepageHero } from "@/lib/data/siteContent";
+import { estimatedArrivalIso } from "@/lib/delivery";
+import { urlForLocale } from "@/i18n/domains";
+import { waLinkTo } from "@/lib/whatsapp";
 import { getDictionary } from "@/i18n/getDictionary";
 import { resolveLocale } from "@/lib/localeHeuristic";
 
@@ -33,8 +38,16 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 
   // The admin UI is English, but this text is a draft the admin sends TO the buyer — so it
   // is prefilled in the buyer's language, not the admin's. They can edit it before sending.
-  const buyerEmailDict = (await getDictionary(resolveLocale(order.locale, order.storeLocation))).email;
-  const emailBody = buildOrderStatusEmailBody(buyerEmailDict, order, order.contactName);
+  const buyerLocale = resolveLocale(order.locale, order.storeLocation);
+  const buyerEmailDict = (await getDictionary(buyerLocale)).email;
+  const hero = await getHomepageHero();
+  const statusExtras = {
+    arrival: formatDayMonth(estimatedArrivalIso(hero.productionLeadTimeDays), buyerLocale),
+    link: urlForLocale(buyerLocale, `/dashboard/orders/${order.id}`),
+  };
+  const emailBody = buildOrderStatusEmailBody(buyerEmailDict, order, order.contactName, statusExtras);
+  // Same message, ready to send on WhatsApp to the buyer's mobile (the admin presses send).
+  const whatsappToBuyer = waLinkTo(account?.phone, orderStatusMessage(buyerEmailDict, order, statusExtras));
   const productionLines = order.lines.filter((l) => l.fulfillment === "production");
 
   return (
@@ -71,6 +84,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
           >
             Download Invoice
           </a>
+          <OrderNextStep orderId={order.id} status={order.status} />
           <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Status</span>
           <OrderStatusForm orderId={order.id} status={order.status} />
         </div>
@@ -103,6 +117,13 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
             </div>
             <div className="mt-3 flex flex-col gap-1 text-xs text-stone-300/80">
               <a href={`mailto:${order.email}`} className="hover:text-white">{order.email}</a>
+              {whatsappToBuyer ? (
+                <a href={whatsappToBuyer} target="_blank" rel="noopener noreferrer" className="font-semibold text-[#25D366] hover:text-white">
+                  WhatsApp the buyer this status →
+                </a>
+              ) : (
+                <span className="text-stone-300/50">No mobile on file for WhatsApp (add it in Accounts)</span>
+              )}
               {account &&
                 (account.rep.phone ? (
                   <a href={telHref(account.rep.phone)} className="hover:text-white">Rep: {account.rep.name}</a>

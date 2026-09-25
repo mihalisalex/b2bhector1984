@@ -169,3 +169,51 @@ export async function hasOpenApplication(email: string): Promise<boolean> {
   if (error) return false;
   return (data ?? []).length > 0;
 }
+
+/**
+ * An invitation: a shop the business already sells to, set up by the admin rather than
+ * applying itself. Stored as an application that is already `approved`, so the normal
+ * activation path (the shop sets a password, `activateAccount` creates the account) and the
+ * admin's Applications list both work for it unchanged. Returns the new application id.
+ */
+export async function insertInvitedApplication(data: {
+  businessName: string;
+  contactName: string;
+  email: string;
+  phone: string;
+  country: string;
+  city: string;
+  vatNumber: string;
+  repId: string | null;
+  priceMultiplier: number;
+}): Promise<string> {
+  const storeLocation = [data.city, data.country === "GR" ? "Ελλάδα" : data.country].filter(Boolean).join(", ");
+  const { data: row, error } = await supabaseAdmin
+    .from("applications")
+    .insert({
+      business_name: data.businessName,
+      contact_name: data.contactName,
+      email: data.email,
+      phone: data.phone,
+      resale_cert_id: data.vatNumber || "—",
+      business_type: INVITED_BUSINESS_TYPE,
+      store_location: storeLocation,
+      address_line1: "",
+      city: data.city,
+      state: "",
+      zip: "",
+      expected_volume: "Existing customer",
+      country: data.country,
+      status: "approved",
+      reviewed_at: new Date().toISOString(),
+      rep_id: data.repId,
+      price_multiplier: data.priceMultiplier,
+    })
+    .select("id")
+    .single();
+  if (error) throw new Error(`applications: ${error.message}`);
+  return row.id;
+}
+
+/** Marks an application as an admin invitation (see `insertInvitedApplication`). */
+export const INVITED_BUSINESS_TYPE = "Invited by Hector (existing customer)";

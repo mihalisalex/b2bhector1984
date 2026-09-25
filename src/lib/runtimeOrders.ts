@@ -253,9 +253,8 @@ export async function updateOrderStatus(
   if (row.status === "cancelled") {
     return { error: "This order was cancelled and its stock returned. Place a new order instead of reopening it." };
   }
-  if (status === "shipped" && (!row.tracking_number || !row.carrier)) {
-    return { error: "Add a tracking number and carrier in Order Details before marking this shipped." };
-  }
+  // No tracking number required any more: "shipped" now means handed to the buyer's own
+  // courier (owner, 2026-09-25), and the tracking number is often the buyer's, not ours.
 
   if (status === "cancelled") {
     if (!CANCELLABLE_FROM.includes(row.status)) {

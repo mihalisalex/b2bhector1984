@@ -18,7 +18,7 @@ import { isKnownCountry } from "@/lib/countries";
 import { MIN_ORDER_PAIRS } from "@/lib/pricing";
 import { createSalesRep, updateSalesRep, deleteSalesRep, getSalesRepById } from "@/lib/data/salesReps";
 import { logAudit } from "@/lib/data/auditLog";
-import { updateHomepageHero, createHeroImageUploadTarget, finalizeHeroImageUpload } from "@/lib/data/siteContent";
+import { getHomepageHero, updateHomepageHero, createHeroImageUploadTarget, finalizeHeroImageUpload } from "@/lib/data/siteContent";
 import { updateSeasonSettings, createSeasonTeaserUploadTarget, finalizeSeasonTeaserUpload } from "@/lib/data/seasonSettings";
 import { invalidateCache } from "@/lib/cacheInvalidation";
 import { CACHE_TAGS } from "@/lib/cacheTags";
@@ -40,6 +40,10 @@ import {
 import { getDictionary } from "@/i18n/getDictionary";
 import { resolveLocale } from "@/lib/localeHeuristic";
 import { SITE_URL } from "@/lib/siteUrl";
+import { estimatedArrivalIso } from "@/lib/delivery";
+import { formatDayMonth } from "@/lib/format";
+import { urlForLocale } from "@/i18n/domains";
+import type { Locale } from "@/i18n/config";
 import type { FormState } from "@/lib/actions";
 import type { BoxTypeId, CreditTerms, OrderStatus, Season } from "@/lib/types";
 
@@ -52,11 +56,21 @@ async function notifyOrderStatusChange(orderId: string, status: OrderStatus) {
   const locale = resolveLocale(order.locale, order.storeLocation);
   const e = (await getDictionary(locale)).email;
   const subject = orderStatusEmailSubject(e, { id: order.id, status });
+  const extras = await orderStatusExtras(order.id, locale);
   await sendEmail({
     to: order.email,
     subject,
-    html: textToHtml(buildOrderStatusEmailBody(e, { id: order.id, status }, order.contactName), subject, e, locale),
+    html: textToHtml(buildOrderStatusEmailBody(e, { id: order.id, status }, order.contactName, extras), subject, e, locale),
   });
+}
+
+/** The arrival estimate (from today) and the buyer's own link to the order, for status messages. */
+async function orderStatusExtras(orderId: string, locale: Locale): Promise<{ arrival: string; link: string }> {
+  const hero = await getHomepageHero();
+  return {
+    arrival: formatDayMonth(estimatedArrivalIso(hero.productionLeadTimeDays), locale),
+    link: urlForLocale(locale, `/dashboard/orders/${orderId}`),
+  };
 }
 
 /** Best-effort — `sendEmail` never throws, so this can't fail the status update that triggered it. */

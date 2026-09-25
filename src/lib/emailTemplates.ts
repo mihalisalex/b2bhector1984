@@ -60,9 +60,33 @@ export function buildOrderStatusEmailBody(
   dict: EmailDict,
   order: { id: string; status: string },
   contactName: string,
+  /** `arrival` ("14 Nov") for the in-production message; `link` to the buyer's order page. */
+  extras: { arrival?: string; link?: string } = {},
 ): string {
-  const body = t(dict.orderStatusBody, { id: order.id, status: statusLabel(dict, order.status) });
-  return `${greet(dict, contactName)}\n\n${body}\n\n\n\n${dict.signoff}`;
+  return `${greet(dict, contactName)}\n\n${orderStatusMessage(dict, order, extras)}\n\n${dict.signoff}`;
+}
+
+/**
+ * What changed, in a sentence the buyer can act on — shared by the status email and the
+ * admin's WhatsApp link. Falls back to the generic line for a status without its own text.
+ */
+export function orderStatusMessage(
+  dict: EmailDict,
+  order: { id: string; status: string },
+  extras: { arrival?: string; link?: string } = {},
+): string {
+  const specific: Record<string, string | undefined> = {
+    confirmed: dict.statusBodyConfirmed,
+    in_production: dict.statusBodyInProduction,
+    shipped: dict.statusBodyShipped,
+    delivered: dict.statusBodyDelivered,
+    cancelled: dict.statusBodyCancelled,
+  };
+  const template = specific[order.status];
+  const body = template
+    ? t(template, { id: order.id, date: extras.arrival ?? "" })
+    : t(dict.orderStatusBody, { id: order.id, status: statusLabel(dict, order.status) });
+  return extras.link ? `${body}\n\n${t(dict.viewOrderLine, { link: extras.link })}` : body;
 }
 
 /**
@@ -160,19 +184,46 @@ export function buildPasswordResetEmailBody(dict: EmailDict, resetUrl: string, c
 
 /** Sent to the business's own inbox (ADMIN_EMAIL) so a new application doesn't sit
  * unnoticed in the admin dashboard between visits. */
-export function buildNewApplicationAdminEmailBody(application: {
-  businessName: string;
-  contactName: string;
-  email: string;
-  phone: string;
-  storeLocation: string;
-  country: string;
-  expectedVolume: string;
-}): string {
-  return `You got a new wholesale application.\n\nBusiness: ${application.businessName}\nContact: ${application.contactName}\nEmail: ${application.email}\nPhone: ${application.phone}\nLocation: ${application.storeLocation}\nCountry: ${application.country}\nExpected volume: ${application.expectedVolume}\n\nReview it in the admin dashboard: Applications.`;
+export function buildNewApplicationAdminEmailBody(
+  application: {
+    businessName: string;
+    contactName: string;
+    email: string;
+    phone: string;
+    storeLocation: string;
+    country: string;
+    businessType?: string;
+    expectedVolume: string;
+    resaleCertId?: string;
+    website?: string;
+  },
+  links: { review: string; whatsapp?: string | null },
+): string {
+  const rows = [
+    `Contact: ${application.contactName}`,
+    `Email: ${application.email}`,
+    `Phone: ${application.phone}`,
+    `Country: ${application.country} · ${application.storeLocation}`,
+    application.businessType ? `Type: ${application.businessType}` : "",
+    `Expected volume: ${application.expectedVolume}`,
+    application.resaleCertId ? `VAT / tax ID: ${application.resaleCertId}` : "",
+    application.website ? `Website: ${application.website}` : "",
+  ].filter(Boolean);
+  return [
+    `${application.businessName} just applied for a wholesale account.`,
+    ...rows,
+    `[Review & approve](${links.review})`,
+    links.whatsapp ? `[WhatsApp ${application.contactName.split(" ")[0] || "them"}](${links.whatsapp})` : "",
+    "Approving within the day matters — a shop that has just applied is usually asking other suppliers too.",
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
-export const NEW_APPLICATION_ADMIN_EMAIL_SUBJECT = "You got a new wholesale application";
+/** Names the shop and country, so the alert on a phone's lock screen already says who it is. */
+export function newApplicationAdminEmailSubject(application: { businessName: string; country: string }): string {
+  return `New shop applied: ${application.businessName} (${application.country})`;
+}
 
 /**
  * Sent to the business's own inbox (ADMIN_EMAIL) the moment a buyer checks out, so an order
@@ -245,6 +296,17 @@ export function textToHtml(text: string, subject: string, dict?: EmailDict, lang
   const bodyHtml = lines
     .map((line) => {
       const trimmed = line.trim();
+      // "[Label](https://…)" on its own line renders as a button with that label — for emails
+      // with more than one action, where the shell's single generic label won't do.
+      const labelled = trimmed.match(/^\[(.+)\]\((https?:\/\/\S+)\)$/);
+      if (labelled) {
+        return `
+          <table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 16px 0;">
+            <tr><td style="background-color:#121212;">
+              <a href="${esc(labelled[2])}" style="display:inline-block;padding:14px 30px;font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:bold;color:#ffffff;text-decoration:none;text-transform:uppercase;letter-spacing:1px;">${esc(labelled[1])}</a>
+            </td></tr>
+          </table>`;
+      }
       if (bareUrl.test(trimmed)) {
         return `
           <table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 24px 0;">
@@ -297,4 +359,9 @@ export function textToHtml(text: string, subject: string, dict?: EmailDict, lang
     </table>
   </body>
 </html>`;
+}
+
+/** The invitation an admin sends an existing customer (see `inviteShop`). */
+export function buildInviteEmailBody(dict: EmailDict, contactName: string, businessName: string, activationUrl: string): string {
+  return `${greet(dict, contactName)}\n\n${t(dict.inviteBody, { business: businessName })}\n\n${activationUrl}\n\n${dict.signoff}`;
 }

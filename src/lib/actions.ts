@@ -43,7 +43,7 @@ import { decrementInventoryForOrder, restoreInventoryForLines, type StockLine } 
 import { getAvailableBoxTypes, getBoxType } from "@/lib/data/boxTypes";
 import { buildInvoicePdf } from "@/lib/pdf/buildInvoicePdf";
 import { sendEmail, type EmailAttachment } from "@/lib/email";
-import { sendWhatsAppTemplate, buildProformaInvoiceParams } from "@/lib/whatsapp";
+import { sendWhatsAppTemplate, buildProformaInvoiceParams, waLinkTo } from "@/lib/whatsapp";
 import { getHomepageHero } from "@/lib/data/siteContent";
 import {
   buildOrderConfirmationEmailBody,
@@ -53,7 +53,7 @@ import {
   buildNewOrderAdminEmailBody,
   newOrderAdminEmailSubject,
   orderConfirmationEmailSubject,
-  NEW_APPLICATION_ADMIN_EMAIL_SUBJECT,
+  newApplicationAdminEmailSubject,
   textToHtml,
 } from "@/lib/emailTemplates";
 import { SITE_URL } from "@/lib/siteUrl";
@@ -302,10 +302,24 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
   // can't block the applicant's redirect to the pending-review page.
   const adminEmail = process.env.ADMIN_EMAIL;
   if (adminEmail) {
+    // Instant and actionable: the subject names the shop, and the email carries a button
+    // straight to the review page and a one-tap WhatsApp to the applicant.
+    const adminSubject = newApplicationAdminEmailSubject(application);
     await sendEmail({
       to: adminEmail,
-      subject: NEW_APPLICATION_ADMIN_EMAIL_SUBJECT,
-      html: textToHtml(buildNewApplicationAdminEmailBody(application), NEW_APPLICATION_ADMIN_EMAIL_SUBJECT),
+      subject: adminSubject,
+      html: textToHtml(
+        buildNewApplicationAdminEmailBody(application, {
+          review: `${SITE_URL}/admin/applications`,
+          whatsapp: waLinkTo(
+            application.phone,
+            country === "GR" || country === "CY"
+              ? `Γεια σας ${application.contactName.split(" ")[0] || ""}, είμαστε η Hector Footwear — λάβαμε την αίτησή σας για το ${application.businessName}.`
+              : `Hello ${application.contactName.split(" ")[0] || ""}, this is Hector Footwear — we've received your application for ${application.businessName}.`,
+          ),
+        }),
+        adminSubject,
+      ),
     });
   } else {
     console.warn("[email] ADMIN_EMAIL not set — skipping new-application admin notification");

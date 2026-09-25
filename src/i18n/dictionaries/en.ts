@@ -228,7 +228,7 @@ const en = {
     proformaInvoice: "Proforma Invoice",
     statusConfirmed: "Confirmed",
     statusInProduction: "In Production",
-    statusShipped: "Shipped",
+    statusShipped: "Handed to courier",
     statusDelivered: "Delivered",
     statusCancelled: "Cancelled",
     billTo: "Bill to",
@@ -291,12 +291,18 @@ const en = {
     statusSubmitted: "Submitted",
     statusConfirmed: "Confirmed",
     statusInProduction: "In Production",
-    statusShipped: "Shipped",
+    statusShipped: "Handed to courier",
     statusDelivered: "Delivered",
     statusCancelled: "Cancelled",
 
     orderStatusSubject: "Order {id} update — {status}",
     orderStatusBody: "Writing about your order {id}, currently {status}.",
+    statusBodyConfirmed: "Your order {id} is confirmed. Your invoice with the final price, delivery date and payment details is on its way.",
+    statusBodyInProduction: "Your order {id} is now in production. We expect it to be ready around {date}.",
+    statusBodyShipped: "Your order {id} is ready and has been handed to your courier.",
+    statusBodyDelivered: "Your order {id} has been delivered. Thank you — we hope it sells well.",
+    statusBodyCancelled: "Your order {id} has been cancelled. Questions? Reply to this email or message us on WhatsApp.",
+    viewOrderLine: "See your order: {link}",
 
     orderConfirmationSubject: "Order confirmation — {id}",
     orderConfirmationBody: "We've received your order request {id}. We'll check production for these quantities and send you the invoice with the final price, delivery date and payment details — usually within one business day.",
@@ -312,6 +318,9 @@ const en = {
     approvedSubject: "Your Hector Footwear wholesale application — approved",
     approvedBody:
       "Good news — your Hector Footwear wholesale application has been approved. Activate your account to start browsing the full catalog with pricing:",
+    inviteSubject: "Your Hector Footwear wholesale account is ready",
+    inviteBody: "We've set up a wholesale account for {business} on our new ordering site. Set your password with the link below to see your prices, and order whenever you like — by box, from your phone or computer.",
+    inviteWhatsapp: "Hello {name}, we've set up a wholesale account for {business} on our new site. Set your password here to see your prices and order online: {link} — Hector Footwear",
     repLineWithPhone: "Your dedicated account rep is {name} — reach them directly at {phone}.",
     repLine: "Your dedicated account rep is {name}.",
 
@@ -382,7 +391,7 @@ const en = {
     statusSubmitted: "Submitted",
     statusConfirmed: "Confirmed",
     statusInProduction: "In Production",
-    statusShipped: "Shipped",
+    statusShipped: "Handed to courier",
     statusDelivered: "Delivered",
     statusCancelled: "Cancelled",
     // Quick order

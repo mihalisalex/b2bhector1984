@@ -11,7 +11,7 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
   submitted: "Submitted",
   confirmed: "Confirmed",
   in_production: "In Production",
-  shipped: "Shipped",
+  shipped: "Handed to courier",
   delivered: "Delivered",
   cancelled: "Cancelled",
 };
