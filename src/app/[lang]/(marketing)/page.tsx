@@ -11,6 +11,7 @@ import { pickSeasonStyles, countSeasonStyles } from "@/lib/seasonShowcase";
 import { listImagesForStyles } from "@/lib/data/styleImages";
 import { getAccountForAudience } from "@/lib/session";
 import { BuyerWelcome } from "@/components/marketing/BuyerWelcome";
+import { HowOrderingWorks } from "@/components/marketing/HowOrderingWorks";
 import { getOrdersForAccount } from "@/lib/runtimeOrders";
 import { estimatedArrivalIso } from "@/lib/delivery";
 import { LinkButton } from "@/components/ui/Button";
@@ -218,16 +219,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
       {/* Apply / log in / order — for visitors only; a signed-in buyer is past all three. */}
       {!account && (
         <>
-      {/* Easy steps to order, right up top for first-time buyers */}
-      <section className="border-b border-stone-300 bg-white py-16">
-        <div className="mx-auto max-w-[1440px] px-6 lg:px-10">
-          <div className="grid grid-cols-1 gap-12 sm:grid-cols-3 sm:gap-10">
-            <QuickStep n="01" title={h.step1Title} body={h.step1Body} href={withLocale(lang, "/apply")} cta={h.step1Cta} />
-            <QuickStep n="02" title={h.step2Title} body={h.step2Body} href={withLocale(lang, "/login")} cta={h.step2Cta} />
-            <QuickStep n="03" title={h.step3Title} body={h.step3Body} href={withLocale(lang, "/quick-order")} cta={h.step3Cta} />
-          </div>
-        </div>
-      </section>
+      {/* How ordering works — the full process, the facts a buyer checks, and real
+          stockists once supplied. Replaced the three-step apply/log in/order strip. */}
+      <HowOrderingWorks dict={dict} locale={lang} leadTimeDays={hero.productionLeadTimeDays} />
         </>
       )}
 
@@ -273,48 +267,6 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           </LinkButton>
         </div>
       </section>
-    </div>
-  );
-}
-
-function QuickStep({
-  n,
-  title,
-  body,
-  href,
-  cta,
-}: {
-  n: string;
-  title: string;
-  body: string;
-  href: string;
-  cta: string;
-}) {
-  return (
-    <div className="relative">
-      <span
-        aria-hidden
-        className="font-display pointer-events-none absolute -top-7 left-0 select-none text-6xl font-semibold leading-none text-numeral sm:-top-8 sm:text-7xl"
-      >
-        {n}
-      </span>
-      <div className="relative mt-10 sm:mt-12">
-        {/* h2, not h3: these cards sit directly under the hero's h1 with no intervening
-            section heading, and every other section on this page uses h2 — an h1 -> h3 jump
-            is a real "heading-order" accessibility failure. Size comes from `text-lg`, so
-            the tag change is semantic only and nothing moves visually. */}
-        <h2 className="font-display text-lg font-bold uppercase tracking-tight text-ink">{title}</h2>
-        <p className="mt-2 text-sm leading-relaxed text-ink-soft">{body}</p>
-        <Link
-          href={href}
-          className="group mt-3 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-ink hover:text-signal"
-        >
-          {cta}
-          <span aria-hidden className="transition-transform duration-150 group-hover:translate-x-1">
-            →
-          </span>
-        </Link>
-      </div>
     </div>
   );
 }

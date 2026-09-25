@@ -12,6 +12,7 @@ const NAV_SECTIONS: AdminNavSection[] = [
       { href: "/admin", label: "Orders" },
       { href: "/admin/applications", label: "Applications" },
       { href: "/admin/invite", label: "Invite a shop" },
+      { href: "/admin/buyer-emails", label: "Buyer emails" },
       { href: "/admin/proforma", label: "Proforma Builder" },
     ],
   },

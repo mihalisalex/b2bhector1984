@@ -365,3 +365,23 @@ export function textToHtml(text: string, subject: string, dict?: EmailDict, lang
 export function buildInviteEmailBody(dict: EmailDict, contactName: string, businessName: string, activationUrl: string): string {
   return `${greet(dict, contactName)}\n\n${t(dict.inviteBody, { business: businessName })}\n\n${activationUrl}\n\n${dict.signoff}`;
 }
+
+/** The seasonal "new styles — order by" email an admin sends to every buyer (see sendSeasonReminder). */
+export function buildSeasonReminderEmailBody(
+  dict: EmailDict,
+  contactName: string,
+  input: { styleNames: string[]; orderBy: string; deliveredBy: string; note?: string; newUrl: string; sheetUrl: string },
+): string {
+  return [
+    greet(dict, contactName),
+    input.styleNames.length ? dict.seasonIntro : "",
+    ...input.styleNames.map((name) => `• ${name}`),
+    t(dict.seasonDeadline, { orderBy: input.orderBy, deliveredBy: input.deliveredBy }),
+    input.note ?? "",
+    `[${dict.seasonCtaNew}](${input.newUrl})`,
+    `[${dict.seasonCtaSheet}](${input.sheetUrl})`,
+    dict.signoff,
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
