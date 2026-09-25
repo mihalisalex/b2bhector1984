@@ -32,4 +32,8 @@ jobs:
       # database — and this job deliberately has no real database. Vercel's own
       # build still prerenders against the real one, so a page that fails to
       # render still blocks the deploy there.
-      - run: npx next build --experimental-build-mode=compile
+      #
+      # Retried once: downloading the Google fonts on GitHub's runners fails now
+      # and then ("next/font/google queries have exactly one entry") and passes
+      # on the next attempt. A real compile error fails both times.
+      - run: npx next build --experimental-build-mode=compile || npx next build --experimental-build-mode=compile
