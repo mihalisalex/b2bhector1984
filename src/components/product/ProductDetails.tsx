@@ -115,7 +115,9 @@ export function ProductDetails({
             value={
               style.availability === "available"
                 ? p.availableNowValue
-                : style.shipWindow
+                : style.backorderMode === "made_to_order"
+                  ? dict.availability.madeToOrder
+                  : style.shipWindow
                   ? t(p.prebookValueWithWindow, { window: style.shipWindow })
                   : p.prebookValue
             }

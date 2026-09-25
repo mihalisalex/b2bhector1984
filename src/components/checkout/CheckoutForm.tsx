@@ -86,9 +86,9 @@ export function CheckoutForm({ account }: { account: Account }) {
   const madeToOrder = useMemo(() => backordered.filter((g) => g.style.backorderMode !== "pre_order"), [backordered]);
   const preOrder = useMemo(() => backordered.filter((g) => g.style.backorderMode === "pre_order"), [backordered]);
 
-  // `style.availability` ("available" vs "prebook") is a merchandising/season field —
-  // completely separate from real-time stock. A style can be "available" (in-season,
-  // normally ships at-once) while this specific cart line still runs past its on-hand
+  // `style.availability` ("available" vs "prebook") is the admin's setting AND-ed with
+  // "has any stock" (see assembleStyles) — per style, not per line. A style can be
+  // "available" (some boxes on the shelf) while this specific cart line still runs past its on-hand
   // and lands in `backordered` above. Without excluding those here, a fully-backordered
   // style (0 on hand, everything going to production) was showing up in BOTH "At-once"
   // *and* "Pre-order/Made to order" — telling the buyer the same style both ships in 5

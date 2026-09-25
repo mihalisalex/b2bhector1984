@@ -29,7 +29,9 @@ export const metadata = { title: "Cart", robots: { index: false, follow: false }
 export default async function CartPage() {
   const [styles, account] = await Promise.all([getStorefrontStyles(), getCurrentAccount()]);
   const priceMultiplier = account?.priceMultiplier ?? 1;
-  const sellable = styles.filter((s) => s.availability === "available");
+  // Orderable, not just shelf stock: `availability` is "available" only for stocked styles
+  // (see assembleStyles), and a pre-order or made-to-order style closes the gap too.
+  const sellable = styles.filter((s) => s.availability === "available" || s.allowBackorder);
   // Every style, not just `sellable` — a cart line can reference a pre-book style too,
   // and the qty stepper below needs real stock for whatever's actually in the cart.
   const inventory = await getInventoryForStyles(styles.map((s) => s.id));

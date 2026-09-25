@@ -64,7 +64,8 @@ export function AvailabilityBadge({
   return (
     <span className="inline-flex items-center gap-1 whitespace-nowrap text-[10px] font-semibold uppercase tracking-wide text-ink-soft">
       <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-court" aria-hidden />
-      {dict.availability.preorder}{shipWindow ? ` — ${shipWindow}` : ""}
+      {style.backorderMode === "made_to_order" ? dict.availability.madeToOrder : dict.availability.preorder}
+      {shipWindow ? ` — ${shipWindow}` : ""}
     </span>
   );
 }

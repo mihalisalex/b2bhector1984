@@ -136,6 +136,7 @@ function assembleStyles(
   styleRows: StyleRow[],
   colorwayRows: ColorwayRow[],
   imageRows: StyleImageRow[],
+  stockedStyleIds: Set<string>,
 ): Style[] {
   const colorwaysByStyle = new Map<string, ColorwayRow[]>();
   for (const row of colorwayRows) {
@@ -163,7 +164,12 @@ function assembleStyles(
       category: s.category,
       season: s.season,
       gender: s.gender,
-      availability: s.availability,
+      // "Available now" means boxes on the shelf. The column alone said so for all 31
+      // styles while the stock table was empty and every one of them was really a
+      // pre-order or made-to-order line — so the badge promised immediate dispatch to
+      // buyers. The admin setting can still hold a stocked style back as pre-book; it can
+      // no longer make an unstocked one look available.
+      availability: s.availability === "available" && stockedStyleIds.has(s.id) ? "available" : "prebook",
       shipWindow: s.ship_window ?? undefined,
       tagline: s.tagline,
       description: s.description,
@@ -255,8 +261,11 @@ async function fetchStyles(styleRows: StyleRow[]): Promise<Style[]> {
   if (styleRows.length === 0) return [];
   const styleIds = styleRows.map((s) => s.id);
 
-  const [{ data: colorwayRows, error: colorwayError }, { data: imageRows, error: imageError }] =
-    await Promise.all([
+  const [
+    { data: colorwayRows, error: colorwayError },
+    { data: imageRows, error: imageError },
+    { data: stockRows, error: stockError },
+  ] = await Promise.all([
       // Explicit order: Postgres/PostgREST don't guarantee row order without one, and
       // callers rely on colorways[0] being the deterministic "default" colorway (product
       // page, catalogue cards) — that must always be the same one, not whatever the
@@ -267,11 +276,15 @@ async function fetchStyles(styleRows: StyleRow[]): Promise<Style[]> {
         .select("style_id, storage_path")
         .in("style_id", styleIds)
         .eq("is_primary", true),
+      // Which styles have any box on hand — in the same parallel batch, so no extra trip.
+      supabaseAdmin.from("inventory").select("style_id").in("style_id", styleIds).gt("on_hand", 0),
     ]);
   if (colorwayError) throw new Error(`colorways: ${colorwayError.message}`);
   if (imageError) throw new Error(`style_images: ${imageError.message}`);
+  if (stockError) throw new Error(`inventory: ${stockError.message}`);
 
-  return assembleStyles(styleRows, colorwayRows ?? [], imageRows ?? []);
+  const stockedStyleIds = new Set((stockRows ?? []).map((row) => row.style_id as string));
+  return assembleStyles(styleRows, colorwayRows ?? [], imageRows ?? [], stockedStyleIds);
 }
 
 /**
