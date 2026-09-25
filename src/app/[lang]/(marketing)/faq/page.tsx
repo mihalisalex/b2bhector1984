@@ -8,6 +8,7 @@ import { getDictionary } from "@/i18n/getDictionary";
 import type { Locale } from "@/i18n/config";
 import { withLocale } from "@/i18n/paths";
 import { SUPPORT_EMAIL } from "@/lib/contact";
+import { getHomepageHero } from "@/lib/data/siteContent";
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
@@ -35,202 +36,252 @@ interface FaqGroup {
   items: Faq[];
 }
 
-const GROUPS_EN: FaqGroup[] = [
-  {
-    title: "Ordering & Box Policy",
-    items: [
-      {
-        q: "Can I order single pairs?",
-        a: "No — Hector Footwear sells wholesale only in fixed pre-pack boxes (8, 10, or 12 pairs), never as single pairs. Every box spans EU sizes 40–45 in a set ratio, so the box is the ordering unit, not the individual size.",
-      },
-      {
-        q: "What if I only need a few pairs in one size?",
-        a: "Every box already spreads sizes 40–45 across the printed ratio for that box type — you can't pick a single size out of a box. Choose the box size (8/10/12-pair) that best matches the size run your floor sells.",
-      },
-      {
-        q: "Is there a minimum order?",
-        a: "Yes — a single order-wide minimum of 40 pairs, not a per-style minimum. Mix as many styles, colorways, and box sizes as you like across your cart to reach it; your cart shows a running pair count as you go.",
-      },
-      {
-        q: "What's the difference between Quick Order and the Catalogue?",
-        a: "Quick Order is a fast, table-style view for building box quantities across many styles at once. The Catalogue and individual product pages give you the full matrix ordering screen for one style at a time, with more detail and photography.",
-      },
-    ],
-  },
-  {
-    title: "Pricing & Payment Terms",
-    items: [
-      {
-        q: "How is my price calculated?",
-        a: "One simple rule, no account tiers: pay in full (prepay) for 10% off, net-30 for 5% off, or net-60 at list price. You choose your terms at checkout, and the total updates live.",
-      },
-      {
-        q: "Can I use different payment terms on different orders?",
-        a: "Yes. Your account has a default (shown on your dashboard), but you can select different terms per order at checkout. Requesting terms other than your account's default routes that order to your rep for credit approval before it ships.",
-      },
-      {
-        q: "What currency is pricing shown in?",
-        a: "All wholesale pricing on this site is in EUR (€).",
-      },
-      {
-        q: "Are the prices I see in Quick Order or the Catalogue final?",
-        a: "Those screens show list price (net-60) as a reference while you build your order. The final per-pair price — with any prepay or net-30 discount applied — is calculated at checkout once you select payment terms.",
-      },
-    ],
-  },
-  {
-    title: "Wholesale Accounts",
-    items: [
-      {
-        q: "How do I get a wholesale account?",
-        a: "Apply from \"Apply for Wholesale Access\" with your store and resale certificate details. Our team typically reviews applications within 2 business days. Once approved, you're provisioned with a login and a territory rep.",
-      },
-      {
-        q: "I can't log in — what do I do?",
-        a: `Reach out to your territory rep (listed on your dashboard) or ${SUPPORT_EMAIL} and we'll help sort out access.`,
-      },
-      {
-        q: "Who do I talk to about my account?",
-        a: "Every approved account has a dedicated rep, shown on your dashboard with direct email and phone. That's the fastest way to reach us on anything account-specific.",
-      },
-    ],
-  },
-  {
-    title: "Shipping & Delivery",
-    items: [
-      {
-        q: "What's the difference between \"Available now\" and \"Pre-book\"?",
-        a: "Available now styles ship within about 5 business days of order confirmation. Pre-book styles have a stated ship window (shown on the product page) and may arrive in a separate shipment if your order also includes at-once styles.",
-      },
-      {
-        q: "Where do you ship?",
-        a: `Shipping details vary by territory — contact your rep or ${SUPPORT_EMAIL} to confirm coverage and lead times for your location.`,
-      },
-    ],
-  },
-  {
-    title: "The Collection",
-    items: [
-      {
-        q: "What categories do you carry?",
-        a: "Two seasonal collections: Summer (Loafers, Wedding, Sneakers, Sandals) and Winter (Boots, Sneakers, Formal, Anatomic).",
-      },
-      {
-        q: "Can I browse without an account?",
-        a: "Yes — the Collections lookbook is open to everyone. Wholesale pricing and matrix ordering unlock once you're signed in with an approved account.",
-      },
-      {
-        q: "Does every style come in all three box sizes?",
-        a: "Not always. Each product page lists \"Sold as\" — the specific box sizes (8/10/12-pair) offered for that style.",
-      },
-    ],
-  },
-];
+/**
+ * Written from how the business actually works (owner, 2026-09-25): every order is produced
+ * for the buyer and takes about `days` days (the production lead time set in /admin), any
+ * style can be produced in any season, an order is a request that becomes a proforma with
+ * the final price, shipping goes by the buyer's own courier at their cost, and only buyers
+ * based in Greece pay Greek VAT. Each style comes in exactly one box format.
+ */
+function groupsEn(days: number): FaqGroup[] {
+  return [
+    {
+      title: "Ordering & Boxes",
+      items: [
+        {
+          q: "Can I order single pairs?",
+          a: "No — we sell wholesale only, in fixed pre-pack boxes. Each style comes in one box format, shown as “Sold as” on its product page: an 8-pair box covering EU 40–44 or a 10-pair box covering EU 40–45. The box is the ordering unit.",
+        },
+        {
+          q: "Which sizes are in a box?",
+          a: "A set ratio, printed on every product page. The 10-pair box holds 1×40, 2×41, 2×42, 2×43, 2×44 and 1×45; the 8-pair box holds 1×40, 2×41, 2×42, 2×43 and 1×44. Single sizes can't be taken out of a box.",
+        },
+        {
+          q: "Is there a minimum order?",
+          a: "Yes — 40 pairs across the whole order, not per style. Mix as many styles and colours as you like to reach it; your cart shows a running pair count.",
+        },
+        {
+          q: "What's the difference between Quick Order and the Catalogue?",
+          a: "Quick Order is a fast table for entering box quantities across many styles at once. The Catalogue and product pages show one style at a time, with photos and full details.",
+        },
+      ],
+    },
+    {
+      title: "Production & Delivery",
+      items: [
+        {
+          q: "When will I receive my order?",
+          a: `Every order is produced for you. Delivery is usually about ${days} days after we confirm your order. Very large orders can take longer — we confirm the delivery date on your invoice before anything is final.`,
+        },
+        {
+          q: "Can I order a style outside its season?",
+          a: "Yes. The Summer and Winter labels are only there to help you browse — we can produce winter boots in summer and summer styles in winter.",
+        },
+        {
+          q: "What do “Pre-order” and “Made to order” mean?",
+          a: `Both mean your pairs are produced after you order, and both usually take about ${days} days. If a style is ever on our shelves, its page says “Available now” and it ships within about 5 business days.`,
+        },
+      ],
+    },
+    {
+      title: "Prices & Payment",
+      items: [
+        {
+          q: "How is my price calculated?",
+          a: "One simple rule: pay in advance for 10% off, net-30 for 5% off, or net-60 at list price. You choose your terms at checkout and the total updates as you do.",
+        },
+        {
+          q: "Are the prices on the site final?",
+          a: "They are our list prices. On large orders we may be able to offer a better price — the final price is the one on your invoice.",
+        },
+        {
+          q: "How and when do I pay?",
+          a: "Sending an order from the site is a request, not a payment. We check that production can make the exact quantities, then send you the invoice with the final price, the delivery date and our bank details — usually within one business day. Nothing is charged before that.",
+        },
+        {
+          q: "Is VAT included?",
+          a: "No, all prices exclude VAT. Buyers based in Greece pay Greek VAT (24%). Buyers based in any other country are invoiced without Greek VAT.",
+        },
+        {
+          q: "What currency are prices in?",
+          a: "Euro (€).",
+        },
+        {
+          q: "Can I use different payment terms on different orders?",
+          a: "Yes. Your account has a default (shown on your dashboard), and you can pick different terms per order at checkout. Terms other than your default are confirmed with you before production starts.",
+        },
+      ],
+    },
+    {
+      title: "Shipping",
+      items: [
+        {
+          q: "Where do you ship?",
+          a: "Anywhere — throughout Greece and Cyprus, across Europe and beyond.",
+        },
+        {
+          q: "Who pays for shipping, and which courier do you use?",
+          a: "Shipping is paid by the buyer, with the courier of your choice. When your order is ready we ask which courier to hand it to — for example your own DHL, ACS or Geniki Taxydromiki account — and the cost is whatever you have agreed with them.",
+        },
+      ],
+    },
+    {
+      title: "Wholesale Accounts",
+      items: [
+        {
+          q: "How do I get a wholesale account?",
+          a: "Apply from “Apply for access” with your business details and VAT number. A person reviews every application, usually within 2 business days, and you'll get an email to set your password once you're approved.",
+        },
+        {
+          q: "I can't log in — what do I do?",
+          a: `Use “Forgot password?” on the login page, or email ${SUPPORT_EMAIL} and we'll sort out access.`,
+        },
+        {
+          q: "Who do I talk to about my account or an order?",
+          a: `Your contact at Hector Footwear is shown on your dashboard with their email and phone. You can always write to ${SUPPORT_EMAIL} as well.`,
+        },
+      ],
+    },
+    {
+      title: "The Collection",
+      items: [
+        {
+          q: "What categories do you carry?",
+          a: "Men's leather loafers, formal and groom's shoes, boots, sneakers and sandals, grouped into a Summer and a Winter collection.",
+        },
+        {
+          q: "Can I browse without an account?",
+          a: "Yes — the full catalogue, with photos, box sizes and specifications, is open to everyone. Wholesale prices and ordering unlock once your account is approved.",
+        },
+      ],
+    },
+  ];
+}
 
-// Real, natural Greek B2B copy — not a machine translation of GROUPS_EN — since Greek is
-// this site's priority locale for both traditional and AI search. German/French readers
-// currently still see the English array (GROUPS_BY_LOCALE below) until those get the same
-// treatment.
-const GROUPS_EL: FaqGroup[] = [
-  {
-    title: "Παραγγελίες & Πολιτική Κιβωτίων",
-    items: [
-      {
-        q: "Μπορώ να παραγγείλω μεμονωμένα ζευγάρια;",
-        a: "Όχι — η Hector Footwear πουλάει αποκλειστικά χονδρική, σε σταθερά προσυσκευασμένα κιβώτια (8, 10 ή 12 ζευγάρια), ποτέ ένα-ένα ζευγάρι. Κάθε κιβώτιο καλύπτει τα ευρωπαϊκά νούμερα 40–45 σε συγκεκριμένη αναλογία, οπότε η μονάδα παραγγελίας είναι το κιβώτιο, όχι το μεμονωμένο νούμερο.",
-      },
-      {
-        q: "Τι γίνεται αν χρειάζομαι λίγα ζευγάρια σε ένα μόνο νούμερο;",
-        a: "Κάθε κιβώτιο διανέμει ήδη τα νούμερα 40–45 σύμφωνα με την τυπωμένη αναλογία του — δεν μπορείτε να επιλέξετε ένα μόνο νούμερο ξεχωριστά. Επιλέξτε το μέγεθος κιβωτίου (8/10/12 ζευγάρια) που ταιριάζει καλύτερα στην πωλησιμότητα του καταστήματός σας.",
-      },
-      {
-        q: "Υπάρχει ελάχιστη παραγγελία;",
-        a: "Ναι — ένα ενιαίο ελάχιστο 40 ζευγαριών ανά παραγγελία, όχι ανά μοντέλο. Συνδυάστε όσα μοντέλα, χρώματα και μεγέθη κιβωτίων θέλετε στο καλάθι σας για να το φτάσετε· το καλάθι δείχνει τον τρέχοντα αριθμό ζευγαριών καθώς προσθέτετε.",
-      },
-      {
-        q: "Ποια είναι η διαφορά μεταξύ Γρήγορης Παραγγελίας και Καταλόγου;",
-        a: "Η Γρήγορη Παραγγελία είναι μια γρήγορη προβολή τύπου πίνακα για να χτίσετε ποσότητες κιβωτίων σε πολλά μοντέλα ταυτόχρονα. Ο Κατάλογος και οι σελίδες μεμονωμένων προϊόντων προσφέρουν την πλήρη οθόνη παραγγελίας πίνακα για ένα μοντέλο τη φορά, με περισσότερες λεπτομέρειες και φωτογραφίες.",
-      },
-    ],
-  },
-  {
-    title: "Τιμές & Όροι Πληρωμής",
-    items: [
-      {
-        q: "Πώς υπολογίζεται η τιμή μου;",
-        a: "Ένας απλός κανόνας, χωρίς κατηγορίες λογαριασμού: εξόφληση τοις μετρητοίς (prepay) για 10% έκπτωση, εξόφληση σε 30 ημέρες για 5% έκπτωση, ή τιμή καταλόγου για εξόφληση σε 60 ημέρες. Επιλέγετε τους όρους σας κατά την ολοκλήρωση παραγγελίας και το σύνολο ενημερώνεται άμεσα.",
-      },
-      {
-        q: "Μπορώ να χρησιμοποιήσω διαφορετικούς όρους πληρωμής σε διαφορετικές παραγγελίες;",
-        a: "Ναι. Ο λογαριασμός σας έχει έναν προεπιλεγμένο όρο (εμφανίζεται στον πίνακα ελέγχου σας), αλλά μπορείτε να επιλέξετε διαφορετικούς όρους ανά παραγγελία κατά την ολοκλήρωση. Αίτημα για όρους διαφορετικούς από την προεπιλογή του λογαριασμού σας δρομολογεί την παραγγελία στον εκπρόσωπό σας για έγκριση πίστωσης πριν αποσταλεί.",
-      },
-      {
-        q: "Σε ποιο νόμισμα εμφανίζονται οι τιμές;",
-        a: "Όλες οι τιμές χονδρικής στον ιστότοπο είναι σε ευρώ (€).",
-      },
-      {
-        q: "Οι τιμές που βλέπω στη Γρήγορη Παραγγελία ή τον Κατάλογο είναι τελικές;",
-        a: "Αυτές οι οθόνες δείχνουν την τιμή καταλόγου (εξόφληση σε 60 ημέρες) ως σημείο αναφοράς καθώς χτίζετε την παραγγελία σας. Η τελική τιμή ανά ζευγάρι — με τυχόν έκπτωση prepay ή 30 ημερών — υπολογίζεται κατά την ολοκλήρωση παραγγελίας, μόλις επιλέξετε τους όρους πληρωμής.",
-      },
-    ],
-  },
-  {
-    title: "Λογαριασμοί Χονδρικής",
-    items: [
-      {
-        q: "Πώς αποκτώ λογαριασμό χονδρικής;",
-        a: "Υποβάλετε αίτηση από την «Αίτηση πρόσβασης» με τα στοιχεία του καταστήματός σας και το φορολογικό/επαγγελματικό σας προφίλ. Η ομάδα μας συνήθως αξιολογεί τις αιτήσεις εντός 2 εργάσιμων ημερών. Μόλις εγκριθείτε, αποκτάτε στοιχεία σύνδεσης και έναν εκπρόσωπο περιοχής.",
-      },
-      {
-        q: "Δεν μπορώ να συνδεθώ — τι κάνω;",
-        a: `Επικοινωνήστε με τον εκπρόσωπο της περιοχής σας (αναγράφεται στον πίνακα ελέγχου σας) ή στο ${SUPPORT_EMAIL} και θα σας βοηθήσουμε να αποκαταστήσετε την πρόσβαση.`,
-      },
-      {
-        q: "Με ποιον μιλάω για τον λογαριασμό μου;",
-        a: "Κάθε εγκεκριμένος λογαριασμός έχει έναν αποκλειστικό εκπρόσωπο, με στοιχεία επικοινωνίας ορατά στον πίνακα ελέγχου σας. Είναι ο πιο γρήγορος τρόπος επικοινωνίας για οτιδήποτε αφορά τον λογαριασμό σας.",
-      },
-    ],
-  },
-  {
-    title: "Αποστολές & Παράδοση",
-    items: [
-      {
-        q: "Ποια είναι η διαφορά μεταξύ «Άμεσα διαθέσιμο» και «Προπαραγγελία»;",
-        a: "Τα μοντέλα «Άμεσα διαθέσιμα» αποστέλλονται εντός περίπου 5 εργάσιμων ημερών από την επιβεβαίωση της παραγγελίας. Τα μοντέλα «Προπαραγγελίας» έχουν συγκεκριμένο χρονικό παράθυρο αποστολής (αναγράφεται στη σελίδα του προϊόντος) και ενδέχεται να αποσταλούν ξεχωριστά αν η παραγγελία σας περιλαμβάνει και άμεσα διαθέσιμα μοντέλα.",
-      },
-      {
-        q: "Σε ποιες περιοχές αποστέλλετε;",
-        a: `Οι λεπτομέρειες αποστολής διαφέρουν ανά περιοχή — επικοινωνήστε με τον εκπρόσωπό σας ή στο ${SUPPORT_EMAIL} για να επιβεβαιώσετε κάλυψη και χρόνους παράδοσης για την τοποθεσία σας.`,
-      },
-    ],
-  },
-  {
-    title: "Η Συλλογή",
-    items: [
-      {
-        q: "Ποιες κατηγορίες διαθέτετε;",
-        a: "Δύο εποχιακές συλλογές: Καλοκαιρινή (Loafers, Γαμήλια, Sneakers, Σανδάλια) και Χειμερινή (Μπότες, Sneakers, Επίσημα, Ανατομικά).",
-      },
-      {
-        q: "Μπορώ να περιηγηθώ χωρίς λογαριασμό;",
-        a: "Ναι — το lookbook της συλλογής είναι ανοιχτό σε όλους. Οι τιμές χονδρικής και η παραγγελία πίνακα ξεκλειδώνουν μόλις συνδεθείτε με εγκεκριμένο λογαριασμό.",
-      },
-      {
-        q: "Κάθε μοντέλο διατίθεται και στα τρία μεγέθη κιβωτίου;",
-        a: "Όχι πάντα. Κάθε σελίδα προϊόντος αναγράφει «Διατίθεται σε» — τα συγκεκριμένα μεγέθη κιβωτίου (8/10/12 ζευγάρια) που προσφέρονται για το συγκεκριμένο μοντέλο.",
-      },
-    ],
-  },
-];
+function groupsEl(days: number): FaqGroup[] {
+  return [
+    {
+      title: "Παραγγελίες & Κιβώτια",
+      items: [
+        {
+          q: "Μπορώ να παραγγείλω μεμονωμένα ζευγάρια;",
+          a: "Όχι — πουλάμε μόνο χονδρική, σε σταθερά κιβώτια. Κάθε μοντέλο έρχεται σε ένα μόνο είδος κιβωτίου, που φαίνεται ως «Πωλείται σε» στη σελίδα του: κιβώτιο 8 ζευγαριών με νούμερα 40–44 ή κιβώτιο 10 ζευγαριών με νούμερα 40–45. Η μονάδα παραγγελίας είναι το κιβώτιο.",
+        },
+        {
+          q: "Ποια νούμερα έχει ένα κιβώτιο;",
+          a: "Σταθερή αναλογία, που αναγράφεται σε κάθε σελίδα προϊόντος. Το κιβώτιο 10 ζευγαριών έχει 1×40, 2×41, 2×42, 2×43, 2×44 και 1×45· το κιβώτιο 8 ζευγαριών έχει 1×40, 2×41, 2×42, 2×43 και 1×44. Δεν γίνεται να βγει μεμονωμένο νούμερο από το κιβώτιο.",
+        },
+        {
+          q: "Υπάρχει ελάχιστη παραγγελία;",
+          a: "Ναι — 40 ζευγάρια σε όλη την παραγγελία, όχι ανά μοντέλο. Συνδυάστε όσα μοντέλα και χρώματα θέλετε· το καλάθι δείχνει συνεχώς πόσα ζευγάρια έχετε.",
+        },
+        {
+          q: "Ποια είναι η διαφορά Γρήγορης Παραγγελίας και Καταλόγου;",
+          a: "Η Γρήγορη Παραγγελία είναι ένας γρήγορος πίνακας για να βάζετε κιβώτια σε πολλά μοντέλα μαζί. Ο Κατάλογος και οι σελίδες προϊόντων δείχνουν ένα μοντέλο τη φορά, με φωτογραφίες και όλες τις λεπτομέρειες.",
+        },
+      ],
+    },
+    {
+      title: "Παραγωγή & Παράδοση",
+      items: [
+        {
+          q: "Πότε θα παραλάβω την παραγγελία μου;",
+          a: `Κάθε παραγγελία παράγεται για εσάς. Η παράδοση γίνεται συνήθως περίπου ${days} ημέρες μετά την επιβεβαίωση της παραγγελίας. Οι πολύ μεγάλες παραγγελίες μπορεί να χρειαστούν περισσότερο — την ημερομηνία παράδοσης την επιβεβαιώνουμε στο τιμολόγιο, πριν οριστικοποιηθεί οτιδήποτε.`,
+        },
+        {
+          q: "Μπορώ να παραγγείλω ένα μοντέλο εκτός σεζόν;",
+          a: "Ναι. Οι ετικέτες Καλοκαίρι και Χειμώνας υπάρχουν μόνο για να σας βοηθούν στην περιήγηση — μπορούμε να παράγουμε μποτάκια το καλοκαίρι και καλοκαιρινά μοντέλα τον χειμώνα.",
+        },
+        {
+          q: "Τι σημαίνουν «Προπαραγγελία» και «Κατά παραγγελία»;",
+          a: `Και τα δύο σημαίνουν ότι τα ζευγάρια σας παράγονται μετά την παραγγελία, και στις δύο περιπτώσεις χρειάζονται περίπου ${days} ημέρες. Αν κάποιο μοντέλο υπάρχει έτοιμο στην αποθήκη, η σελίδα του γράφει «Άμεσα διαθέσιμο» και αποστέλλεται σε περίπου 5 εργάσιμες.`,
+        },
+      ],
+    },
+    {
+      title: "Τιμές & Πληρωμή",
+      items: [
+        {
+          q: "Πώς υπολογίζεται η τιμή μου;",
+          a: "Ένας απλός κανόνας: προπληρωμή με έκπτωση 10%, πίστωση 30 ημερών με έκπτωση 5%, ή πίστωση 60 ημερών στην τιμή καταλόγου. Επιλέγετε τους όρους στην ολοκλήρωση της παραγγελίας και το σύνολο ενημερώνεται αμέσως.",
+        },
+        {
+          q: "Οι τιμές στο site είναι τελικές;",
+          a: "Είναι οι τιμές καταλόγου μας. Σε μεγάλες παραγγελίες μπορεί να σας προσφέρουμε καλύτερη τιμή — τελική είναι η τιμή του τιμολογίου σας.",
+        },
+        {
+          q: "Πώς και πότε πληρώνω;",
+          a: "Η αποστολή παραγγελίας από το site είναι αίτημα, όχι πληρωμή. Ελέγχουμε ότι η παραγωγή μπορεί να βγάλει τις ακριβείς ποσότητες και σας στέλνουμε τιμολόγιο με την τελική τιμή, την ημερομηνία παράδοσης και τα τραπεζικά μας στοιχεία — συνήθως μέσα σε μία εργάσιμη. Δεν χρεώνεται τίποτα πριν από αυτό.",
+        },
+        {
+          q: "Περιλαμβάνεται ο ΦΠΑ;",
+          a: "Όχι, όλες οι τιμές είναι χωρίς ΦΠΑ. Οι πελάτες με έδρα στην Ελλάδα επιβαρύνονται με ΦΠΑ 24%. Οι πελάτες με έδρα σε οποιαδήποτε άλλη χώρα τιμολογούνται χωρίς ελληνικό ΦΠΑ.",
+        },
+        {
+          q: "Σε ποιο νόμισμα είναι οι τιμές;",
+          a: "Σε ευρώ (€).",
+        },
+        {
+          q: "Μπορώ να έχω διαφορετικούς όρους πληρωμής σε κάθε παραγγελία;",
+          a: "Ναι. Ο λογαριασμός σας έχει προεπιλεγμένους όρους (φαίνονται στον πίνακα ελέγχου) και μπορείτε να διαλέξετε άλλους σε κάθε παραγγελία. Όροι διαφορετικοί από τους προεπιλεγμένους επιβεβαιώνονται μαζί σας πριν ξεκινήσει η παραγωγή.",
+        },
+      ],
+    },
+    {
+      title: "Αποστολή",
+      items: [
+        {
+          q: "Πού αποστέλλετε;",
+          a: "Παντού — σε όλη την Ελλάδα και την Κύπρο, στην Ευρώπη και εκτός.",
+        },
+        {
+          q: "Ποιος πληρώνει τα μεταφορικά και με ποια εταιρεία στέλνετε;",
+          a: "Τα μεταφορικά τα πληρώνει ο πελάτης, με τη μεταφορική της επιλογής του. Όταν η παραγγελία είναι έτοιμη σας ρωτάμε σε ποια μεταφορική να την παραδώσουμε — για παράδειγμα στον δικό σας λογαριασμό DHL, ACS ή Γενικής Ταχυδρομικής — και το κόστος είναι αυτό που έχετε συμφωνήσει μαζί της.",
+        },
+      ],
+    },
+    {
+      title: "Λογαριασμοί Χονδρικής",
+      items: [
+        {
+          q: "Πώς αποκτώ λογαριασμό χονδρικής;",
+          a: "Κάντε αίτηση από το «Αίτηση πρόσβασης» με τα στοιχεία της επιχείρησης και το ΑΦΜ σας. Κάθε αίτηση την εξετάζει άνθρωπος, συνήθως μέσα σε 2 εργάσιμες, και μόλις εγκριθεί θα λάβετε email για να ορίσετε κωδικό.",
+        },
+        {
+          q: "Δεν μπορώ να συνδεθώ — τι κάνω;",
+          a: `Πατήστε «Ξεχάσατε τον κωδικό;» στη σελίδα σύνδεσης ή στείλτε email στο ${SUPPORT_EMAIL} και θα σας βοηθήσουμε.`,
+        },
+        {
+          q: "Με ποιον μιλάω για τον λογαριασμό ή μια παραγγελία μου;",
+          a: `Ο υπεύθυνός σας στη Hector Footwear φαίνεται στον πίνακα ελέγχου, με email και τηλέφωνο. Μπορείτε πάντα να γράψετε και στο ${SUPPORT_EMAIL}.`,
+        },
+      ],
+    },
+    {
+      title: "Η Συλλογή",
+      items: [
+        {
+          q: "Ποιες κατηγορίες διαθέτετε;",
+          a: "Ανδρικά δερμάτινα μοκασίνια, επίσημα και γαμπριάτικα παπούτσια, μποτάκια, sneakers και πέδιλα, σε καλοκαιρινή και χειμερινή συλλογή.",
+        },
+        {
+          q: "Μπορώ να δω τον κατάλογο χωρίς λογαριασμό;",
+          a: "Ναι — όλος ο κατάλογος, με φωτογραφίες, κιβώτια και τεχνικά στοιχεία, είναι ανοιχτός σε όλους. Οι τιμές χονδρικής και οι παραγγελίες ανοίγουν μόλις εγκριθεί ο λογαριασμός σας.",
+        },
+      ],
+    },
+  ];
+}
 
-const GROUPS_BY_LOCALE: Partial<Record<Locale, FaqGroup[]>> = { en: GROUPS_EN, el: GROUPS_EL };
+const GROUPS_BY_LOCALE: Partial<Record<Locale, (days: number) => FaqGroup[]>> = { en: groupsEn, el: groupsEl };
 
 export default async function FaqPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
   const locale = lang as Locale;
   const dict = await getDictionary(locale);
   const f = dict.faq;
-  const groups = GROUPS_BY_LOCALE[locale] ?? GROUPS_EN;
+  const hero = await getHomepageHero();
+  const groups = (GROUPS_BY_LOCALE[locale] ?? groupsEn)(hero.productionLeadTimeDays);
 
   // FAQPage markup makes these questions eligible for rich results. Built from the same
   // `groups` array the page renders for this locale, so the two can never drift apart —

@@ -36,7 +36,7 @@ export function CartView({
   const { eur } = useFormat();
   const { locale, dict } = useI18n();
   const c = dict.checkout;
-  const { lines, unavailableLines, setLineQty, removeStyle, clearCart, cartTotal, cartVatTotal, cartGrandTotal, priceMultiplier, minOrderPairs } = useCart();
+  const { lines, unavailableLines, setLineQty, removeStyle, clearCart, cartTotal, cartVatTotal, cartGrandTotal, priceMultiplier, minOrderPairs, chargesVat } = useCart();
   const { getStyleById, productionLeadTimeDays } = useCatalog();
 
   function onHandFor(styleId: string, colorwayId: string, boxTypeId: BoxTypeId): number {
@@ -365,7 +365,7 @@ export function CartView({
         <p className="text-right text-xs text-ink-soft">{t(c.pairsInCart, { count: grandTotalPairs })}</p>
         {/* Same disclosure as checkout — the cart is where a buyer forms their price
             expectation, so it cannot be the one screen that omits it. */}
-        <VatNotice dict={dict} className="mt-2 text-right text-[11px] text-ink-soft" />
+        <VatNotice dict={dict} chargesVat={chargesVat} className="mt-2 text-right text-[11px] text-ink-soft" />
         <p className="text-right text-xs font-medium text-positive">
           Prepay in full at checkout to save {eur(cartGrandTotal * 0.1)} (10% off)
         </p>

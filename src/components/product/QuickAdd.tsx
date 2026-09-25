@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import { useCatalog } from "@/lib/catalog-context";
+import { t } from "@/i18n/format";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { getUnitPrice, MAX_BACKORDER_QTY } from "@/lib/pricing";
 import { useFormat, useI18n } from "@/i18n/I18nProvider";
@@ -128,8 +129,8 @@ export function QuickAdd({
       <p className={cn("mb-2 text-[11px] font-medium", remaining > 0 && !willBeProduction ? "text-ink-soft" : "text-ember")}>
         {willBeProduction
           ? style.backorderMode === "pre_order"
-            ? c.preOrderShips
-            : `Made to order — ~${productionLeadTimeDays} days`
+            ? t(c.preOrderShips, { days: productionLeadTimeDays })
+            : t(c.madeToOrderShips, { days: productionLeadTimeDays })
           : remaining > 0
             ? `${remaining} box${remaining === 1 ? "" : "es"} available`
             : c.noneLeftCombo}

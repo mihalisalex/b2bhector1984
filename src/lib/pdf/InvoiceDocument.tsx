@@ -214,6 +214,8 @@ export interface InvoiceDocumentProps {
   locale?: string;
   /** Issuer tax identity, rendered in the invoice header. Omitted when unset. */
   tax?: { afm: string; doy: string };
+  /** Buyer based outside Greece — show "VAT 0%" explicitly instead of omitting the row. */
+  vatExemptAbroad?: boolean;
 }
 
 export function InvoiceDocument({
@@ -230,6 +232,7 @@ export function InvoiceDocument({
   dict = enDict.pdf,
   locale = "en",
   tax,
+  vatExemptAbroad,
 }: InvoiceDocumentProps) {
   const TERMS: Record<string, string> = {
     prepay: dict.termsPrepay,
@@ -367,6 +370,12 @@ export function InvoiceDocument({
                 <View style={styles.summaryRow}>
                   <Text style={styles.summaryLabel}>{dict.vat}</Text>
                   <Text style={styles.summaryValue}>{formatEUR(vatTotal, locale)}</Text>
+                </View>
+              )}
+              {vatExemptAbroad && (
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>{dict.vatZeroAbroad}</Text>
+                  <Text style={styles.summaryValue}>{formatEUR(0, locale)}</Text>
                 </View>
               )}
               <View style={styles.grandTotalBand}>

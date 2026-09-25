@@ -17,6 +17,8 @@ interface ApplicationRow {
   zip: string;
   expected_volume: string;
   website: string | null;
+  /** Migration 0042 — absent before it runs. */
+  country?: string | null;
   status: ApplicationStatus;
   submitted_at: string;
   reviewed_at: string | null;
@@ -40,6 +42,7 @@ function mapApplication(row: ApplicationRow): Application {
     zip: row.zip,
     expectedVolume: row.expected_volume,
     website: row.website ?? undefined,
+    country: row.country ?? "GR",
     status: row.status,
     submittedAt: row.submitted_at,
     repId: row.rep_id ?? undefined,
@@ -72,6 +75,7 @@ export async function insertApplication(
       zip: data.zip,
       expected_volume: data.expectedVolume,
       website: data.website ?? null,
+      country: data.country,
     })
     .select("id")
     .single();
@@ -147,4 +151,21 @@ export async function listApplications(status?: ApplicationStatus): Promise<Appl
   const { data, error } = await query;
   if (error) throw new Error(`applications: ${error.message}`);
   return (data ?? []).map(mapApplication);
+}
+
+/**
+ * Whether this email already has an application waiting for review or approved but not yet
+ * activated — so a second submission can be answered with "we already have it" instead of
+ * adding a duplicate row to the review queue.
+ */
+export async function hasOpenApplication(email: string): Promise<boolean> {
+  const literal = email.trim().replace(/[\\%_]/g, (ch) => `\\${ch}`);
+  const { data, error } = await supabaseAdmin
+    .from("applications")
+    .select("id")
+    .ilike("email", literal)
+    .in("status", ["pending", "approved"])
+    .limit(1);
+  if (error) return false;
+  return (data ?? []).length > 0;
 }

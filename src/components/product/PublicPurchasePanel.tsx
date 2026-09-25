@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ColorwayPicker } from "@/components/product/ColorwayPicker";
 import type { Dictionary } from "@/i18n/dictionaries/en";
+import { t } from "@/i18n/format";
 import { AvailabilityBadge } from "@/components/ui/Badge";
 import type { Style } from "@/lib/types";
 import type { StyleInventory } from "@/lib/data/inventory";
@@ -26,6 +27,7 @@ export function PublicPurchasePanel({
   applyHref,
   loginHref,
   dict,
+  leadTimeDays,
 }: {
   style: Style;
   inventory: StyleInventory;
@@ -35,6 +37,8 @@ export function PublicPurchasePanel({
    * the note above) and `useI18n` is a client hook — calling it here threw on every
    * logged-out product page, which is exactly what that note was warning about. */
   dict: Dictionary;
+  /** Production lead time from /admin — every order is produced for the buyer. */
+  leadTimeDays: number;
 }) {
   const c = dict.catalog;
   return (
@@ -45,7 +49,7 @@ export function PublicPurchasePanel({
 
       <div className="border border-stone-300 bg-white p-5">
         <p className="text-[11px] uppercase tracking-[0.14em] text-ink-soft">{dict.wholesale.only}</p>
-        <p className="mt-2 text-[15px] leading-relaxed text-ink">{c.publicPanelBody}</p>
+        <p className="mt-2 text-[15px] leading-relaxed text-ink">{t(c.publicPanelBody, { days: leadTimeDays })}</p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Link
             href={applyHref}

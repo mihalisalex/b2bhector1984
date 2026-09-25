@@ -28,7 +28,9 @@ import {
   deleteShipToAddress as deleteShipToAddressRow,
   setDefaultShipToAddress as setDefaultShipToAddressRow,
 } from "@/lib/data/accounts";
-import { insertApplication, updateApplicationStatus, getApplicationById } from "@/lib/data/applications";
+import { insertApplication, updateApplicationStatus, getApplicationById, hasOpenApplication } from "@/lib/data/applications";
+import { isKnownCountry } from "@/lib/countries";
+import { chargesGreekVat, vatRateForBuyer } from "@/lib/tax";
 import { getStylesByIds } from "@/lib/data/styles";
 import { createPasswordResetToken, consumePasswordResetToken } from "@/lib/data/passwordReset";
 import { z } from "zod";
@@ -246,7 +248,7 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
     "phone",
     "resaleCertId",
     "businessType",
-    "storeLocation",
+    "country",
     "addressLine1",
     "city",
     "state",
@@ -262,6 +264,20 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(formData.get("email") ?? "").trim())) {
     return { error: m.invalidEmail };
   }
+  const country = String(formData.get("country") ?? "").trim().toUpperCase();
+  if (!isKnownCountry(country)) return { error: m.requiredFieldsMissing };
+  // A second submission from the same address used to add a duplicate row to the review
+  // queue. Say we already have it instead.
+  if (await hasOpenApplication(String(formData.get("email")))) {
+    return { error: m.applicationAlreadyReceived };
+  }
+
+  // The public "City, region" field is gone from the form — it confused applicants ("you're
+  // going to publish my shop?"). The column is still what the dashboard and the language
+  // heuristic read, so it is built from the address instead.
+  const city = String(formData.get("city")).trim();
+  const region = String(formData.get("state")).trim();
+  const storeLocation = [city, region, country === "GR" ? "" : country].filter(Boolean).join(", ");
 
   const application: Omit<Application, "id" | "status" | "submittedAt" | "repId" | "priceMultiplier"> = {
     businessName: String(formData.get("businessName")),
@@ -270,13 +286,14 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
     phone: String(formData.get("phone")),
     resaleCertId: String(formData.get("resaleCertId")),
     businessType: String(formData.get("businessType")),
-    storeLocation: String(formData.get("storeLocation")),
+    storeLocation,
     addressLine1: String(formData.get("addressLine1")),
     city: String(formData.get("city")),
     state: String(formData.get("state")),
     zip: String(formData.get("zip")),
     expectedVolume: String(formData.get("expectedVolume")),
     website: String(formData.get("website") ?? "") || undefined,
+    country,
   };
 
   const id = await insertApplication(application);
@@ -366,6 +383,7 @@ export async function activateAccount(_prev: FormState, formData: FormData): Pro
       // the domain they activate on is by construction the one they applied on. An admin
       // can correct it from /admin/accounts; `locale_inferred` marks it as unconfirmed.
       locale: await getRequestLocale(),
+      country: application.country,
       shipTo: {
         label: application.businessName,
         line1: application.addressLine1,
@@ -492,7 +510,8 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
     // Captured now, not looked up when the invoice/WhatsApp message is built
     // later — same principle as unitPrice: a later change to the product's
     // VAT rate must not rewrite the tax on an order that's already placed.
-    const vatRate = style.vatRate ?? 0;
+    // Greek VAT only for buyers based in Greece — see `chargesGreekVat`.
+    const vatRate = vatRateForBuyer(style.vatRate, account.country);
     for (const [colorwayId, boxes] of Object.entries(qtyMap)) {
       for (const [boxTypeId, qty] of Object.entries(boxes)) {
         if (qty && qty > 0) {
@@ -625,6 +644,7 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
         // Same locale the confirmation email uses — the invoice is its attachment, and the
         // two arriving in different languages would be worse than either being wrong.
         locale: await getLocaleForAccount(account.locale),
+        vatExemptAbroad: !chargesGreekVat(account.country),
       });
       invoiceAttachment = {
         filename: `${order.id}-proforma-invoice.pdf`,
@@ -648,8 +668,10 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
           e,
           order,
           account.contactName,
-          hasMadeToOrderLines ? hero.productionLeadTimeDays : undefined,
-          hasPreOrderLines,
+          // Every production line — pre-order or made-to-order — takes the same lead time,
+          // so the email states it once instead of "no fixed date yet" for pre-orders.
+          hasMadeToOrderLines || hasPreOrderLines ? hero.productionLeadTimeDays : undefined,
+          false,
           invoiceAttachment !== undefined,
         ),
         confirmationSubject,

@@ -4,6 +4,7 @@ import { getHomepageHero } from "@/lib/data/siteContent";
 import { getInventoryForStyles } from "@/lib/data/inventory";
 import { CatalogProvider } from "@/lib/catalog-context";
 import { CartProvider } from "@/lib/cart-context";
+import { chargesGreekVat } from "@/lib/tax";
 import { HomeAnnouncementBar } from "@/components/layout/HomeAnnouncementBar";
 import { MarketingHeader } from "@/components/layout/MarketingHeader";
 import { Footer } from "@/components/layout/Footer";
@@ -70,7 +71,7 @@ export default async function CatalogLayout({
 
   return (
     <CatalogProvider styles={styles} productionLeadTimeDays={hero.productionLeadTimeDays} inventory={inventory}>
-      <CartProvider accountId={account.id} priceMultiplier={account.priceMultiplier} minOrderPairs={account.minOrderPairs}>
+      <CartProvider accountId={account.id} priceMultiplier={account.priceMultiplier} minOrderPairs={account.minOrderPairs} chargesVat={chargesGreekVat(account.country)}>
         <ShopHeader account={account} locale={lang} dict={dict} />
         <main className="flex-1 bg-stone-50">{children}</main>
         <ShopFooter account={account} locale={lang} dict={dict} />

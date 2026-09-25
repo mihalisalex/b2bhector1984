@@ -1,4 +1,5 @@
 import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
+import { formatWeight } from "@/lib/format";
 import { formatEUR } from "@/lib/pricing";
 import { SUPPORT_EMAIL } from "@/lib/contact";
 import { t } from "@/i18n/format";
@@ -44,7 +45,8 @@ export interface SpecSheetDocumentProps {
     category: string;
     gender: string;
     materials: string[];
-    weightOz: number;
+    /** Grams per pair; the weight block is left out when unknown. */
+    weightG?: number;
     msrp: number;
     tagline: string;
   };
@@ -83,10 +85,12 @@ export function SpecSheetDocument({ style, euSizes, boxes, dict = enDict.pdf, lo
             <Text style={styles.infoLabel}>{dict.gender.toUpperCase()}</Text>
             <Text style={styles.infoValue}>{style.gender}</Text>
           </View>
-          <View style={styles.infoBlock}>
-            <Text style={styles.infoLabel}>{dict.weight.toUpperCase()}</Text>
-            <Text style={styles.infoValue}>{style.weightOz} oz</Text>
-          </View>
+          {style.weightG ? (
+            <View style={styles.infoBlock}>
+              <Text style={styles.infoLabel}>{dict.weight.toUpperCase()}</Text>
+              <Text style={styles.infoValue}>≈ {formatWeight(style.weightG, locale)}</Text>
+            </View>
+          ) : null}
           <View style={styles.infoBlock}>
             <Text style={styles.infoLabel}>{dict.msrp.toUpperCase()}</Text>
             <Text style={styles.infoValue}>{formatEUR(style.msrp, locale)}</Text>

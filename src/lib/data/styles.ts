@@ -32,6 +32,8 @@ interface StyleRow {
   base_price: number | string;
   msrp: number | string;
   weight_oz: number | string | null;
+  /** Migration 0042 — absent before it runs. */
+  weight_g?: number | null;
   last_note: string | null;
   available_box_types: BoxTypeId[];
   created_at?: string;
@@ -184,6 +186,7 @@ function assembleStyles(
       basePrice: toNumber(s.base_price),
       msrp: toNumber(s.msrp),
       weightOz: toNumber(s.weight_oz ?? 0),
+      weightG: s.weight_g ?? undefined,
       lastNote: s.last_note ?? "",
       primaryImageUrl,
       // Falls back to all 3 boxes until migration 0003 (available_box_types) has been run.
@@ -194,7 +197,9 @@ function assembleStyles(
       // yet — the admin Products module flags that explicitly; every other
       // page in the app (catalogue, cart, checkout, etc) keeps working either way.
       brandId: s.brand_id ?? "hector-footwear",
-      brandName: "",
+      // Every style is Hector Footwear's own; the storefront query doesn't join brands, and a
+      // blank string printed an empty "Brand" line on every product page.
+      brandName: "Hector Footwear",
       supplierId: s.supplier_id ?? undefined,
       productType: s.product_type ?? "Footwear",
       tags: s.tags ?? [],

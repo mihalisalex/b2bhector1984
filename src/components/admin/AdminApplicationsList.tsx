@@ -127,10 +127,10 @@ export function AdminApplicationsList({ applications, reps }: { applications: Ap
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-ink-soft">
-                  {app.contactName} · {app.email} · {app.storeLocation} · Submitted {formatDate(app.submittedAt)}
+                  {app.contactName} · {app.email} · {app.storeLocation} · {app.country} · Submitted {formatDate(app.submittedAt)}
                 </p>
                 <p className="mt-1 text-xs text-ink-soft">
-                  {app.businessType} · {app.expectedVolume} · Resale cert {app.resaleCertId}
+                  {app.businessType} · {app.expectedVolume} · VAT/Tax ID {app.resaleCertId}
                 </p>
               </div>
             </div>

@@ -253,7 +253,7 @@ export function buildProductSchema(
     url: absoluteUrl(`/product/${style.slug}`, options.locale),
     brand: { "@type": "Brand", name: style.brandName || settings.siteName },
     manufacturer: { "@id": organizationId(options.locale ?? "en") },
-    weight: style.weightOz ? { "@type": "QuantitativeValue", value: style.weightOz, unitCode: "ONZ" } : undefined,
+    weight: style.weightG ? { "@type": "QuantitativeValue", value: style.weightG, unitCode: "GRM" } : undefined,
     offers: offer,
     additionalProperty: additionalProperty.length ? additionalProperty : undefined,
     // Deliberately no aggregateRating / review — this app collects neither, and

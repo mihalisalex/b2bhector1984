@@ -53,6 +53,8 @@ export interface ProformaDraft {
   terms: CreditTerms;
   /** Language of the document, not of the admin. A Greek walk-in gets a Greek proforma. */
   locale: Locale;
+  /** False for a buyer based outside Greece — every line is quoted at 0% VAT. */
+  chargeVat: boolean;
   lines: ProformaDraftLine[];
   delivery: ProformaDelivery;
 }
@@ -132,6 +134,8 @@ export function parseProformaDraft(input: unknown): ProformaDraft {
     },
     terms: terms as CreditTerms,
     locale: locale as Locale,
+    // Anything but an explicit false charges VAT — the safe default for a Greek shop.
+    chargeVat: raw.chargeVat !== false,
     lines,
   };
 }
@@ -182,7 +186,7 @@ export function resolveProforma(
       boxTypeId: line.boxTypeId,
       qty: line.qty,
       unitPrice,
-      vatRate: style.vatRate,
+      vatRate: draft.chargeVat ? style.vatRate : 0,
       fulfillment: onHandBoxes >= line.qty ? "stock" : "production",
     };
   });

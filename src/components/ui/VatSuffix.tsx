@@ -1,6 +1,7 @@
 "use client";
 
 import { useI18n } from "@/i18n/I18nProvider";
+import { useChargesVat } from "@/lib/cart-context";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 
 /**
@@ -21,7 +22,9 @@ import type { Dictionary } from "@/i18n/dictionaries/en";
  */
 export function VatSuffix({ vatRate, className }: { vatRate: number | undefined; className?: string }) {
   const { dict } = useI18n();
-  if (!vatRate) return null;
+  // A buyer outside Greece pays no Greek VAT, so "+VAT" would be wrong for them.
+  const chargesVat = useChargesVat();
+  if (!vatRate || !chargesVat) return null;
   return <span className={className ?? "text-ink-soft"}>&nbsp;{dict.tax.vatSuffix}</span>;
 }
 

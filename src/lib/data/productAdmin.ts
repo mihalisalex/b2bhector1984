@@ -289,7 +289,8 @@ export async function deleteCustomerGroupPrice(id: string): Promise<void> {
 // ---------------------------------------------------------------------------
 
 export interface ShippingInput {
-  weightOz: number;
+  /** Grams per pair (migration 0042); undefined clears it. */
+  weightG?: number;
   lengthCm?: number;
   widthCm?: number;
   heightCm?: number;
@@ -305,7 +306,7 @@ export async function updateStyleShipping(styleId: string, input: ShippingInput)
   const { error } = await supabaseAdmin
     .from("styles")
     .update({
-      weight_oz: input.weightOz,
+      weight_g: input.weightG ?? null,
       length_cm: input.lengthCm ?? null,
       width_cm: input.widthCm ?? null,
       height_cm: input.heightCm ?? null,

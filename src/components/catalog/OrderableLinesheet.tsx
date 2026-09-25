@@ -38,7 +38,7 @@ export function OrderableLinesheet({
   const { eur } = useFormat();
   const { dict, locale } = useI18n();
   const d = dict.dashboard;
-  const { lines, setLineQty } = useCart();
+  const { lines, setLineQty, chargesVat } = useCart();
   const { productionLeadTimeDays } = useCatalog();
   const styleById = useMemo(() => new Map(styles.map((s) => [s.id, s])), [styles]);
 
@@ -76,7 +76,7 @@ export function OrderableLinesheet({
   );
 
   const subtotal = validations.reduce((sum, v) => sum + v.subtotal, 0);
-  const vatTotal = validations.reduce((sum, v) => sum + v.subtotal * (v.style.vatRate ?? 0), 0);
+  const vatTotal = chargesVat ? validations.reduce((sum, v) => sum + v.subtotal * (v.style.vatRate ?? 0), 0) : 0;
   const grandTotal = subtotal + vatTotal;
 
   return (

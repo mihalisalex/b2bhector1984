@@ -46,6 +46,9 @@ interface CartContextValue {
    * one — undefined means no override, so every consumer should fall back to
    * `MIN_ORDER_PAIRS` itself rather than treating undefined as "no minimum". */
   minOrderPairs?: number;
+  /** False for a buyer based outside Greece — they are invoiced without Greek VAT (see
+   * `chargesGreekVat` in src/lib/tax.ts), so no "+VAT" marker and no VAT line anywhere. */
+  chargesVat: boolean;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -62,11 +65,13 @@ export function CartProvider({
   accountId,
   priceMultiplier = 1,
   minOrderPairs,
+  chargesVat = true,
   children,
 }: {
   accountId: string;
   priceMultiplier?: number;
   minOrderPairs?: number;
+  chargesVat?: boolean;
   children: ReactNode;
 }) {
   const { getStyleById } = useCatalog();
@@ -206,10 +211,10 @@ export function CartProvider({
   const styleVat = useCallback(
     (styleId: string) => {
       const style = getStyleById(styleId);
-      if (!style?.vatRate) return 0;
+      if (!chargesVat || !style?.vatRate) return 0;
       return Math.round(styleSubtotal(styleId) * style.vatRate * 100) / 100;
     },
-    [getStyleById, styleSubtotal],
+    [getStyleById, styleSubtotal, chargesVat],
   );
 
   const cartTotal = useMemo(() => {
@@ -240,6 +245,7 @@ export function CartProvider({
       cartGrandTotal,
       priceMultiplier,
       minOrderPairs,
+      chargesVat,
     }),
     [
       lines,
@@ -256,10 +262,19 @@ export function CartProvider({
       cartGrandTotal,
       priceMultiplier,
       minOrderPairs,
+      chargesVat,
     ],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+}
+
+/**
+ * Whether prices shown to the current viewer carry Greek VAT. Safe outside a CartProvider
+ * (logged-out pages, which show no prices anyway) — it answers true there, the Greek default.
+ */
+export function useChargesVat(): boolean {
+  return useContext(CartContext)?.chargesVat ?? true;
 }
 
 export function useCart(): CartContextValue {

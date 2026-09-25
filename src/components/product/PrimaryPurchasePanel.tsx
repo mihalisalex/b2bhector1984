@@ -39,7 +39,7 @@ export function PrimaryPurchasePanel({
   priceMultiplier?: number;
   initialFavorited: boolean;
 }) {
-  const { addLines, lines, itemCount, minOrderPairs: accountMinOrderPairs } = useCart();
+  const { addLines, lines, itemCount, minOrderPairs: accountMinOrderPairs, chargesVat } = useCart();
   const minOrderPairs = accountMinOrderPairs ?? MIN_ORDER_PAIRS;
   const { productionLeadTimeDays } = useCatalog();
   const { locale, dict } = useI18n();
@@ -190,7 +190,7 @@ export function PrimaryPurchasePanel({
                 ? c.outOfStockCombo
                 : willBeProduction
                   ? style.backorderMode === "pre_order"
-                    ? c.preOrderShips
+                    ? t(c.preOrderShips, { days: productionLeadTimeDays })
                     : t(c.madeToOrderShips, { days: productionLeadTimeDays })
                   : lowStock
                     ? t(c.onlyLeft, { count: onHand })
@@ -296,7 +296,7 @@ export function PrimaryPurchasePanel({
                   ? c.addedToCart
                   : t(addQty > 1 ? c.addBoxesPlural : c.addBoxes, {
                       pairs: box.totalPairs,
-                      total: `${eur(subtotal)}${vatSuffixText(style.vatRate, dict)}`,
+                      total: `${eur(subtotal)}${vatSuffixText(chargesVat ? style.vatRate : 0, dict)}`,
                     })}
             </button>
           </div>

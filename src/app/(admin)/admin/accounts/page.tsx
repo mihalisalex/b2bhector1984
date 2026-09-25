@@ -1,6 +1,7 @@
 import { getAllAccounts } from "@/lib/data/accounts";
 import { getAllSalesReps } from "@/lib/data/salesReps";
 import { AccountsTable } from "@/components/admin/AccountsTable";
+import { countryOptions } from "@/lib/countries";
 
 export const metadata = { title: "Accounts", robots: { index: false, follow: false } };
 
@@ -22,7 +23,7 @@ export default async function AdminAccountsPage() {
           No active buyer accounts yet.
         </div>
       ) : (
-        <AccountsTable accounts={accounts} reps={reps} />
+        <AccountsTable accounts={accounts} reps={reps} countries={countryOptions("en", "Other")} />
       )}
     </div>
   );

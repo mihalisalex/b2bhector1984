@@ -209,6 +209,8 @@ export interface Style {
   basePrice: number;
   msrp: number;
   weightOz: number;
+  /** Approximate weight of one pair in grams (migration 0042). Undefined when not on file. */
+  weightG?: number;
   lastNote: string;
   /** Public URL of the admin-uploaded primary product photo, if any. */
   primaryImageUrl?: string;
@@ -353,6 +355,9 @@ export interface Account {
    */
   locale?: string;
   localeInferred?: boolean;
+  /** ISO 3166-1 alpha-2 (migration 0042). Decides VAT — see `chargesGreekVat`. Undefined
+   * only before the migration has run, which reads as Greece. */
+  country?: string;
   resaleCertId: string;
   businessType: string;
   storeLocation: string;
@@ -444,6 +449,8 @@ export interface Application {
   zip: string;
   expectedVolume: string;
   website?: string;
+  /** ISO 3166-1 alpha-2 (migration 0042); carried onto the account at activation. */
+  country: string;
   status: ApplicationStatus;
   submittedAt: string;
   /** Set by the admin at approval time (see `AdminApplicationsList`) — carried onto the

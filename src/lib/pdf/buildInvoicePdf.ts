@@ -31,6 +31,9 @@ export interface BuildInvoicePdfInput {
    * resolved (deleted/archived since the order was placed) still renders — just with its
    * raw id as the name and no photo, same fallback the on-demand invoice route always used. */
   styleById: Map<string, Style | undefined>;
+  /** True when the buyer is based outside Greece and was invoiced without Greek VAT —
+   * prints an explicit "VAT 0%" line so the zero reads as deliberate, not forgotten. */
+  vatExemptAbroad?: boolean;
 }
 
 /**
@@ -163,6 +166,7 @@ export async function buildInvoicePdf(input: BuildInvoicePdfInput): Promise<Buff
       total,
       vatTotal,
       grandTotal,
+      vatExemptAbroad: input.vatExemptAbroad && vatTotal === 0,
       // The buyer's language. `locale` is threaded in by the caller rather than read from
       // the request here, because one of the two call sites (the order-confirmation email)
       // renders inside `after()`, where no request remains.

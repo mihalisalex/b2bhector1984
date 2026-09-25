@@ -18,14 +18,20 @@ import type { Dictionary } from "@/i18n/dictionaries/en";
 export function VatNotice({
   dict,
   rates,
+  chargesVat,
   className,
 }: {
   dict: Dictionary;
   /** Per-item VAT rates on this page. Omit to state the standard rate. */
   rates?: readonly (number | undefined)[];
+  /** False for a buyer based outside Greece — says no Greek VAT is charged instead. */
+  chargesVat?: boolean;
   className?: string;
 }) {
   const rate = rates ? commonVatRate(rates) : DEFAULT_VAT_RATE;
+  if (chargesVat === false) {
+    return <p className={className ?? "text-xs text-ink-soft"}>{dict.tax.vatNotCharged}</p>;
+  }
 
   return (
     <p className={className ?? "text-xs text-ink-soft"}>

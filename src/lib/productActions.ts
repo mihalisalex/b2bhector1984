@@ -385,7 +385,11 @@ export async function updateShippingAction(styleId: string, _prev: FormState, fo
     return Number.isFinite(v) ? v : undefined;
   };
   const input: ShippingInput = {
-    weightOz: num("weightOz") ?? 0,
+    // Rounded and bounded like the column's own check (0 < g < 10,000); anything else clears it.
+    weightG: (() => {
+      const g = num("weightG");
+      return g !== undefined && g > 0 && g < 10000 ? Math.round(g) : undefined;
+    })(),
     lengthCm: num("lengthCm"),
     widthCm: num("widthCm"),
     heightCm: num("heightCm"),

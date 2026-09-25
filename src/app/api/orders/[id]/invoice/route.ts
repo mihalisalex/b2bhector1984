@@ -1,4 +1,5 @@
 import { getCurrentAccount } from "@/lib/session";
+import { chargesGreekVat } from "@/lib/tax";
 import { resolveLocale } from "@/lib/localeHeuristic";
 import { getOrderById, getOrderByIdAdmin } from "@/lib/runtimeOrders";
 import { getAccountById } from "@/lib/data/accounts";
@@ -59,6 +60,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       // invoice should get the document that buyer received, not one in the admin's own
       // language — it is the same legal document, and the two must not differ.
       locale: resolveLocale(shipToAccount?.locale, shipToAccount?.storeLocation),
+      vatExemptAbroad: !chargesGreekVat(shipToAccount?.country),
     });
   } catch (err) {
     // New failure mode since product photography was added to this document: a photo

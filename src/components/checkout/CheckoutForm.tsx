@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState, useMemo, useState } from "react";
-import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
 import { useCatalog } from "@/lib/catalog-context";
 import { getOrderMinimumError, getUnitPrice, TERMS_DISCOUNT, validateMatrix } from "@/lib/pricing";
@@ -27,7 +26,7 @@ export function CheckoutForm({ account }: { account: Account }) {
   const c = dict.checkout;
   const termsLabel = (v: CreditTerms) =>
     v === "prepay" ? c.termsPrepay : v === "net30" ? c.termsNet30 : c.termsNet60;
-  const { lines } = useCart();
+  const { lines, chargesVat } = useCart();
   const { getStyleById, inventory, productionLeadTimeDays } = useCatalog();
   const [terms, setTerms] = useState<CreditTerms>(account.creditTerms);
 
@@ -55,8 +54,9 @@ export function CheckoutForm({ account }: { account: Account }) {
     [styleGroups],
   );
   const vatTotal = useMemo(
-    () => Math.round(styleGroups.reduce((sum, g) => sum + g.subtotal * (g.style.vatRate ?? 0), 0) * 100) / 100,
-    [styleGroups],
+    () =>
+      chargesVat ? Math.round(styleGroups.reduce((sum, g) => sum + g.subtotal * (g.style.vatRate ?? 0), 0) * 100) / 100 : 0,
+    [styleGroups, chargesVat],
   );
   const grandTotal = useMemo(() => Math.round((cartTotal + vatTotal) * 100) / 100, [cartTotal, vatTotal]);
   const totalPairs = useMemo(() => styleGroups.reduce((sum, g) => sum + g.totalPairs, 0), [styleGroups]);
@@ -181,12 +181,13 @@ export function CheckoutForm({ account }: { account: Account }) {
               {preOrder.length > 0 && (
                 <p>
                   <span className="font-medium text-ink">{t(c.preOrderLabel, { count: preOrder.length })}</span>{" "}
-                  {t(c.preOrderBody, { rep: account.rep.name })}
+                  {t(c.preOrderBody, { days: productionLeadTimeDays })}
                 </p>
               )}
               {[availableNow.length > 0, prebook.length > 0, madeToOrder.length > 0, preOrder.length > 0].filter(Boolean).length > 1 && (
                 <p className="text-xs">{c.multipleShipments}</p>
               )}
+              <p>{c.shippingNote}</p>
             </div>
           </Section>
         )}
@@ -243,7 +244,12 @@ export function CheckoutForm({ account }: { account: Account }) {
         </div>
         {/* Your brief: it must be impossible for a buyer to think a displayed price
             includes VAT. This is the last screen before they commit. */}
-        <VatNotice dict={dict} rates={styleGroups.map((g) => g.style.vatRate)} className="mt-3 text-[11px] text-ink-soft" />
+        <VatNotice
+          dict={dict}
+          rates={styleGroups.map((g) => g.style.vatRate)}
+          chargesVat={chargesVat}
+          className="mt-3 text-[11px] text-ink-soft"
+        />
         <p className="mt-1 text-right text-[11px] text-ink-soft">
           {TERMS_DISCOUNT[terms] > 0
             ? t(c.discountApplied, { terms: termsLabel(terms), percent: Math.round(TERMS_DISCOUNT[terms] * 100) })
@@ -264,12 +270,7 @@ export function CheckoutForm({ account }: { account: Account }) {
         <Button type="submit" size="lg" className="mt-5 w-full" disabled={pending || !!minimumError}>
           {pending ? c.requesting : c.requestProforma}
         </Button>
-        <p className="mt-3 text-center text-[11px] text-ink-soft">
-          This isn&rsquo;t a charge — it sends this order to {account.rep.name}{" "}
-          as a proforma invoice so we can check stock and production before confirming. You&rsquo;ll see it
-          in{" "}
-          <Link href="/dashboard" className="underline">order history</Link> immediately.
-        </p>
+        <p className="mt-3 text-center text-[11px] text-ink-soft">{c.nextSteps}</p>
       </div>
 
       {/* Sticky mobile submit bar — the total + submit stay reachable while filling out

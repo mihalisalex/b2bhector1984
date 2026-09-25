@@ -7,13 +7,22 @@ import { CreditLimitInput } from "@/components/admin/CreditLimitInput";
 import { MinOrderPairsInput } from "@/components/admin/MinOrderPairsInput";
 import { RepSelect } from "@/components/admin/RepSelect";
 import { PhoneInput } from "@/components/admin/PhoneInput";
+import { CountrySelect } from "@/components/admin/CountrySelect";
 import { ListPager } from "@/components/admin/ListPager";
 import type { Account } from "@/lib/types";
 import type { AdminSalesRep } from "@/lib/data/salesReps";
 
 const PAGE_SIZE = 20;
 
-export function AccountsTable({ accounts, reps }: { accounts: Account[]; reps: AdminSalesRep[] }) {
+export function AccountsTable({
+  accounts,
+  reps,
+  countries,
+}: {
+  accounts: Account[];
+  reps: AdminSalesRep[];
+  countries: { value: string; label: string }[];
+}) {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
 
@@ -57,6 +66,7 @@ export function AccountsTable({ accounts, reps }: { accounts: Account[]; reps: A
                 <tr className="border-b border-stone-300 bg-stone-100 text-left text-[11px] uppercase tracking-wide text-ink-soft">
                   <th className="px-4 py-2.5 font-semibold">Business</th>
                   <th className="px-4 py-2.5 font-semibold">WhatsApp phone</th>
+                  <th className="px-4 py-2.5 font-semibold" title="Decides VAT: only Greece is charged Greek VAT">Country</th>
                   <th className="px-4 py-2.5 font-semibold">Terms</th>
                   <th className="px-4 py-2.5 font-semibold">Credit limit</th>
                   <th className="px-4 py-2.5 font-semibold">Rep</th>
@@ -73,6 +83,9 @@ export function AccountsTable({ accounts, reps }: { accounts: Account[]; reps: A
                     </td>
                     <td className="px-4 py-2.5">
                       <PhoneInput accountId={account.id} phone={account.phone} businessName={account.businessName} />
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <CountrySelect accountId={account.id} country={account.country} businessName={account.businessName} options={countries} />
                     </td>
                     <td className="px-4 py-2.5">
                       <CreditTermsSelect accountId={account.id} creditTerms={account.creditTerms} businessName={account.businessName} />

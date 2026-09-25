@@ -166,9 +166,10 @@ export function buildNewApplicationAdminEmailBody(application: {
   email: string;
   phone: string;
   storeLocation: string;
+  country: string;
   expectedVolume: string;
 }): string {
-  return `You got a new wholesale application.\n\nBusiness: ${application.businessName}\nContact: ${application.contactName}\nEmail: ${application.email}\nPhone: ${application.phone}\nLocation: ${application.storeLocation}\nExpected volume: ${application.expectedVolume}\n\nReview it in the admin dashboard: Applications.`;
+  return `You got a new wholesale application.\n\nBusiness: ${application.businessName}\nContact: ${application.contactName}\nEmail: ${application.email}\nPhone: ${application.phone}\nLocation: ${application.storeLocation}\nCountry: ${application.country}\nExpected volume: ${application.expectedVolume}\n\nReview it in the admin dashboard: Applications.`;
 }
 
 export const NEW_APPLICATION_ADMIN_EMAIL_SUBJECT = "You got a new wholesale application";

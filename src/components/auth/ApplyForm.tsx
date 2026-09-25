@@ -43,7 +43,15 @@ function volumeBands(d: Dictionary["apply"]) {
   ];
 }
 
-export function ApplyForm() {
+export function ApplyForm({
+  countries,
+  defaultCountry,
+}: {
+  /** Built on the server (`countryOptions`) so names match between render and hydration. */
+  countries: { value: string; label: string }[];
+  /** "GR" on the Greek site; empty elsewhere, so the buyer has to choose. */
+  defaultCountry: string;
+}) {
   const [state, formAction, pending] = useActionState(submitApplication, initialState);
   const a = useI18n().dict.apply;
 
@@ -71,13 +79,33 @@ export function ApplyForm() {
 
         <fieldset className="flex flex-col gap-4">
           <Legend>{a.legendLocation}</Legend>
+          {/* Country first: it decides VAT (only Greek businesses pay Greek VAT), and knowing
+              it up front makes the address fields below read naturally for a foreign shop. */}
+          <label className="flex flex-col gap-1.5">
+            <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{a.country}</span>
+            <select
+              name="country"
+              required
+              defaultValue={defaultCountry}
+              className="border border-stone-300 bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors duration-200 focus-visible:border-signal"
+            >
+              <option value="" disabled>
+                {a.selectOne}
+              </option>
+              {countries.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+            <span className="text-xs text-ink-soft">{a.countryHint}</span>
+          </label>
           <Field label={a.address} name="addressLine1" required />
           <Row cols={3}>
             <Field label={a.city} name="city" required placeholder={a.cityPlaceholder} />
             <Field label={a.region} name="state" required placeholder={a.regionPlaceholder} />
             <Field label={a.postalCode} name="zip" required placeholder={a.postalCodePlaceholder} />
           </Row>
-          <Field label={a.storeLocation} name="storeLocation" required placeholder={a.storeLocationPlaceholder} />
         </fieldset>
 
         <fieldset className="flex flex-col gap-4">

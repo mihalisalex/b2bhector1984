@@ -58,3 +58,15 @@ export function formatDateLong(iso: string, locale: string = "en"): string {
   const d = new Date(iso);
   return d.toLocaleDateString(resolve(locale), { day: "numeric", month: "long", year: "numeric" });
 }
+
+/**
+ * A pair's weight for display: "600 g", "1 kg", "1,2 kg" (Greek decimal comma). Weights are
+ * approximate (±50–100 g), so kilograms are shown to one decimal at most.
+ */
+export function formatWeight(grams: number, locale: string = "en"): string {
+  const numberLocale = resolve(locale);
+  if (grams >= 1000) {
+    return `${(grams / 1000).toLocaleString(numberLocale, { maximumFractionDigits: 1 })} kg`;
+  }
+  return `${Math.round(grams).toLocaleString(numberLocale)} g`;
+}

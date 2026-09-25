@@ -11,8 +11,10 @@ import {
   updateAccountMinOrderPairs,
   updateAccountRep,
   updateAccountPhoneAdmin,
+  updateAccountCountry,
   getAccountByEmail,
 } from "@/lib/data/accounts";
+import { isKnownCountry } from "@/lib/countries";
 import { MIN_ORDER_PAIRS } from "@/lib/pricing";
 import { createSalesRep, updateSalesRep, deleteSalesRep, getSalesRepById } from "@/lib/data/salesReps";
 import { logAudit } from "@/lib/data/auditLog";
@@ -373,6 +375,19 @@ export async function updateAccountCreditTermsAction(accountId: string, _prev: F
   await logAudit(admin.id, "account.credit_terms_updated", "account", accountId, terms);
   revalidatePath("/admin/accounts");
   return { success: "Credit terms saved." };
+}
+
+/** Bound to `.bind(null, accountId)` — the country decides whether Greek VAT is charged. */
+export async function updateAccountCountryAction(accountId: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  const admin = await requirePermission("accounts.manage");
+  const country = String(formData.get("country") ?? "").trim().toUpperCase();
+  if (!isKnownCountry(country)) return { error: "Choose a country from the list." };
+  await updateAccountCountry(accountId, country);
+  await logAudit(admin.id, "account.country_updated", "account", accountId, country);
+  revalidatePath("/admin/accounts");
+  return {
+    success: country === "GR" ? "Country saved — this buyer is charged Greek VAT." : "Country saved — this buyer is invoiced without Greek VAT.",
+  };
 }
 
 /** Bound to `.bind(null, accountId)` — a <form action> per account row's credit-limit input. */

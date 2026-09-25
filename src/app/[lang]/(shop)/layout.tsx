@@ -5,6 +5,7 @@ import { getHomepageHero } from "@/lib/data/siteContent";
 import { getInventoryForStyles } from "@/lib/data/inventory";
 import { CatalogProvider } from "@/lib/catalog-context";
 import { CartProvider } from "@/lib/cart-context";
+import { chargesGreekVat } from "@/lib/tax";
 import { ShopHeader } from "@/components/layout/ShopHeader";
 import { ShopFooter } from "@/components/layout/ShopFooter";
 import { getDictionary } from "@/i18n/getDictionary";
@@ -30,7 +31,7 @@ export default async function ShopLayout({
 
   return (
     <CatalogProvider styles={styles} productionLeadTimeDays={hero.productionLeadTimeDays} inventory={inventory}>
-      <CartProvider accountId={account.id} priceMultiplier={account.priceMultiplier} minOrderPairs={account.minOrderPairs}>
+      <CartProvider accountId={account.id} priceMultiplier={account.priceMultiplier} minOrderPairs={account.minOrderPairs} chargesVat={chargesGreekVat(account.country)}>
         <ShopHeader account={account} locale={lang} dict={dict} />
         <main className="flex-1 bg-stone-50">{children}</main>
         <ShopFooter account={account} locale={lang} dict={dict} />

@@ -120,7 +120,7 @@ export function CompleteMinimum({
                     {option.fulfillment === "stock"
                       ? t(d.inStockCount, { count: option.onHand })
                       : option.fulfillment === "pre_order"
-                        ? c.preOrderShips
+                        ? t(c.preOrderShips, { days: productionLeadTimeDays })
                         : t(d.madeToOrderDays, { days: productionLeadTimeDays })}
                   </p>
                 </div>

@@ -20,7 +20,9 @@ export function ShippingTab({ style, canEdit }: { style: Style; canEdit: boolean
 
   return (
     <form action={formAction} className="max-w-2xl space-y-5 pb-20">
-      <TextField label="Weight (oz)" name="weightOz" type="number" step="0.01" defaultValue={style.weightOz} disabled={!canEdit} />
+      {/* Grams per pair, shown on the product page as "About 1 kg per pair". Leave empty to
+          hide the weight line. */}
+      <TextField label="Weight per pair (grams)" name="weightG" type="number" step="10" defaultValue={style.weightG} disabled={!canEdit} />
 
       <div>
         <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-soft">Product dimensions (cm)</p>

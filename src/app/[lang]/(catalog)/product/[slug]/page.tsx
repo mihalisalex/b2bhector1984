@@ -1,4 +1,7 @@
 import { notFound, redirect } from "next/navigation";
+import { getHomepageHero } from "@/lib/data/siteContent";
+import { chargesGreekVat } from "@/lib/tax";
+import { t } from "@/i18n/format";
 import Link from "next/link";
 import { CATEGORY_LABEL, getRelatedStyles, getStyleBySlug, getStyleImageUrl } from "@/lib/data/styles";
 import { getInventoryForStyle, getInventoryForStyles, totalOnHandForStyle } from "@/lib/data/inventory";
@@ -80,7 +83,7 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
   // parallel batch — this used to be two batches back to back, then a third for favourites.
   const [related, dict] = await Promise.all([getRelatedStyles(style), getDictionary(locale)]);
   const relatedIds = related.map((s) => s.id);
-  const [inventory, images, account, relatedInventory, relatedImages, guides, seoSettings] = await Promise.all([
+  const [inventory, images, account, relatedInventory, relatedImages, guides, seoSettings, hero] = await Promise.all([
     getInventoryForStyle(style.id),
     getImagesForStyle(style.id),
     getAccountForAudience(audience),
@@ -88,7 +91,9 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
     listImagesForStyles(relatedIds),
     getGuidesForStyle(style, locale, categoryLabel(dict, style.category)),
     getSeoSettings(),
+    getHomepageHero(),
   ]);
+  const leadTimeDays = hero.productionLeadTimeDays;
   const priceMultiplier = account?.priceMultiplier ?? 1;
   const favorited = account ? await isFavorite(account.id, style.id) : false;
 
@@ -224,11 +229,12 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
                     applyHref={withLocale(locale, "/apply")}
                     loginHref={withLocale(locale, `/login?next=${encodeURIComponent(`/product/${style.slug}`)}`)}
                     dict={dict}
+                    leadTimeDays={leadTimeDays}
                   />
                 )}
               </div>
 
-              <TrustStrip rep={account?.rep} dict={dict} />
+              <TrustStrip rep={account?.rep} dict={dict} leadTimeDays={leadTimeDays} />
             </div>
           </div>
         </ColorwaySelectionProvider>
@@ -239,6 +245,8 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
           dict={dict}
           minOrderPairs={account?.minOrderPairs}
           showPricing={showPricing}
+          leadTimeDays={leadTimeDays}
+          chargesVat={chargesGreekVat(account?.country)}
         />
       </div>
 
@@ -295,7 +303,7 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
 }
 
 /** Reassurance row under the buy box — every line is a real policy or real account data, never a generic badge. */
-function TrustStrip({ rep, dict }: { rep?: SalesRep; dict: Dictionary }) {
+function TrustStrip({ rep, dict, leadTimeDays }: { rep?: SalesRep; dict: Dictionary; leadTimeDays: number }) {
   // These four lines had dictionary keys from the day the shared wholesale strings landed
   // (box.fixed, terms.discounts, stock.live, rep.assigned) — they were simply never wired
   // to them, so a Greek buyer read the four policy claims in English.
@@ -303,7 +311,7 @@ function TrustStrip({ rep, dict }: { rep?: SalesRep; dict: Dictionary }) {
     <ul className="mt-4 grid grid-cols-1 gap-2 text-xs text-ink-soft sm:grid-cols-2">
       <TrustItem>{dict.box.fixed}</TrustItem>
       <TrustItem>{dict.terms.discounts}</TrustItem>
-      <TrustItem>{dict.stock.live}</TrustItem>
+      <TrustItem>{t(dict.stock.live, { days: leadTimeDays })}</TrustItem>
       {rep ? (
         <TrustItem>
           {dict.dashboard.yourRep}{" "}

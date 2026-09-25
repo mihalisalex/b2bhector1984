@@ -114,12 +114,26 @@ export function resolveTaxIdentity(input?: {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Who pays Greek VAT
+// ---------------------------------------------------------------------------
+
 /**
- * NOT IMPLEMENTED, deliberately — noted as a follow-up per the owner's instruction.
+ * Only buyers based in Greece are charged Greek VAT (owner's decision, 2026-09-25).
  *
- * EU reverse-charge invoices a VAT-registered buyer in another member state at 0% with the
- * liability shifted to them, which requires validating their VAT number against VIES at
- * order time and storing the outcome. That is separate work with its own failure modes
- * (VIES is frequently down, and a failed lookup must not block an order). Until it exists,
- * every order is invoiced at the Greek domestic rate on the line.
+ * Everyone else — another EU member state or outside the EU — is invoiced at 0%: an EU
+ * business accounts for the VAT itself under the reverse-charge rules, and a buyer outside
+ * the EU is an export. The country is the one the buyer gave on their application
+ * (`accounts.country`), editable from /admin/accounts. A missing value means Greece, which
+ * is what every account created before the column existed was.
+ *
+ * `styles.vat_rate` stays the rate for a Greek sale; this decides whether it applies.
  */
+export function chargesGreekVat(country: string | null | undefined): boolean {
+  return !country || country.toUpperCase() === "GR";
+}
+
+/** The VAT rate to actually charge this buyer on a style whose Greek rate is `styleRate`. */
+export function vatRateForBuyer(styleRate: number | undefined, country: string | null | undefined): number {
+  return chargesGreekVat(country) ? (styleRate ?? 0) : 0;
+}

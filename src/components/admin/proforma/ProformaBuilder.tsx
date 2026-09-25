@@ -22,6 +22,8 @@ export interface ProformaAccount {
   email: string;
   priceMultiplier: number;
   locale: Locale;
+  /** From `accounts.country` — pre-sets the "charge Greek VAT" box. */
+  chargesVat: boolean;
   shipTo: { label: string; line1: string; line2?: string; city: string; state: string; zip: string; isDefault?: boolean }[];
 }
 
@@ -60,6 +62,9 @@ export function ProformaBuilder({ styles, accounts }: { styles: ProformaStyle[];
   const [postalCode, setPostalCode] = useState("");
   const [terms, setTerms] = useState<CreditTerms>("net60");
   const [locale, setLocale] = useState<Locale>("el");
+  // Greek VAT only for a buyer based in Greece. Pre-set from the picked account's country;
+  // for a walk-in with no account the admin ticks or unticks it.
+  const [chargeVat, setChargeVat] = useState(true);
   const [lines, setLines] = useState<Line[]>([]);
   const [busy, setBusy] = useState<"" | "download" | "email">("");
   const [error, setError] = useState("");
@@ -77,6 +82,7 @@ export function ProformaBuilder({ styles, accounts }: { styles: ProformaStyle[];
     setContactName(account.contactName);
     setEmail(account.email);
     setLocale(account.locale);
+    setChargeVat(account.chargesVat);
     const ship = account.shipTo.find((s) => s.isDefault) ?? account.shipTo[0];
     setAddressLine1(ship?.line1 ?? "");
     setAddressLine2(ship?.line2 ?? "");
@@ -128,12 +134,12 @@ export function ProformaBuilder({ styles, accounts }: { styles: ProformaStyle[];
       const linePairs = line.qty * box.totalPairs;
       const lineNet = linePairs * style.unitPriceByTerms[terms];
       net += lineNet;
-      vat += lineNet * style.vatRate;
+      if (chargeVat) vat += lineNet * style.vatRate;
       pairs += linePairs;
       boxes += line.qty;
     }
     return { net, vat, gross: net + vat, pairs, boxes };
-  }, [lines, terms, styleById]);
+  }, [lines, terms, styleById, chargeVat]);
 
   const eur = (n: number) => n.toLocaleString("el-GR", { style: "currency", currency: "EUR" });
 
@@ -149,6 +155,7 @@ export function ProformaBuilder({ styles, accounts }: { styles: ProformaStyle[];
           recipient: { businessName, contactName, email, addressLine1, addressLine2, city, region, postalCode },
           terms,
           locale,
+          chargeVat,
           delivery,
           lines: lines.map(({ styleId, colorwayId, boxTypeId, qty }) => ({ styleId, colorwayId, boxTypeId, qty })),
         }),
@@ -219,6 +226,10 @@ export function ProformaBuilder({ styles, accounts }: { styles: ProformaStyle[];
             <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" className={INPUT} />
             <input value={region} onChange={(e) => setRegion(e.target.value)} placeholder="Region" className={INPUT} />
             <input value={postalCode} onChange={(e) => setPostalCode(e.target.value)} placeholder="Postal code" className={INPUT} />
+            <label className="flex items-center gap-2 text-sm text-ink sm:col-span-2">
+              <input type="checkbox" checked={chargeVat} onChange={(e) => setChargeVat(e.target.checked)} className="accent-ink" />
+              Charge Greek VAT (buyer based in Greece). Untick for buyers abroad — invoiced at 0%.
+            </label>
           </div>
 
           {/* Negotiated pricing is NOT applied here — this quote uses catalogue prices at the

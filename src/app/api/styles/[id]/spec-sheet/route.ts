@@ -35,7 +35,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
           category: style.category,
           gender: style.gender,
           materials: style.materials,
-          weightOz: style.weightOz,
+          weightG: style.weightG,
           msrp: style.msrp,
           tagline: style.tagline,
         },

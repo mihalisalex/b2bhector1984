@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { CATEGORY_LABEL, GENDER_LABEL } from "@/lib/data/styleLabels";
 import { formatEUR, MIN_ORDER_PAIRS } from "@/lib/pricing";
+import { formatWeight } from "@/lib/format";
 import { SizeChart } from "@/components/product/SizeChart";
 import { localizeStyle } from "@/lib/localizeStyle";
 import { vatPercent } from "@/lib/tax";
@@ -25,6 +26,8 @@ export function ProductDetails({
   dict,
   minOrderPairs = MIN_ORDER_PAIRS,
   showPricing = true,
+  leadTimeDays,
+  chargesVat = true,
 }: {
   style: Style;
   locale: Locale;
@@ -35,6 +38,10 @@ export function ProductDetails({
    * is the promise this page makes to a logged-out visitor. Everything else in the
    * specification list stays, so the page keeps real content for a crawler. */
   showPricing?: boolean;
+  /** Production lead time from /admin — every order is produced for the buyer. */
+  leadTimeDays: number;
+  /** False for a signed-in buyer based outside Greece, who is not charged Greek VAT. */
+  chargesVat?: boolean;
 }) {
   const boxTypes = getAvailableBoxTypes(style);
   const docs = style.documents ?? [];
@@ -79,13 +86,15 @@ export function ProductDetails({
       <Section title={p.specifications}>
         <dl className="grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
           <Spec label={p.styleNumber} value={style.styleNumber} />
-          <Spec label={p.brand} value={style.brandName} />
+          <Spec label={p.brand} value={style.brandName || "Hector Footwear"} />
           <Spec label={p.category} value={`${CATEGORY_LABEL[style.category]} · ${GENDER_LABEL[style.gender]}`} />
           <Spec label={p.materials} value={copy.materials.join(", ")} />
-          <Spec label={p.weight} value={t(p.weightValue, { oz: style.weightOz })} />
+          {/* Hidden rather than printed as "0" when a style has no weight on file. */}
+          {style.weightG ? <Spec label={p.weight} value={t(p.weightValue, { weight: formatWeight(style.weightG, locale) })} /> : null}
           {showPricing && <Spec label={p.msrp} value={t(p.msrpValue, { price: formatEUR(style.msrp, locale) })} />}
           <Spec label={p.soldAs} value={t(p.soldAsValue, { sizes: boxTypes.map((b) => b.totalPairs).join(" / ") })} />
-          <Spec label={p.sizeRunLabel} value={dict.sizeRun} />
+          {/* From the box breakdown itself — an 8-pair box runs EU 40–44, not 40–45. */}
+          <Spec label={p.sizeRunLabel} value={t(dict.sizeRun, sizeRange(boxTypes))} />
           {hasDimensions && (
             <Spec
               label={p.dimensions}
@@ -115,19 +124,24 @@ export function ProductDetails({
             value={
               style.availability === "available"
                 ? p.availableNowValue
-                : style.backorderMode === "made_to_order"
-                  ? dict.availability.madeToOrder
-                  : style.shipWindow
+                : style.shipWindow
                   ? t(p.prebookValueWithWindow, { window: style.shipWindow })
-                  : p.prebookValue
+                  : style.backorderMode === "made_to_order"
+                    ? t(p.madeToOrderValue, { days: leadTimeDays })
+                    : t(p.prebookValue, { days: leadTimeDays })
             }
           />
           <Spec label={p.paymentTerms} value={dict.terms.discounts} />
           {/* `vatRate` is a fraction (0.24), so the old `${style.vatRate}%` rendered
               "Excludes VAT (0.24%)" on every product page. vatPercent does the conversion
               in the one place that owns it. */}
-          <Spec label={p.pricingShown} value={t(p.pricingShownValue, { rate: vatPercent(style.vatRate) })} />
-          {style.shippingClass && <Spec label={p.shippingClass} value={style.shippingClass} />}
+          <Spec
+            label={p.pricingShown}
+            value={chargesVat ? t(p.pricingShownValue, { rate: vatPercent(style.vatRate) }) : dict.tax.vatNotCharged}
+          />
+          {/* The internal shipping class ("standard") told a buyer nothing. What they need to
+              know is who pays and how it travels: the buyer, by their own courier. */}
+          <Spec label={p.shippingLabel} value={p.shippingValue} />
         </dl>
         <p className="mt-4 text-sm text-ink-soft">
           {p.fullTermsPre}{" "}
@@ -188,6 +202,15 @@ function Section({
       <div className="pb-6">{children}</div>
     </details>
   );
+}
+
+/** Smallest and largest EU size actually packed in this style's boxes. */
+function sizeRange(boxTypes: { sizeBreakdown: Record<string, number> }[]): { from: string; to: string } {
+  const sizes = boxTypes
+    .flatMap((b) => Object.entries(b.sizeBreakdown).filter(([, n]) => n > 0).map(([size]) => Number(size)))
+    .filter((n) => Number.isFinite(n));
+  if (sizes.length === 0) return { from: "40", to: "45" };
+  return { from: String(Math.min(...sizes)), to: String(Math.max(...sizes)) };
 }
 
 function Spec({ label, value }: { label: string; value: string }) {

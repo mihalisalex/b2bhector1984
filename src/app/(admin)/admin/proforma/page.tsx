@@ -4,6 +4,7 @@ import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { CATEGORY_LABEL } from "@/lib/data/styleLabels";
 import { getUnitPrice } from "@/lib/pricing";
 import { resolveLocale } from "@/lib/localeHeuristic";
+import { chargesGreekVat } from "@/lib/tax";
 import { ProformaBuilder, type ProformaAccount, type ProformaStyle } from "@/components/admin/proforma/ProformaBuilder";
 
 export const metadata = { title: "Proforma Builder", robots: { index: false, follow: false } };
@@ -50,6 +51,7 @@ export default async function AdminProformaPage() {
     // store location. An account with no language on file still gets a sensible default
     // rather than the admin's own.
     locale: resolveLocale(a.locale, a.storeLocation),
+    chargesVat: chargesGreekVat(a.country),
     shipTo: a.shipTo.map((s) => ({
       label: s.label,
       line1: s.line1,

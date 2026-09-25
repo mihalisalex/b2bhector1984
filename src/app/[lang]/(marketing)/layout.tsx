@@ -3,6 +3,7 @@ import { getStorefrontStyles } from "@/lib/data/styles";
 import { getHomepageHero } from "@/lib/data/siteContent";
 import { CatalogProvider } from "@/lib/catalog-context";
 import { CartProvider } from "@/lib/cart-context";
+import { chargesGreekVat } from "@/lib/tax";
 import { HomeAnnouncementBar } from "@/components/layout/HomeAnnouncementBar";
 import { MarketingHeader } from "@/components/layout/MarketingHeader";
 import { Footer } from "@/components/layout/Footer";
@@ -48,7 +49,7 @@ export default async function MarketingLayout({
   // renders under the shop tree, which fetches the real thing in its own layout.
   return (
     <CatalogProvider styles={styles} productionLeadTimeDays={hero.productionLeadTimeDays} inventory={{}}>
-      <CartProvider accountId={account.id} priceMultiplier={account.priceMultiplier} minOrderPairs={account.minOrderPairs}>
+      <CartProvider accountId={account.id} priceMultiplier={account.priceMultiplier} minOrderPairs={account.minOrderPairs} chargesVat={chargesGreekVat(account.country)}>
         {content}
       </CartProvider>
     </CatalogProvider>

@@ -68,6 +68,7 @@ export async function POST(request: Request) {
       lines: resolved.lines,
       styleById,
       locale: draft.locale,
+      vatExemptAbroad: !draft.chargeVat,
     });
   } catch (err) {
     // Same failure mode the order invoice guards: one product photo that 404s or is in a

@@ -45,6 +45,8 @@ interface AccountRow {
   /** Migration 0037. Optional so this mapper still works pre-migration. */
   locale?: string | null;
   locale_inferred?: boolean | null;
+  /** Migration 0042 — absent before it runs. */
+  country?: string | null;
   resale_cert_id: string;
   business_type: string;
   store_location: string;
@@ -108,6 +110,7 @@ async function mapAccount(row: AccountRow): Promise<Account> {
     minOrderPairs: row.min_order_pairs == null ? undefined : toNumber(row.min_order_pairs),
     locale: row.locale ?? undefined,
     localeInferred: row.locale_inferred ?? undefined,
+    country: row.country ?? undefined,
     resaleCertId: row.resale_cert_id,
     businessType: row.business_type,
     storeLocation: row.store_location,
@@ -269,6 +272,8 @@ export async function createAccount(input: {
   priceMultiplier?: number;
   /** The language this buyer is written to in (migration 0037). */
   locale?: string;
+  /** ISO country code (migration 0042) — decides whether Greek VAT is charged. */
+  country?: string;
 }): Promise<void> {
   const baseRow = {
     id: input.id,
@@ -300,13 +305,19 @@ export async function createAccount(input: {
   // just take the column default once it exists.
   const { error } = await supabaseAdmin
     .from("accounts")
-    .insert({ ...baseRow, phone: input.phone ?? null, ...(input.locale ? { locale: input.locale } : {}) });
+    .insert({
+      ...baseRow,
+      phone: input.phone ?? null,
+      ...(input.locale ? { locale: input.locale } : {}),
+      ...(input.country ? { country: input.country } : {}),
+    });
   if (error) {
     const isMissingOptionalColumn =
       error.message.includes("schema cache") ||
       error.message.includes("Could not find") ||
       error.message.includes("phone") ||
-      error.message.includes("locale");
+      error.message.includes("locale") ||
+      error.message.includes("country");
     if (!isMissingOptionalColumn) throw new Error(`accounts: ${error.message}`);
     const { error: fallbackError } = await supabaseAdmin.from("accounts").insert(baseRow);
     if (fallbackError) throw new Error(`accounts: ${fallbackError.message}`);
@@ -453,4 +464,10 @@ export async function setDefaultShipToAddress(accountId: string, localId: string
     .eq("id", toDbId(accountId, localId))
     .eq("account_id", accountId);
   if (error) throw new Error(`ship_to_addresses: ${error.message}`);
+}
+
+/** Sets the buyer's country (migration 0042), which decides whether Greek VAT is charged. */
+export async function updateAccountCountry(id: string, country: string): Promise<void> {
+  const { error } = await supabaseAdmin.from("accounts").update({ country }).eq("id", id);
+  if (error) throw new Error(`accounts: ${error.message}`);
 }
