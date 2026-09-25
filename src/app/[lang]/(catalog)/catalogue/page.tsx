@@ -2,6 +2,7 @@ import { withLocale } from "@/i18n/paths";
 import { Suspense } from "react";
 import Link from "next/link";
 import { getStorefrontStyles, searchStyleIds } from "@/lib/data/styles";
+import { matchStylesBySynonyms } from "@/lib/searchSynonyms";
 import { availableFlagOptions, boxOptionsFromStyles, colorOptionsFromStyles, filterStyles, parseFilters } from "@/lib/catalogFilters";
 import { t } from "@/i18n/format";
 import { getHomepageHero } from "@/lib/data/siteContent";
@@ -76,7 +77,8 @@ export default async function CatalogPage({
   const seasonOptions = toSeasonOptions(seasonSettings);
   const dict = await getDictionary(locale);
   const [matchedIds, inventory] = await Promise.all([
-    filters.q ? searchStyleIds(filters.q) : Promise.resolve(undefined),
+    // Greek (and trade) words first — the database index is English-only; see searchSynonyms.
+    filters.q ? (matchStylesBySynonyms(filters.q, styles) ?? searchStyleIds(filters.q)) : Promise.resolve(undefined),
     getInventoryForStyles(styles.map((s) => s.id)),
   ]);
   const inStockIds = new Set(styles.filter((s) => totalOnHandForStyle(s.id, inventory) > 0).map((s) => s.id));

@@ -142,6 +142,7 @@ export function ProductDetails({
           {/* The internal shipping class ("standard") told a buyer nothing. What they need to
               know is who pays and how it travels: the buyer, by their own courier. */}
           <Spec label={p.shippingLabel} value={p.shippingValue} />
+          <Spec label={p.returnsLabel} value={p.returnsValue} />
         </dl>
         <p className="mt-4 text-sm text-ink-soft">
           {p.fullTermsPre}{" "}

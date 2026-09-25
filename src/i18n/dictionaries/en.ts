@@ -733,6 +733,8 @@ const en = {
     shippingClass: "Shipping class",
     shippingLabel: "Shipping",
     shippingValue: "Paid by the buyer, with the courier of your choice",
+    returnsLabel: "Returns",
+    returnsValue: "Faulty, wrong or missing items replaced or credited — no returns of unsold stock",
     fullTermsPre: "Full shipping, returns and account terms are on the",
     fullTermsPost: ". Your contact at Hector Footwear can confirm anything specific to your account.",
     specSheet: "Spec sheet (PDF)",

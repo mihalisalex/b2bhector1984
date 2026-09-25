@@ -687,6 +687,8 @@ const fr: Dictionary = {
     shippingClass: "Classe d'expédition",
     shippingLabel: "Expédition",
     shippingValue: "À la charge de l’acheteur, avec le transporteur de son choix",
+    returnsLabel: "Retours",
+    returnsValue: "Articles défectueux, erronés ou manquants remplacés ou crédités — pas de reprise des invendus",
     fullTermsPre: "Les conditions complètes de livraison, retour et compte figurent dans la",
     fullTermsPost: ". Votre interlocuteur chez Hector Footwear peut confirmer tout point propre à votre compte.",
     specSheet: "Fiche technique (PDF)",

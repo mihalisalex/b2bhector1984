@@ -126,6 +126,31 @@ function groupsEn(days: number): FaqGroup[] {
       ],
     },
     {
+      title: "Returns & Defects",
+      items: [
+        {
+          q: "Can I return shoes I haven't sold?",
+          a: "No. Every order is produced for you, so we can't take back unsold stock or accept returns because you've changed your mind. That's standard across wholesale footwear.",
+        },
+        {
+          q: "What if something is missing, wrong or damaged?",
+          a: "Check each delivery against the packing list when it arrives and tell us within 8 days, with photos. We send the missing or correct boxes at our cost. For damage in transit, also note it on your courier's delivery slip — since the courier is yours, we'll help you claim from them.",
+        },
+        {
+          q: "What if a pair has a manufacturing fault?",
+          a: "Tell us as soon as you find it — including a pair one of your own customers brings back. We replace or repair it, or credit it on your next invoice, and we pay the return shipping for any claim we accept.",
+        },
+        {
+          q: "What isn't covered?",
+          a: "Normal wear and tear, damage from misuse or bad storage, a size that turned out wrong for a customer, and the natural variation in colour and grain that every leather has.",
+        },
+        {
+          q: "How do I make a claim?",
+          a: `Send photos, the style number and the size by WhatsApp or to ${SUPPORT_EMAIL}. We reply within 2 business days and tell you what happens next. Please don't send anything back before we've agreed it.`,
+        },
+      ],
+    },
+    {
       title: "Wholesale Accounts",
       items: [
         {
@@ -237,6 +262,31 @@ function groupsEl(days: number): FaqGroup[] {
         {
           q: "Ποιος πληρώνει τα μεταφορικά και με ποια εταιρεία στέλνετε;",
           a: "Τα μεταφορικά τα πληρώνει ο πελάτης, με τη μεταφορική της επιλογής του. Όταν η παραγγελία είναι έτοιμη σας ρωτάμε σε ποια μεταφορική να την παραδώσουμε — για παράδειγμα στον δικό σας λογαριασμό DHL, ACS ή Γενικής Ταχυδρομικής — και το κόστος είναι αυτό που έχετε συμφωνήσει μαζί της.",
+        },
+      ],
+    },
+    {
+      title: "Επιστροφές & Ελαττώματα",
+      items: [
+        {
+          q: "Μπορώ να επιστρέψω παπούτσια που δεν πούλησα;",
+          a: "Όχι. Κάθε παραγγελία παράγεται για εσάς, οπότε δεν παίρνουμε πίσω απούλητο εμπόρευμα ούτε δεχόμαστε επιστροφές λόγω αλλαγής γνώμης. Αυτό ισχύει γενικά στη χονδρική υποδημάτων.",
+        },
+        {
+          q: "Τι γίνεται αν λείπει κάτι, είναι λάθος ή έχει ζημιά;",
+          a: "Ελέγξτε κάθε παραλαβή με το δελτίο αποστολής και ενημερώστε μας μέσα σε 8 ημέρες, με φωτογραφίες. Στέλνουμε τα κιβώτια που λείπουν ή τα σωστά, με δικά μας έξοδα. Για ζημιά στη μεταφορά, σημειώστε το και στο παραστατικό της μεταφορικής — αφού η μεταφορική είναι δική σας, σας βοηθάμε να κάνετε την απαίτηση σε αυτή.",
+        },
+        {
+          q: "Τι γίνεται αν ένα ζευγάρι έχει κατασκευαστικό ελάττωμα;",
+          a: "Ενημερώστε μας μόλις το εντοπίσετε — ακόμα και αν σας το επιστρέψει πελάτης σας. Το αντικαθιστούμε ή το επισκευάζουμε, ή το πιστώνουμε στο επόμενο τιμολόγιο, και πληρώνουμε εμείς τα μεταφορικά επιστροφής για κάθε απαίτηση που αποδεχόμαστε.",
+        },
+        {
+          q: "Τι δεν καλύπτεται;",
+          a: "Η φυσιολογική φθορά από τη χρήση, ζημιά από κακή χρήση ή κακή αποθήκευση, ένα νούμερο που δεν ταίριαξε σε πελάτη, και η φυσική διαφορά σε χρώμα και υφή που έχει κάθε δέρμα.",
+        },
+        {
+          q: "Πώς κάνω μια απαίτηση;",
+          a: `Στείλτε φωτογραφίες, τον κωδικό του μοντέλου και το νούμερο στο WhatsApp ή στο ${SUPPORT_EMAIL}. Απαντάμε μέσα σε 2 εργάσιμες και σας λέμε τι ακολουθεί. Παρακαλούμε μη στείλετε τίποτα πίσω πριν το συμφωνήσουμε.`,
         },
       ],
     },

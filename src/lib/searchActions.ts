@@ -2,6 +2,7 @@
 
 import { getStorefrontStyles, getStyleImageUrl, searchStyleIds } from "@/lib/data/styles";
 import { getUnitPrice } from "@/lib/pricing";
+import { matchStylesBySynonyms } from "@/lib/searchSynonyms";
 import { getCurrentAccount } from "@/lib/session";
 
 export interface SearchResult {
@@ -31,7 +32,9 @@ export async function searchStylesAction(query: string): Promise<SearchResult[]>
     const account = await getCurrentAccount();
     if (!account) return [];
 
-    const [styles, matchedIds] = await Promise.all([getStorefrontStyles(), searchStyleIds(trimmed)]);
+    const styles = await getStorefrontStyles();
+    // Greek (and trade) words first — the database index is English-only; see searchSynonyms.
+    const matchedIds = matchStylesBySynonyms(trimmed, styles) ?? (await searchStyleIds(trimmed));
     const priceMultiplier = account.priceMultiplier ?? 1;
     const q = trimmed.toLowerCase();
 

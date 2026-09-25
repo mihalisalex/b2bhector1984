@@ -687,6 +687,8 @@ const de: Dictionary = {
     shippingClass: "Versandklasse",
     shippingLabel: "Versand",
     shippingValue: "Zu Lasten des Käufers, mit einem Spediteur Ihrer Wahl",
+    returnsLabel: "Rückgaben",
+    returnsValue: "Fehlerhafte, falsche oder fehlende Ware wird ersetzt oder gutgeschrieben — keine Rücknahme unverkaufter Ware",
     fullTermsPre: "Vollständige Versand-, Rückgabe- und Kontobedingungen finden Sie in den",
     fullTermsPost: ". Ihr Ansprechpartner bei Hector Footwear bestätigt alles Kontospezifische.",
     specSheet: "Datenblatt (PDF)",

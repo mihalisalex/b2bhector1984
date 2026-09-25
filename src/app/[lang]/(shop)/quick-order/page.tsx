@@ -2,6 +2,7 @@ import { getDictionary } from "@/i18n/getDictionary";
 import type { Locale } from "@/i18n/config";
 import { Suspense } from "react";
 import { getStorefrontStyles, searchStyleIds } from "@/lib/data/styles";
+import { matchStylesBySynonyms } from "@/lib/searchSynonyms";
 import { availableFlagOptions, colorOptionsFromStyles, filterStyles, parseFilters } from "@/lib/catalogFilters";
 import { isSortKey, sortStyles } from "@/lib/catalogSort";
 import { getInventoryForStyles, totalOnHandForStyle } from "@/lib/data/inventory";
@@ -46,7 +47,8 @@ export default async function QuickOrderPage({
   // Whole-catalogue inventory (not just the filtered subset) so the "in stock now"
   // filter can be evaluated before we know what survives — matching /catalogue.
   const [matchedIds, inventory] = await Promise.all([
-    filters.q ? searchStyleIds(filters.q) : Promise.resolve(undefined),
+    // Greek (and trade) words first — the database index is English-only; see searchSynonyms.
+    filters.q ? (matchStylesBySynonyms(filters.q, styles) ?? searchStyleIds(filters.q)) : Promise.resolve(undefined),
     getInventoryForStyles(styles.map((s) => s.id)),
   ]);
   const inStockIds = new Set(styles.filter((s) => totalOnHandForStyle(s.id, inventory) > 0).map((s) => s.id));
