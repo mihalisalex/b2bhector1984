@@ -27,3 +27,16 @@ export const SUPPORT_EMAIL_HREF = `mailto:${SUPPORT_EMAIL}`;
  * display string, the other is bound to an external provider's configuration.
  */
 export const FROM_EMAIL = process.env.RESEND_FROM_EMAIL ?? `Hector Footwear Wholesale <${SUPPORT_EMAIL}>`;
+
+/**
+ * The business's WhatsApp (a mobile — the +30 2814 landline on the legal pages can't take
+ * WhatsApp). Greek shop owners ask quick questions by WhatsApp rather than email, so it is
+ * offered as a floating button and on the contact page. Owner-supplied, 2026-09-25.
+ */
+export const WHATSAPP_NUMBER = "+30 694 643 9965";
+
+/** A wa.me link that opens a chat with the business, optionally with a message typed in. */
+export function whatsappHref(message?: string): string {
+  const digits = WHATSAPP_NUMBER.replace(/\D/g, "");
+  return `https://wa.me/${digits}${message ? `?text=${encodeURIComponent(message)}` : ""}`;
+}

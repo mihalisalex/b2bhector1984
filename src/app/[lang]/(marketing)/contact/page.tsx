@@ -4,7 +4,10 @@ import { pageMetadata } from "@/lib/seo";
 import { getDictionary } from "@/i18n/getDictionary";
 import type { Locale } from "@/i18n/config";
 import { withLocale } from "@/i18n/paths";
-import { SUPPORT_EMAIL, SUPPORT_EMAIL_HREF } from "@/lib/contact";
+import { SUPPORT_EMAIL, SUPPORT_EMAIL_HREF, WHATSAPP_NUMBER, whatsappHref } from "@/lib/contact";
+import { LEGAL_ENTITY } from "@/lib/legalEntity";
+import { telHref } from "@/lib/format";
+import { t } from "@/i18n/format";
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
@@ -41,6 +44,7 @@ export default async function ContactPage({ params }: { params: Promise<{ lang: 
           ))}
         </h1>
         <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-ink-soft">{c.intro}</p>
+        <p className="mt-2 max-w-lg text-[15px] font-medium leading-relaxed text-ink">{c.whatsappFastest}</p>
       </div>
 
       <section className="mx-auto max-w-[1200px] px-6 py-16 lg:py-24 lg:px-10">
@@ -49,13 +53,20 @@ export default async function ContactPage({ params }: { params: Promise<{ lang: 
             n="01"
             title={c.generalTitle}
             body={c.generalBody}
-            lines={[{ href: SUPPORT_EMAIL_HREF, label: SUPPORT_EMAIL }]}
+            lines={[
+              { href: whatsappHref(c.whatsappMessage), label: t(c.whatsappLabel, { number: WHATSAPP_NUMBER }), external: true },
+              ...(LEGAL_ENTITY.phone ? [{ href: telHref(LEGAL_ENTITY.phone), label: t(c.phoneLabel, { number: LEGAL_ENTITY.phone }), external: true }] : []),
+              { href: SUPPORT_EMAIL_HREF, label: SUPPORT_EMAIL },
+            ]}
           />
           <ContactCard
             n="02"
             title={c.newAccountsTitle}
             body={c.newAccountsBody}
-            lines={[{ href: SUPPORT_EMAIL_HREF, label: SUPPORT_EMAIL }]}
+            lines={[
+              { href: whatsappHref(c.whatsappMessage), label: t(c.whatsappLabel, { number: WHATSAPP_NUMBER }), external: true },
+              { href: SUPPORT_EMAIL_HREF, label: SUPPORT_EMAIL },
+            ]}
           />
           <ContactCard
             n="03"
@@ -102,7 +113,7 @@ function ContactCard({
   n: string;
   title: string;
   body: string;
-  lines: { href: string; label: string }[];
+  lines: { href: string; label: string; external?: boolean }[];
 }) {
   return (
     <div className="relative flex flex-col border border-stone-300 bg-white p-8 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(26,29,34,0.1)]">
@@ -110,15 +121,23 @@ function ContactCard({
       <h3 className="font-display mt-3 text-base font-bold uppercase tracking-tight text-ink">{title}</h3>
       <p className="mt-2 flex-1 text-sm leading-relaxed text-ink-soft">{body}</p>
       <div className="mt-4 flex flex-col gap-1.5 border-t border-stone-200 pt-4">
-        {lines.map((l) => (
-          <Link
-            key={l.href}
-            href={l.href}
-            className="text-sm font-semibold text-signal hover:underline"
-          >
-            {l.label}
-          </Link>
-        ))}
+        {lines.map((l) =>
+          l.external ? (
+            <a
+              key={l.href}
+              href={l.href}
+              target={l.href.startsWith("http") ? "_blank" : undefined}
+              rel={l.href.startsWith("http") ? "noopener noreferrer" : undefined}
+              className="text-sm font-semibold text-signal hover:underline"
+            >
+              {l.label}
+            </a>
+          ) : (
+            <Link key={l.href} href={l.href} className="text-sm font-semibold text-signal hover:underline">
+              {l.label}
+            </Link>
+          ),
+        )}
       </div>
     </div>
   );

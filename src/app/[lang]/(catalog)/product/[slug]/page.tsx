@@ -3,7 +3,10 @@ import { getHomepageHero } from "@/lib/data/siteContent";
 import { chargesGreekVat } from "@/lib/tax";
 import { t } from "@/i18n/format";
 import Link from "next/link";
-import { CATEGORY_LABEL, getRelatedStyles, getStyleBySlug, getStyleImageUrl } from "@/lib/data/styles";
+import { CATEGORY_LABEL, getRelatedStyles, getStorefrontStyles, getStyleBySlug, getStyleImageUrl } from "@/lib/data/styles";
+import { modelSiblings } from "@/lib/modelColours";
+import { ModelColours } from "@/components/product/ModelColours";
+import { whatsappHref } from "@/lib/contact";
 import { getInventoryForStyle, getInventoryForStyles, totalOnHandForStyle } from "@/lib/data/inventory";
 import { getImagesForStyle, listImagesForStyles } from "@/lib/data/styleImages";
 import { getAccountForAudience } from "@/lib/session";
@@ -81,7 +84,9 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
   // Related styles come from the cached catalogue and the dictionary is a local import, so
   // both resolve without a database trip. That lets every real query below go out in ONE
   // parallel batch — this used to be two batches back to back, then a third for favourites.
-  const [related, dict] = await Promise.all([getRelatedStyles(style), getDictionary(locale)]);
+  const [related, dict, allStyles] = await Promise.all([getRelatedStyles(style), getDictionary(locale), getStorefrontStyles()]);
+  // The same shoe in its other colours — separate products, linked from here (owner's call).
+  const siblings = modelSiblings(style, allStyles);
   const relatedIds = related.map((s) => s.id);
   const [inventory, images, account, relatedInventory, relatedImages, guides, seoSettings, hero] = await Promise.all([
     getInventoryForStyle(style.id),
@@ -217,6 +222,10 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
                   header was still reading the English column. */}
               <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">{localizeStyle(style, locale).tagline}</p>
 
+              <div className="mt-5">
+                <ModelColours current={style} siblings={siblings} locale={locale} dict={dict} />
+              </div>
+
               <div className="mt-6">
                 {showPricing ? (
                   <PrimaryPurchasePanel
@@ -237,7 +246,7 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
                 )}
               </div>
 
-              <TrustStrip rep={account?.rep} dict={dict} leadTimeDays={leadTimeDays} />
+              <TrustStrip rep={account?.rep} dict={dict} leadTimeDays={leadTimeDays} styleName={style.name} />
             </div>
           </div>
         </ColorwaySelectionProvider>
@@ -306,7 +315,17 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
 }
 
 /** Reassurance row under the buy box — every line is a real policy or real account data, never a generic badge. */
-function TrustStrip({ rep, dict, leadTimeDays }: { rep?: SalesRep; dict: Dictionary; leadTimeDays: number }) {
+function TrustStrip({
+  rep,
+  dict,
+  leadTimeDays,
+  styleName,
+}: {
+  rep?: SalesRep;
+  dict: Dictionary;
+  leadTimeDays: number;
+  styleName: string;
+}) {
   // These four lines had dictionary keys from the day the shared wholesale strings landed
   // (box.fixed, terms.discounts, stock.live, rep.assigned) — they were simply never wired
   // to them, so a Greek buyer read the four policy claims in English.
@@ -326,6 +345,18 @@ function TrustStrip({ rep, dict, leadTimeDays }: { rep?: SalesRep; dict: Diction
       ) : (
         <TrustItem>{dict.rep.assigned}</TrustItem>
       )}
+      {/* The floating WhatsApp button hides on a phone's product page (the buy bar sits
+          there), so the same way to ask is offered here — with the product named. */}
+      <TrustItem>
+        <a
+          href={whatsappHref(t(dict.contact.whatsappProductMessage, { name: styleName }))}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-ink underline hover:text-signal"
+        >
+          {dict.contact.whatsappAria}
+        </a>
+      </TrustItem>
     </ul>
   );
 }

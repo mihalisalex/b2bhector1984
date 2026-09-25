@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { bodySans, bodySansGreek, displaySerif, displaySerifGreek, mono } from "@/lib/fonts";
 import { BackToTopButton } from "@/components/layout/BackToTopButton";
+import { WhatsAppButton } from "@/components/layout/WhatsAppButton";
 import { CookieConsentBanner } from "@/components/layout/CookieConsentBanner";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
@@ -116,6 +117,7 @@ export default async function LocaleLayout({
                 piece of chrome a Greek visitor sees before anything else on the page. */}
             <CookieConsentBanner />
             <BackToTopButton />
+            <WhatsAppButton />
             {/* Renders nothing at all until consent is granted — see GoogleAnalytics.tsx. */}
             <GoogleAnalytics />
           </I18nProvider>
