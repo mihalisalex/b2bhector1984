@@ -149,6 +149,10 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           sizes="100vw"
           className="object-cover object-[50%_60%]"
         />
+        {/* A light 10% shade over the photo (owner, 2026-09-25) so the white headline and
+            button stay readable on the brighter parts of the image — deliberately far
+            lighter than the full scrim removed on 2026-08-11. */}
+        <div aria-hidden className="absolute inset-0 bg-black/10" />
 
         <div className="relative mx-auto max-w-2xl px-6 py-24 text-center [animation:hero-fade-up_900ms_cubic-bezier(0.16,1,0.3,1)_both] lg:px-10">
           <span className="inline-flex items-center gap-2 font-mono-tab text-xs uppercase tracking-[0.25em] text-stone-300/80">
