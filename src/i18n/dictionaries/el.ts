@@ -1130,6 +1130,7 @@ const el: Dictionary = {
     factDelivery: "Παράδοση σε περίπου {days} ημέρες",
     factShipping: "Αποστολή παντού, με τη μεταφορική σας",
     factPrepay: "Προπληρωμή −10%",
+    factFromPrice: "Από {price} το ζευγάρι (προπληρωμή, χωρίς ΦΠΑ)",
     howAsk: "Ερωτήσεις πρώτα; Στείλτε μας στο WhatsApp",
     stockistsHeading: "Καταστήματα που μας εμπιστεύονται",
   },

@@ -1140,6 +1140,7 @@ const de: Dictionary = {
     factDelivery: "Lieferung in etwa {days} Tagen",
     factShipping: "Versand überallhin, Ihr Spediteur",
     factPrepay: "Vorkasse −10 %",
+    factFromPrice: "Ab {price} pro Paar (Vorkasse, zzgl. MwSt.)",
     howAsk: "Erst Fragen? Schreiben Sie per WhatsApp",
     stockistsHeading: "Händler, die Hector führen",
   },

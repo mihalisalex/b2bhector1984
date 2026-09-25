@@ -1140,6 +1140,7 @@ const fr: Dictionary = {
     factDelivery: "Livraison en environ {days} jours",
     factShipping: "Expédié partout, votre transporteur",
     factPrepay: "Prépaiement −10 %",
+    factFromPrice: "À partir de {price} la paire (prépaiement, HT)",
     howAsk: "Des questions d’abord ? WhatsApp",
     stockistsHeading: "Ils vendent Hector",
   },

@@ -190,3 +190,18 @@ export function validateMatrix(
 
   return { totalPairs, totalBoxes, subtotal, unitPrice };
 }
+
+/**
+ * The cheapest real pair price in the catalogue — the prepay price (list −10%, after any
+ * active sale), which is what the owner quotes ("€27 is without the 10%, €24.30 is the
+ * real one", 2026-09-25). Shown publicly as "from €X per pair" on the homepage and in
+ * llms.txt; individual product prices stay behind login. Undefined for an empty catalogue.
+ */
+export function lowestPairPrice(styles: Style[]): { price: number; style: Style } | undefined {
+  let best: { price: number; style: Style } | undefined;
+  for (const style of styles) {
+    const price = getUnitPrice(style, "prepay");
+    if (!best || price < best.price) best = { price, style };
+  }
+  return best;
+}

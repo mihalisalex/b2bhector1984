@@ -4,6 +4,7 @@ import { withLocale } from "@/i18n/paths";
 import { t } from "@/i18n/format";
 import { whatsappHref } from "@/lib/contact";
 import { STOCKISTS } from "@/lib/stockists";
+import { formatEUR } from "@/lib/pricing";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/config";
 
@@ -12,7 +13,18 @@ import type { Locale } from "@/i18n/config";
  * applying, and (once the owner supplies them) real shops that already stock the range.
  * Replaced the older three-step "apply / log in / order" strip. Server component.
  */
-export function HowOrderingWorks({ dict, locale, leadTimeDays }: { dict: Dictionary; locale: Locale; leadTimeDays: number }) {
+export function HowOrderingWorks({
+  dict,
+  locale,
+  leadTimeDays,
+  fromPrice,
+}: {
+  dict: Dictionary;
+  locale: Locale;
+  leadTimeDays: number;
+  /** The cheapest real pair price (prepay), from `lowestPairPrice`. */
+  fromPrice?: number;
+}) {
   const h = dict.home;
   const steps = [
     { title: h.howStep1Title, body: h.howStep1Body },
@@ -21,7 +33,14 @@ export function HowOrderingWorks({ dict, locale, leadTimeDays }: { dict: Diction
     { title: h.howStep4Title, body: h.howStep4Body },
     { title: h.howStep5Title, body: t(h.howStep5Body, { days: leadTimeDays }) },
   ];
-  const facts = [h.factMinimum, h.factBoxes, t(h.factDelivery, { days: leadTimeDays }), h.factShipping, h.factPrepay];
+  const facts = [
+    fromPrice !== undefined ? t(h.factFromPrice, { price: formatEUR(fromPrice, locale) }) : "",
+    h.factMinimum,
+    h.factBoxes,
+    t(h.factDelivery, { days: leadTimeDays }),
+    h.factShipping,
+    h.factPrepay,
+  ].filter(Boolean);
 
   return (
     <section className="border-b border-stone-300 bg-white py-16 lg:py-20">

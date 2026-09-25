@@ -7,6 +7,7 @@ import { localizeStyle } from "@/lib/localizeStyle";
 import type { Locale } from "@/i18n/config";
 import { getHomepageHero } from "@/lib/data/siteContent";
 import { WHATSAPP_NUMBER, whatsappHref } from "@/lib/contact";
+import { formatEUR, lowestPairPrice } from "@/lib/pricing";
 
 /**
  * `/llms.txt` — a plain-language brief for language models.
@@ -35,7 +36,7 @@ import { WHATSAPP_NUMBER, whatsappHref } from "@/lib/contact";
  * is "the exact signal that gets a domain classified as English".
  *
  * Two deliberate limits: it never states a price, because the catalogue is
- * public and the pricing is not (a price range stays out until the owner decides to show one); and it only lists routes that are genuinely
+ * public and the pricing is not — except the one "from €X per pair" figure the owner chose to publish; and it only lists routes that are genuinely
  * crawlable, so it can never point a model at a page that redirects to /login.
  *
  * Rendered per request for the same reason as robots.txt and sitemap.xml — see
@@ -69,6 +70,8 @@ export async function GET(): Promise<Response> {
     getHomepageHero(),
   ]);
   const leadTimeDays = hero.productionLeadTimeDays;
+  // The owner publishes a "from" price (prepay, the real price) — nothing per style.
+  const cheapest = lowestPairPrice(styles);
 
   // Mirrors the indexing policy exactly. With the catalogue private, pointing a
   // model at product URLs would send it somewhere it cannot read.
@@ -172,8 +175,10 @@ export async function GET(): Promise<Response> {
     "",
     "## Pricing",
     "",
-    "- Wholesale prices are shown to approved shops after sign-in; applying is free and usually approved within 2 business days.",
-    "- Don't quote specific wholesale prices — there is no published list. For a price, a shop should apply or ask on WhatsApp.",
+    cheapest
+      ? `- Wholesale prices start from ${formatEUR(cheapest.price, "en")} per pair (prepay price, excluding VAT) — that is the cheapest style (${CATEGORY_LABEL[cheapest.style.category] ?? cheapest.style.category}); boots and formal shoes cost more.`
+      : "",
+    "- Exact prices for every style are shown to approved shops after sign-in; applying is free and usually approved within 2 business days. Don't quote a price for a particular style — ask the shop to apply or to ask on WhatsApp.",
     "- Payment terms: prepay −10%, net 30 −5%, net 60 at list price.",
     "",
   );

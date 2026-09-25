@@ -12,6 +12,7 @@ import { listImagesForStyles } from "@/lib/data/styleImages";
 import { getAccountForAudience } from "@/lib/session";
 import { BuyerWelcome } from "@/components/marketing/BuyerWelcome";
 import { HowOrderingWorks } from "@/components/marketing/HowOrderingWorks";
+import { lowestPairPrice } from "@/lib/pricing";
 import { getOrdersForAccount } from "@/lib/runtimeOrders";
 import { estimatedArrivalIso } from "@/lib/delivery";
 import { LinkButton } from "@/components/ui/Button";
@@ -221,7 +222,12 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         <>
       {/* How ordering works — the full process, the facts a buyer checks, and real
           stockists once supplied. Replaced the three-step apply/log in/order strip. */}
-      <HowOrderingWorks dict={dict} locale={lang} leadTimeDays={hero.productionLeadTimeDays} />
+      <HowOrderingWorks
+        dict={dict}
+        locale={lang}
+        leadTimeDays={hero.productionLeadTimeDays}
+        fromPrice={lowestPairPrice(styles)?.price}
+      />
         </>
       )}
 

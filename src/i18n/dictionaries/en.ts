@@ -1219,6 +1219,7 @@ const en = {
     factDelivery: "About {days} days to delivery",
     factShipping: "Ships anywhere, your courier",
     factPrepay: "Prepay −10%",
+    factFromPrice: "From {price} per pair (prepay, excl. VAT)",
     howAsk: "Questions first? WhatsApp us",
     stockistsHeading: "Shops that stock Hector",
   },
