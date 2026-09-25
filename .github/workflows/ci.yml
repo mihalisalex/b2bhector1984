@@ -27,4 +27,9 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
-      - run: npm run build
+      # Compile only, no prerendering. Since the logged-out pages became cached
+      # (src/app/[lang]/public), `next build` prerenders them, which reads the
+      # database — and this job deliberately has no real database. Vercel's own
+      # build still prerenders against the real one, so a page that fails to
+      # render still blocks the deploy there.
+      - run: npx next build --experimental-build-mode=compile
