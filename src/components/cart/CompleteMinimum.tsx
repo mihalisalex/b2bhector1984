@@ -1,6 +1,7 @@
 "use client";
 
 import { useI18n } from "@/i18n/I18nProvider";
+import { TERMS_DISCOUNT } from "@/lib/pricing";
 import { t } from "@/i18n/format";
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
@@ -31,7 +32,7 @@ export function CompleteMinimum({
   const { eur } = useFormat();
   const d = useI18n().dict.dashboard;
   const c = useI18n().dict.catalog;
-  const { addLines, lines, minOrderPairs: accountMinOrderPairs } = useCart();
+  const { addLines, lines, minOrderPairs: accountMinOrderPairs, terms } = useCart();
   const { productionLeadTimeDays } = useCatalog();
   const minimum = accountMinOrderPairs ?? MIN_ORDER_PAIRS;
   const shortfall = minimum - totalPairs;
@@ -113,7 +114,7 @@ export function CompleteMinimum({
                     {option.colorwayName} · {option.boxLabel}
                   </p>
                   <p className="mt-0.5 text-xs tabular-nums text-ink">
-                    {eur(option.unitPrice * option.pairs)}
+                    {eur(Math.round(option.unitPrice * (1 - TERMS_DISCOUNT[terms]) * 100) / 100 * option.pairs)}
                     <span className="font-mono-tab text-ink-soft"> · {t(c.pairsLabel, { count: option.pairs })}</span>
                   </p>
                   <p className="mt-0.5 text-[11px] text-ink-soft">

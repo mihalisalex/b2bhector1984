@@ -11,7 +11,9 @@ import { buttonClassNames } from "@/components/ui/Button";
 import { ReorderButton } from "@/components/dashboard/ReorderButton";
 import { ClearCartOnMount } from "@/components/dashboard/ClearCartOnMount";
 import { PrintButton } from "@/components/dashboard/PrintButton";
-import { StatusTimeline } from "@/components/order/StatusTimeline";
+import { OrderJourney } from "@/components/order/OrderJourney";
+import { getHomepageHero } from "@/lib/data/siteContent";
+import { estimatedArrivalIso } from "@/lib/delivery";
 import { getDictionary } from "@/i18n/getDictionary";
 import { withLocale } from "@/i18n/paths";
 import { t } from "@/i18n/format";
@@ -49,13 +51,12 @@ export default async function OrderDetailPage({
   const uniqueStyleIds = Array.from(new Set(order.lines.map((l) => l.styleId)));
   const styleEntries = await Promise.all(uniqueStyleIds.map(async (sid) => [sid, await getStyleById(sid)] as const));
   const styleById = new Map(styleEntries);
-  const productionLines = order.lines.filter((l) => l.fulfillment === "production");
-  // Only "made to order" lines carry a concrete date; "pre-order" lines deliberately have
-  // none (timing is confirmed once production is scheduled — see placeOrder). The banner
-  // below has to say which of those actually applies, or it points buyers at an expected
-  // date that isn't there for a pre-order line.
-  const withEta = productionLines.filter((l) => l.productionEta);
-  const withoutEta = productionLines.filter((l) => !l.productionEta);
+  // Every order is produced for the buyer; the estimate counts from confirmation once there
+  // is one, otherwise from when the request was sent.
+  const hero = await getHomepageHero();
+  const confirmedAt = statusHistory.find((e) => e.status === "confirmed")?.changedAt;
+  const arrivalIso = estimatedArrivalIso(hero.productionLeadTimeDays, new Date(confirmedAt ?? order.placedAt));
+  const termsLabel = { prepay: dict.checkout.termsPrepay, net30: dict.checkout.termsNet30, net60: dict.checkout.termsNet60 }[order.terms];
 
   return (
     <div className="mx-auto max-w-[1000px] px-6 py-8 lg:px-10">
@@ -68,26 +69,6 @@ export default async function OrderDetailPage({
       {justPlaced === "1" && (
         <div className="mb-6 border border-positive/40 bg-positive-100 px-4 py-3 text-sm text-positive print:hidden">
           {t(o.proformaNotice, { rep: account.rep.name })}
-        </div>
-      )}
-
-      {/* `court`, not `ember`: ember is this design system's error/danger colour (see
-          globals.css), and a production/pre-order notice is neither — it's the normal
-          path for most of the catalogue now, so an alarm-red panel on every single
-          order was crying wolf. `court` is the token the in-production status badge
-          already uses. */}
-      {productionLines.length > 0 && (
-        <div className="mb-6 border border-court/50 bg-court-100 px-4 py-3 text-sm text-ink">
-          {productionLines.length === 1 ? o.productionOne : t(o.productionMany, { count: productionLines.length })}{" "}
-          {withEta.length > 0 && (
-            <>{withoutEta.length > 0 ? o.seeStatusMadeToOrder : o.seeStatusEach}{" "}</>
-          )}
-          {withoutEta.length > 0 && (
-            <>
-              {t(withEta.length > 0 ? o.preOrderSome : o.preOrderAll, { rep: account.rep.name })}{" "}
-            </>
-          )}
-          {o.restShipsNormally}
         </div>
       )}
 
@@ -116,18 +97,26 @@ export default async function OrderDetailPage({
             </>
           ) : "—"}
         </Detail>
-        <Detail label={o.terms}>{order.terms.toUpperCase()}</Detail>
+        <Detail label={o.terms}>{termsLabel ?? order.terms}</Detail>
         <Detail label={o.tracking}>
           {order.trackingNumber ? `${order.carrier ?? ""} ${order.trackingNumber}`.trim() : "—"}
         </Detail>
         <Detail label={o.notes}>{order.notes ?? "—"}</Detail>
       </div>
 
+      {/* Where the order is in the real process, with dates as they happen — replaces the
+          bare list of status changes (which also rendered in English on every language). */}
       <div className="mt-8 border border-stone-300 bg-white p-5 print:hidden">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{o.statusHistory}</h2>
-        <div className="mt-4">
-          <StatusTimeline events={statusHistory} />
-        </div>
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{dict.dashboard.journeyTitle}</h2>
+        <OrderJourney
+          className="mt-5"
+          dict={dict.dashboard}
+          locale={locale}
+          leadTimeDays={hero.productionLeadTimeDays}
+          arrivalIso={arrivalIso}
+          status={order.status}
+          events={statusHistory}
+        />
       </div>
 
       <div className="mt-8 scroll-thin overflow-x-auto border border-stone-300">

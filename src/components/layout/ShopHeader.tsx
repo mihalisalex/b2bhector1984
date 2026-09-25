@@ -5,7 +5,7 @@ import type { Dictionary } from "@/i18n/dictionaries/en";
 import { Logo } from "@/components/layout/Logo";
 import { MainNav } from "@/components/layout/MainNav";
 import { CartDrawer } from "@/components/layout/CartDrawer";
-import { HWatermark } from "@/components/layout/HWatermark";
+import { MinimumMeterLine, MinimumMeterPill } from "@/components/layout/MinimumMeter";
 import { SearchOverlay } from "@/components/layout/SearchOverlay";
 import { AccountMenu } from "@/components/layout/AccountMenu";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
@@ -14,7 +14,9 @@ import { withLocale } from "@/i18n/paths";
 export function ShopHeader({ account, locale, dict }: { account: Account; locale: Locale; dict: Dictionary }) {
   return (
     <header className="sticky top-0 z-40 overflow-hidden border-b border-stone-300 bg-stone-50/97 backdrop-blur print:hidden">
-      <HWatermark className="-top-16 right-6 text-[13rem] text-ink/[0.1]" />
+      {/* The blurred "H" watermark that sat here read as a smudge on the screen (buyer
+          review, 2026-09-25) and was removed. */}
+      <MinimumMeterLine />
       {/* Flex + an absolutely centered logo, not a 1fr/auto/1fr grid — see MarketingHeader
           for why: the desktop nav and the icon cluster are different widths, and equal-fr
           grid columns would drag the logo off true center. Below `lg` the logo sits inline
@@ -42,6 +44,7 @@ export function ShopHeader({ account, locale, dict }: { account: Account; locale
         <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
           <LanguageSwitcher />
           <SearchOverlay />
+          <MinimumMeterPill />
           <AccountMenu account={account} />
           <CartDrawer />
         </div>

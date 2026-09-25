@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useMemo } from "react";
 import { useCart } from "@/lib/cart-context";
 import { useCatalog } from "@/lib/catalog-context";
 import { getOrderMinimumError, getUnitPrice, TERMS_DISCOUNT, validateMatrix } from "@/lib/pricing";
-import { useFormat, useI18n } from "@/i18n/I18nProvider";
+import { useDelivery, useFormat, useI18n } from "@/i18n/I18nProvider";
+import { OrderJourney } from "@/components/order/OrderJourney";
 import { t } from "@/i18n/format";
 import { withLocale } from "@/i18n/paths";
 import { vatPercent } from "@/lib/tax";
@@ -23,12 +24,16 @@ const initialState: CheckoutState = {};
 export function CheckoutForm({ account }: { account: Account }) {
   const { eur } = useFormat();
   const { locale, dict } = useI18n();
+  const { leadTimeDays, arrivalIso } = useDelivery();
   const c = dict.checkout;
   const termsLabel = (v: CreditTerms) =>
     v === "prepay" ? c.termsPrepay : v === "net30" ? c.termsNet30 : c.termsNet60;
   const { lines, chargesVat } = useCart();
   const { getStyleById, inventory, productionLeadTimeDays } = useCatalog();
-  const [terms, setTerms] = useState<CreditTerms>(account.creditTerms);
+  // One choice across the site: checkout opens on the terms the buyer picked on the product
+  // page or in the cart (their account default until then), and changing it here changes
+  // it everywhere.
+  const { terms, setTerms } = useCart();
 
   const [state, formAction, pending] = useActionState(async (prev: CheckoutState, formData: FormData) => {
     formData.set("lines", JSON.stringify(lines));
@@ -110,6 +115,12 @@ export function CheckoutForm({ account }: { account: Account }) {
   return (
     <form action={formAction} className="mt-6 grid grid-cols-1 gap-10 pb-24 lg:grid-cols-[1fr_400px] lg:pb-0">
       <div className="flex flex-col gap-8">
+        {/* The whole process before they commit — a first-time buyer's main worry is what
+            happens after pressing the button, and the answer is not "you get charged". */}
+        <Section title={dict.dashboard.journeyTitle}>
+          <OrderJourney dict={dict.dashboard} locale={locale} leadTimeDays={leadTimeDays} arrivalIso={arrivalIso} />
+        </Section>
+
         <Section title={c.shipTo}>
           <div className="flex flex-col gap-2">
             {account.shipTo.map((addr) => (

@@ -71,7 +71,7 @@ export default async function CatalogLayout({
 
   return (
     <CatalogProvider styles={styles} productionLeadTimeDays={hero.productionLeadTimeDays} inventory={inventory}>
-      <CartProvider accountId={account.id} priceMultiplier={account.priceMultiplier} minOrderPairs={account.minOrderPairs} chargesVat={chargesGreekVat(account.country)}>
+      <CartProvider accountId={account.id} priceMultiplier={account.priceMultiplier} minOrderPairs={account.minOrderPairs} chargesVat={chargesGreekVat(account.country)} defaultTerms={account.creditTerms}>
         <ShopHeader account={account} locale={lang} dict={dict} />
         <main className="flex-1 bg-stone-50">{children}</main>
         <ShopFooter account={account} locale={lang} dict={dict} />

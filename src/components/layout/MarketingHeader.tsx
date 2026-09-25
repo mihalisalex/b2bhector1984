@@ -4,7 +4,7 @@ import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { Logo } from "@/components/layout/Logo";
 import { MainNav } from "@/components/layout/MainNav";
-import { HWatermark } from "@/components/layout/HWatermark";
+import { MinimumMeterLine, MinimumMeterPill } from "@/components/layout/MinimumMeter";
 import { SearchOverlay } from "@/components/layout/SearchOverlay";
 import { CartDrawer } from "@/components/layout/CartDrawer";
 import { AccountIcon } from "@/components/layout/icons";
@@ -24,7 +24,7 @@ export function MarketingHeader({
 }) {
   return (
     <header className="sticky top-0 z-40 overflow-hidden border-b border-stone-300 bg-stone-50/95 backdrop-blur">
-      <HWatermark className="-top-16 right-6 text-[13rem] text-ink/[0.1]" />
+      <MinimumMeterLine />
       {/* Flex, not a 1fr/auto/1fr grid — the desktop nav on the left and the icon cluster
           on the right are different widths, and a grid's equal-fr columns would drag the
           logo off true center. `justify-between` plus an absolutely centered logo keeps it
@@ -70,6 +70,7 @@ export function MarketingHeader({
               behind login here, same as the catalog itself; anonymous visitors get the
               account icon only, which routes them to /login. */}
           {account && <SearchOverlay />}
+          {account && <MinimumMeterPill />}
           {/* Signed in, the icon opens the account menu (same as the shop header);
               anonymous visitors have nothing to put in a menu, so it stays a link. */}
           {account ? (

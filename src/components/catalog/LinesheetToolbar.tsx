@@ -8,11 +8,12 @@ import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { getUnitPrice } from "@/lib/pricing";
 import { toCsv } from "@/lib/csv";
 import { Button } from "@/components/ui/Button";
-import { useChargesVat } from "@/lib/cart-context";
+import { useBuyerTerms, useChargesVat } from "@/lib/cart-context";
 
 export function LinesheetToolbar({ styles, priceMultiplier = 1 }: { styles: Style[]; priceMultiplier?: number }) {
   const { dict } = useI18n();
   const chargesVat = useChargesVat();
+  const buyerTerms = useBuyerTerms();
   const d = dict.dashboard;
   function exportCsv() {
     const header = [
@@ -33,7 +34,7 @@ export function LinesheetToolbar({ styles, priceMultiplier = 1 }: { styles: Styl
         s.availability === "available" ? dict.catalog.availableNow : t(d.csvPrebook, { window: s.shipWindow ?? "" }),
         s.colorways.map((c) => c.name).join(" / "),
         getAvailableBoxTypes(s).map((b) => b.totalPairs).join(" / ") + d.csvPairSuffix,
-        getUnitPrice(s, "net60", priceMultiplier).toFixed(2),
+        getUnitPrice(s, buyerTerms, priceMultiplier).toFixed(2),
         chargesVat && s.vatRate ? `${Math.round(s.vatRate * 100)}%` : "0%",
       ];
     });

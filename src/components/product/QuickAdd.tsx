@@ -2,16 +2,13 @@
 
 import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
-import { useCatalog } from "@/lib/catalog-context";
 import { t } from "@/i18n/format";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { getUnitPrice, MAX_BACKORDER_QTY } from "@/lib/pricing";
 import { useFormat, useI18n } from "@/i18n/I18nProvider";
-import { VatSuffix } from "@/components/ui/VatSuffix";
 import { pickDefaultBoxType } from "@/lib/productSelectionDefaults";
 import type { StyleInventory } from "@/lib/data/inventory";
 import type { BoxTypeId, Style } from "@/lib/types";
-import { Button } from "@/components/ui/Button";
 import { StepIcon } from "@/components/ui/StepIcon";
 import { useCancelableTimeout } from "@/lib/useCancelableTimeout";
 import { cn } from "@/lib/cn";
@@ -42,12 +39,10 @@ export function QuickAdd({
 }) {
   const { eur } = useFormat();
   const c = useI18n().dict.catalog;
-  const { addLines, lines } = useCart();
-  const { productionLeadTimeDays } = useCatalog();
+  const { addLines, lines, terms } = useCart();
   const boxTypes = getAvailableBoxTypes(style);
   const allowBackorder = style.allowBackorder;
 
-  const [open, setOpen] = useState(false);
   const [boxTypeId, setBoxTypeId] = useState<BoxTypeId>(() => pickDefaultBoxType(style, inventory, colorwayId));
   const [qty, setQty] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
@@ -72,7 +67,7 @@ export function QuickAdd({
   const maxSelectable = allowBackorder ? MAX_BACKORDER_QTY : remaining;
   const willBeProduction = allowBackorder && inCart + qty > onHand;
   const box = boxTypes.find((b) => b.id === boxTypeId) ?? boxTypes[0];
-  const unitPrice = getUnitPrice(style, "net60", priceMultiplier);
+  const unitPrice = getUnitPrice(style, terms, priceMultiplier);
   const anyStock = Object.values(inventory).some((byBox) =>
     Object.values(byBox ?? {}).some((n) => (n ?? 0) > 0),
   );
@@ -87,22 +82,15 @@ export function QuickAdd({
 
   if (!anyStock && !allowBackorder) {
     return (
-      <p className="mt-3 border-t border-stone-200 pt-3 text-[11px] font-medium text-ink-soft">
-        Out of stock — check back or ask your rep
-      </p>
+      <p className="text-[11px] font-medium text-ink-soft">{c.outOfStockAsk}</p>
     );
   }
 
-  if (!open) {
-    return (
-      <Button type="button" variant="secondary" size="sm" onClick={() => setOpen(true)} className="mt-3 w-full">
-        Quick add
-      </Button>
-    );
-  }
-
+  // Always open. It used to sit behind a "Quick add" button, which made adding a box
+  // from the catalogue a three-tap job; the card now carries price and delivery itself,
+  // so the only thing left here is how many boxes.
   return (
-    <div className="mt-3 border-t border-stone-200 pt-3">
+    <div>
       {boxTypes.length > 1 && (
         <div className="mb-2 flex gap-1.5">
           {boxTypes.map((b) => (
@@ -126,16 +114,23 @@ export function QuickAdd({
         </div>
       )}
 
-      <p className={cn("mb-2 text-[11px] font-medium", remaining > 0 && !willBeProduction ? "text-ink-soft" : "text-ember")}>
-        {willBeProduction
-          ? style.backorderMode === "pre_order"
-            ? t(c.preOrderShips, { days: productionLeadTimeDays })
-            : t(c.madeToOrderShips, { days: productionLeadTimeDays })
-          : remaining > 0
-            ? `${remaining} box${remaining === 1 ? "" : "es"} available`
-            : c.noneLeftCombo}
-        {inCart > 0 && <span className="text-ink-soft"> · {inCart} in cart</span>}
-      </p>
+      {/* Delivery is on the card itself; this line only appears when there is something
+          box-specific to say — real stock on the shelf, or boxes already in the cart. */}
+      {(inCart > 0 || (!willBeProduction && onHand > 0) || (!allowBackorder && remaining <= 0)) && (
+        <p className="mb-2 text-[11px] font-medium text-ink-soft">
+          {!allowBackorder && remaining <= 0
+            ? c.noneLeftCombo
+            : !willBeProduction && onHand > 0
+              ? t(c.boxesAvailable, { count: remaining })
+              : null}
+          {inCart > 0 && (
+            <span>
+              {!willBeProduction && onHand > 0 ? " · " : ""}
+              {t(c.inCartCount, { count: inCart })}
+            </span>
+          )}
+        </p>
+      )}
 
       {/* EXPERIMENTAL rounded-full, 2026-08-10 — see Button.tsx's `base` comment for the
           revert path. The stepper's `overflow-hidden` is what caps its square inner buttons
@@ -170,13 +165,9 @@ export function QuickAdd({
           disabled={remaining <= 0 && !allowBackorder}
           className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full bg-ink px-2 py-2 leading-none text-white transition-colors hover:bg-ink/85 disabled:cursor-not-allowed disabled:bg-cinder-300"
         >
-          <span className="text-xs font-semibold uppercase tracking-wide">{justAdded ? c.quickAdded : c.quickAdd}</span>
-          {!justAdded && (
-            <span className="font-mono-tab text-[11px] tabular-nums text-white/75">
-              {eur(unitPrice * box.totalPairs * qty)}
-              <VatSuffix vatRate={style.vatRate} className="text-white/60" />
-            </span>
-          )}
+          <span className="text-xs font-semibold uppercase tracking-wide tabular-nums">
+            {justAdded ? c.quickAdded : t(c.addBoxShort, { total: eur(unitPrice * box.totalPairs * qty) })}
+          </span>
         </button>
       </div>
     </div>

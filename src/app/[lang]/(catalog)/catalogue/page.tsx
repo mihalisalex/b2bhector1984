@@ -2,7 +2,11 @@ import { withLocale } from "@/i18n/paths";
 import { Suspense } from "react";
 import Link from "next/link";
 import { getStorefrontStyles, searchStyleIds } from "@/lib/data/styles";
-import { availableFlagOptions, colorOptionsFromStyles, filterStyles, parseFilters } from "@/lib/catalogFilters";
+import { availableFlagOptions, boxOptionsFromStyles, colorOptionsFromStyles, filterStyles, parseFilters } from "@/lib/catalogFilters";
+import { t } from "@/i18n/format";
+import { getHomepageHero } from "@/lib/data/siteContent";
+import { estimatedArrivalIso } from "@/lib/delivery";
+import { formatDayMonth } from "@/lib/format";
 import { isSortKey, pairsSoldByStyle, sortStyles } from "@/lib/catalogSort";
 import { getInventoryForStyles, totalOnHandForStyle } from "@/lib/data/inventory";
 import { listImagesForStyles } from "@/lib/data/styleImages";
@@ -55,7 +59,7 @@ export default async function CatalogPage({
   // Inventory covers the *whole* catalogue rather than the filtered subset: the
   // "in stock now" filter has to be evaluated before we know what's left, and Quick Add
   // needs per-colorway stock for whatever survives anyway.
-  const [styles, seasonSettings, account, { data: orderLineRows }] = await Promise.all([
+  const [styles, seasonSettings, account, { data: orderLineRows }, hero] = await Promise.all([
     getStorefrontStyles(),
     getSeasonSettings(),
     getAccountForAudience(audience),
@@ -66,7 +70,9 @@ export default async function CatalogPage({
           .select("style_id, box_type_id, qty, orders!inner(status)")
           .neq("orders.status", "cancelled")
       : Promise.resolve({ data: null }),
+    getHomepageHero(),
   ]);
+  const arrivalLabel = formatDayMonth(estimatedArrivalIso(hero.productionLeadTimeDays), locale);
   const seasonOptions = toSeasonOptions(seasonSettings);
   const dict = await getDictionary(locale);
   const [matchedIds, inventory] = await Promise.all([
@@ -116,6 +122,8 @@ export default async function CatalogPage({
               seasonOptions={seasonOptions}
               colorOptions={colorOptionsFromStyles(styles)}
               flagOptions={availableFlagOptions(styles, inStockIds)}
+              boxOptions={boxOptionsFromStyles(styles)}
+              showPricing={showPricing}
             />
           </Suspense>
         </div>
@@ -123,7 +131,7 @@ export default async function CatalogPage({
 
       <div className="mb-4 mt-6">
         <Suspense fallback={null}>
-          <CatalogResultsToolbar resultCount={results.length} />
+          <CatalogResultsToolbar resultCount={results.length} showPricing={showPricing} />
         </Suspense>
       </div>
 
@@ -136,25 +144,26 @@ export default async function CatalogPage({
 
       {results.length === 0 ? (
         <div className="border border-dashed border-stone-300 bg-stone-100 px-6 py-20 text-center">
-          <p className="font-display text-lg font-bold uppercase text-ink">No styles match this filter</p>
-          <p className="mt-2 text-sm text-ink-soft">
-            {`${styles.length} styles are available — the current combination just doesn’t overlap.`}
-          </p>
+          <p className="font-display text-lg font-bold uppercase text-ink">{dict.catalog.emptyTitle}</p>
+          <p className="mt-2 text-sm text-ink-soft">{t(dict.catalog.emptyBody, { count: styles.length })}</p>
           {/* A dead-end empty state is the one place a buyer is most likely to give up, so it
               carries the recovery action rather than only describing it. */}
           <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
             <Link
-              href="/catalogue"
+              href={withLocale(locale, "/catalogue")}
               className="border border-ink bg-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85"
             >
-              Clear all filters
+              {dict.catalog.clearAllFilters}
             </Link>
-            <Link
-              href="/quick-order"
-              className="border border-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-white"
-            >
-              Browse full linesheet
-            </Link>
+            {/* The order sheet needs an account; a visitor would only bounce off the login. */}
+            {showPricing && (
+              <Link
+                href={withLocale(locale, "/quick-order")}
+                className="border border-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-white"
+              >
+                {dict.catalog.browseLinesheet}
+              </Link>
+            )}
           </div>
         </div>
       ) : view === "list" ? (
@@ -169,19 +178,18 @@ export default async function CatalogPage({
               favorited={account ? favoriteIds.has(style.id) : undefined}
               locale={locale}
               dict={dict}
+              arrivalLabel={arrivalLabel}
             />
           ))}
         </div>
       ) : (
-        // Two big columns on phones/tablets, three from `lg` up. Still deliberately not a
-        // 1→2→3 ramp: the point is tall photos that read as "premium fashion editorial"
-        // rather than a dense product grid, so it never drops to a single column and never
-        // goes past three. `lg` (not `md`) is the desktop step used across the rest of the
-        // site, and it keeps tablets on the roomier 2-up. A hairline 2px gap is the only
-        // separation between products and from the page edges — breaks out of the page's
-        // own horizontal padding (-mx-6/lg:-mx-10) to get there.
+        // Denser than the original editorial 2→3 grid (2026-09-25): buyers compare ~30
+        // styles, and three tall 4:5 cards meant about six per laptop screen. With 4:3
+        // photos and four columns from `xl` the same screen holds about twelve, each card
+        // carrying its own pair/box price and delivery date. Never one column on a phone.
+        // A hairline gap is the only separation, breaking out of the page padding.
         <div className="-mx-6 lg:-mx-10">
-          <div className="grid grid-cols-2 gap-0.5 px-0.5 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-0.5 bg-stone-200 px-0.5 md:grid-cols-3 xl:grid-cols-4">
             {results.map((style, i) => (
               <ProductCard
                 key={style.id}

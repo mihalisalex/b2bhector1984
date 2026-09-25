@@ -11,6 +11,7 @@ import { useFormat, useI18n } from "@/i18n/I18nProvider";
 import { withLocale } from "@/i18n/paths";
 import { t } from "@/i18n/format";
 import { VatNotice } from "@/components/ui/VatNotice";
+import { TermsSwitch } from "@/components/product/TermsSwitch";
 import type { BoxTypeId } from "@/lib/types";
 import type { StyleInventory } from "@/lib/data/inventory";
 import type { BoxOption } from "@/lib/orderMinimum";
@@ -36,7 +37,7 @@ export function CartView({
   const { eur } = useFormat();
   const { locale, dict } = useI18n();
   const c = dict.checkout;
-  const { lines, unavailableLines, setLineQty, removeStyle, clearCart, cartTotal, cartVatTotal, cartGrandTotal, priceMultiplier, minOrderPairs, chargesVat } = useCart();
+  const { lines, unavailableLines, setLineQty, removeStyle, clearCart, cartTotal, cartVatTotal, cartGrandTotal, priceMultiplier, minOrderPairs, chargesVat, terms } = useCart();
   const { getStyleById, productionLeadTimeDays } = useCatalog();
 
   function onHandFor(styleId: string, colorwayId: string, boxTypeId: BoxTypeId): number {
@@ -178,7 +179,7 @@ export function CartView({
             qtyMap[l.colorwayId] = qtyMap[l.colorwayId] || {};
             qtyMap[l.colorwayId]![l.boxTypeId] = l.qty;
           }
-          const validation = validateMatrix(style, qtyMap, "net60", priceMultiplier);
+          const validation = validateMatrix(style, qtyMap, terms, priceMultiplier);
 
           return (
             <div key={styleId} className="border border-stone-300 bg-white">
@@ -353,6 +354,9 @@ export function CartView({
 
       <div className="mt-8 flex flex-col items-end gap-3 border-t border-stone-300 pt-6">
         <SaveAssortmentButton lines={lines} />
+        {/* Same switch as the product page: the cart total is at the terms the buyer picks,
+            and checkout opens on the same choice. */}
+        <TermsSwitch className="w-full max-w-sm" />
         <div className="flex items-baseline gap-3">
           <span className="text-sm font-semibold uppercase tracking-wide text-ink-soft">{c.cartTotalNet60}</span>
           <span className="text-2xl font-semibold tabular-nums text-ink">{eur(cartTotal)}</span>
@@ -366,9 +370,6 @@ export function CartView({
         {/* Same disclosure as checkout — the cart is where a buyer forms their price
             expectation, so it cannot be the one screen that omits it. */}
         <VatNotice dict={dict} chargesVat={chargesVat} className="mt-2 text-right text-[11px] text-ink-soft" />
-        <p className="text-right text-xs font-medium text-positive">
-          Prepay in full at checkout to save {eur(cartGrandTotal * 0.1)} (10% off)
-        </p>
         {blockedReason && (
           <p className="max-w-sm text-right text-xs font-medium text-ember">{blockedReason}</p>
         )}

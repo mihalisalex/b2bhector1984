@@ -6,7 +6,7 @@ import { getBoxType } from "@/lib/data/boxTypes";
 import { getUnitPrice } from "@/lib/pricing";
 import { syncCartAction, persistCartAction } from "@/lib/cartActions";
 import { cartsEqual } from "@/lib/cartMerge";
-import type { BoxTypeId } from "@/lib/types";
+import type { BoxTypeId, CreditTerms } from "@/lib/types";
 
 export interface CartLine {
   styleId: string;
@@ -49,6 +49,15 @@ interface CartContextValue {
   /** False for a buyer based outside Greece — they are invoiced without Greek VAT (see
    * `chargesGreekVat` in src/lib/tax.ts), so no "+VAT" marker and no VAT line anywhere. */
   chargesVat: boolean;
+  /**
+   * The payment terms every price on the site is shown at for this buyer: their account's
+   * default until they pick another (product page, cart or checkout), then remembered in
+   * this browser. Before this, every screen showed the Net-60 list price and the prepay or
+   * Net-30 discount only appeared at checkout — so a prepay buyer never saw their real
+   * price while choosing.
+   */
+  terms: CreditTerms;
+  setTerms: (terms: CreditTerms) => void;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -56,6 +65,12 @@ const CartContext = createContext<CartContextValue | null>(null);
 function storageKey(accountId: string) {
   return `hector_cart_${accountId}`;
 }
+
+function termsStorageKey(accountId: string) {
+  return `hector_terms_${accountId}`;
+}
+
+const TERMS: CreditTerms[] = ["prepay", "net30", "net60"];
 
 function pairsInLine(line: CartLine): number {
   return line.qty * getBoxType(line.boxTypeId).totalPairs;
@@ -66,17 +81,46 @@ export function CartProvider({
   priceMultiplier = 1,
   minOrderPairs,
   chargesVat = true,
+  defaultTerms = "net60",
   children,
 }: {
   accountId: string;
   priceMultiplier?: number;
   minOrderPairs?: number;
   chargesVat?: boolean;
+  /** The account's own payment terms — what prices show until the buyer picks others. */
+  defaultTerms?: CreditTerms;
   children: ReactNode;
 }) {
   const { getStyleById } = useCatalog();
   const [lines, setLines] = useState<CartLine[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [terms, setTermsState] = useState<CreditTerms>(defaultTerms);
+
+  // The saved choice is read after mount, not during render: localStorage doesn't exist on
+  // the server, and reading it in the initial state would make the first client render
+  // disagree with the server's (a hydration error on every price).
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(termsStorageKey(accountId));
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from an external store (localStorage)
+      if (saved && TERMS.includes(saved as CreditTerms)) setTermsState(saved as CreditTerms);
+    } catch {
+      // storage blocked — keep the account default
+    }
+  }, [accountId]);
+
+  const setTerms = useCallback(
+    (next: CreditTerms) => {
+      setTermsState(next);
+      try {
+        window.localStorage.setItem(termsStorageKey(accountId), next);
+      } catch {
+        // storage blocked — the choice still holds for this page view
+      }
+    },
+    [accountId],
+  );
 
   useEffect(() => {
     // Sync from localStorage (an external system unavailable during SSR), not a
@@ -202,10 +246,10 @@ export function CartProvider({
       if (!style) return 0;
       const styleLines = lines.filter((l) => l.styleId === styleId);
       const totalPairs = styleLines.reduce((sum, l) => sum + pairsInLine(l), 0);
-      const unitPrice = getUnitPrice(style, "net60", priceMultiplier);
+      const unitPrice = getUnitPrice(style, terms, priceMultiplier);
       return Math.round(unitPrice * totalPairs * 100) / 100;
     },
-    [getStyleById, lines, priceMultiplier],
+    [getStyleById, lines, priceMultiplier, terms],
   );
 
   const styleVat = useCallback(
@@ -246,6 +290,8 @@ export function CartProvider({
       priceMultiplier,
       minOrderPairs,
       chargesVat,
+      terms,
+      setTerms,
     }),
     [
       lines,
@@ -263,6 +309,8 @@ export function CartProvider({
       priceMultiplier,
       minOrderPairs,
       chargesVat,
+      terms,
+      setTerms,
     ],
   );
 
@@ -273,8 +321,22 @@ export function CartProvider({
  * Whether prices shown to the current viewer carry Greek VAT. Safe outside a CartProvider
  * (logged-out pages, which show no prices anyway) — it answers true there, the Greek default.
  */
+/**
+ * The payment terms prices are shown at. Safe outside a CartProvider — Net 60 (list price)
+ * there, which is only ever a logged-out page that shows no prices anyway.
+ */
+export function useBuyerTerms(): CreditTerms {
+  return useContext(CartContext)?.terms ?? "net60";
+}
+
 export function useChargesVat(): boolean {
   return useContext(CartContext)?.chargesVat ?? true;
+}
+
+/** The cart when there is one (a signed-in buyer), otherwise null — for shared chrome like
+ * the header, which renders for visitors too. */
+export function useOptionalCart(): CartContextValue | null {
+  return useContext(CartContext);
 }
 
 export function useCart(): CartContextValue {

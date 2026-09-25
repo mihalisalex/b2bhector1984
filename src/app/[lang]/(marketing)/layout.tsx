@@ -49,7 +49,7 @@ export default async function MarketingLayout({
   // renders under the shop tree, which fetches the real thing in its own layout.
   return (
     <CatalogProvider styles={styles} productionLeadTimeDays={hero.productionLeadTimeDays} inventory={{}}>
-      <CartProvider accountId={account.id} priceMultiplier={account.priceMultiplier} minOrderPairs={account.minOrderPairs} chargesVat={chargesGreekVat(account.country)}>
+      <CartProvider accountId={account.id} priceMultiplier={account.priceMultiplier} minOrderPairs={account.minOrderPairs} chargesVat={chargesGreekVat(account.country)} defaultTerms={account.creditTerms}>
         {content}
       </CartProvider>
     </CatalogProvider>

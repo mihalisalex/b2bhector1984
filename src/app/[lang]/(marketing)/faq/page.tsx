@@ -92,7 +92,7 @@ function groupsEn(days: number): FaqGroup[] {
         },
         {
           q: "Are the prices on the site final?",
-          a: "They are our list prices. On large orders we may be able to offer a better price — the final price is the one on your invoice.",
+          a: "Prices are shown at the payment terms you pick at the top of any product page or in the cart (your account’s own terms to start with). On large orders we may be able to offer a better price — the final price is the one on your invoice.",
         },
         {
           q: "How and when do I pay?",
@@ -207,7 +207,7 @@ function groupsEl(days: number): FaqGroup[] {
         },
         {
           q: "Οι τιμές στο site είναι τελικές;",
-          a: "Είναι οι τιμές καταλόγου μας. Σε μεγάλες παραγγελίες μπορεί να σας προσφέρουμε καλύτερη τιμή — τελική είναι η τιμή του τιμολογίου σας.",
+          a: "Οι τιμές εμφανίζονται με τους όρους πληρωμής που επιλέγετε στη σελίδα κάθε προϊόντος ή στο καλάθι (αρχικά οι όροι του λογαριασμού σας). Σε μεγάλες παραγγελίες μπορεί να σας προσφέρουμε καλύτερη τιμή — τελική είναι η τιμή του τιμολογίου σας.",
         },
         {
           q: "Πώς και πότε πληρώνω;",

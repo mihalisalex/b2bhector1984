@@ -11,6 +11,8 @@ import { buildSiteSchemas } from "@/lib/seoJsonLd";
 import { LOCALES, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/getDictionary";
 import { I18nProvider } from "@/i18n/I18nProvider";
+import { getHomepageHero } from "@/lib/data/siteContent";
+import { estimatedArrivalIso } from "@/lib/delivery";
 import "@/app/globals.css";
 
 /**
@@ -87,7 +89,8 @@ export default async function LocaleLayout({
   const { lang: rawLang } = await params;
   const lang = rawLang as Locale;
 
-  const [dict, siteSchemas] = await Promise.all([getDictionary(lang), buildSiteSchemas(lang)]);
+  const [dict, siteSchemas, hero] = await Promise.all([getDictionary(lang), buildSiteSchemas(lang), getHomepageHero()]);
+  const leadTimeDays = hero.productionLeadTimeDays;
 
   return (
     <html
@@ -102,7 +105,12 @@ export default async function LocaleLayout({
         {/* ConsentProvider wraps I18nProvider so the banner, the /cookies control and the
             analytics loader all read one source of truth for what this visitor agreed to. */}
         <ConsentProvider>
-          <I18nProvider locale={lang} dict={dict}>
+          <I18nProvider
+            locale={lang}
+            dict={dict}
+            leadTimeDays={leadTimeDays}
+            arrivalIso={estimatedArrivalIso(leadTimeDays)}
+          >
             {children}
             {/* Inside the i18n provider: the banner reads the dictionary, and it is the one
                 piece of chrome a Greek visitor sees before anything else on the page. */}

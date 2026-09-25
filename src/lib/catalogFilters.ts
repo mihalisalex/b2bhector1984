@@ -67,6 +67,8 @@ export interface CatalogFilters {
   availability: ("available" | "prebook")[];
   color: string[];
   price: string[];
+  /** Pairs per box ("8", "10") — each style is packed in one box format. */
+  box: string[];
   flag: CatalogFlag[];
 }
 
@@ -80,6 +82,7 @@ export function parseFilters(sp: Record<string, string | string[] | undefined>):
     availability: list(sp.availability) as ("available" | "prebook")[],
     color: list(sp.color),
     price: list(sp.price),
+    box: list(sp.box),
     flag: list(sp.flag).filter((v): v is CatalogFlag =>
       FLAG_OPTIONS.some((o) => o.value === v),
     ),
@@ -135,6 +138,10 @@ export function filterStyles(
       });
       if (!inBand) return false;
     }
+    if (filters.box.length) {
+      const sizes = (s.availableBoxTypes ?? []).map((id) => id.replace("box", ""));
+      if (!filters.box.some((b) => sizes.includes(b))) return false;
+    }
     for (const flag of filters.flag) {
       if (flag === "sale" && !isOnSale(s)) return false;
       if (flag === "featured" && !s.featured) return false;
@@ -142,4 +149,11 @@ export function filterStyles(
     }
     return true;
   });
+}
+
+/** Box sizes (pairs per box) that at least one style is actually sold in, smallest first. */
+export function boxOptionsFromStyles(styles: Style[]): string[] {
+  const sizes = new Set<string>();
+  for (const style of styles) for (const id of style.availableBoxTypes ?? []) sizes.add(id.replace("box", ""));
+  return [...sizes].sort((a, b) => Number(a) - Number(b));
 }

@@ -7,6 +7,8 @@ import { t } from "@/i18n/format";
 import { SUPPORT_EMAIL, SUPPORT_EMAIL_HREF } from "@/lib/contact";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 import { CATEGORY_PAGES } from "@/lib/categoryPages";
+import { LEGAL_ENTITY, addressInline } from "@/lib/legalEntity";
+import { telHref } from "@/lib/format";
 
 export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const f = dict.footer;
@@ -51,6 +53,7 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
               { href: "/faq", label: f.faq },
               { href: "/contact", label: f.contactUs },
               { href: SUPPORT_EMAIL_HREF, label: SUPPORT_EMAIL, external: true },
+              ...(LEGAL_ENTITY.phone ? [{ href: telHref(LEGAL_ENTITY.phone), label: LEGAL_ENTITY.phone, external: true }] : []),
             ]}
           />
           <FooterCol
@@ -78,6 +81,19 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
           <span>{t(f.copyright, { year: new Date().getFullYear() })}</span>
           <span>{f.disclaimer}</span>
         </div>
+        {/* Who the buyer is dealing with, on every page: a first-time buyer checks this
+            before sending money to a supplier they have never met. Same facts as the legal
+            pages (src/lib/legalEntity.ts). */}
+        <p className="mt-3 text-[11px] leading-relaxed text-stone-300/50">
+          {[
+            LEGAL_ENTITY.registeredName?.[locale],
+            `${dict.legal.identityVatId} ${LEGAL_ENTITY.vatId}`,
+            LEGAL_ENTITY.gemi ? `${dict.legal.identityGemi} ${LEGAL_ENTITY.gemi}` : null,
+            addressInline(locale),
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
       </div>
     </footer>
   );

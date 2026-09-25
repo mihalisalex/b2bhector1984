@@ -207,7 +207,10 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
                 </span>
               </div>
 
-              <h1 className="font-display mt-4 text-[2.25rem] font-bold uppercase leading-[0.95] tracking-[-0.02em] text-ink">
+              {/* Smaller and in normal case: long names ("5109 Brown - Leather formal boots")
+                  ran to three lines of display capitals and pushed the price off the first
+                  screen on a laptop. */}
+              <h1 className="font-display mt-3 text-[1.75rem] font-bold leading-[1.1] tracking-[-0.01em] text-ink sm:text-[2rem]">
                 {style.name}
               </h1>
               {/* localizeStyle, not style.tagline — the Greek copy is in tagline_el and this

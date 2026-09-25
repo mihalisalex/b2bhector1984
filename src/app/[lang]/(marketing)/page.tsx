@@ -10,6 +10,9 @@ import { SeasonShowcase } from "@/components/marketing/SeasonShowcase";
 import { pickSeasonStyles, countSeasonStyles } from "@/lib/seasonShowcase";
 import { listImagesForStyles } from "@/lib/data/styleImages";
 import { getAccountForAudience } from "@/lib/session";
+import { BuyerWelcome } from "@/components/marketing/BuyerWelcome";
+import { getOrdersForAccount } from "@/lib/runtimeOrders";
+import { estimatedArrivalIso } from "@/lib/delivery";
 import { LinkButton } from "@/components/ui/Button";
 import { pageMetadata } from "@/lib/seo";
 import { getDictionary } from "@/i18n/getDictionary";
@@ -47,6 +50,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   // Curated shelf (migration 0040). Only the flagged styles need their photos, so the
   // image lookup is scoped to them rather than the whole catalogue.
   const newArrivals = pickNewArrivals(styles);
+  // Signed in: the welcome block replaces the marketing hero (see BuyerWelcome).
+  const lastOrder = account ? (await getOrdersForAccount(account.id))[0] : undefined;
+  const arrivalIso = estimatedArrivalIso(hero.productionLeadTimeDays);
   const newArrivalImages = newArrivals.length > 0 ? await listImagesForStyles(newArrivals.map((s) => s.id)) : {};
 
 
@@ -107,6 +113,10 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
 
   return (
     <div>
+      {account ? (
+        <BuyerWelcome account={account} lastOrder={lastOrder} arrivalIso={arrivalIso} locale={lang} dict={dict} />
+      ) : (
+        <>
       {/* Hero — redesigned 2026-08-11 (previously two same-weight buttons plus a third
           "view collection" link, all competing for the first click, with the explanatory
           sentence appearing *after* the buttons). One button, one quiet link, copy in the
@@ -183,6 +193,8 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           {dict.orderPulse.scroll}
         </span>
       </section>
+        </>
+      )}
 
       {/* Live order-activity strip (2026-08-14). Every figure is a real query — it renders
           nothing at all when there isn't enough genuine activity to report, rather than
@@ -199,6 +211,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         dict={dict}
       />
 
+      {/* Apply / log in / order — for visitors only; a signed-in buyer is past all three. */}
+      {!account && (
+        <>
       {/* Easy steps to order, right up top for first-time buyers */}
       <section className="border-b border-stone-300 bg-white py-16">
         <div className="mx-auto max-w-[1440px] px-6 lg:px-10">
@@ -209,6 +224,8 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           </div>
         </div>
       </section>
+        </>
+      )}
 
       {/* Season showcase: a toggle, three products, and a fourth cell into that
           season on /collections. Replaced the two full-width editorial rows —

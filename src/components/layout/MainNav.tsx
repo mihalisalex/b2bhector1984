@@ -6,7 +6,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Account } from "@/lib/types";
 import { cn } from "@/lib/cn";
-import { HWatermark } from "@/components/layout/HWatermark";
 import { LockIcon } from "@/components/layout/icons";
 import { LinkButton } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
@@ -152,8 +151,6 @@ export function MainNav({ account }: { account: Account | null }) {
                 open ? "translate-x-0" : "-translate-x-full",
               )}
             >
-              <HWatermark className="-right-16 -top-10 text-[22rem] text-ink/[0.4]" />
-
               <div className="relative flex items-center justify-between border-b border-stone-300 px-5 py-4">
                 <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">{dict.nav.menu}</span>
                 <IconButton size="sm" onClick={() => setOpen(false)} aria-label={dict.nav.closeMenu}>

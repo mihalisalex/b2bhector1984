@@ -3,8 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
-import { useCatalog } from "@/lib/catalog-context";
-import { useI18n, useFormat } from "@/i18n/I18nProvider";
+import { useDelivery, useI18n, useFormat } from "@/i18n/I18nProvider";
 import { withLocale } from "@/i18n/paths";
 import { t } from "@/i18n/format";
 import { useColorwaySelection } from "@/lib/colorway-selection-context";
@@ -12,7 +11,7 @@ import { pickDefaultBoxType } from "@/lib/productSelectionDefaults";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { getUnitPrice, isOnSale, MAX_BACKORDER_QTY, MIN_ORDER_PAIRS } from "@/lib/pricing";
 import { SaleBadge } from "@/components/product/SaleBadge";
-import { VatSuffix, vatSuffixText } from "@/components/ui/VatSuffix";
+import { TermsSwitch } from "@/components/product/TermsSwitch";
 import { ColorwayPicker } from "@/components/product/ColorwayPicker";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
 import { ShareButton } from "@/components/product/ShareButton";
@@ -39,9 +38,9 @@ export function PrimaryPurchasePanel({
   priceMultiplier?: number;
   initialFavorited: boolean;
 }) {
-  const { addLines, lines, itemCount, minOrderPairs: accountMinOrderPairs, chargesVat } = useCart();
+  const { addLines, lines, itemCount, minOrderPairs: accountMinOrderPairs, chargesVat, terms } = useCart();
   const minOrderPairs = accountMinOrderPairs ?? MIN_ORDER_PAIRS;
-  const { productionLeadTimeDays } = useCatalog();
+  const { arrivalLabel } = useDelivery();
   const { locale, dict } = useI18n();
   const { eur } = useFormat();
   const c = dict.catalog;
@@ -86,43 +85,34 @@ export function PrimaryPurchasePanel({
   const onHand = inventory[colorwayId]?.[boxTypeId] ?? 0;
   const existingQty = lines.find((l) => l.styleId === style.id && l.colorwayId === colorwayId && l.boxTypeId === boxTypeId)?.qty ?? 0;
   const remaining = Math.max(0, onHand - existingQty);
-  // Whether this style can be ordered past its on-hand stock at all (the shortfall goes
-  // to production instead of blocking the order) — an admin-editable per-style flag, on by
-  // default. `outOfStock` alone (no backorder allowed) is the only case that still hard-blocks.
   const allowBackorder = style.allowBackorder;
   const outOfStock = onHand === 0 && !allowBackorder;
-  const lowStock = !allowBackorder && onHand > 0 && onHand <= 4;
-  // The stepper's real ceiling: uncapped (well, sanity-capped) when backorder is allowed,
-  // otherwise exactly what's left on the shelf, same as before this feature existed.
   const maxSelectable = allowBackorder ? MAX_BACKORDER_QTY : remaining;
-  // What placeOrder() will actually decide for this line if added right now — the full
-  // quantity for this colorway/box, cart + pending add, compared against on-hand.
   const willBeProduction = allowBackorder && existingQty + addQty > onHand;
 
-  const unitPrice = getUnitPrice(style, "net60", priceMultiplier);
-  // List price ignoring any active sale, so the struck-through figure is the real "was".
-  const onSale = isOnSale(style);
+  // Every figure is at the buyer's chosen payment terms (TermsSwitch), not the Net-60 list
+  // price — the old panel showed list and only revealed the prepay price at checkout.
+  const unitPrice = getUnitPrice(style, terms, priceMultiplier);
   const listUnitPrice = Math.round(style.basePrice * priceMultiplier * 100) / 100;
+  const discounted = unitPrice < listUnitPrice;
+  const onSale = isOnSale(style);
   const pairsPerBox = box.totalPairs;
-  const subtotal = useMemo(() => unitPrice * pairsPerBox * addQty, [unitPrice, pairsPerBox, addQty]);
+  const boxPrice = unitPrice * pairsPerBox;
+  const subtotal = useMemo(() => boxPrice * addQty, [boxPrice, addQty]);
+  const markup = style.msrp > 0 && unitPrice > 0 ? style.msrp / unitPrice : 0;
 
-  // The 40-pair order minimum is enforced in the cart, at checkout, and server-side in
-  // placeOrder — but until now it was invisible here, so a buyer could add a single box and
-  // only discover the wall two screens later. `itemCount` is cart-wide pairs; the minimum is
-  // mixable across styles, so this projects the total *after* this add rather than per-style.
   const pendingPairs = addQty * pairsPerBox;
   const pairsAfterAdd = itemCount + pendingPairs;
   const pairsShort = Math.max(0, minOrderPairs - pairsAfterAdd);
 
-  // Re-clamp the pending add-qty whenever the selected colorway/box combo changes stock.
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- clamping local qty to the newly-selected combo's stock, not derived render state
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- clamping to a new ceiling, not derived render state
     setAddQty((prev) => Math.min(Math.max(1, prev), Math.max(1, maxSelectable)));
   }, [colorwayId, boxTypeId, maxSelectable]);
 
-  function step(delta: number) {
+  function setQty(next: number) {
     setJustAdded(false);
-    setAddQty((prev) => Math.min(maxSelectable, Math.max(1, prev + delta)));
+    setAddQty(Math.min(maxSelectable, Math.max(1, Math.floor(next) || 1)));
   }
 
   function handleAddToCart() {
@@ -133,27 +123,58 @@ export function PrimaryPurchasePanel({
     scheduleReset(() => setJustAdded(false), 2500);
   }
 
-  const selectedColorway = style.colorways.find((c) => c.id === colorwayId) ?? style.colorways[0];
-  // The bar is the only Add-to-cart at every size, so it stays up for the whole decision
-  // and only steps aside once the buyer moves on to browsing the category.
+  const addLabel = outOfStock
+    ? c.soldOut
+    : justAdded
+      ? c.addedToCart
+      : t(c.addBoxesSummary, { boxes: addQty, pairs: pairsPerBox, total: eur(subtotal) });
   const barVisible = !reachedBrowsing;
 
   return (
     <>
-      {/* Everything a buyer needs to buy (price, colour, quantity, CTA) lives in the
-          sticky bar below at every screen size — this card is the supplementary detail
-          the bar can't carry: exact box size, stock, subtotal, order-minimum progress,
-          favorite/share. Not sticky, matching how it behaves on a phone. */}
       <div className="border border-stone-300 bg-white">
-        <div className="space-y-5 px-5 py-5 sm:px-6">
-          <div>
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">
-              {c.boxSize}
-            </p>
-            {/* Pills, not full-width tiles — with a single box type this used to render as
-                one giant solid-black bar, which read as a second call-to-action competing
-                with c.addToCart rather than a quiet selector. */}
-            {boxTypes.length > 1 ? (
+        <div className="space-y-4 px-5 py-5 sm:px-6">
+          {/* Colour lives in the sticky bar on phones; on desktop there is no bar, so here. */}
+          {style.colorways.length > 1 && (
+            <div className="hidden lg:block">
+              <ColorwayPicker style={style} inventory={inventory} />
+            </div>
+          )}
+          <TermsSwitch />
+
+          {/* The three numbers a shop owner decides on, side by side: what a pair costs,
+              what the box they actually order costs, and what it sells for in their shop. */}
+          <dl className="grid grid-cols-3 border border-stone-200 tabular-nums">
+            <div className="border-r border-stone-200 p-3">
+              <dt className="text-[11px] text-ink-soft">{c.perPairLabel}</dt>
+              <dd className={cn("mt-0.5 text-lg font-semibold leading-tight sm:text-xl", onSale ? "text-burgundy" : "text-ink")}>
+                {eur(unitPrice)}
+              </dd>
+              {discounted && (
+                <dd className="text-[11px] text-ink-soft line-through">{t(c.listPriceLabel, { price: eur(listUnitPrice) })}</dd>
+              )}
+              {/* The struck list price already says it; the badge only fits from `sm` up. */}
+              {onSale && <dd className="mt-1 hidden sm:block"><SaleBadge style={style} /></dd>}
+            </div>
+            <div className="border-r border-stone-200 p-3">
+              <dt className="text-[11px] text-ink-soft">{t(c.boxOfLabel, { pairs: pairsPerBox })}</dt>
+              <dd className="mt-0.5 text-lg font-semibold leading-tight text-ink sm:text-xl">{eur(boxPrice)}</dd>
+              <dd className="text-[11px] text-ink-soft">{chargesVat ? c.vatForGreece : c.noVatAbroad}</dd>
+            </div>
+            <div className="p-3">
+              <dt className="text-[11px] text-ink-soft">{c.rrpLabel}</dt>
+              <dd className="mt-0.5 text-lg font-semibold leading-tight text-ink sm:text-xl">{style.msrp > 0 ? eur(style.msrp) : "—"}</dd>
+              {markup > 0 && (
+                <dd className="text-[11px] font-semibold text-positive">
+                  {c.markupLabel} ×{markup.toFixed(1)}
+                </dd>
+              )}
+            </div>
+          </dl>
+
+          {boxTypes.length > 1 && (
+            <div>
+              <p className="mb-2 text-xs font-medium text-ink-soft">{c.boxSize}</p>
               <div className="flex flex-wrap gap-2">
                 {boxTypes.map((b) => {
                   const stock = inventory[colorwayId]?.[b.id] ?? 0;
@@ -165,7 +186,6 @@ export function PrimaryPurchasePanel({
                       onClick={() => setBoxTypeId(b.id)}
                       aria-pressed={active}
                       className={cn(
-                        // EXPERIMENTAL rounded-full, 2026-08-10 — see Button.tsx's `base` comment for the revert path.
                         "rounded-full px-3.5 py-2 text-xs font-semibold tabular-nums transition-colors duration-150",
                         active ? "bg-ink text-white" : "bg-stone-100 text-ink-soft hover:bg-stone-200",
                         stock === 0 && !allowBackorder && "opacity-45",
@@ -176,175 +196,161 @@ export function PrimaryPurchasePanel({
                   );
                 })}
               </div>
+            </div>
+          )}
+
+          {/* A date, not a duration: "around 14 Nov" is what a buyer plans a season around. */}
+          <div className={cn("border-l-[3px] px-3 py-2 text-sm", outOfStock ? "border-ember bg-ember-100" : "border-positive bg-positive-100")}>
+            {outOfStock ? (
+              <p className="font-medium text-ember">{c.outOfStockCombo}</p>
+            ) : willBeProduction || onHand === 0 ? (
+              <>
+                <p className="text-ink">
+                  <span className="font-semibold">{c.madeForYou}</span> · {t(c.arrivesAroundToday, { date: arrivalLabel })}
+                </p>
+                <p className="mt-0.5 text-xs text-ink-soft">{c.etaLargeOrders}</p>
+              </>
             ) : (
-              <p className="text-sm font-medium text-ink">{t(c.prePackBox, { pairs: boxTypes[0].totalPairs })}</p>
+              <p className="text-ink">{t(c.inStockBoxes, { count: remaining })}</p>
             )}
           </div>
 
-          <div className="flex items-center justify-between gap-3">
-            <p className="mb-0 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">
-              {c.boxes}
-            </p>
-            <p className={cn("text-xs font-medium", outOfStock || lowStock || willBeProduction ? "text-ember" : "text-ink-soft")}>
-              {outOfStock
-                ? c.outOfStockCombo
-                : willBeProduction
-                  ? style.backorderMode === "pre_order"
-                    ? t(c.preOrderShips, { days: productionLeadTimeDays })
-                    : t(c.madeToOrderShips, { days: productionLeadTimeDays })
-                  : lowStock
-                    ? t(c.onlyLeft, { count: onHand })
-                    : `${onHand} in stock`}
-              {existingQty > 0 && <span className="text-ink-soft"> · {existingQty} in cart</span>}
-            </p>
-          </div>
-
-          <div>
-            <div className="flex items-baseline justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">
-                {addQty * pairsPerBox} pairs
-              </span>
-              <span className="text-2xl font-semibold tabular-nums text-ink">
-                {eur(subtotal)}
-                <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
-              </span>
-            </div>
-
-            {!outOfStock && (
-              <p className={cn("mt-2 text-[11px] leading-snug", pairsShort > 0 ? "text-ink-soft" : "text-positive")}>
-                {/* Whole sentences from the dictionary rather than JSX fragments around a
-                    bolded number: Greek inflects the rest of the clause with the count, so
-                    the sentence cannot be assembled around a <span> in the middle. The
-                    emphasis is the cost of translating this correctly. */}
-                {pairsShort > 0
-                  ? t(c.takesOrderTo, { pairs: pairsAfterAdd, short: pairsShort, min: minOrderPairs })
-                  : t(c.meetsMinimum, { min: minOrderPairs, pairs: pairsAfterAdd })}
-              </p>
-            )}
-
-            <div className="mt-4 flex items-center gap-2">
-              <FavoriteButton styleId={style.id} initialFavorited={initialFavorited} />
-              <ShareButton title={style.name} />
-            </div>
-
-            {justAdded && (
-              <p className="mt-2.5 text-xs font-medium text-positive">
-                Added.{" "}
-                <Link href={withLocale(locale, "/cart")} className="underline hover:text-ink">
-                  View cart
-                </Link>
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Sticky purchase bar — the single Add-to-cart at every screen size, carrying
-          everything needed to buy (box size, price, colour, quantity, CTA) so the buyer
-          never scrolls back up. Full-width band so it reads as a fixture of the page
-          regardless of viewport, but its content is capped/centered to match the column
-          above on wide screens rather than sprawling across a monitor. Releases once the
-          related-products section comes into view, handing the screen over to browsing. */}
-      <div
-        className={cn(
-          "fixed inset-x-0 bottom-0 z-30 bg-white/97 px-4 pb-3 pt-3 backdrop-blur-md transition-transform duration-300 ease-out",
-          barVisible ? "translate-y-0" : "translate-y-full",
-        )}
-        style={{ boxShadow: "0 -10px 30px rgba(26,29,34,0.12)" }}
-        aria-hidden={!barVisible}
-      >
-        <div className="mx-auto max-w-[600px]">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              {/* Box size sits where the product name used to — the name is redundant with
-                  the page title just above, but which box you're about to buy isn't. */}
-              <p className="truncate text-[10px] font-semibold uppercase tracking-[0.1em] text-ink-soft">
-                {box.totalPairs}-Pair Box
-              </p>
-              <p className="mt-1 flex flex-wrap items-baseline gap-x-1.5">
-                <span className="text-[17px] font-semibold tabular-nums text-ink">
-                  {eur(unitPrice)}
-                  <VatSuffix vatRate={style.vatRate} className="text-[11px] font-normal text-ink-soft" />
-                </span>
-                {/* The catalogue card advertises the discount; this page was showing only the
-                    already-reduced number, so the saving was invisible exactly where the buyer
-                    decides. Struck list price is computed the same way the card does it. */}
-                {onSale && (
-                  <span className="text-[11px] tabular-nums text-ink-soft line-through">
-                    {eur(listUnitPrice)}
-                  </span>
-                )}
-                <span className="text-[11px] text-ink-soft">{c.perPair} · {selectedColorway.name}</span>
-                {onSale && <SaleBadge style={style} />}
-              </p>
-            </div>
-            <ColorwayPicker style={style} inventory={inventory} className="-mr-1 shrink-0" />
-          </div>
-
-          {/* EXPERIMENTAL rounded-full, 2026-08-10 — see Button.tsx's `base` comment for the revert path. */}
-          <div className="mt-2.5 flex items-stretch gap-2">
-            <Stepper qty={addQty} max={maxSelectable} disabled={outOfStock} onStep={step} />
+          <div className="hidden items-stretch gap-2 lg:flex">
+            <QtyInput
+              qty={addQty}
+              max={maxSelectable}
+              disabled={outOfStock}
+              onChange={setQty}
+              label={c.boxesLabel}
+            />
             <button
               type="button"
               onClick={handleAddToCart}
               disabled={outOfStock}
-              className="flex-1 rounded-full bg-ink px-3 text-xs font-semibold uppercase tracking-[0.08em] text-white transition-transform active:scale-[0.99] disabled:bg-cinder-300 disabled:text-white/70"
+              className="flex-1 rounded-full bg-ink px-4 py-3 text-xs font-semibold uppercase tracking-[0.06em] text-white tabular-nums transition-colors hover:bg-ink/85 disabled:bg-cinder-300 disabled:text-white/70"
             >
-              {outOfStock
-                ? c.soldOut
-                : justAdded
-                  ? c.addedToCart
-                  : t(addQty > 1 ? c.addBoxesPlural : c.addBoxes, {
-                      pairs: box.totalPairs,
-                      total: `${eur(subtotal)}${vatSuffixText(chargesVat ? style.vatRate : 0, dict)}`,
-                    })}
+              {addLabel}
+            </button>
+          </div>
+
+          {!outOfStock && (
+            <p className={cn("text-xs leading-snug", pairsShort > 0 ? "text-ink-soft" : "text-positive")}>
+              {/* Whole sentences from the dictionary rather than JSX fragments around a
+                  bolded number: Greek inflects the rest of the clause with the count. */}
+              {pairsShort > 0
+                ? t(c.takesOrderTo, { pairs: pairsAfterAdd, short: pairsShort, min: minOrderPairs })
+                : t(c.meetsMinimum, { min: minOrderPairs, pairs: pairsAfterAdd })}
+              {existingQty > 0 && <span className="text-ink-soft"> · {t(c.inCartCount, { count: existingQty })}</span>}
+            </p>
+          )}
+
+          {justAdded && (
+            <p className="text-xs font-medium text-positive" role="status">
+              {c.addedViewCart}{" "}
+              <Link href={withLocale(locale, "/cart")} className="underline hover:text-ink">
+                {c.viewCart}
+              </Link>
+            </p>
+          )}
+
+          <div className="flex items-center gap-2">
+            <FavoriteButton styleId={style.id} initialFavorited={initialFavorited} />
+            <ShareButton title={style.name} />
+          </div>
+        </div>
+      </div>
+
+      {/* Phones only: a sticky bar so the buyer never scrolls back up to add. On desktop the
+          panel above sits beside the photos and already holds everything, so a second
+          add-to-cart pinned to the bottom of the screen only duplicated it. Releases once
+          the related styles scroll in. */}
+      <div
+        className={cn(
+          "fixed inset-x-0 bottom-0 z-30 bg-white/97 px-4 pb-3 pt-3 backdrop-blur-md transition-transform duration-300 ease-out lg:hidden",
+          barVisible ? "translate-y-0" : "translate-y-full",
+        )}
+        style={{ boxShadow: "0 -10px 30px rgba(26,29,34,0.12)", paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+        aria-hidden={!barVisible}
+      >
+        <div className="mx-auto max-w-[600px]">
+          <div className="flex items-center justify-between gap-3">
+            <p className="min-w-0 text-sm tabular-nums text-ink">
+              <span className="font-semibold">{eur(boxPrice)}</span>
+              <span className="text-xs text-ink-soft"> · {t(c.boxOfLabel, { pairs: pairsPerBox })} · {eur(unitPrice)}{c.perPair}</span>
+            </p>
+            <ColorwayPicker style={style} inventory={inventory} className="-mr-1 shrink-0" />
+          </div>
+          <div className="mt-2.5 flex items-stretch gap-2">
+            <QtyInput qty={addQty} max={maxSelectable} disabled={outOfStock} onChange={setQty} label={c.boxesLabel} />
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={outOfStock}
+              className="flex-1 rounded-full bg-ink px-3 text-xs font-semibold uppercase tracking-[0.06em] text-white tabular-nums transition-transform active:scale-[0.99] disabled:bg-cinder-300 disabled:text-white/70"
+            >
+              {addLabel}
             </button>
           </div>
         </div>
       </div>
-      {/* Reserves space so the fixed bar doesn't cover page content/footer */}
-      {barVisible && <div className="h-[108px]" aria-hidden />}
+      {/* Reserves space so the fixed bar doesn't cover page content/footer (phones only) */}
+      {barVisible && <div className="h-[108px] lg:hidden" aria-hidden />}
     </>
   );
 }
 
 /**
- * Quantity stepper for the purchase bar — the only place quantity is adjusted now that
- * desktop matches mobile (tap +/-, no typed-number entry; a phone never had one either).
- * Both glyphs are drawn as SVG on an identical 16x16 grid — pairing a Unicode minus with
- * an ASCII plus renders at visibly different weights and made the control look broken.
+ * Box quantity: − and + for small changes, and a real number field for large ones — ordering
+ * 20 boxes used to mean nineteen taps on +. Both glyphs are drawn as SVG on an identical
+ * 16x16 grid; a Unicode minus beside an ASCII plus renders at visibly different weights.
  */
-function Stepper({
+function QtyInput({
   qty,
   max,
   disabled,
-  onStep,
+  onChange,
+  label,
 }: {
   qty: number;
   max: number;
   disabled?: boolean;
-  onStep: (delta: number) => void;
+  onChange: (next: number) => void;
+  label: string;
 }) {
   const c = useI18n().dict.catalog;
+  const [draft, setDraft] = useState<string | null>(null);
   return (
-    // EXPERIMENTAL rounded-full, 2026-08-10 — see Button.tsx's `base` comment for the revert
-    // path. `overflow-hidden` caps the square inner buttons into the pill shape.
     <div className="flex shrink-0 items-center overflow-hidden rounded-full bg-stone-100">
       <button
         type="button"
-        onClick={() => onStep(-1)}
+        onClick={() => onChange(qty - 1)}
         disabled={disabled || qty <= 1}
         aria-label={c.decreaseQty}
         className="flex h-11 w-10 items-center justify-center text-ink transition-colors hover:bg-stone-200 disabled:opacity-30 disabled:hover:bg-transparent"
       >
         <StepIcon kind="minus" />
       </button>
-      <span className="font-mono-tab flex h-11 w-9 items-center justify-center text-base font-bold tabular-nums text-ink">
-        {qty}
-      </span>
+      <input
+        type="number"
+        inputMode="numeric"
+        min={1}
+        max={max}
+        value={draft ?? String(qty)}
+        disabled={disabled}
+        aria-label={label}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={() => {
+          if (draft !== null) onChange(Number(draft));
+          setDraft(null);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+        }}
+        className="font-mono-tab h-11 w-12 appearance-none bg-transparent text-center text-base font-bold tabular-nums text-ink outline-none focus-visible:bg-white [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+      />
       <button
         type="button"
-        onClick={() => onStep(1)}
+        onClick={() => onChange(qty + 1)}
         disabled={disabled || qty >= max}
         aria-label={c.increaseQty}
         className="flex h-11 w-10 items-center justify-center text-ink transition-colors hover:bg-stone-200 disabled:opacity-30 disabled:hover:bg-transparent"

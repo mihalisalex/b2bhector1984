@@ -70,3 +70,9 @@ export function formatWeight(grams: number, locale: string = "en"): string {
   }
   return `${Math.round(grams).toLocaleString(numberLocale)} g`;
 }
+
+/** Day and month only — "14 Nov" / "14 Νοε". For near-future dates where the year is obvious. */
+export function formatDayMonth(iso: string, locale: string = "en"): string {
+  const d = new Date(`${iso.slice(0, 10)}T12:00:00Z`);
+  return d.toLocaleDateString(resolve(locale), { day: "numeric", month: "short", timeZone: "UTC" });
+}

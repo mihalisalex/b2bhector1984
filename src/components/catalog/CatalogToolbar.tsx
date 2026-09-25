@@ -9,7 +9,6 @@ import { cn } from "@/lib/cn";
 import { useI18n } from "@/i18n/I18nProvider";
 import { t } from "@/i18n/format";
 import {
-  availabilityLabel,
   categoryLabel,
   flagLabel,
   genderLabel,
@@ -45,10 +44,6 @@ const GENDER_OPTIONS = [
   { value: "unisex", label: "Unisex" },
 ];
 
-const AVAILABILITY_OPTIONS = [
-  { value: "available", label: "Available now" },
-  { value: "prebook", label: "Pre-book" },
-];
 
 /** Standalone search box, meant to sit next to the page title. Syncs the `q` param same as before. */
 export function CatalogSearchInput() {
@@ -96,6 +91,8 @@ export function CatalogFiltersPanel({
   seasonOptions = DEFAULT_SEASON_OPTIONS,
   colorOptions = [],
   flagOptions = FLAG_OPTIONS,
+  boxOptions = [],
+  showPricing = true,
 }: {
   /** Enabled seasons with their admin-configured display labels; omit to fall back to the stock Summer/Winter pair. */
   seasonOptions?: { value: string; label: string }[];
@@ -103,6 +100,10 @@ export function CatalogFiltersPanel({
   colorOptions?: string[];
   /** Quick toggles that can actually match something (`availableFlagOptions`). Defaults to all of them. */
   flagOptions?: readonly (typeof FLAG_OPTIONS)[number][];
+  /** Pairs-per-box values actually on sale (`boxOptionsFromStyles`). */
+  boxOptions?: string[];
+  /** False for visitors who aren't signed in — a price filter is no use without prices. */
+  showPricing?: boolean;
 }) {
   const router = useRouter();
   const { dict } = useI18n();
@@ -162,7 +163,7 @@ export function CatalogFiltersPanel({
 
   const clearAll = () => {
     const params = new URLSearchParams(searchParams.toString());
-    ["category", "season", "gender", "availability", "color", "price", "flag"].forEach((key) => params.delete(key));
+    ["category", "season", "gender", "availability", "color", "price", "box", "flag"].forEach((key) => params.delete(key));
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
@@ -179,6 +180,7 @@ export function CatalogFiltersPanel({
     searchParams.getAll("availability").length +
     searchParams.getAll("color").length +
     searchParams.getAll("price").length +
+    searchParams.getAll("box").length +
     searchParams.getAll("flag").length;
 
   return (
@@ -230,11 +232,16 @@ export function CatalogFiltersPanel({
             ))}
           </FilterGroup>
 
-          <FilterGroup title={c.grpDelivery}>
-            {AVAILABILITY_OPTIONS.map((opt) => (
-              <Checkbox key={opt.value} label={availabilityLabel(dict, opt.value)} checked={isChecked("availability", opt.value)} onChange={() => toggle("availability", opt.value)} />
-            ))}
-          </FilterGroup>
+          {/* Box size replaced the "Delivery window" group: every order is produced for the
+              buyer, so that filter could only ever split the catalogue into "everything" and
+              "nothing". Box size is a real choice a buyer makes (8 vs 10 pairs per style). */}
+          {boxOptions.length > 1 && (
+            <FilterGroup title={c.grpBox}>
+              {boxOptions.map((pairs) => (
+                <Checkbox key={pairs} label={t(c.boxFilterOption, { pairs })} checked={isChecked("box", pairs)} onChange={() => toggle("box", pairs)} />
+              ))}
+            </FilterGroup>
+          )}
 
           {colorOptions.length > 0 && (
             <FilterGroup title={c.grpColorway}>
@@ -244,11 +251,13 @@ export function CatalogFiltersPanel({
             </FilterGroup>
           )}
 
-          <FilterGroup title={c.grpPrice}>
-            {PRICE_BANDS.map((band) => (
-              <Checkbox key={band.id} label={priceBandLabel(dict, band.id)} checked={isChecked("price", band.id)} onChange={() => toggle("price", band.id)} />
-            ))}
-          </FilterGroup>
+          {showPricing && (
+            <FilterGroup title={c.grpPrice}>
+              {PRICE_BANDS.map((band) => (
+                <Checkbox key={band.id} label={priceBandLabel(dict, band.id)} checked={isChecked("price", band.id)} onChange={() => toggle("price", band.id)} />
+              ))}
+            </FilterGroup>
+          )}
 
           {activeCount > 0 && (
             <TextAction tone="accent" onClick={clearAll} className="text-left">
@@ -265,9 +274,12 @@ export function CatalogFiltersPanel({
 export function CatalogResultsToolbar({
   resultCount,
   showViewToggle = true,
+  showPricing = true,
 }: {
   resultCount: number;
   showViewToggle?: boolean;
+  /** False for visitors who aren't signed in — sorting by a price they can't see is noise. */
+  showPricing?: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -294,14 +306,22 @@ export function CatalogResultsToolbar({
         {resultCount === 1 ? c.styleCountOne : t(c.styleCount, { count: resultCount })}
       </span>
       <div className="flex items-center gap-2">
-        <SortSelect value={sort} onChange={(v) => setParam("sort", v)} />
+        <SortSelect value={sort} onChange={(v) => setParam("sort", v)} showPricing={showPricing} />
         {showViewToggle && <ViewToggle view={view} onChange={(v) => setParam("view", v)} />}
       </div>
     </div>
   );
 }
 
-function SortSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function SortSelect({
+  value,
+  onChange,
+  showPricing,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  showPricing: boolean;
+}) {
   const { dict } = useI18n();
   const c = dict.catalog;
   return (
@@ -311,7 +331,7 @@ function SortSelect({ value, onChange }: { value: string; onChange: (v: string) 
       aria-label={c.sortBy}
       className="rounded-full border border-stone-300 bg-white px-4 py-2 text-xs uppercase tracking-wide text-ink-soft outline-none focus-visible:border-signal"
     >
-      {SORT_OPTIONS.map((o) => (
+      {SORT_OPTIONS.filter((o) => showPricing || !o.value.startsWith("price_")).map((o) => (
         <option key={o.value} value={o.value}>{`${c.sortPrefix}: ${sortLabel(dict, o.value)}`}</option>
       ))}
     </select>

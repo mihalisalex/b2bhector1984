@@ -4,12 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { backorderLabelFor, categoryLabel, genderLabel, getStyleImageUrl } from "@/lib/data/styleLabels";
 import { getUnitPrice, isOnSale } from "@/lib/pricing";
-import { useFormat, useI18n } from "@/i18n/I18nProvider";
+import { useDelivery, useFormat, useI18n } from "@/i18n/I18nProvider";
+import { t } from "@/i18n/format";
+import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { VatSuffix } from "@/components/ui/VatSuffix";
 import type { Style } from "@/lib/types";
 import type { StyleInventory } from "@/lib/data/inventory";
 import type { StyleImage } from "@/lib/data/styleImages";
-import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
 import { SaleBadge } from "@/components/product/SaleBadge";
@@ -17,6 +18,7 @@ import { QuickAdd } from "@/components/product/QuickAdd";
 import { ColorSwatchButton } from "@/components/product/ColorSwatchButton";
 import { pickDefaultColorway } from "@/lib/productSelectionDefaults";
 import { cn } from "@/lib/cn";
+import { useBuyerTerms } from "@/lib/cart-context";
 
 /**
  * Card root is a plain container, not a single wrapping `<Link>`: the card carries real
@@ -60,13 +62,15 @@ export function ProductCard({
 }) {
   const { eur } = useFormat();
   const { dict } = useI18n();
+  const { arrivalLabel } = useDelivery();
+  // The buyer's chosen payment terms (Net 60 outside a cart, where no price shows anyway).
+  const buyerTerms = useBuyerTerms();
   const dictCatalog = dict.catalog;
   // "Sold out" only applies when the style truly can't be ordered further; when it can
   // (allowBackorder, the new default), zero on-hand is "Made to order" instead — still
   // purchasable, just not shipping from the shelf. See PrimaryPurchasePanel/QuickAdd for
   // the same distinction applied to the actual add-to-cart controls.
   const soldOut = totalOnHand === 0 && !style.allowBackorder;
-  const madeToOrder = totalOnHand === 0 && style.allowBackorder;
   const backorderText = backorderLabelFor(dict, style);
   const lowStock = typeof totalOnHand === "number" && totalOnHand > 0 && totalOnHand <= 10;
   const onSale = isOnSale(style);
@@ -79,10 +83,23 @@ export function ProductCard({
   const taggedImage = images.find((img) => img.colorwayId === activeColorwayId);
   const imageUrl = taggedImage?.publicUrl ?? getStyleImageUrl(style);
 
+  const deliveryText = !soldOut && typeof totalOnHand === "number" && totalOnHand > 0
+    ? dictCatalog.inStockShips
+    : t(dictCatalog.arrivesAround, { date: arrivalLabel });
+  const unitPrice = getUnitPrice(style, buyerTerms, priceMultiplier);
+  const boxTypes = getAvailableBoxTypes(style);
+  // Every style is sold in one box format today; with several, the smallest box is quoted.
+  const box = boxTypes.reduce((a, b) => (b.totalPairs < a.totalPairs ? b : a), boxTypes[0]);
+  // What a shop owner actually compares suppliers on: recommended retail over their cost.
+  const markup = style.msrp > 0 && unitPrice > 0 ? style.msrp / unitPrice : 0;
+
   return (
-    <div className="group flex flex-col transition-transform duration-300 ease-out hover:-translate-y-0.5">
+    <div className="group flex flex-col bg-white">
       <div className="relative overflow-hidden bg-transparent">
         <Link href={`/product/${style.slug}`} tabIndex={-1} aria-hidden className="block">
+          {/* 4:3, not the old 4:5. The photos are portrait with the shoe centred, so the
+              taller box was mostly empty grey above and below a small shoe. The wider box
+              crops that empty space, shows the shoe larger and fits a row more per screen. */}
           <StylePlate
             key={imageUrl}
             swatch={activeColorway.swatch}
@@ -90,68 +107,42 @@ export function ProductCard({
             imageUrl={imageUrl}
             alt={style.name}
             priority={priority}
-            className={cn("aspect-[4/5] w-full transition-transform duration-500 ease-out group-hover:scale-[1.02]", soldOut && "grayscale")}
+            className={cn("aspect-[4/3] w-full transition-transform duration-500 ease-out group-hover:scale-[1.02]", soldOut && "grayscale")}
           />
         </Link>
-        <div className="absolute right-2 top-2 flex flex-col items-end gap-1.5">
-          {favorited !== undefined && <FavoriteButton styleId={style.id} initialFavorited={favorited} variant="icon" />}
-          {/* Availability and discount are independent facts, so they get independent badges.
-              They used to share one slot in a single ternary chain, which meant a discounted
-              style that was also made-to-order silently lost its Sale flag — the common case
-              here, since the winter sale styles are largely made to order. */}
-          {(soldOut || madeToOrder || lowStock) && (
-            <span
-              className={cn(
-                "px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white",
-                soldOut ? "bg-ember" : "bg-ink",
-              )}
-            >
-              {soldOut ? "Sold out" : madeToOrder ? backorderText : "Low stock"}
+        <div className="absolute left-2 top-2 flex flex-col items-start gap-1.5">
+          <SaleBadge style={style} />
+          {(soldOut || lowStock) && (
+            <span className={cn("px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white", soldOut ? "bg-ember" : "bg-ink")}>
+              {soldOut ? dictCatalog.soldOut : t(dictCatalog.onlyLeft, { count: totalOnHand ?? 0 })}
             </span>
           )}
-          <SaleBadge style={style} />
         </div>
+        {favorited !== undefined && (
+          <div className="absolute right-2 top-2">
+            <FavoriteButton styleId={style.id} initialFavorited={favorited} variant="icon" />
+          </div>
+        )}
       </div>
-      <div className="flex flex-1 flex-col gap-2 px-4 pb-4 pt-3">
-        <AvailabilityBadge style={style} stockOverridden={soldOut || madeToOrder} />
-        <h3 className="font-display text-base font-bold uppercase leading-tight tracking-tight text-ink">
-          <Link href={`/product/${style.slug}`} className="hover:underline">
-            {style.name}
-          </Link>
-        </h3>
-        <p className="text-xs uppercase tracking-wide text-ink-soft">
-          <span className="font-mono-tab normal-case">{style.styleNumber}</span> · {genderLabel(dict, style.gender)} ·{" "}
-          {categoryLabel(dict, style.category)}
-        </p>
 
-        <div className="mt-auto border-t border-stone-200 pt-3">
-          {showPricing ? (
-            <>
-              <p className="text-[11px] uppercase tracking-wide text-ink-soft">{dictCatalog.wholesale}</p>
-              <p className="flex items-baseline gap-2">
-                {/* Burgundy only while discounted — the promotional accent, deliberately not
-                    --color-ember, which reads as danger/error everywhere else in this app. */}
-                <span className={cn("text-lg font-semibold tabular-nums", onSale ? "text-burgundy" : "text-ink")}>
-                  {eur(getUnitPrice(style, "net60", priceMultiplier))}
-                  <VatSuffix vatRate={style.vatRate} className="text-xs font-normal text-ink-soft" />
-                </span>
-                {onSale && (
-                  <span className="text-xs tabular-nums text-ink-soft line-through">
-                    {eur(style.basePrice * priceMultiplier)}
-                  </span>
-                )}
-              </p>
-            </>
-          ) : (
-            <p className="text-[11px] uppercase tracking-wide text-ink-soft">{dictCatalog.tradePricingOnApproval}</p>
-          )}
+      <div className="flex flex-1 flex-col gap-2.5 px-3 pb-3 pt-3 sm:px-4 sm:pb-4">
+        <div>
+          {/* Sentence case in the body face: a long name like "5109 Brown - Leather formal
+              boots" set in display capitals ran to three lines and was slow to scan across a
+              grid. The display face stays for page headings. */}
+          <h3 className="line-clamp-2 text-[15px] font-semibold leading-snug text-ink">
+            <Link href={`/product/${style.slug}`} className="hover:underline">
+              {style.name}
+            </Link>
+          </h3>
+          <p className="mt-0.5 text-xs text-ink-soft">
+            <span className="font-mono-tab">{style.styleNumber}</span> · {categoryLabel(dict, style.category)} ·{" "}
+            {genderLabel(dict, style.gender)}
+          </p>
         </div>
 
         {hasMultipleColorways && (
-          <div>
-            <p className="mb-1.5 text-[11px] uppercase tracking-wide text-ink-soft">
-              Colours — <span className="text-ink">{activeColorway.name}</span>
-            </p>
+          <div className="flex items-center gap-2">
             <div className="flex flex-wrap gap-1.5">
               {style.colorways.map((c) => {
                 const stocked = inventory ? Object.values(inventory[c.id] ?? {}).some((n) => (n ?? 0) > 0) : true;
@@ -162,14 +153,59 @@ export function ProductCard({
                     selected={c.id === activeColorwayId}
                     stocked={stocked}
                     size="sm"
-                    label={stocked ? c.name : style.allowBackorder ? `${c.name}, ${backorderText.toLowerCase()}` : `${c.name}, out of stock`}
+                    label={stocked ? c.name : style.allowBackorder ? `${c.name}, ${backorderText.toLowerCase()}` : `${c.name}, ${dictCatalog.soldOut}`}
                     onClick={() => setActiveColorwayId(c.id)}
                   />
                 );
               })}
             </div>
+            <span className="truncate text-xs text-ink-soft">{activeColorway.name}</span>
           </div>
         )}
+
+        {showPricing ? (
+          <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 border-t border-stone-200 pt-2.5 tabular-nums">
+            <div>
+              <dt className="text-[11px] text-ink-soft">{dictCatalog.perPairLabel}</dt>
+              <dd className="flex flex-wrap items-baseline gap-x-1.5">
+                {/* Burgundy only while discounted — the promotional accent, deliberately not
+                    --color-ember, which reads as danger/error everywhere else in this app. */}
+                <span className={cn("text-base font-semibold", onSale ? "text-burgundy" : "text-ink")}>
+                  {eur(unitPrice)}
+                </span>
+                {onSale && <span className="text-xs text-ink-soft line-through">{eur(style.basePrice * priceMultiplier)}</span>}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[11px] text-ink-soft">{t(dictCatalog.boxOfLabel, { pairs: box.totalPairs })}</dt>
+              <dd className="text-base font-semibold text-ink">
+                {eur(unitPrice * box.totalPairs)}
+                <VatSuffix vatRate={style.vatRate} className="text-[11px] font-normal text-ink-soft" />
+              </dd>
+            </div>
+            {markup > 0 && (
+              <>
+                <div>
+                  <dt className="text-[11px] text-ink-soft">{dictCatalog.rrpLabel}</dt>
+                  <dd className="text-sm text-ink">{eur(style.msrp)}</dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] text-ink-soft">{dictCatalog.markupLabel}</dt>
+                  <dd className="text-sm font-semibold text-positive">×{markup.toFixed(1)}</dd>
+                </div>
+              </>
+            )}
+          </dl>
+        ) : (
+          <p className="border-t border-stone-200 pt-2.5 text-xs text-ink-soft">{dictCatalog.tradePricingOnApproval}</p>
+        )}
+
+        {/* One delivery line replaces the old pair of "Made to order" badges: what a buyer
+            needs from it is when the boxes arrive. */}
+        <p className="mt-auto flex items-center gap-2 bg-stone-100 px-2 py-1.5 text-xs text-ink">
+          <span aria-hidden className={cn("h-1.5 w-1.5 shrink-0 rounded-full", soldOut ? "bg-ember" : "bg-positive")} />
+          {soldOut ? dictCatalog.soldOut : deliveryText}
+        </p>
 
         {inventory && (
           <QuickAdd style={style} inventory={inventory} priceMultiplier={priceMultiplier} colorwayId={activeColorwayId} />
