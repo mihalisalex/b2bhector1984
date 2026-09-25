@@ -726,6 +726,8 @@ const el: Dictionary = {
     applyForAccess: "Αίτηση πρόσβασης",
     buyerLogin: "Σύνδεση αγοραστή",
     homeAriaLabel: "Αρχική Hector Footwear",
+    groupShop: "Αγορές",
+    groupCompany: "Εταιρεία",
   },
   account: {
     dashboard: "Πίνακας ελέγχου",

@@ -774,6 +774,8 @@ const en = {
     applyForAccess: "Apply for Access",
     buyerLogin: "Buyer Login",
     homeAriaLabel: "Hector Footwear home",
+    groupShop: "Shopping",
+    groupCompany: "Company",
   },
   account: {
     dashboard: "Dashboard",

@@ -722,6 +722,8 @@ const de: Dictionary = {
     applyForAccess: "Zugang beantragen",
     buyerLogin: "Händler-Login",
     homeAriaLabel: "Hector Footwear Startseite",
+    groupShop: "Einkauf",
+    groupCompany: "Unternehmen",
   },
   account: {
     dashboard: "Dashboard",

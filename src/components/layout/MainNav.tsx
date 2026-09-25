@@ -8,7 +8,8 @@ import type { Account } from "@/lib/types";
 import { cn } from "@/lib/cn";
 import { LockIcon } from "@/components/layout/icons";
 import { LinkButton } from "@/components/ui/Button";
-import { IconButton } from "@/components/ui/IconButton";
+import { Logo } from "@/components/layout/Logo";
+import { SUPPORT_EMAIL, SUPPORT_EMAIL_HREF, WHATSAPP_NUMBER, whatsappHref } from "@/lib/contact";
 import { useFocusTrap } from "@/lib/useFocusTrap";
 import { useI18n } from "@/i18n/I18nProvider";
 import { stripLocale, withLocale } from "@/i18n/paths";
@@ -141,48 +142,59 @@ export function MainNav({ account }: { account: Account | null }) {
               aria-hidden={!open}
             />
 
+            {/* Corporate drawer (2026-09-25, owner: the old one "looked like kids' work"):
+                the logo instead of a spaced-out "MENU" label, two labelled groups, normal-case
+                text at a calm size, one background, a thin bar for the current page, and the
+                ways to reach the company pinned at the foot. */}
             <div
               ref={dialogRef}
               role="dialog"
               aria-modal="true"
               aria-label={dict.nav.mainMenu}
               className={cn(
-                "fixed inset-y-0 left-0 z-50 flex w-[300px] max-w-[85vw] flex-col overflow-hidden border-r border-stone-300 bg-stone-50 transition-transform duration-300 ease-out",
+                "fixed inset-y-0 left-0 z-50 flex w-[320px] max-w-[88vw] flex-col bg-white shadow-[8px_0_32px_rgba(26,29,34,0.12)] transition-transform duration-300 ease-out",
                 open ? "translate-x-0" : "-translate-x-full",
               )}
             >
-              <div className="relative flex items-center justify-between border-b border-stone-300 px-5 py-4">
-                <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">{dict.nav.menu}</span>
-                <IconButton size="sm" onClick={() => setOpen(false)} aria-label={dict.nav.closeMenu}>
-                  ✕
-                </IconButton>
+              <div className="flex h-16 shrink-0 items-center justify-between border-b border-stone-200 px-6">
+                <Link href={withLocale(locale, "/")} aria-label={dict.nav.homeAriaLabel} onClick={() => setOpen(false)}>
+                  <Logo />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  aria-label={dict.nav.closeMenu}
+                  className="-mr-2 flex h-10 w-10 items-center justify-center text-ink-soft transition-colors hover:text-ink"
+                >
+                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.6} aria-hidden>
+                    <path strokeLinecap="round" d="M6 6l12 12M18 6L6 18" />
+                  </svg>
+                </button>
               </div>
 
-              <nav className="relative flex flex-1 flex-col gap-1 px-5 py-6" aria-label="Primary">
-                {LINKS.map((item) => (
-                  <DrawerLink
-                    key={item.href}
-                    item={item}
-                    locale={locale}
-                    active={activePath === item.href}
-                    locked={!account && isGatedPath(item.href)}
-                    lockedLabel={dict.nav.accountRequired}
-                  />
-                ))}
-              </nav>
-
-              {/* The buyer's own links (dashboard, cart, sign out) used to live here;
-                  they're in the account-icon menu now, so this space carries the company
-                  pages instead — same type as the main menu, set apart on its own ground. */}
-              <div className="relative border-t border-stone-300 bg-stone-100 px-5 py-4">
-                <nav className="flex flex-col" aria-label="Company">
+              <div className="flex-1 overflow-y-auto px-6 py-6">
+                <DrawerGroup title={dict.nav.groupShop}>
+                  {LINKS.map((item) => (
+                    <DrawerLink
+                      key={item.href}
+                      item={item}
+                      locale={locale}
+                      active={activePath === item.href}
+                      locked={!account && isGatedPath(item.href)}
+                      lockedLabel={dict.nav.accountRequired}
+                    />
+                  ))}
+                </DrawerGroup>
+                <DrawerGroup title={dict.nav.groupCompany} className="mt-8">
                   {SECONDARY_LINKS.map((item) => (
                     <DrawerLink key={item.href} item={item} locale={locale} active={activePath === item.href} />
                   ))}
-                </nav>
+                </DrawerGroup>
+              </div>
 
+              <div className="shrink-0 border-t border-stone-200 px-6 pb-6 pt-5" style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}>
                 {!account && (
-                  <div className="mt-4 flex flex-col gap-2.5">
+                  <div className="mb-5 grid gap-2">
                     <LinkButton href={withLocale(locale, "/apply")} className="w-full justify-center">
                       {dict.nav.applyForAccess}
                     </LinkButton>
@@ -191,6 +203,24 @@ export function MainNav({ account }: { account: Account | null }) {
                     </LinkButton>
                   </div>
                 )}
+                <dl className="grid gap-1 text-xs text-ink-soft">
+                  <div className="flex justify-between gap-3">
+                    <dt>WhatsApp</dt>
+                    <dd>
+                      <a href={whatsappHref(dict.contact.whatsappMessage)} target="_blank" rel="noopener noreferrer" className="text-ink hover:underline">
+                        {WHATSAPP_NUMBER}
+                      </a>
+                    </dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt>Email</dt>
+                    <dd>
+                      <a href={SUPPORT_EMAIL_HREF} className="text-ink hover:underline">
+                        {SUPPORT_EMAIL}
+                      </a>
+                    </dd>
+                  </div>
+                </dl>
               </div>
             </div>
           </>,
@@ -200,8 +230,18 @@ export function MainNav({ account }: { account: Account | null }) {
   );
 }
 
-/** One drawer row. Shared so the company links at the foot are typographically identical
- * to the main menu above them — the only difference is the ground they sit on. */
+function DrawerGroup({ title, className, children }: { title: string; className?: string; children: React.ReactNode }) {
+  return (
+    <section className={className}>
+      <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-soft">{title}</h2>
+      <nav className="flex flex-col border-t border-stone-200" aria-label={title}>
+        {children}
+      </nav>
+    </section>
+  );
+}
+
+/** One drawer row — the same treatment in both groups. */
 function DrawerLink({
   item,
   active,
@@ -222,32 +262,26 @@ function DrawerLink({
       href={withLocale(locale, item.href)}
       aria-current={active ? "page" : undefined}
       className={cn(
-        // Body sans (Plus Jakarta Sans), not font-display: the drawer's link list reads as
-        // navigation UI, not a headline, so it takes the site's modern rounded sans rather
-        // than the Didot-style serif reserved for titles.
-        "group flex items-center justify-between border-b py-3 text-lg font-bold uppercase tracking-tight transition-colors duration-150",
-        active ? "border-ink text-signal" : "border-stone-200 text-ink hover:text-signal",
+        "group relative flex items-center justify-between border-b border-stone-200 py-3.5 pl-3 text-[15px] transition-colors duration-150",
+        active ? "font-semibold text-ink" : "font-medium text-ink/85 hover:text-ink",
       )}
     >
+      {/* Current page: a thin bar at the left edge, not a coloured dot. */}
+      <span aria-hidden className={cn("absolute inset-y-2 left-0 w-0.5 rounded-full", active ? "bg-ink" : "bg-transparent group-hover:bg-stone-300")} />
       <span className="flex items-center gap-2">
-        {active && <span className="h-1.5 w-1.5 rounded-full bg-signal" aria-hidden />}
         {item.label}
         {locked && (
-          // Discreet by design: ink-soft rather than the link's own weight, so it reads as a
-          // quiet annotation on the label instead of competing with it. The label text is
-          // for screen readers only — the padlock itself is decorative.
-          <span className="inline-flex items-center text-ink-soft/70" title={lockedLabel}>
-            <LockIcon />
+          // A quiet annotation, not part of the label: screen readers get the words,
+          // everyone else a small padlock.
+          <span className="inline-flex items-center text-ink-soft/60" title={lockedLabel}>
+            <LockIcon className="h-3 w-3" />
             <span className="sr-only">{lockedLabel}</span>
           </span>
         )}
       </span>
-      <span
-        aria-hidden
-        className="translate-x-1 text-signal opacity-0 transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100"
-      >
-        →
-      </span>
+      <svg viewBox="0 0 24 24" className="h-4 w-4 text-stone-400 transition-colors group-hover:text-ink" fill="none" stroke="currentColor" strokeWidth={1.6} aria-hidden>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 6l6 6-6 6" />
+      </svg>
     </Link>
   );
 }
