@@ -259,37 +259,6 @@ export function newOrderAdminEmailSubject(input: { orderId: string; businessName
   return `New order ${input.orderId} — ${input.businessName}`;
 }
 
-/** One product card in an email's photo grid (see textToHtml). */
-export interface EmailProduct {
-  name: string;
-  url: string;
-  imageUrl?: string;
-}
-
-/** Placeholder line in a plain-text body where textToHtml draws the product photo grid. */
-export const PRODUCT_GRID_LINE = "{{products}}";
-
-/** Two cards per row in nested tables — the only layout every mail client agrees on. */
-function productGrid(products: EmailProduct[], viewLabel: string, esc: (value: string) => string): string {
-  const card = (p: EmailProduct) => `
-    <td width="50%" valign="top" style="padding:0 6px 18px 6px;">
-      <a href="${esc(p.url)}" style="text-decoration:none;color:#121212;">
-        ${p.imageUrl ? `<img src="${esc(p.imageUrl)}" alt="${esc(p.name)}" width="250" style="display:block;width:100%;max-width:250px;height:auto;border:1px solid #e5e3e0;background-color:#f7f6f4;" />` : ""}
-        <p style="margin:10px 0 4px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;line-height:1.35;color:#121212;">${esc(p.name)}</p>
-        <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:bold;color:#8a8a8a;text-transform:uppercase;letter-spacing:1px;">${esc(viewLabel)}</p>
-      </a>
-    </td>`;
-  const rows: string[] = [];
-  for (let i = 0; i < products.length; i += 2) {
-    const pair = products.slice(i, i + 2);
-    rows.push(`<tr>${pair.map(card).join("")}${pair.length === 1 ? '<td width="50%"></td>' : ""}</tr>`);
-  }
-  return `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:4px 0 8px 0;">
-      ${rows.join("\n")}
-    </table>`;
-}
-
 /**
  * Plain-text body -> a branded HTML email (the mailto panel keeps using the plain text
  * as-is; only the real Resend send goes through here). Every `sendEmail()` call in this
@@ -305,12 +274,8 @@ function productGrid(products: EmailProduct[], viewLabel: string, esc: (value: s
  * `dict` is optional: the admin notifications have none and correctly render the English
  * shell. `lang` sets the document's language so a screen reader and Gmail's translate
  * prompt both read the mail correctly.
- *
- * A line that is exactly {@link PRODUCT_GRID_LINE} is replaced by `products` as a two-column
- * grid of photo cards — rendered here, not by the caller, so product names go through the
- * same escaping as everything else.
  */
-export function textToHtml(text: string, subject: string, dict?: EmailDict, lang = "en", products: EmailProduct[] = []): string {
+export function textToHtml(text: string, subject: string, dict?: EmailDict, lang = "en"): string {
   const esc = (value: string) =>
     value
       .replace(/&/g, "&amp;")
@@ -331,7 +296,6 @@ export function textToHtml(text: string, subject: string, dict?: EmailDict, lang
   const bodyHtml = lines
     .map((line) => {
       const trimmed = line.trim();
-      if (trimmed === PRODUCT_GRID_LINE) return productGrid(products, dict?.newStylesView ?? "View style →", esc);
       // "[Label](https://…)" on its own line renders as a button with that label — for emails
       // with more than one action, where the shell's single generic label won't do.
       const labelled = trimmed.match(/^\[(.+)\]\((https?:\/\/\S+)\)$/);
@@ -400,42 +364,4 @@ export function textToHtml(text: string, subject: string, dict?: EmailDict, lang
 /** The invitation an admin sends an existing customer (see `inviteShop`). */
 export function buildInviteEmailBody(dict: EmailDict, contactName: string, businessName: string, activationUrl: string): string {
   return `${greet(dict, contactName)}\n\n${t(dict.inviteBody, { business: businessName })}\n\n${activationUrl}\n\n${dict.signoff}`;
-}
-
-/**
- * The "new styles" email an admin sends to every buyer (see sendSeasonReminder). With an
- * order-by date it promises a matching ready-by date; without one it just states the
- * production time. `withProductGrid` swaps the bullet list of names for the photo grid
- * (textToHtml draws it); the plain-text form without it is what goes to WhatsApp.
- */
-export function buildSeasonReminderEmailBody(
-  dict: EmailDict,
-  contactName: string,
-  input: {
-    styleNames: string[];
-    orderBy?: string;
-    deliveredBy?: string;
-    leadTimeDays: number;
-    note?: string;
-    newUrl: string;
-    sheetUrl: string;
-    withProductGrid?: boolean;
-  },
-): string {
-  const timing =
-    input.orderBy && input.deliveredBy
-      ? t(dict.seasonDeadline, { orderBy: input.orderBy, deliveredBy: input.deliveredBy })
-      : t(dict.newStylesLeadTime, { days: input.leadTimeDays });
-  return [
-    greet(dict, contactName),
-    input.styleNames.length ? dict.seasonIntro : "",
-    ...(input.withProductGrid && input.styleNames.length ? [PRODUCT_GRID_LINE] : input.styleNames.map((name) => `• ${name}`)),
-    timing,
-    input.note ?? "",
-    `[${dict.seasonCtaNew}](${input.newUrl})`,
-    `[${dict.seasonCtaSheet}](${input.sheetUrl})`,
-    dict.signoff,
-  ]
-    .filter(Boolean)
-    .join("\n");
 }
