@@ -1,6 +1,6 @@
 import { greekVocative } from "@/i18n/greek";
 import { urlForLocale } from "@/i18n/domains";
-import type { Category } from "@/lib/types";
+import type { Category, StyleSeason } from "@/lib/types";
 
 /**
  * The "new styles" campaign email an admin sends to every buyer from /admin/buyer-emails.
@@ -20,7 +20,10 @@ export interface CampaignStyle {
   name: string;
   slug: string;
   category: Category;
+  season: StyleSeason;
   imageUrl?: string;
+  /** The photo URL the email uses, when the sender has already checked it (see sendCampaign). */
+  emailImageUrl?: string;
 }
 
 export interface CampaignText {
@@ -28,6 +31,10 @@ export interface CampaignText {
   headline: string;
   intro: string;
   closing: string;
+  /** Optional offer line, shown as a black strip above the photos ("−10% on all winter styles…"). */
+  offer?: string;
+  /** Where the main button goes instead of the newest styles, e.g. "/catalogue?flag=sale". */
+  ctaPath?: string;
 }
 
 export interface CampaignLinks {
@@ -48,13 +55,14 @@ export function campaignLinks(lang: CampaignLang): CampaignLinks {
   };
 }
 
-/** Most styles one email shows — six photos is two screens on a phone; more gets skimmed. */
-export const CAMPAIGN_MAX_STYLES = 6;
+/** Most styles one email shows — five rows of two on a phone; past that, buyers stop scrolling. */
+export const CAMPAIGN_MAX_STYLES = 10;
 
-const FIXED: Record<CampaignLang, { greeting: (first: string) => string; eyebrow: string; cta: string; sheet: string; signoff: string; optOut: string }> = {
+const FIXED: Record<CampaignLang, { greeting: (first: string) => string; eyebrow: string; offerEyebrow: string; cta: string; sheet: string; signoff: string; optOut: string }> = {
   el: {
     greeting: (first) => (first ? `Γεια σας ${greekVocative(first)},` : "Γεια σας,"),
     eyebrow: "Νέα μοντέλα",
+    offerEyebrow: "Προσφορά",
     cta: "Δείτε τη συλλογή",
     sheet: "ή ανοίξτε το φύλλο παραγγελίας",
     signoff: "Hector Footwear",
@@ -63,6 +71,7 @@ const FIXED: Record<CampaignLang, { greeting: (first: string) => string; eyebrow
   en: {
     greeting: (first) => (first ? `Hi ${first},` : "Hello,"),
     eyebrow: "New in",
+    offerEyebrow: "Offer",
     cta: "See the collection",
     sheet: "or open the order sheet",
     signoff: "Hector Footwear",
@@ -108,6 +117,11 @@ const paragraphs = (text: string, style: string) =>
 
 const FONT = "'Helvetica Neue',Helvetica,Arial,sans-serif";
 
+/** The collection link, honouring a campaign's own `ctaPath` (only catalogue paths). */
+function collectionUrl(text: CampaignText, links: CampaignLinks, lang: CampaignLang): string {
+  return text.ctaPath?.startsWith("/catalogue") ? urlForLocale(lang, text.ctaPath) : links.catalogue;
+}
+
 export function buildCampaignHtml(input: {
   lang: CampaignLang;
   text: CampaignText;
@@ -119,12 +133,13 @@ export function buildCampaignHtml(input: {
 }): string {
   const f = FIXED[input.lang];
   const first = input.contactName.trim().split(/\s+/)[0] ?? "";
+  const offer = input.text.offer?.trim() ?? "";
   const body = `margin:0 0 16px 0;font-family:${FONT};font-size:16px;line-height:1.6;color:#4a4a4a;`;
 
   const card = (style: CampaignStyle, index: number) => {
     const { code, detail } = splitStyleName(style.name);
     const url = `${input.links.productBase}${style.slug}`;
-    const image = emailImageUrl(style.imageUrl);
+    const image = style.emailImageUrl ?? emailImageUrl(style.imageUrl);
     return `
       <td width="50%" valign="top" style="padding:0 ${index % 2 === 0 ? "6px" : "0"} 28px ${index % 2 === 0 ? "0" : "6px"};">
         <a href="${esc(url)}" style="text-decoration:none;color:#121212;display:block;">
@@ -164,7 +179,7 @@ export function buildCampaignHtml(input: {
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                   <tr>
                     <td style="font-family:${FONT};font-size:13px;font-weight:700;letter-spacing:6px;color:#121212;">HECTOR</td>
-                    <td align="right" style="font-family:${FONT};font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#a3a09b;">${esc(f.eyebrow)}</td>
+                    <td align="right" style="font-family:${FONT};font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#a3a09b;">${esc(offer ? f.offerEyebrow : f.eyebrow)}</td>
                   </tr>
                 </table>
               </td>
@@ -176,6 +191,19 @@ export function buildCampaignHtml(input: {
                 ${paragraphs(input.text.intro, body)}
               </td>
             </tr>
+            ${
+              offer
+                ? `<tr>
+              <td style="padding:12px 0 4px 0;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="background-color:#121212;border-radius:6px;padding:18px 22px;font-family:${FONT};font-size:16px;line-height:1.4;font-weight:700;color:#ffffff;letter-spacing:-0.1px;">${esc(offer)}</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>`
+                : ""
+            }
             <tr>
               <td style="padding:20px 0 4px 0;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
@@ -188,7 +216,7 @@ export function buildCampaignHtml(input: {
                 <table role="presentation" cellpadding="0" cellspacing="0">
                   <tr>
                     <td style="background-color:#121212;border-radius:999px;">
-                      <a href="${esc(input.links.catalogue)}" style="display:inline-block;padding:16px 30px;font-family:${FONT};font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;letter-spacing:0.3px;">${esc(f.cta)} &rarr;</a>
+                      <a href="${esc(collectionUrl(input.text, input.links, input.lang))}" style="display:inline-block;padding:16px 30px;font-family:${FONT};font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;letter-spacing:0.3px;">${esc(f.cta)} &rarr;</a>
                     </td>
                   </tr>
                 </table>
@@ -219,15 +247,62 @@ export function buildCampaignHtml(input: {
 }
 
 /** The same campaign as plain text, for a WhatsApp broadcast list. */
-export function buildCampaignWhatsapp(text: CampaignText, styles: CampaignStyle[], links: CampaignLinks): string {
+export function buildCampaignWhatsapp(text: CampaignText, styles: CampaignStyle[], links: CampaignLinks, lang: CampaignLang): string {
   return [
     text.headline.replace(/\n/g, " "),
+    text.offer ?? "",
     text.intro,
     styles.map((s) => `• ${s.name.replace(/\s+/g, " ")}`).join("\n"),
-    links.catalogue,
+    collectionUrl(text, links, lang),
   ]
     .filter((part) => part.trim())
     .join("\n\n");
+}
+
+// --- Ready-made campaigns -------------------------------------------------------------
+//
+// Complete emails written for a specific occasion: which styles to show and the finished
+// text. Picked from "Start from" in the admin form (or /admin/buyer-emails?preset=<id>), then
+// editable like anything else. `until` hides a preset once its offer has ended.
+
+export interface CampaignPreset {
+  id: string;
+  label: string;
+  lang: CampaignLang;
+  /** Which styles to pre-pick: the newest `count` of this season. */
+  season?: StyleSeason;
+  count: number;
+  text: CampaignText;
+  /** ISO date; the preset disappears from the list after this day. */
+  until?: string;
+}
+
+export const CAMPAIGN_PRESETS: CampaignPreset[] = [
+  {
+    // Owner's request 2026-10-13. The sale prices it promises are set on the site: every
+    // winter style 10% off, ending 31 Oct 23:59 Athens (styles.sale_price / sale_end_at).
+    id: "winter-10-october-2026",
+    label: "Winter −10% until end of October (Greek)",
+    lang: "el",
+    season: "winter",
+    count: 10,
+    until: "2026-10-31",
+    text: {
+      ctaPath: "/catalogue?flag=sale",
+      subject: "−10% σε όλα τα χειμερινά, μόνο έως το τέλος Οκτωβρίου",
+      headline: "Ο χειμώνας\nξεκινά με −10%.",
+      offer: "−10% σε όλα τα χειμερινά μοντέλα, έως 31 Οκτωβρίου",
+      intro:
+        "Ήρθε η ώρα να ετοιμάσετε τη βιτρίνα σας για τον χειμώνα. Μέχρι το τέλος Οκτωβρίου, όλα τα χειμερινά μας μοντέλα — δερμάτινα μποτάκια και δετά — έχουν 10% έκπτωση. Οι τιμές με την έκπτωση φαίνονται ήδη στο site.\n\nΚαι αν επιλέξετε προπληρωμή, κερδίζετε επιπλέον 10%, που αφαιρείται αυτόματα.",
+      closing:
+        "Όσο νωρίτερα παραγγείλετε, τόσο νωρίτερα θα έχετε τα κιβώτιά σας στο κατάστημα. Για οποιαδήποτε απορία, απαντήστε σε αυτό το email ή στείλτε μας στο WhatsApp.",
+    },
+  },
+];
+
+/** Presets still running on `todayIso` (YYYY-MM-DD). */
+export function activePresets(todayIso: string): CampaignPreset[] {
+  return CAMPAIGN_PRESETS.filter((p) => !p.until || p.until >= todayIso);
 }
 
 // --- Text generator ---------------------------------------------------------------------

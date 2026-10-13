@@ -9,14 +9,27 @@ import {
   splitStyleName,
   CAMPAIGN_MAX_STYLES,
   type CampaignLang,
+  type CampaignPreset,
   type CampaignStyle,
   type CampaignText,
 } from "@/lib/campaignEmail";
 import { WHATSAPP_NUMBER } from "@/lib/contact";
+import type { StyleSeason } from "@/lib/types";
 
 const INPUT = "w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-ink outline-none focus-visible:border-ink";
 const LABEL = "grid gap-1.5 text-xs font-medium text-ink-soft";
 const STEP = "text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft";
+
+/** How many styles a blank campaign starts with — the newest few. */
+const DEFAULT_PICK = 6;
+
+type SeasonFilter = "all" | StyleSeason;
+const SEASON_FILTERS: { value: SeasonFilter; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "winter", label: "Winter" },
+  { value: "summer", label: "Summer" },
+  { value: "both", label: "All-season" },
+];
 
 /**
  * Admin campaign builder (see sendCampaign): pick styles, generate or write the text, watch
@@ -25,23 +38,36 @@ const STEP = "text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-sof
  */
 export function CampaignForm({
   styles,
+  presets,
+  initialPresetId,
   buyerCount,
   adminEmail,
   adminName,
 }: {
+  /** Every live style, newest first. */
   styles: CampaignStyle[];
+  presets: CampaignPreset[];
+  initialPresetId?: string;
   buyerCount: number;
   adminEmail: string;
   adminName: string;
 }) {
+  const newest = (season: SeasonFilter, count: number) =>
+    styles.filter((s) => season === "all" || s.season === season).slice(0, count);
+  const initialPreset = presets.find((p) => p.id === initialPresetId);
+
   const [state, formAction, pending] = useActionState(sendCampaign, {} as CampaignState);
-  const [picked, setPicked] = useState<string[]>(() => styles.slice(0, CAMPAIGN_MAX_STYLES).map((s) => s.id));
-  const [lang, setLang] = useState<CampaignLang>("el");
-  const [version, setVersion] = useState(0);
-  const [text, setText] = useState<CampaignText>(() =>
-    generateCampaignText(styles.slice(0, CAMPAIGN_MAX_STYLES), "el", 0),
+  const [presetId, setPresetId] = useState(initialPreset?.id ?? "");
+  const [filter, setFilter] = useState<SeasonFilter>(initialPreset?.season ?? "all");
+  const [picked, setPicked] = useState<string[]>(() =>
+    (initialPreset ? newest(initialPreset.season ?? "all", initialPreset.count) : newest("all", DEFAULT_PICK)).map((s) => s.id),
   );
+  const [lang, setLang] = useState<CampaignLang>(initialPreset?.lang ?? "el");
+  const [version, setVersion] = useState(0);
+  const [text, setText] = useState<CampaignText>(() => initialPreset?.text ?? generateCampaignText(newest("all", DEFAULT_PICK), "el", 0));
   const [copied, setCopied] = useState(false);
+
+  const visible = styles.filter((s) => filter === "all" || s.season === filter);
 
   const pickedStyles = useMemo(
     () => picked.map((id) => styles.find((s) => s.id === id)).filter((s): s is CampaignStyle => Boolean(s)),
@@ -57,9 +83,27 @@ export function CampaignForm({
     setPicked((current) =>
       current.includes(id) ? current.filter((x) => x !== id) : current.length < CAMPAIGN_MAX_STYLES ? [...current, id] : current,
     );
+  // The offer line (and the button link that goes with it) is the owner's own — generating
+  // new text never overwrites it.
   const generate = (nextLang = lang, nextVersion = version + 1) => {
     setVersion(nextVersion);
-    setText(generateCampaignText(pickedStyles, nextLang, nextVersion));
+    setText((current) => ({ ...generateCampaignText(pickedStyles, nextLang, nextVersion), offer: current.offer, ctaPath: current.ctaPath }));
+  };
+  const startFrom = (id: string) => {
+    setPresetId(id);
+    const preset = presets.find((p) => p.id === id);
+    if (preset) {
+      setLang(preset.lang);
+      setFilter(preset.season ?? "all");
+      setPicked(newest(preset.season ?? "all", preset.count).map((s) => s.id));
+      setText(preset.text);
+    } else {
+      const fresh = newest("all", DEFAULT_PICK);
+      setFilter("all");
+      setPicked(fresh.map((s) => s.id));
+      setText(generateCampaignText(fresh, lang, 0));
+      setVersion(0);
+    }
   };
   const switchLang = (next: CampaignLang) => {
     if (next === lang) return;
@@ -72,21 +116,62 @@ export function CampaignForm({
   return (
     <form action={formAction} className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_400px]">
       <input type="hidden" name="language" value={lang} />
+      <input type="hidden" name="ctaPath" value={text.ctaPath ?? ""} />
       {picked.map((id) => (
         <input key={id} type="hidden" name="styleIds" value={id} />
       ))}
 
       <div className="grid gap-10">
+        {presets.length > 0 && (
+          <label className={LABEL}>
+            Start from
+            <select value={presetId} onChange={(e) => startFrom(e.target.value)} className={`${INPUT} max-w-md`}>
+              <option value="">New styles (blank — generate the text)</option>
+              {presets.map((p) => (
+                <option key={p.id} value={p.id}>
+                  Ready-made: {p.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+
         {/* 1 — styles */}
         <section className="grid gap-3">
-          <div className="flex items-baseline justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <p className={STEP}>1 · Styles</p>
             <p className="text-xs text-ink-soft">
               {picked.length} of {CAMPAIGN_MAX_STYLES} picked · newest first
             </p>
           </div>
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-            {styles.map((s) => {
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex rounded-full border border-stone-300 p-0.5 text-xs font-semibold">
+              {SEASON_FILTERS.map((f) => (
+                <button
+                  key={f.value}
+                  type="button"
+                  onClick={() => setFilter(f.value)}
+                  className={`rounded-full px-3 py-1.5 ${filter === f.value ? "bg-ink text-white" : "text-ink-soft hover:text-ink"}`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setPicked(visible.slice(0, CAMPAIGN_MAX_STYLES).map((s) => s.id))}
+              className="rounded-full border border-stone-300 px-3 py-1.5 text-xs font-semibold text-ink hover:border-ink"
+            >
+              Pick the newest {Math.min(CAMPAIGN_MAX_STYLES, visible.length)}
+            </button>
+            {picked.length > 0 && (
+              <button type="button" onClick={() => setPicked([])} className="px-2 text-xs font-semibold text-ink-soft underline hover:text-ink">
+                Clear
+              </button>
+            )}
+          </div>
+          <div className="grid max-h-[560px] grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-4">
+            {visible.map((s) => {
               const position = picked.indexOf(s.id);
               const on = position >= 0;
               const full = !on && picked.length >= CAMPAIGN_MAX_STYLES;
@@ -160,6 +245,10 @@ export function CampaignForm({
           <label className={LABEL}>
             Headline (big title — press Enter for a new line)
             <textarea name="headline" value={text.headline} onChange={edit("headline")} rows={2} maxLength={120} className={`${INPUT} text-lg font-bold leading-tight`} />
+          </label>
+          <label className={LABEL}>
+            Offer (optional — a black strip above the photos)
+            <input name="offer" value={text.offer ?? ""} onChange={edit("offer")} maxLength={160} placeholder="π.χ. −10% σε όλα τα χειμερινά μοντέλα, έως 31 Οκτωβρίου" className={INPUT} />
           </label>
           <label className={LABEL}>
             Intro (above the photos)

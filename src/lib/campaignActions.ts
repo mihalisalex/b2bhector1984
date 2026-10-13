@@ -10,11 +10,34 @@ import {
   buildCampaignHtml,
   buildCampaignWhatsapp,
   campaignLinks,
+  emailImageUrl,
   CAMPAIGN_MAX_STYLES,
   type CampaignLang,
   type CampaignStyle,
   type CampaignText,
 } from "@/lib/campaignEmail";
+
+/**
+ * The resized photo if Supabase serves it, else the original. The first request for a new
+ * size makes Supabase resize the photo on the spot, and a few of those at once can fail
+ * (seen as 500s, 2026-10-13). Doing it here, one at a time with a retry, means a buyer's mail
+ * client never gets the failure — and a photo that still won't resize goes out full size
+ * rather than broken.
+ */
+async function checkedEmailImage(original: string | undefined): Promise<string | undefined> {
+  const resized = emailImageUrl(original);
+  if (!resized || resized === original) return original;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await fetch(resized, { cache: "no-store" });
+      await res.arrayBuffer();
+      if (res.ok) return resized;
+    } catch {
+      /* try again, then fall back */
+    }
+  }
+  return original;
+}
 
 export interface CampaignState {
   error?: string;
@@ -43,6 +66,8 @@ export async function sendCampaign(_prev: CampaignState, formData: FormData): Pr
     headline: field("headline", 120),
     intro: field("intro", 1500),
     closing: field("closing", 800),
+    offer: field("offer", 160),
+    ctaPath: field("ctaPath", 120) || undefined,
   };
   const styleIds = formData.getAll("styleIds").map(String);
 
@@ -55,8 +80,9 @@ export async function sendCampaign(_prev: CampaignState, formData: FormData): Pr
   const styles: CampaignStyle[] = styleIds
     .map((id) => byId.get(id))
     .filter((s) => s !== undefined)
-    .map((s) => ({ id: s.id, name: s.name, slug: s.slug, category: s.category, imageUrl: s.primaryImageUrl }));
+    .map((s) => ({ id: s.id, name: s.name, slug: s.slug, category: s.category, season: s.season, imageUrl: s.primaryImageUrl }));
   if (styles.length === 0) return { error: "None of the picked styles are live in the catalogue any more." };
+  for (const style of styles) style.emailImageUrl = await checkedEmailImage(style.imageUrl);
 
   const links = campaignLinks(lang);
   const render = (contactName: string) => buildCampaignHtml({ lang, text, styles, links, contactName, whatsapp: WHATSAPP_NUMBER });
@@ -79,6 +105,6 @@ export async function sendCampaign(_prev: CampaignState, formData: FormData): Pr
 
   return {
     success: `Sent to ${buyers.length} buyer${buyers.length === 1 ? "" : "s"}.`,
-    whatsappText: buildCampaignWhatsapp(text, styles, links),
+    whatsappText: buildCampaignWhatsapp(text, styles, links, lang),
   };
 }
