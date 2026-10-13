@@ -290,6 +290,9 @@ const fr: Dictionary = {
     seasonDeadline: "Commandez avant le {orderBy} et vos cartons seront prêts vers le {deliveredBy}.",
     seasonCtaNew: "Voir les nouveautés",
     seasonCtaSheet: "Ouvrir la feuille de commande",
+    newStylesSubject: "Nouveaux modèles Hector Footwear",
+    newStylesLeadTime: "Chaque commande est fabriquée pour vous — vos cartons sont prêts environ {days} jours après la commande.",
+    newStylesView: "Voir le modèle →",
     repLineWithPhone: "Votre interlocuteur dédié est {name} — joignable directement au {phone}.",
     repLine: "Votre interlocuteur dédié est {name}.",
 

@@ -294,6 +294,9 @@ const el: Dictionary = {
     seasonDeadline: "Παραγγείλτε έως {orderBy} και τα κιβώτιά σας θα είναι έτοιμα γύρω στις {deliveredBy}.",
     seasonCtaNew: "Δείτε τα νέα μοντέλα",
     seasonCtaSheet: "Άνοιγμα φύλλου παραγγελίας",
+    newStylesSubject: "Νέα μοντέλα από τη Hector Footwear",
+    newStylesLeadTime: "Κάθε παραγγελία παράγεται για εσάς — τα κιβώτιά σας είναι έτοιμα περίπου {days} ημέρες μετά την παραγγελία.",
+    newStylesView: "Δείτε το μοντέλο →",
     repLineWithPhone: "Ο υπεύθυνος του λογαριασμού σας είναι ο/η {name} — τηλέφωνο επικοινωνίας: {phone}.",
     repLine: "Ο υπεύθυνος του λογαριασμού σας είναι ο/η {name}.",
 

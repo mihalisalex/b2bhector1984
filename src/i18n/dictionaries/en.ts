@@ -326,6 +326,9 @@ const en = {
     seasonDeadline: "Order by {orderBy} and your boxes will be ready around {deliveredBy}.",
     seasonCtaNew: "See the new styles",
     seasonCtaSheet: "Open the order sheet",
+    newStylesSubject: "New styles from Hector Footwear",
+    newStylesLeadTime: "Every order is produced for you — your boxes are ready about {days} days after you order.",
+    newStylesView: "View style →",
     repLineWithPhone: "Your dedicated account rep is {name} — reach them directly at {phone}.",
     repLine: "Your dedicated account rep is {name}.",
 
