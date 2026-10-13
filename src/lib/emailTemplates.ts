@@ -1,5 +1,5 @@
 import { t } from "@/i18n/format";
-import { greekVocative } from "@/i18n/greek";
+import { greekVocative, greetingFirstName } from "@/i18n/greek";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 
 /**
@@ -35,7 +35,7 @@ type EmailDict = Dictionary["email"];
  * is the right place for it to be declared rather than a branch in here.
  */
 function greet(dict: EmailDict, contactName: string): string {
-  const raw = contactName.split(" ")[0] || "";
+  const raw = greetingFirstName(contactName);
   const name = raw || dict.fallbackName;
   const line = t(dict.greeting, { name, vocative: raw ? greekVocative(raw) : dict.fallbackName });
   // With no name at all, Greek has no natural filler ("Hi there" has no equivalent), so

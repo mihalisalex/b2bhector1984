@@ -1,4 +1,4 @@
-import { greekVocative } from "@/i18n/greek";
+import { greekVocative, greetingFirstName } from "@/i18n/greek";
 import { originForLocale, urlForLocale } from "@/i18n/domains";
 import type { Category, StyleSeason } from "@/lib/types";
 
@@ -70,7 +70,7 @@ const FIXED: Record<CampaignLang, { greeting: (first: string) => string; eyebrow
     optOut: "Λαμβάνετε αυτό το email ως συνεργάτης χονδρικής. Δεν θέλετε ενημερώσεις; Απαντήστε «STOP».",
   },
   en: {
-    greeting: (first) => (first ? `Hi ${first},` : "Hello,"),
+    greeting: (first) => (first ? `Hi ${first},` : "Hi there,"),
     eyebrow: "New in",
     offerEyebrow: "Offer",
     cta: "See the collection",
@@ -148,12 +148,12 @@ export function buildCampaignHtml(input: {
   text: CampaignText;
   styles: CampaignStyle[];
   links: CampaignLinks;
-  /** The buyer's contact name; only the first word is used. */
+  /** The buyer's contact name; see greetingFirstName for what is used of it. */
   contactName: string;
   whatsapp: string;
 }): string {
   const f = FIXED[input.lang];
-  const first = input.contactName.trim().split(/\s+/)[0] ?? "";
+  const first = greetingFirstName(input.contactName);
   const offer = input.text.offer?.trim() ?? "";
   const body = `margin:0 0 16px 0;font-family:${FONT};font-size:16px;line-height:1.6;color:#4a4a4a;`;
 

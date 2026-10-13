@@ -54,3 +54,37 @@ export function greekVocative(name: string): string {
 
   return trimmed;
 }
+
+/** Words in an account's contact name that are not a person's name at all. */
+const NOT_A_NAME = /^(admin|administrator|house|office|info|shop|store|team|sales|γραφείο|κατάστημα)$/i;
+
+/**
+ * The first name to greet someone by, or "" when the contact name doesn't give a usable one
+ * (the email then says just "Γεια σας," / "Hi there,").
+ *
+ * Contact names are typed by the shops themselves, and three real ones show why this is
+ * needed (2026-10-13): "House Admin" (the owner's own account), "AXIOTIS GKIAOURIDIS" (all
+ * capitals), and "ΦΡΑΓΚΑΘΟΥΛΑΣ" (a surname alone, in capitals).
+ *
+ *   - A single word is usually a surname or a shop, and "Γεια σας Φραγκαθούλα" to a man
+ *     you'd call "κύριε Φραγκαθούλα" reads wrong — so no name.
+ *   - All-capital Latin is title-cased: "AXIOTIS" -> "Axiotis".
+ *   - All-capital Greek gets no name: capitals drop the accent, and "Γιωργο" without its
+ *     tonos is a misspelling a Greek reader notices at once.
+ *   - Role words ("Admin", "Office", "Γραφείο") are never names.
+ */
+export function greetingFirstName(contactName: string): string {
+  const words = contactName.trim().split(/\s+/).filter(Boolean);
+  if (words.length < 2) return "";
+  const first = words[0].replace(/[.,;:]+$/, "");
+  if (!first || NOT_A_NAME.test(first) || words.some((w) => NOT_A_NAME.test(w))) return "";
+  const letters = first.replace(/[^A-Za-zΑ-Ωα-ωΆ-ώΪΫϊϋΐΰ]/g, "");
+  if (letters.length < 2) return "";
+  const isUpper = letters === letters.toUpperCase() && letters !== letters.toLowerCase();
+  if (isUpper) {
+    if (/[Α-ΩΆ-Ώ]/.test(letters)) return "";
+    return first.charAt(0) + first.slice(1).toLowerCase();
+  }
+  return first;
+}
+
