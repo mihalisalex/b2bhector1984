@@ -81,14 +81,18 @@ const FIXED: Record<CampaignLang, { greeting: (first: string) => string; eyebrow
 };
 
 /**
- * "9100 Black - Leather boots" → { code: "9100", detail: "Black · Leather boots" }.
+ * "9100 Black - Leather boots" → { code: "9100", detail: "Black · Leather boots" };
+ * "1906 - Leather Sneaker" → { code: "1906", detail: "Leather Sneaker" }.
  * Product names follow "<model> <colour> - <type>"; anything else is shown whole.
  */
 export function splitStyleName(name: string): { code: string; detail: string } {
   const clean = name.replace(/\s+/g, " ").trim();
   const match = clean.match(/^(\S+)\s+(.+?)\s+-\s+(.+)$/);
-  if (!match) return { code: clean, detail: "" };
-  return { code: match[1], detail: `${match[2]} · ${match[3]}` };
+  if (match) return { code: match[1], detail: `${match[2]} · ${match[3]}` };
+  // "1906 - Leather Sneaker": no colour in the name.
+  const noColour = clean.match(/^(\S+)\s+-\s+(.+)$/);
+  if (noColour) return { code: noColour[1], detail: noColour[2] };
+  return { code: clean, detail: "" };
 }
 
 /** Widths the /api/img route serves: admin thumbnails, and email cards (270px, doubled for retina). */

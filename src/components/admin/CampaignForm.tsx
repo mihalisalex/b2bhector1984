@@ -21,6 +21,9 @@ const INPUT = "w-full rounded-md border border-stone-300 bg-white px-3 py-2 text
 const LABEL = "grid gap-1.5 text-xs font-medium text-ink-soft";
 const STEP = "text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft";
 
+/** Styles shown before "Show all" — three rows on a laptop. */
+const PICKER_PAGE = 12;
+
 /** How many styles a blank campaign starts with — the newest few. */
 const DEFAULT_PICK = 6;
 
@@ -68,7 +71,10 @@ export function CampaignForm({
   const [text, setText] = useState<CampaignText>(() => initialPreset?.text ?? generateCampaignText(newest("all", DEFAULT_PICK), "el", 0));
   const [copied, setCopied] = useState(false);
 
+  const [showAll, setShowAll] = useState(false);
   const visible = styles.filter((s) => filter === "all" || s.season === filter);
+  // Picked styles always stay on screen, even when they're past the first page.
+  const shown = showAll ? visible : visible.filter((s, i) => i < PICKER_PAGE || picked.includes(s.id));
 
   const pickedStyles = useMemo(
     () => picked.map((id) => styles.find((s) => s.id === id)).filter((s): s is CampaignStyle => Boolean(s)),
@@ -171,8 +177,8 @@ export function CampaignForm({
               </button>
             )}
           </div>
-          <div className="grid max-h-[560px] grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-4">
-            {visible.map((s) => {
+          <div className="grid grid-cols-3 items-start gap-2 sm:grid-cols-4">
+            {shown.map((s) => {
               const position = picked.indexOf(s.id);
               const on = position >= 0;
               const full = !on && picked.length >= CAMPAIGN_MAX_STYLES;
@@ -184,19 +190,20 @@ export function CampaignForm({
                   onClick={() => toggle(s.id)}
                   disabled={full}
                   aria-pressed={on}
-                  className={`relative flex min-w-0 flex-col overflow-hidden rounded-lg border text-left transition ${
+                  className={`relative flex min-w-0 flex-col rounded-lg border bg-white text-left transition ${
                     on ? "border-ink ring-1 ring-ink" : "border-stone-200 hover:border-stone-400"
                   } ${full ? "opacity-35" : ""}`}
                 >
-                  {s.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element -- small admin thumbnail
-                    <img src={campaignImageUrl(s.imageUrl, 240)} alt="" loading="lazy" className="block aspect-square w-full bg-stone-100 object-contain" />
-                  ) : (
-                    <span className="block aspect-square w-full bg-stone-100" />
-                  )}
-                  <span className="px-2 py-1.5">
+                  {/* Fixed square photo box: the tile can never be squeezed shorter than its photo. */}
+                  <span className="relative block aspect-square w-full shrink-0 overflow-hidden rounded-t-lg bg-stone-100">
+                    {s.imageUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element -- small admin thumbnail
+                      <img src={campaignImageUrl(s.imageUrl, 240)} alt="" className="absolute inset-0 h-full w-full object-contain" />
+                    )}
+                  </span>
+                  <span className="block shrink-0 px-2 py-1.5">
                     <span className="block truncate text-xs font-semibold text-ink">{code}</span>
-                    <span className="block truncate text-[11px] text-ink-soft">{detail}</span>
+                    <span className="block truncate text-[11px] text-ink-soft">{detail || "\u00a0"}</span>
                   </span>
                   {on && (
                     <span className="absolute right-1.5 top-1.5 grid h-6 w-6 place-items-center rounded-full bg-ink text-[11px] font-semibold text-white">
@@ -207,6 +214,15 @@ export function CampaignForm({
               );
             })}
           </div>
+          {visible.length > PICKER_PAGE && (
+            <button
+              type="button"
+              onClick={() => setShowAll((v) => !v)}
+              className="justify-self-start text-xs font-semibold text-ink underline hover:text-ink-soft"
+            >
+              {showAll ? "Show fewer" : `Show all ${visible.length} styles`}
+            </button>
+          )}
         </section>
 
         {/* 2 — text */}
