@@ -4,6 +4,7 @@ import { useActionState, useMemo, useState } from "react";
 import { sendCampaign, type CampaignState } from "@/lib/campaignActions";
 import {
   buildCampaignHtml,
+  campaignImageUrl,
   campaignLinks,
   generateCampaignText,
   splitStyleName,
@@ -189,7 +190,7 @@ export function CampaignForm({
                 >
                   {s.imageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element -- small admin thumbnail
-                    <img src={s.imageUrl} alt="" className="block aspect-square w-full bg-stone-100 object-contain" />
+                    <img src={campaignImageUrl(s.imageUrl, 240)} alt="" loading="lazy" className="block aspect-square w-full bg-stone-100 object-contain" />
                   ) : (
                     <span className="block aspect-square w-full bg-stone-100" />
                   )}

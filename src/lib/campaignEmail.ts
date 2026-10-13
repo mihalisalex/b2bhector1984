@@ -1,5 +1,5 @@
 import { greekVocative } from "@/i18n/greek";
-import { urlForLocale } from "@/i18n/domains";
+import { originForLocale, urlForLocale } from "@/i18n/domains";
 import type { Category, StyleSeason } from "@/lib/types";
 
 /**
@@ -22,8 +22,6 @@ export interface CampaignStyle {
   category: Category;
   season: StyleSeason;
   imageUrl?: string;
-  /** The photo URL the email uses, when the sender has already checked it (see sendCampaign). */
-  emailImageUrl?: string;
 }
 
 export interface CampaignText {
@@ -43,6 +41,8 @@ export interface CampaignLinks {
   /** Product URL without the slug, e.g. "https://www.hectorfootwear.gr/product/". */
   productBase: string;
   site: string;
+  /** Origin the email's photos are served from (our /api/img). */
+  imageOrigin: string;
 }
 
 /** Links for a campaign in one language — the Greek domain for Greek, the .com for English. */
@@ -52,6 +52,7 @@ export function campaignLinks(lang: CampaignLang): CampaignLinks {
     sheet: urlForLocale(lang, "/quick-order"),
     productBase: urlForLocale(lang, "/product/x").replace(/x$/, ""),
     site: urlForLocale(lang, "/"),
+    imageOrigin: originForLocale(lang),
   };
 }
 
@@ -90,17 +91,33 @@ export function splitStyleName(name: string): { code: string; detail: string } {
   return { code: match[1], detail: `${match[2]} · ${match[3]}` };
 }
 
+/** Widths the /api/img route serves: admin thumbnails, and email cards (270px, doubled for retina). */
+export const EMAIL_IMAGE_WIDTHS = [240, 560] as const;
+export type EmailImageWidth = (typeof EMAIL_IMAGE_WIDTHS)[number];
+
+const BUCKET_SEGMENT = "/storage/v1/object/public/style-images/";
+
+/** "st-<id>/<file>" — the only shape of object path /api/img will fetch. */
+export function isStyleImagePath(path: string): boolean {
+  return /^st-[A-Za-z0-9-]+\/[^/\\]+$/.test(path) && !path.includes("..");
+}
+
 /**
- * A product photo sized for email: Supabase's transformer at 560px (a 270px card, doubled
- * for retina). The originals are up to ~1.4 MB each — six slow downloads on mobile data.
+ * A product photo through our own /api/img (see that route for why not Supabase's resizer).
+ * `origin` makes it absolute, which an email needs; leave it empty for a page on this site.
+ * Anything that isn't a style-images object is returned unchanged.
  */
-export function emailImageUrl(url: string | undefined): string | undefined {
-  if (!url?.includes("/storage/v1/object/public/")) return url;
-  const rendered = new URL(url.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/"));
-  rendered.searchParams.set("width", "560");
-  rendered.searchParams.set("quality", "72");
-  rendered.searchParams.set("resize", "contain");
-  return rendered.href;
+export function campaignImageUrl(url: string | undefined, width: EmailImageWidth, origin = ""): string | undefined {
+  const at = url?.indexOf(BUCKET_SEGMENT) ?? -1;
+  if (!url || at < 0) return url;
+  let path = url.slice(at + BUCKET_SEGMENT.length).split("?")[0];
+  try {
+    path = decodeURIComponent(path);
+  } catch {
+    return url;
+  }
+  if (!isStyleImagePath(path)) return url;
+  return `${origin}/api/img?${new URLSearchParams({ p: path, w: String(width) })}`;
 }
 
 const esc = (value: string) =>
@@ -139,7 +156,7 @@ export function buildCampaignHtml(input: {
   const card = (style: CampaignStyle, index: number) => {
     const { code, detail } = splitStyleName(style.name);
     const url = `${input.links.productBase}${style.slug}`;
-    const image = style.emailImageUrl ?? emailImageUrl(style.imageUrl);
+    const image = campaignImageUrl(style.imageUrl, 560, input.links.imageOrigin);
     return `
       <td width="50%" valign="top" style="padding:0 ${index % 2 === 0 ? "6px" : "0"} 28px ${index % 2 === 0 ? "0" : "6px"};">
         <a href="${esc(url)}" style="text-decoration:none;color:#121212;display:block;">
