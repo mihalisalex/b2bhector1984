@@ -13,7 +13,7 @@ import {
   type CampaignStyle,
   type CampaignText,
 } from "@/lib/campaignEmail";
-import { WHATSAPP_NUMBER } from "@/lib/contact";
+import { CAMPAIGN_COPY_TO, WHATSAPP_NUMBER } from "@/lib/contact";
 import type { StyleSeason } from "@/lib/types";
 
 const INPUT = "w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-ink outline-none focus-visible:border-ink";
@@ -314,6 +314,7 @@ export function CampaignForm({
               <input type="checkbox" name="confirm" className="accent-ink" />
               Yes, email all {buyerCount} buyer{buyerCount === 1 ? "" : "s"} now
             </label>
+            <p className="-mt-1 text-xs text-ink-soft">A copy of the real email also goes to {CAMPAIGN_COPY_TO}.</p>
             <div>
               <button
                 type="submit"

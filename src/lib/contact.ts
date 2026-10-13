@@ -35,6 +35,12 @@ export const FROM_EMAIL = process.env.RESEND_FROM_EMAIL ?? `Hector Footwear Whol
  */
 export const WHATSAPP_NUMBER = "+30 694 643 9965";
 
+/**
+ * The owner's own inbox. Every real buyer campaign also goes here, exactly as buyers get it,
+ * so there is a record of what was sent (owner's request, 2026-10-13).
+ */
+export const CAMPAIGN_COPY_TO = "mihalisalex@gmail.com";
+
 /** A wa.me link that opens a chat with the business, optionally with a message typed in. */
 export function whatsappHref(message?: string): string {
   const digits = WHATSAPP_NUMBER.replace(/\D/g, "");

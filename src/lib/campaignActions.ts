@@ -5,7 +5,7 @@ import { getAllAccounts } from "@/lib/data/accounts";
 import { getStorefrontStyles } from "@/lib/data/styles";
 import { logAudit } from "@/lib/data/auditLog";
 import { sendEmail } from "@/lib/email";
-import { WHATSAPP_NUMBER } from "@/lib/contact";
+import { CAMPAIGN_COPY_TO, WHATSAPP_NUMBER } from "@/lib/contact";
 import {
   buildCampaignHtml,
   buildCampaignWhatsapp,
@@ -101,10 +101,14 @@ export async function sendCampaign(_prev: CampaignState, formData: FormData): Pr
   for (const buyer of buyers) {
     await sendEmail({ to: buyer.email, subject: text.subject, html: render(buyer.contactName) });
   }
+  // The owner's copy: the real email, not a [TEST] — unless they are on the buyer list already.
+  if (!buyers.some((b) => b.email.trim().toLowerCase() === CAMPAIGN_COPY_TO)) {
+    await sendEmail({ to: CAMPAIGN_COPY_TO, subject: text.subject, html: render(admin.contactName) });
+  }
   await logAudit(admin.id, "buyers.campaign_sent", "campaign", text.subject.slice(0, 80), `${buyers.length} buyers, ${styles.length} styles, ${lang}`);
 
   return {
-    success: `Sent to ${buyers.length} buyer${buyers.length === 1 ? "" : "s"}.`,
+    success: `Sent to ${buyers.length} buyer${buyers.length === 1 ? "" : "s"}, with a copy to ${CAMPAIGN_COPY_TO}.`,
     whatsappText: buildCampaignWhatsapp(text, styles, links, lang),
   };
 }
