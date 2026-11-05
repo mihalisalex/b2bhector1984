@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
-import { AvailabilityBadge } from "@/components/ui/Badge";
+import { styleTitle } from "@/lib/modelColours";
 import { SaleBadge } from "@/components/product/SaleBadge";
 import { StylePlate } from "@/components/product/StylePlate";
 import { getStyleImageUrl } from "@/lib/data/styleLabels";
@@ -36,7 +36,7 @@ interface Dict {
  * sync via `router.replace` purely so the current view stays shareable/bookmarkable and
  * survives a reload, not because anything waits on it.
  *
- * Takes the real `Style[]` (not a trimmed-down shape) so `AvailabilityBadge` — which reads
+ * Takes the real `Style[]` (not a trimmed-down shape) so `SaleBadge` — which reads
  * `style.availableBoxTypes` — keeps working correctly without a fragile partial re-cast.
  */
 export function CollectionsExplorer({
@@ -241,9 +241,6 @@ export function CollectionsExplorer({
                 priority={i < 3}
                 className="aspect-[4/5] w-full transition-transform duration-700 ease-out group-hover:scale-[1.03]"
               />
-              <div className="absolute left-2 top-2">
-                <AvailabilityBadge style={style} />
-              </div>
               {/* Discount is visible to signed-out visitors here, prices are not — this page
                   is public. Showing "−10% Sale" without a figure is the point: it's a reason
                   to apply for an account, not a trade-pricing leak. */}
@@ -252,10 +249,8 @@ export function CollectionsExplorer({
               </div>
             </div>
             <div className="mt-3">
-              <h3 className="font-display text-sm font-semibold uppercase tracking-tight text-ink transition-colors group-hover:text-signal sm:text-base">
-                {style.name}
-              </h3>
-              <p className="mt-0.5 text-xs text-ink-soft">{categoryLabel[style.category]}</p>
+              <h3 className="text-base leading-snug text-ink">{styleTitle(style)}</h3>
+              <p className="mt-0.5 text-[13px] text-ink-soft">{categoryLabel[style.category]}</p>
             </div>
           </Link>
         ))}

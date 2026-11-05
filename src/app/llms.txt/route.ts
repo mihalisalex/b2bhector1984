@@ -125,7 +125,7 @@ export async function GET(): Promise<Response> {
     "",
     "- Minimum order: 40 pairs per order, mixed freely across any styles and colours.",
     "- Sold in fixed pre-packed boxes, never single pairs: each style comes in one box format — 8 pairs (EU sizes 40–44) or 10 pairs (EU sizes 40–45).",
-    `- Delivery: every order is produced for the buyer and arrives about ${leadTimeDays} days after the order is confirmed; very large orders can take longer. Any style can be produced in any season.`,
+    `- Delivery: every order is produced for the buyer and arrives about ${leadTimeDays} days after the order is confirmed; very large orders can take longer. A season closes for orders when it is too late to deliver it; only styles open for orders are listed on the site.`,
     "- How ordering works: apply online → a person approves the shop, usually within 2 business days → the shop orders on the site → an invoice with the final price, delivery date and payment details follows within about one business day. Placing an order on the site is a request, not a payment.",
     "- Payment terms: prepay −10%, net 30 −5%, or net 60 at list price.",
     "- Shipping: anywhere. The buyer pays shipping and chooses the courier (for example their own DHL, ACS or Geniki Taxydromiki account).",

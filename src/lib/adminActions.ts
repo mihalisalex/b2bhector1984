@@ -19,7 +19,7 @@ import { MIN_ORDER_PAIRS } from "@/lib/pricing";
 import { createSalesRep, updateSalesRep, deleteSalesRep, getSalesRepById } from "@/lib/data/salesReps";
 import { logAudit } from "@/lib/data/auditLog";
 import { getHomepageHero, updateHomepageHero, createHeroImageUploadTarget, finalizeHeroImageUpload } from "@/lib/data/siteContent";
-import { updateSeasonSettings, createSeasonTeaserUploadTarget, finalizeSeasonTeaserUpload } from "@/lib/data/seasonSettings";
+import { getSeasonSettings, updateSeasonSettings, createSeasonTeaserUploadTarget, finalizeSeasonTeaserUpload } from "@/lib/data/seasonSettings";
 import { invalidateCache } from "@/lib/cacheInvalidation";
 import { CACHE_TAGS } from "@/lib/cacheTags";
 import {
@@ -501,16 +501,40 @@ export async function updateHomepageHeroAction(formData: FormData) {
 
 export async function updateSeasonSettingsAction(formData: FormData) {
   await requirePermission("content.manage");
+  // Names only: opening and closing a season has its own control, setSeasonOpenAction.
+  const current = await getSeasonSettings();
   await updateSeasonSettings({
     summer: {
-      enabled: formData.get("summerEnabled") === "on",
+      enabled: current.summer.enabled,
       label: String(formData.get("summerLabel") ?? "").trim() || "Summer",
     },
     winter: {
-      enabled: formData.get("winterEnabled") === "on",
+      enabled: current.winter.enabled,
       label: String(formData.get("winterLabel") ?? "").trim() || "Winter",
     },
   });
+  afterSeasonChange();
+}
+
+/**
+ * Opens or closes a season for orders. A closed season's styles leave every buyer-facing list
+ * and can't be ordered; all-season styles stay. Refuses to close the last open season: with
+ * both off the shop would have nothing to sell, so `getEnabledSeasons` would show everything.
+ */
+export async function setSeasonOpenAction(season: Season, open: boolean) {
+  const admin = await requirePermission("content.manage");
+  const current = await getSeasonSettings();
+  const other: Season = season === "summer" ? "winter" : "summer";
+  if (!open && !current[other].enabled) return;
+  await updateSeasonSettings({
+    summer: { enabled: season === "summer" ? open : current.summer.enabled, label: current.summer.label },
+    winter: { enabled: season === "winter" ? open : current.winter.enabled, label: current.winter.label },
+  });
+  await logAudit(admin.id, open ? "season.opened" : "season.closed", "season", season);
+  afterSeasonChange();
+}
+
+function afterSeasonChange() {
   invalidateCache(CACHE_TAGS.seasons);
   revalidatePath("/admin/seasons");
   revalidatePath("/");

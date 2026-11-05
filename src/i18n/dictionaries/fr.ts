@@ -149,6 +149,7 @@ const fr: Dictionary = {
   },
   sizeRun: "EU {from}–{to}",
   actions: {
+    cartSeasonClosed: "{name} est fermé aux commandes pour le moment. Veuillez le retirer de votre panier.",
     loginFailed: "Aucun compte actif ne correspond à cet e-mail et ce mot de passe.",
     accountNotActivated: "Ce compte n'est pas encore activé. Contactez votre représentant.",
     resetLinkSent: "Si un compte existe pour cet e-mail, nous avons envoyé un lien de réinitialisation.",
@@ -436,6 +437,9 @@ const fr: Dictionary = {
     journeyCurrent: "étape en cours",
   },
   catalog: {
+    seasonClosedTitle: "Fermé aux commandes pour le moment",
+    seasonClosedBody: "Ce modèle ne peut plus être livré à temps pour sa saison, il n’est donc pas ouvert aux commandes actuellement. Il reviendra à la réouverture de la saison.",
+    seasonClosedCta: "Voir ce qui se commande maintenant",
     seasonNavWinter: "Hiver",
     seasonNavSummer: "Été",
     allStyles: "Tout",

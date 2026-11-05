@@ -77,6 +77,8 @@ export default async function CatalogPage({
   ]);
   const arrivalLabel = formatDayMonth(estimatedArrivalIso(hero.productionLeadTimeDays), locale);
   const seasonOptions = toSeasonOptions(seasonSettings);
+  // An old link to a closed season shows what is open, not just its all-season styles.
+  filters.season = filters.season.filter((season) => seasonOptions.some((o) => o.value === season));
   const dict = await getDictionary(locale);
   const [matchedIds, inventory] = await Promise.all([
     // Greek (and trade) words first — the database index is English-only; see searchSynonyms.
@@ -115,9 +117,12 @@ export default async function CatalogPage({
           {t(dict.catalog.arrivesAround, { date: arrivalLabel })}
           {!showPricing && ` · ${dict.catalog.tradePricingOnApproval}`}
         </p>
-        <Suspense fallback={null}>
-          <CatalogSeasonSwitch seasons={seasons} total={styles.length} />
-        </Suspense>
+        {/* With a season closed there is nothing to choose between. */}
+        {seasons.length > 1 && (
+          <Suspense fallback={null}>
+            <CatalogSeasonSwitch seasons={seasons} total={styles.length} />
+          </Suspense>
+        )}
       </header>
 
       <div className="sticky top-(--shell-header-h) z-20 border-y border-stone-200 bg-white/95 backdrop-blur">

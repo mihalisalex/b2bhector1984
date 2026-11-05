@@ -163,6 +163,7 @@ const en = {
    * A Greek buyer failing a login now fails it in Greek.
    */
   actions: {
+    cartSeasonClosed: "{name} is closed for orders this season. Please remove it from your cart.",
     loginFailed: "We couldn't find an active account with that email and password.",
     accountNotActivated: "This account has not been activated yet. Contact your sales rep.",
     resetLinkSent: "If an account exists for that email, we've sent a link to reset your password.",
@@ -481,6 +482,9 @@ const en = {
   /** Product cards, badges, the buy panel — everything around a style on catalogue and
    * product pages. */
   catalog: {
+    seasonClosedTitle: "Closed for orders this season",
+    seasonClosedBody: "This style can’t be delivered in time for its season, so it isn’t open for orders right now. It will be back when the season opens again.",
+    seasonClosedCta: "See what you can order now",
     seasonNavWinter: "Winter",
     seasonNavSummer: "Summer",
     allStyles: "All",

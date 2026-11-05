@@ -43,6 +43,7 @@ import { addFavorite, removeFavorite } from "@/lib/data/favorites";
 import { decrementInventoryForOrder, restoreInventoryForLines, type StockLine } from "@/lib/data/inventory";
 import { getAvailableBoxTypes, getBoxType } from "@/lib/data/boxTypes";
 import { buildInvoicePdf } from "@/lib/pdf/buildInvoicePdf";
+import { isSeasonOpenFor } from "@/lib/data/seasonSettings";
 import { sendEmail, type EmailAttachment } from "@/lib/email";
 import { sendWhatsAppTemplate, buildProformaInvoiceParams, waLinkTo } from "@/lib/whatsapp";
 import { getHomepageHero } from "@/lib/data/siteContent";
@@ -528,6 +529,9 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
           Object.keys(boxes).every((boxTypeId) => allowedBoxes.has(boxTypeId as BoxTypeId)),
       );
     if (!valid) return { error: t(m.cartLineUnavailable, { name: style?.name ?? styleId }) };
+    // The last word on a closed season: lists hide those styles, but a cart from last week or
+    // a saved link doesn't go through a list.
+    if (!(await isSeasonOpenFor(style.season))) return { error: t(m.cartSeasonClosed, { name: style.name }) };
   }
 
   let totalPairs = 0;

@@ -313,6 +313,16 @@ async function fetchAllStyles(): Promise<Style[]> {
 }
 
 /**
+ * Every style whatever its season, for the admin: closing a season stops buyers ordering it,
+ * but the owner still has to find, edit and quote those products.
+ */
+export const getAllStylesForAdmin = cache(async (): Promise<Style[]> => {
+  const { data, error } = await supabaseAdmin.from("styles").select("*").order("id");
+  if (error) throw new Error(`styles: ${error.message}`);
+  return fetchStyles(data ?? []);
+});
+
+/**
  * The single most expensive read on the site — four Supabase round trips (styles,
  * colorways, style_images, season settings), measured at roughly 0.33s of the homepage's
  * TTFB. Cached across requests; see `@/lib/cacheTags` for why that's safe here.

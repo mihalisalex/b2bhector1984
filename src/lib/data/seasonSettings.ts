@@ -4,7 +4,7 @@ import { unstable_cache } from "next/cache";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { assertAllowedExtension, IMAGE_EXTENSIONS } from "@/lib/uploadValidation";
 import { CACHE_TAGS, CACHE_TTL_SECONDS } from "@/lib/cacheTags";
-import type { Season } from "@/lib/types";
+import type { Season, StyleSeason } from "@/lib/types";
 
 const BUCKET = "site-content";
 
@@ -75,6 +75,15 @@ export async function getEnabledSeasons(): Promise<Set<Season>> {
     .filter(([, s]) => s.enabled)
     .map(([season]) => season);
   return enabled.length > 0 ? new Set(enabled) : new Set<Season>(["summer", "winter"]);
+}
+
+/**
+ * Whether a style can be ordered right now. A style sold in both seasons stays open as long
+ * as either one is. This is the rule behind closing a season: `getAllStyles` hides the style
+ * from every list, and this stops an old link or an old cart from ordering it anyway.
+ */
+export async function isSeasonOpenFor(season: StyleSeason): Promise<boolean> {
+  return season === "both" || (await getEnabledSeasons()).has(season);
 }
 
 /** Enabled seasons only, in a fixed summer-then-winter order, with their admin-configured labels. */

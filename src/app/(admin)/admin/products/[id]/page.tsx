@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getStyleDetailForAdmin } from "@/lib/data/productAdmin";
-import { getAllStyles } from "@/lib/data/styles";
+import { getAllStylesForAdmin } from "@/lib/data/styles";
 import { getAllBrands } from "@/lib/data/brands";
 import { getAllSuppliers } from "@/lib/data/suppliers";
 import { getAllCollections } from "@/lib/data/collections";
@@ -31,7 +31,7 @@ export default async function ProductEditorPage({
 
   const [allStyles, brands, suppliers, collections, warehouses, warehouseStock, movements, images, slugHistory, seoSettings, account] =
     await Promise.all([
-      getAllStyles(),
+      getAllStylesForAdmin(),
       getAllBrands(),
       getAllSuppliers(),
       getAllCollections(),

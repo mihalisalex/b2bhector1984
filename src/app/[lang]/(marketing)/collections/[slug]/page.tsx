@@ -9,7 +9,8 @@ import { buildBreadcrumbSchema, buildCollectionSchema, buildFaqSchema } from "@/
 import { JsonLd } from "@/components/seo/JsonLd";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { StylePlate } from "@/components/product/StylePlate";
-import { AvailabilityBadge } from "@/components/ui/Badge";
+import { LinkButton } from "@/components/ui/Button";
+import { styleTitle } from "@/lib/modelColours";
 import { LinkButton } from "@/components/ui/Button";
 import { getDictionary } from "@/i18n/getDictionary";
 import { t } from "@/i18n/format";
@@ -84,7 +85,18 @@ export default async function CategoryLandingPage({ params }: { params: Promise<
       </header>
 
       <section className="mt-12">
-        <p className="font-mono-tab text-xs text-ink-soft">{t(d.resultsCount, { count: styles.length })}</p>
+        {/* Empty when this category's season is closed. The page and its copy stay for search
+            engines and old links; a buyer gets a reason and a way on, not a blank space. */}
+        {styles.length === 0 ? (
+          <div className="bg-stone-100 px-6 py-16 text-center">
+            <p className="font-display text-2xl text-ink">{dict.catalog.seasonClosedTitle}</p>
+            <LinkButton href={withLocale(locale, "/catalogue")} size="lg" className="mt-6">
+              {dict.catalog.seasonClosedCta}
+            </LinkButton>
+          </div>
+        ) : (
+          <p className="text-sm tabular-nums text-ink-soft">{t(d.resultsCount, { count: styles.length })}</p>
+        )}
         <div className="mt-4 grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10 lg:grid-cols-4">
           {styles.map((style, i) => (
             <Link key={style.id} href={withLocale(locale, `/product/${style.slug}`)} className="group block">
@@ -97,13 +109,8 @@ export default async function CategoryLandingPage({ params }: { params: Promise<
                   priority={i < 4}
                   className="aspect-[4/5] w-full transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                 />
-                <div className="absolute left-2 top-2">
-                  <AvailabilityBadge style={style} />
-                </div>
               </div>
-              <h2 className="font-display mt-3 text-sm font-semibold uppercase tracking-tight text-ink transition-colors group-hover:text-signal sm:text-base">
-                {style.name}
-              </h2>
+              <h2 className="mt-3.5 text-base leading-snug text-ink">{styleTitle(style)}</h2>
             </Link>
           ))}
         </div>

@@ -39,7 +39,7 @@ interface FaqGroup {
 /**
  * Written from how the business actually works (owner, 2026-09-25): every order is produced
  * for the buyer and takes about `days` days (the production lead time set in /admin), any
- * style can be produced in any season, an order is a request that becomes a proforma with
+ * season can be closed for orders when it is too late to deliver it, an order is a request that becomes a proforma with
  * the final price, shipping goes by the buyer's own courier at their cost, and only buyers
  * based in Greece pay Greek VAT. Each style comes in exactly one box format.
  */
@@ -75,7 +75,7 @@ function groupsEn(days: number): FaqGroup[] {
         },
         {
           q: "Can I order a style outside its season?",
-          a: "Yes. The Summer and Winter labels are only there to help you browse — we can produce winter boots in summer and summer styles in winter.",
+          a: "Not usually. When it is too late to deliver a season in its own time, we close that season for orders and its styles leave the catalogue until it opens again. All-season styles can always be ordered. For a special request, talk to us.",
         },
         {
           q: "What do “Pre-order” and “Made to order” mean?",
@@ -215,7 +215,7 @@ function groupsEl(days: number): FaqGroup[] {
         },
         {
           q: "Μπορώ να παραγγείλω ένα μοντέλο εκτός σεζόν;",
-          a: "Ναι. Οι ετικέτες Καλοκαίρι και Χειμώνας υπάρχουν μόνο για να σας βοηθούν στην περιήγηση — μπορούμε να παράγουμε μποτάκια το καλοκαίρι και καλοκαιρινά μοντέλα τον χειμώνα.",
+          a: "Συνήθως όχι. Όταν δεν προλαβαίνουμε να παραδώσουμε μια σεζόν μέσα στον χρόνο της, την κλείνουμε για παραγγελίες και τα μοντέλα της φεύγουν από τον κατάλογο μέχρι να ανοίξει ξανά. Τα μοντέλα όλων των εποχών παραγγέλνονται πάντα. Για ειδικό αίτημα, μιλήστε μαζί μας.",
         },
         {
           q: "Τι σημαίνουν «Προπαραγγελία» και «Κατά παραγγελία»;",

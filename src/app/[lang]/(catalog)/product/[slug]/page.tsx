@@ -27,6 +27,8 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { getDictionary } from "@/i18n/getDictionary";
 import { localizeStyle } from "@/lib/localizeStyle";
 import { withLocale } from "@/i18n/paths";
+import { isSeasonOpenFor } from "@/lib/data/seasonSettings";
+import { LinkButton } from "@/components/ui/Button";
 import { categoryLabel } from "@/lib/data/styleLabels";
 import type { Locale } from "@/i18n/config";
 import { productMetadata } from "@/lib/seo";
@@ -98,6 +100,8 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
     getHomepageHero(),
   ]);
   const leadTimeDays = hero.productionLeadTimeDays;
+  // The page stays up for old links and search engines; it just can't be ordered from.
+  const seasonClosed = !(await isSeasonOpenFor(style.season));
   const priceMultiplier = account?.priceMultiplier ?? 1;
   const favorited = account ? await isFavorite(account.id, style.id) : false;
 
@@ -206,7 +210,15 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
               </div>
 
               <div className="mt-8">
-                {showPricing ? (
+                {seasonClosed ? (
+                  <div>
+                    <p className="font-display text-2xl text-ink">{dict.catalog.seasonClosedTitle}</p>
+                    <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">{dict.catalog.seasonClosedBody}</p>
+                    <LinkButton href={withLocale(locale, "/catalogue")} size="lg" className="mt-6">
+                      {dict.catalog.seasonClosedCta}
+                    </LinkButton>
+                  </div>
+                ) : showPricing ? (
                   <PrimaryPurchasePanel
                     style={style}
                     inventory={inventory}

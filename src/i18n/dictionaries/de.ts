@@ -149,6 +149,7 @@ const de: Dictionary = {
   },
   sizeRun: "EU {from}–{to}",
   actions: {
+    cartSeasonClosed: "{name} ist derzeit nicht bestellbar. Bitte entfernen Sie es aus dem Warenkorb.",
     loginFailed: "Wir konnten kein aktives Konto mit dieser E-Mail und diesem Passwort finden.",
     accountNotActivated: "Dieses Konto ist noch nicht aktiviert. Wenden Sie sich an Ihren Vertreter.",
     resetLinkSent: "Falls ein Konto zu dieser E-Mail existiert, haben wir einen Link zum Zurücksetzen gesendet.",
@@ -436,6 +437,9 @@ const de: Dictionary = {
     journeyCurrent: "aktueller Schritt",
   },
   catalog: {
+    seasonClosedTitle: "Derzeit nicht bestellbar",
+    seasonClosedBody: "Dieses Modell lässt sich nicht mehr rechtzeitig zur Saison liefern und ist deshalb gerade nicht bestellbar. Es kommt zurück, sobald die Saison wieder öffnet.",
+    seasonClosedCta: "Jetzt bestellbare Modelle ansehen",
     seasonNavWinter: "Winter",
     seasonNavSummer: "Sommer",
     allStyles: "Alle",

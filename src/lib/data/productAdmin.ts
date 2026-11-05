@@ -1,6 +1,6 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/server";
-import { getAllStyles, getStyleById, searchStyleIds } from "@/lib/data/styles";
+import { getAllStylesForAdmin, getStyleById, searchStyleIds } from "@/lib/data/styles";
 import { getAllBrands } from "@/lib/data/brands";
 import { getAllSuppliers } from "@/lib/data/suppliers";
 import { getCollectionIdsForStyles, setStyleCollections } from "@/lib/data/collections";
@@ -79,7 +79,7 @@ export interface ProductListResult {
  */
 export async function listProductsForAdmin(params: ProductListParams): Promise<ProductListResult> {
   const [styles, brands, suppliers, { data: orderLines }] = await Promise.all([
-    getAllStyles(),
+    getAllStylesForAdmin(),
     getAllBrands(),
     getAllSuppliers(),
     supabaseAdmin

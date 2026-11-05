@@ -1,4 +1,4 @@
-import { getStorefrontStyles } from "@/lib/data/styles";
+import { getAllStylesForAdmin } from "@/lib/data/styles";
 import { getAllAccounts } from "@/lib/data/accounts";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { CATEGORY_LABEL } from "@/lib/data/styleLabels";
@@ -20,7 +20,9 @@ export const metadata = { title: "Proforma Builder", robots: { index: false, fol
  * invoice.
  */
 export default async function AdminProformaPage() {
-  const [styles, accounts] = await Promise.all([getStorefrontStyles(), getAllAccounts()]);
+  // Closed seasons included: the owner can still quote one by hand. Drafts and archived stay out.
+  const [allStyles, accounts] = await Promise.all([getAllStylesForAdmin(), getAllAccounts()]);
+  const styles = allStyles.filter((s) => (s.status ?? "active") === "active" && s.colorways.length > 0);
 
   const styleData: ProformaStyle[] = styles
     .map((style) => ({
