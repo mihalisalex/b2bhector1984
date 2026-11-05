@@ -37,8 +37,7 @@ export function DocumentsTab({ style, canEdit }: { style: Style; canEdit: boolea
   return (
     <div className="max-w-2xl space-y-6 pb-20">
       <p className="text-xs text-ink-soft">
-        Manuals, datasheets, certificates, installation guides, and warranty documents — same signed-URL storage
-        pipeline as every other upload in this app.
+        Εγχειρίδια, τεχνικά φύλλα, πιστοποιητικά και εγγυήσεις.
       </p>
 
       <div className="space-y-2">

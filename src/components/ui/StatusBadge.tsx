@@ -10,11 +10,11 @@ const STATUS: Record<OrderStatus, { label: string; className: string }> = {
   cancelled: { label: "Cancelled", className: "border-ember/40 bg-ember-100 text-ember" },
 };
 
-export function StatusBadge({ status }: { status: OrderStatus }) {
+export function StatusBadge({ status, label }: { status: OrderStatus; label?: string }) {
   const s = STATUS[status];
   return (
     <span className={cn("inline-flex items-center border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide", s.className)}>
-      {s.label}
+      {label ?? s.label}
     </span>
   );
 }

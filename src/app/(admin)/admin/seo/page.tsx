@@ -95,22 +95,17 @@ export default async function SeoOverviewPage() {
         <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Τι δεν δείχνει αυτή η σελίδα</h2>
         <ul className="mt-2 list-disc space-y-1 pl-5 text-ink-soft">
           <li>
-            <strong className="text-ink">Indexed page count, impressions and click-through</strong> — these come from
-            Google Search Console, which needs an API credential this project doesn&rsquo;t have. Add the
-            verification token in Global settings, then read those numbers in Search Console itself.
+            <strong className="text-ink">Σελίδες στο ευρετήριο, εμφανίσεις και κλικ</strong>: έρχονται από το Google Search Console, για το οποίο δεν υπάρχει σύνδεση εδώ. Βάλε τον κωδικό επαλήθευσης στις γενικές ρυθμίσεις και δες τα νούμερα στο ίδιο το Search Console.
           </li>
           <li>
-            <strong className="text-ink">Broken external links</strong> — checking those means crawling the live
-            site from outside. The audit above validates internal redirect destinations only.
+            <strong className="text-ink">Χαλασμένα εξωτερικά links</strong>: θέλουν έλεγχο του site απ' έξω. Ο παραπάνω έλεγχος καλύπτει μόνο τους εσωτερικούς προορισμούς ανακατευθύνσεων.
           </li>
           <li>
-            <strong className="text-ink">Structured-data validation</strong> — the JSON-LD is generated from live data
-            and is well-formed by construction, but Google is the authority. Each product&rsquo;s SEO tab
-            links straight to the Rich Results Test.
+            <strong className="text-ink">Έλεγχος δομημένων δεδομένων</strong>: το JSON-LD βγαίνει από τα πραγματικά δεδομένα, αλλά τον τελικό λόγο τον έχει η Google. Η ενότητα SEO κάθε προϊόντος έχει link στο Rich Results Test.
           </li>
         </ul>
         <p className="mt-3 text-ink-soft">
-          Live files:{" "}
+          Αρχεία:{" "}
           <a href={`${SITE_URL}/robots.txt`} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
             robots.txt
           </a>{" "}
@@ -128,10 +123,9 @@ function IndexingPolicyCard({ indexable, robotsEnabled }: { indexable: boolean; 
   if (!robotsEnabled) {
     return (
       <div className="border border-ember bg-ember/5 px-4 py-3 text-sm">
-        <p className="font-semibold text-ink">The whole site is blocked from search engines.</p>
+        <p className="font-semibold text-ink">Όλο το site είναι κλειδωμένο για τις μηχανές αναζήτησης.</p>
         <p className="mt-1 text-ink-soft">
-          robots.txt is serving <code className="font-mono-tab">Disallow: /</code>. Turn &ldquo;Serve
-          robots.txt normally&rdquo; back on in Global settings unless this is a staging domain.
+          Το robots.txt δίνει <code className="font-mono-tab">Disallow: /</code>. Ενεργοποίησέ το ξανά στις γενικές ρυθμίσεις, εκτός αν πρόκειται για δοκιμαστικό domain.
         </p>
       </div>
     );
@@ -142,17 +136,11 @@ function IndexingPolicyCard({ indexable, robotsEnabled }: { indexable: boolean; 
       <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Πολιτική ευρετηρίασης</p>
       {indexable ? (
         <p className="mt-1.5 text-ink">
-          <strong>The trade catalogue is public.</strong> Catalogue and product pages are in robots.txt,
-          in the sitemap, and marked indexable — which means{" "}
-          <strong>wholesale pricing can appear in search results.</strong> This is only correct if the
-          business has deliberately opened the catalogue up.
+          <strong>Ο κατάλογος είναι δημόσιος.</strong> Κατάλογος και προϊόντα εμφανίζονται στο robots.txt και στο sitemap και επιτρέπεται η ευρετηρίαση, άρα <strong>οι χονδρικές τιμές μπορεί να φανούν στις αναζητήσεις.</strong> Είναι σωστό μόνο αν το θέλεις συνειδητά.
         </p>
       ) : (
         <p className="mt-1.5 text-ink">
-          <strong>The trade catalogue is private</strong> — the correct default for wholesale. Catalogue,
-          product, quick-order and linesheet pages are disallowed in robots.txt, kept out of the
-          sitemap, and marked <code className="font-mono-tab">noindex</code>. Their SEO fields still
-          drive the link previews reps share by email and WhatsApp; they just don&rsquo;t rank.
+          <strong>Ο κατάλογος είναι ιδιωτικός</strong>, που είναι το σωστό για χονδρική. Κατάλογος και προϊόντα αποκλείονται στο robots.txt, μένουν έξω από το sitemap και έχουν <code className="font-mono-tab">noindex</code>. Τα πεδία SEO τους καθορίζουν μόνο την προεπισκόπηση όταν στέλνεις το link με email ή WhatsApp.
         </p>
       )}
       <Link

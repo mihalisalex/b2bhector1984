@@ -14,8 +14,7 @@ export default async function AdminAccountsPage() {
         Πελάτες
       </h1>
       <p className="mt-3 max-w-2xl text-sm text-ink-soft">
-        Every field below saves immediately on change — terms, credit limit, rep assignment, and the
-        negotiated-pricing multiplier (applies on top of each order&rsquo;s payment-terms discount).
+        Κάθε πεδίο αποθηκεύεται αμέσως μόλις αλλάξει. Ο συντελεστής τιμής εφαρμόζεται πάνω από την έκπτωση των όρων πληρωμής.
       </p>
 
       {accounts.length === 0 ? (

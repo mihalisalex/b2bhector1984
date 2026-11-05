@@ -111,8 +111,7 @@ function CustomerGroupPricing({ style, canEdit }: { style: Style; canEdit: boole
     <div className="border-t border-stone-300 pt-5">
       <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Τιμές ανά ομάδα πελατών</h3>
       <p className="mt-1 text-xs text-ink-soft">
-        Stored and editable here for account segmentation — deliberately not wired into the live checkout pricing
-        engine, which stays on the settled payment-terms-discount model.
+        Μόνο για σημείωση: δεν επηρεάζουν τις τιμές στο ταμείο.
       </p>
       <div className="mt-3 space-y-2">
         {style.customerGroupPrices.map((g) => (

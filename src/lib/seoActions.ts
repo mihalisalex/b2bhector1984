@@ -193,7 +193,7 @@ export async function updateSeoSettingsAction(_prev: FormState, formData: FormDa
     section === "indexing" && patch.commerceIndexable
       ? " Catalogue and product pages are now advertised to search engines. Trade pricing stays behind the login — anonymous visitors and crawlers see the product but not the price."
       : "";
-  return { success: `Settings saved.${warning}` };
+  return { success: `Οι ρυθμίσεις αποθηκεύτηκαν.${warning}` };
 }
 
 // ---------------------------------------------------------------------------
@@ -211,7 +211,7 @@ export async function createRedirectAction(_prev: FormState, formData: FormData)
   if (!check.ok) return { error: check.error };
 
   if (existing.some((r) => normalizePath(r.fromPath) === normalizePath(fromPath))) {
-    return { error: `A redirect from ${normalizePath(fromPath)} already exists. Edit it instead.` };
+    return { error: `Υπάρχει ήδη ανακατεύθυνση από το ${normalizePath(fromPath)}. Επεξεργάσου εκείνη.` };
   }
 
   const failure = await runOrError(() =>
@@ -270,13 +270,13 @@ export async function deleteRedirectAction(id: string): Promise<void> {
 export async function bulkDeleteRedirectsAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requireSeoPermission();
   const ids = formData.getAll("ids").map(String).filter(Boolean);
-  if (ids.length === 0) return { error: "Select at least one redirect." };
+  if (ids.length === 0) return { error: "Διάλεξε τουλάχιστον μία." };
 
   const failure = await runOrError(() => deleteRedirects(ids));
   if (failure) return failure;
   await logAudit(admin.id, "seo.redirects_bulk_deleted", "seo_redirect", `${ids.length} rules`);
   revalidateSeoAdmin();
-  return { success: `Deleted ${ids.length} redirect${ids.length === 1 ? "" : "s"}.` };
+  return { success: `Διαγράφηκαν ${ids.length} ανακατευθύνσεις.` };
 }
 
 /**
@@ -290,7 +290,7 @@ export async function bulkDeleteRedirectsAction(_prev: FormState, formData: Form
 export async function importRedirectsAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requireSeoPermission();
   const raw = String(formData.get("csv") ?? "").trim();
-  if (!raw) return { error: "Paste some CSV first." };
+  if (!raw) return { error: "Επικόλλησε πρώτα το CSV." };
 
   const existing = await listRedirects();
   const running = existing.map((r) => ({ fromPath: r.fromPath, toPath: r.toPath }));
@@ -335,7 +335,7 @@ export async function importRedirectsAction(_prev: FormState, formData: FormData
 
   if (imported === 0) return { error: errors.slice(0, 5).join(" ") || "Nothing imported." };
   const suffix = errors.length ? ` ${errors.length} row(s) skipped: ${errors.slice(0, 3).join(" ")}` : "";
-  return { success: `Imported ${imported} redirect${imported === 1 ? "" : "s"}.${suffix}` };
+  return { success: `Εισήχθησαν ${imported} ανακατευθύνσεις.${suffix}` };
 }
 
 // ---------------------------------------------------------------------------
@@ -378,7 +378,7 @@ export async function updateEntityMetaAction(
   revalidateSeoSurfaces();
   revalidateSeoAdmin();
   if (entityType === "page") revalidatePath(entityKey);
-  return { success: "Saved." };
+  return { success: "Αποθηκεύτηκε." };
 }
 
 export async function resetEntityMetaAction(entityType: SeoEntityType, entityKey: string): Promise<void> {
@@ -487,7 +487,7 @@ export async function generateMissingAltTextAction(_prev: FormState, _formData: 
     })
     .filter((update): update is { imageId: string; altText: string } => update !== null);
 
-  if (updates.length === 0) return { success: "Every product image already has alt text." };
+  if (updates.length === 0) return { success: "Όλες οι φωτογραφίες έχουν περιγραφή." };
 
   const failure = await runOrError(() => setAltTextBulk(updates));
   if (failure) return failure;
@@ -495,7 +495,7 @@ export async function generateMissingAltTextAction(_prev: FormState, _formData: 
   await logAudit(admin.id, "seo.bulk_alt_text", "style_image", `${updates.length} images`);
   revalidatePath("/admin/products");
   revalidateSeoAdmin();
-  return { success: `Wrote alt text for ${updates.length} image${updates.length === 1 ? "" : "s"}.` };
+  return { success: `Γράφτηκαν περιγραφές σε ${updates.length} φωτογραφίες.` };
 }
 
 /**
@@ -510,8 +510,8 @@ export async function bulkEditProductSeoAction(_prev: FormState, formData: FormD
   const template = String(formData.get("value") ?? "").trim();
   const ids = formData.getAll("ids").map(String).filter(Boolean);
 
-  if (ids.length === 0) return { error: "Select at least one product." };
-  if (!template && field !== "clear") return { error: "Enter a value to apply." };
+  if (ids.length === 0) return { error: "Διάλεξε τουλάχιστον ένα προϊόν." };
+  if (!template && field !== "clear") return { error: "Γράψε μια τιμή." };
 
   const styles = (await getAllStyles()).filter((style) => ids.includes(style.id));
   let updated = 0;
@@ -551,7 +551,7 @@ export async function bulkEditProductSeoAction(_prev: FormState, formData: FormD
     else if (field === "focusKeyword") patch.focusKeyword = value;
     else if (field === "secondaryKeywords") {
       patch.secondaryKeywords = value.split(",").map((k) => k.trim()).filter(Boolean);
-    } else return { error: `Unknown field "${field}".` };
+    } else return { error: `Άγνωστο πεδίο «${field}».` };
 
     try {
       await updateStyleSeo(style.id, patch);
@@ -567,5 +567,5 @@ export async function bulkEditProductSeoAction(_prev: FormState, formData: FormD
   revalidatePath("/admin/products");
   revalidateSeoAdmin();
   revalidateSeoSurfaces();
-  return { success: `Updated ${field} on ${updated} product${updated === 1 ? "" : "s"}.` };
+  return { success: `Ενημερώθηκαν ${updated} προϊόντα.` };
 }

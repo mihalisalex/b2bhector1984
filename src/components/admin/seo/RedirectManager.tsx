@@ -23,7 +23,7 @@ const STATUS_OPTIONS = [
 
 const SOURCE_LABEL: Record<SeoRedirect["source"], string> = {
   manual: "Manual",
-  slug_change: "Auto (slug change)",
+  slug_change: "Αυτόματη",
   import: "Imported",
 };
 
@@ -225,7 +225,7 @@ function CreateRedirectForm() {
         className="mt-3 w-full border border-stone-300 px-3 py-2 text-sm outline-none focus-visible:border-signal"
       />
       <p className="mt-2 text-xs text-ink-soft">
-        Loops and chains are rejected before saving. Query strings are carried across automatically.
+        Οι βρόχοι και οι αλυσίδες απορρίπτονται πριν την αποθήκευση. Οι παράμετροι του link μεταφέρονται αυτόματα.
       </p>
     </form>
   );

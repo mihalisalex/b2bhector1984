@@ -186,7 +186,7 @@ export function ProductEditorShell({
 
       <details open={advancedOpen} onToggle={(e) => setAdvancedOpen(e.currentTarget.open)} className="mt-12 border-t border-stone-300 pt-6">
         <summary className="cursor-pointer font-display text-2xl text-ink">Για προχωρημένους</summary>
-        <p className="mt-1 text-sm text-ink-soft">Σπάνια χρειάζονται. Κάθε ενότητα εδώ έχει δικό της κουμπί αποθήκευσης και κάποια πεδία είναι ακόμα στα αγγλικά.</p>
+        <p className="mt-1 text-sm text-ink-soft">Σπάνια χρειάζονται. Κάθε ενότητα εδώ έχει δικό της κουμπί αποθήκευσης.</p>
         <div role="tablist" className="scroll-thin mt-4 flex gap-1 overflow-x-auto border-b border-stone-300">
           {ADVANCED_TABS.map((t) => (
             <button

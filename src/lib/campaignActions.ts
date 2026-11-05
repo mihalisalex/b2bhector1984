@@ -48,31 +48,31 @@ export async function sendCampaign(_prev: CampaignState, formData: FormData): Pr
   };
   const styleIds = formData.getAll("styleIds").map(String);
 
-  if (!text.subject) return { error: "Write a subject line (or press Generate text)." };
-  if (!text.headline) return { error: "Write a headline (or press Generate text)." };
-  if (styleIds.length === 0) return { error: "Pick at least one style to show in the email." };
-  if (styleIds.length > CAMPAIGN_MAX_STYLES) return { error: `Pick at most ${CAMPAIGN_MAX_STYLES} styles.` };
+  if (!text.subject) return { error: "Γράψε θέμα (ή πάτα το κουμπί δημιουργίας κειμένου)." };
+  if (!text.headline) return { error: "Γράψε τίτλο (ή πάτα το κουμπί δημιουργίας κειμένου)." };
+  if (styleIds.length === 0) return { error: "Διάλεξε τουλάχιστον ένα μοντέλο." };
+  if (styleIds.length > CAMPAIGN_MAX_STYLES) return { error: `Διάλεξε το πολύ ${CAMPAIGN_MAX_STYLES} μοντέλα.` };
 
   const byId = new Map((await getStorefrontStyles()).map((s) => [s.id, s]));
   const styles: CampaignStyle[] = styleIds
     .map((id) => byId.get(id))
     .filter((s) => s !== undefined)
     .map((s) => ({ id: s.id, name: s.name, slug: s.slug, category: s.category, season: s.season, imageUrl: s.primaryImageUrl }));
-  if (styles.length === 0) return { error: "None of the picked styles are live in the catalogue any more." };
+  if (styles.length === 0) return { error: "Κανένα από τα μοντέλα δεν είναι πια στον κατάλογο." };
 
   const links = campaignLinks(lang);
   const render = (contactName: string) => buildCampaignHtml({ lang, text, styles, links, contactName, whatsapp: WHATSAPP_NUMBER });
 
   if (isTest) {
     const to = field("testEmail", 200);
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return { error: "Enter the email address to send the test to." };
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return { error: "Γράψε το email για τη δοκιμή." };
     await sendEmail({ to, subject: `[TEST] ${text.subject}`, html: render(admin.contactName) });
-    return { success: `Test sent to ${to}. Check your inbox (and spam) before sending to buyers.` };
+    return { success: `Η δοκιμή στάλθηκε στο ${to}. Δες τα εισερχόμενα και τα ανεπιθύμητα πριν στείλεις στους πελάτες.` };
   }
 
-  if (formData.get("confirm") !== "on") return { error: "Tick the box to confirm you want to email every buyer." };
+  if (formData.get("confirm") !== "on") return { error: "Τσέκαρε το κουτί για να σταλεί σε όλους τους πελάτες." };
   const buyers = (await getAllAccounts()).filter((a) => a.status === "active");
-  if (buyers.length === 0) return { error: "There are no active buyer accounts to email yet." };
+  if (buyers.length === 0) return { error: "Δεν υπάρχουν ενεργοί πελάτες ακόμα." };
 
   for (const buyer of buyers) {
     await sendEmail({ to: buyer.email, subject: text.subject, html: render(buyer.contactName) });
@@ -84,7 +84,7 @@ export async function sendCampaign(_prev: CampaignState, formData: FormData): Pr
   await logAudit(admin.id, "buyers.campaign_sent", "campaign", text.subject.slice(0, 80), `${buyers.length} buyers, ${styles.length} styles, ${lang}`);
 
   return {
-    success: `Sent to ${buyers.length} buyer${buyers.length === 1 ? "" : "s"}, with a copy to ${CAMPAIGN_COPY_TO}.`,
+    success: `Στάλθηκε σε ${buyers.length} πελάτες, με αντίγραφο στο ${CAMPAIGN_COPY_TO}.`,
     whatsappText: buildCampaignWhatsapp(text, styles, links, lang),
   };
 }

@@ -195,11 +195,7 @@ function GeneralSection({
           Επαλήθευση μηχανών αναζήτησης
         </legend>
         <p className="mb-3 text-xs text-ink-soft">
-          Paste the content value from the verification meta tag. Verification is per
-          <strong> domain</strong>, not per language: <code className="font-mono-tab">.com</code> is a
-          separate property from <code className="font-mono-tab">.gr</code> and cannot be verified with
-          the <code className="font-mono-tab">.gr</code> token. Leave a pair blank if you verified that
-          domain by DNS instead.
+          Επικόλλησε την τιμή content από το meta tag επαλήθευσης. Η επαλήθευση γίνεται ανά <strong>domain</strong>, όχι ανά γλώσσα: το <code className="font-mono-tab">.com</code> και το <code className="font-mono-tab">.gr</code> επαληθεύονται χωριστά. Άφησε κενό αν το domain επαληθεύτηκε με DNS.
         </p>
         <div className="grid gap-4 sm:grid-cols-2">
           <TextField label="Google — hectorfootwear.gr" name="googleSiteVerification" defaultValue={settings.googleSiteVerification} disabled={!canEdit} />
@@ -238,8 +234,7 @@ function IndexingSection({ settings, canEdit }: { settings: SeoSettings; canEdit
           <span>
             Να εμφανίζονται κατάλογος και προϊόντα στις μηχανές αναζήτησης
             <span className="mt-1 block text-xs text-ink-soft">
-              Off by default. This one switch controls robots.txt, the sitemap and every product
-              page&rsquo;s robots tag together, so they can never contradict each other.
+              Κλειστό από προεπιλογή. Αυτός ο διακόπτης ελέγχει μαζί το robots.txt, το sitemap και τη σήμανση κάθε σελίδας προϊόντος.
             </span>
           </span>
         </label>
@@ -447,8 +442,7 @@ function LocaleBar({ section, locale }: { section: Section; locale: string }) {
       </div>
       {locale !== "en" && (
         <p className="mt-2 text-[11px] text-ink-soft">
-          Left blank, a field falls back to the English value — so an untranslated locale reads
-          exactly as it did before, rather than going empty.
+          Αν μείνει κενό, το πεδίο παίρνει την αγγλική τιμή, ώστε να μη μένει άδειο.
         </p>
       )}
     </div>

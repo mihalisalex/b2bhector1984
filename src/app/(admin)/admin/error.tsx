@@ -23,15 +23,15 @@ export default function AdminRouteError({
 
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center bg-stone-50 px-6 text-center">
-      <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">Something went wrong</span>
+      <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">Κάτι πήγε στραβά</span>
       <h1 className="font-display mt-3 text-3xl font-bold uppercase tracking-tight text-ink">
         We couldn&rsquo;t load this page.
       </h1>
-      <p className="mt-2 max-w-sm text-sm text-ink-soft">This is usually temporary. Try again.</p>
+      <p className="mt-2 max-w-sm text-sm text-ink-soft">Συνήθως είναι προσωρινό. Δοκίμασε ξανά.</p>
       <div className="mt-6 flex gap-3">
         <Button onClick={reset}>Try again</Button>
         <Link href="/admin" className="flex items-center text-sm font-medium text-signal hover:underline">
-          Back to admin home
+          Πίσω στο admin
         </Link>
       </div>
       {error.digest && (

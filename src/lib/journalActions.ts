@@ -29,7 +29,7 @@ function friendlyDbError(err: unknown): string {
     return "Can't save this yet — the Journal schema migration (supabase/migrations/0027_journal.sql) hasn't been run against this database. Run it in the Supabase SQL Editor, then try again.";
   }
   if (message.includes("duplicate key value") && message.includes("slug")) {
-    return "That URL slug is already used by another article — try a more specific one.";
+    return "Η διεύθυνση χρησιμοποιείται ήδη σε άλλο άρθρο.";
   }
   return message;
 }
@@ -69,8 +69,8 @@ function readGeneralInput(formData: FormData): JournalGeneralInput {
 export async function createJournalPostAction(_prev: FormState, formData: FormData): Promise<FormState> {
   await requirePermission("content.manage");
   const input = readGeneralInput(formData);
-  if (!input.title) return { error: "Title is required." };
-  if (!input.slug) return { error: "Couldn't derive a URL slug from that title — try adding one manually." };
+  if (!input.title) return { error: "Συμπλήρωσε τον τίτλο." };
+  if (!input.slug) return { error: "Δεν βγήκε διεύθυνση από αυτόν τον τίτλο. Γράψε μία με το χέρι." };
 
   let id: string;
   try {
@@ -85,13 +85,13 @@ export async function createJournalPostAction(_prev: FormState, formData: FormDa
 export async function updateGeneralAction(postId: string, slug: string, _prev: FormState, formData: FormData): Promise<FormState> {
   await requirePermission("content.manage");
   const input = readGeneralInput(formData);
-  if (!input.title) return { error: "Title is required." };
-  if (!input.slug) return { error: "Couldn't derive a URL slug from that title — try adding one manually." };
+  if (!input.title) return { error: "Συμπλήρωσε τον τίτλο." };
+  if (!input.slug) return { error: "Δεν βγήκε διεύθυνση από αυτόν τον τίτλο. Γράψε μία με το χέρι." };
   const result = await runOrError(() => updateJournalPostGeneral(postId, input));
   if (result) return result;
   revalidateJournal(slug);
   revalidateJournal(input.slug);
-  return { success: "Saved." };
+  return { success: "Αποθηκεύτηκε." };
 }
 
 export async function updateContentAction(postId: string, slug: string, _prev: FormState, formData: FormData): Promise<FormState> {
@@ -100,7 +100,7 @@ export async function updateContentAction(postId: string, slug: string, _prev: F
   const result = await runOrError(() => updateJournalPostContent(postId, contentHtml));
   if (result) return result;
   revalidateJournal(slug);
-  return { success: "Saved." };
+  return { success: "Αποθηκεύτηκε." };
 }
 
 export async function updateSeoAction(postId: string, slug: string, _prev: FormState, formData: FormData): Promise<FormState> {
@@ -116,7 +116,7 @@ export async function updateSeoAction(postId: string, slug: string, _prev: FormS
   );
   if (result) return result;
   revalidateJournal(slug);
-  return { success: "Saved." };
+  return { success: "Αποθηκεύτηκε." };
 }
 
 export async function updateVisibilityAction(postId: string, slug: string, _prev: FormState, formData: FormData): Promise<FormState> {
@@ -131,7 +131,7 @@ export async function updateVisibilityAction(postId: string, slug: string, _prev
   );
   if (result) return result;
   revalidateJournal(slug);
-  return { success: "Saved." };
+  return { success: "Αποθηκεύτηκε." };
 }
 
 export async function deleteJournalPostAction(postId: string): Promise<void> {

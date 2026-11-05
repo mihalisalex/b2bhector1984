@@ -56,7 +56,7 @@ export function AccountsTable({
 
       {filtered.length === 0 ? (
         <div className="mt-6 border border-dashed border-stone-300 bg-stone-100 px-6 py-16 text-center text-sm text-ink-soft">
-          No accounts match &ldquo;{query}&rdquo;.
+          Κανένας πελάτης για «{query}».
         </div>
       ) : (
         <>

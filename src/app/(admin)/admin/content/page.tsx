@@ -32,16 +32,13 @@ export default async function AdminContentPage() {
       <div className="mt-6 max-w-xl border border-stone-300 bg-stone-100 p-4 text-xs leading-relaxed text-ink-soft">
         <p className="font-semibold uppercase tracking-wide text-ink">Σημείωση: διαστάσεις φωτογραφιών αρχικής</p>
         <p className="mt-2">
-          The hero and the season spotlight photos (below, on the homepage — not this page) use fixed
-          box sizes per screen width, not the source photo&rsquo;s own proportions, so pick photos that
-          crop well to these:
+          Οι φωτογραφίες της αρχικής μπαίνουν σε πλαίσια με σταθερές διαστάσεις ανά οθόνη, όχι στις αναλογίες της ίδιας της φωτογραφίας. Διάλεξε φωτογραφίες που κόβονται καλά σε αυτά:
         </p>
         <p className="mt-2 font-mono-tab">
-          Hero — min-height: 520px (mobile) · 560px (≥640px) · 640px (≥1024px) · 720px (≥1536px, capped).
-          Grows taller automatically if the heading/body text needs more room, never crops the text.
+          Κεντρική φωτογραφία, ελάχιστο ύψος: 520px (κινητό) · 560px (≥640px) · 640px (≥1024px) · 720px (≥1536px). Ψηλώνει μόνη της αν το κείμενο θέλει χώρο και δεν το κόβει ποτέ.
         </p>
         <p className="mt-1 font-mono-tab">
-          Season spotlight photo — aspect ratio: 4:3 (mobile/tablet) · 3:2 (≥1024px).
+          Φωτογραφία σεζόν, αναλογία: 4:3 (κινητό/tablet) · 3:2 (≥1024px).
         </p>
       </div>
 
@@ -136,8 +133,7 @@ export default async function AdminContentPage() {
           */}
           {!heroGreekComplete && (
             <p className="border border-signal bg-signal/10 px-3 py-2 text-xs font-semibold text-signal">
-              The Greek hero is incomplete — {new URL(originForLocale("el")).host} falls back to
-              the English text below until every Greek field is filled in.
+              Τα ελληνικά της αρχικής δεν είναι πλήρη: το {new URL(originForLocale("el")).host} δείχνει τα αγγλικά παρακάτω μέχρι να συμπληρωθούν όλα τα ελληνικά πεδία.
             </p>
           )}
 

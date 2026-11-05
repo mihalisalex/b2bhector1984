@@ -11,12 +11,10 @@ export default async function SeoRedirectsPage() {
     <div className="space-y-6">
       <div className="max-w-3xl text-sm text-ink-soft">
         <p>
-          Redirects run ahead of the login gate, so a retired product URL sends visitors and
-          crawlers straight to its replacement instead of bouncing them to a sign-in page.
+          Οι ανακατευθύνσεις τρέχουν πριν από τη σύνδεση, οπότε μια παλιά διεύθυνση προϊόντος στέλνει επισκέπτες και μηχανές αναζήτησης κατευθείαν στη νέα της.
         </p>
         <p className="mt-2">
-          Renaming a product&rsquo;s URL slug creates a 301 here automatically — those rows are marked
-          &ldquo;Auto (slug change)&rdquo;. Deleting one breaks every old link that relied on it.
+          Όταν αλλάζει η διεύθυνση ενός προϊόντος, δημιουργείται εδώ αυτόματα ανακατεύθυνση 301, με την ένδειξη «Αυτόματη». Αν τη διαγράψεις, χαλάνε τα παλιά links που βασίζονταν σε αυτήν.
         </p>
       </div>
 

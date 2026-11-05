@@ -12,6 +12,13 @@ import type { AdminSalesRep } from "@/lib/data/salesReps";
 
 const PAGE_SIZE = 20;
 
+const STATUS_NAME: Record<string, string> = {
+  pending: "Σε αναμονή",
+  approved: "Εγκρίθηκε",
+  active: "Ενεργή",
+  declined: "Απορρίφθηκε",
+};
+
 const STATUS_STYLE: Record<string, string> = {
   pending: "border-court/40 bg-court-100 text-ink",
   approved: "border-positive/40 bg-positive-100 text-positive",
@@ -102,7 +109,7 @@ export function AdminApplicationsList({ applications, reps }: { applications: Ap
 
       {filtered.length === 0 ? (
         <div className="border border-dashed border-stone-300 bg-stone-100 px-6 py-16 text-center text-sm text-ink-soft">
-          No applications match &ldquo;{query}&rdquo;.
+          Καμία αίτηση για «{query}».
         </div>
       ) : (
         <>
@@ -123,7 +130,7 @@ export function AdminApplicationsList({ applications, reps }: { applications: Ap
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-semibold text-ink">{app.businessName}</p>
                   <span className={cn("border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide", STATUS_STYLE[app.status])}>
-                    {app.status}
+                    {STATUS_NAME[app.status] ?? app.status}
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-ink-soft">

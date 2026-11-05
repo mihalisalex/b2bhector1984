@@ -56,7 +56,7 @@ export function MediaTab({ style, images, canEdit }: { style: Style; images: Sty
         <section className="border-t border-stone-300 pt-6">
           <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Video &amp; 360° images</h3>
           <p className="mt-1 text-xs text-ink-soft">
-            No longer offered — these are existing files. Product documents belong on the Documents tab.
+            Παλιά αρχεία. Τα έγγραφα μπαίνουν στην ενότητα Έγγραφα.
           </p>
           <div className="mt-3 space-y-2">
             {videoAndSpins.map((doc) => (

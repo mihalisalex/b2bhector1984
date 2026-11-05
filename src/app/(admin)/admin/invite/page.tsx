@@ -36,9 +36,7 @@ export default async function InviteShopPage() {
     <div className="max-w-4xl">
       <h1 className="font-display border-b border-stone-300 pb-6 text-2xl font-bold uppercase tracking-tight text-ink">Πρόσκληση καταστήματος</h1>
       <p className="mt-3 max-w-2xl text-sm text-ink-soft">
-        For shops you already sell to. They skip the application: the account is approved straight away, and the shop
-        gets an email (and, if you add a mobile, a WhatsApp you send with one tap) with a link to set a password and
-        see their prices.
+        Για καταστήματα που ήδη εξυπηρετείς. Δεν κάνουν αίτηση: ο λογαριασμός εγκρίνεται αμέσως και το κατάστημα παίρνει email (και WhatsApp με ένα πάτημα, αν βάλεις κινητό) με link για να ορίσει κωδικό και να δει τις τιμές του.
       </p>
 
       <div className="mt-6">
@@ -49,7 +47,7 @@ export default async function InviteShopPage() {
       </div>
 
       <h2 className="mt-12 text-xs font-semibold uppercase tracking-wide text-ink-soft">
-        Waiting to set a password ({waiting.length})
+        Περιμένουν να ορίσουν κωδικό ({waiting.length})
       </h2>
       {waiting.length === 0 ? (
         <p className="mt-3 text-sm text-ink-soft">Κανένα: όλα τα εγκεκριμένα καταστήματα έχουν ενεργοποιήσει λογαριασμό.</p>

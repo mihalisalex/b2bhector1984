@@ -32,7 +32,7 @@ export function EmailBuyerPanel({
     <div className="flex flex-col gap-3 border border-ink bg-stone-50 p-4">
       <div className="flex items-center justify-between">
         <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">
-          Email {toName || "buyer"} · {to}
+          Email: {toName || "πελάτης"} · {to}
         </h3>
         <button type="button" onClick={() => setOpen(false)} className="text-xs text-ink-soft hover:text-ink">
           Άκυρο

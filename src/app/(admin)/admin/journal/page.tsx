@@ -31,7 +31,7 @@ export default async function AdminJournalPage() {
 
       {posts.length === 0 ? (
         <div className="mt-8 border border-dashed border-stone-300 bg-stone-100 px-6 py-16 text-center text-sm text-ink-soft">
-          No articles yet — if this is unexpected, check that migration 0027_journal.sql has been run.
+          Κανένα άρθρο ακόμα.
         </div>
       ) : (
         <div className="mt-6 overflow-x-auto border border-stone-300">

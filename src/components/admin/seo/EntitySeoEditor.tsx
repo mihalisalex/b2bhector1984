@@ -132,8 +132,7 @@ function EntityForm({
         <p className="mt-1 font-mono-tab text-xs text-ink-soft">{target.path}</p>
         {target.gated && !commerceIndexable && (
           <p className="mt-2 border border-stone-300 bg-stone-50 px-3 py-2 text-xs text-ink-soft">
-            This page is behind the login and currently <strong>not indexed</strong> — the trade
-            catalogue is private. These fields still control how the URL unfurls when a rep shares it.
+            Η σελίδα είναι πίσω από τη σύνδεση και <strong>δεν εμφανίζεται στις αναζητήσεις</strong>, γιατί ο κατάλογος είναι ιδιωτικός. Τα πεδία καθορίζουν μόνο την προεπισκόπηση όταν στέλνεις το link.
           </p>
         )}
       </header>

@@ -24,7 +24,7 @@ export function ListPager({
   return (
     <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-stone-300 pt-4 text-sm text-ink-soft">
       <span>
-        Showing {start}–{end} of {total}
+        {start}–{end} από {total}
       </span>
       <div className="flex items-center gap-2">
         <button
@@ -36,7 +36,7 @@ export function ListPager({
           Προηγούμενα
         </button>
         <span className="font-mono-tab text-xs">
-          Page {page} of {pageCount}
+          Σελίδα {page} από {pageCount}
         </span>
         <button
           type="button"

@@ -119,7 +119,7 @@ const ORDER_STATUSES: OrderStatus[] = ["submitted", "confirmed", "in_production"
 export async function updateOrderStatus(orderId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("orders.manage");
   const status = String(formData.get("status") ?? "");
-  if (!ORDER_STATUSES.includes(status as OrderStatus)) return { error: "Invalid status." };
+  if (!ORDER_STATUSES.includes(status as OrderStatus)) return { error: "Μη έγκυρη κατάσταση." };
   const result = await updateOrderStatusInDb(orderId, status as OrderStatus, admin.id);
   if (result.error) return { error: result.error };
   await logAudit(admin.id, "order.status_changed", "order", orderId, status);
@@ -148,11 +148,11 @@ export async function updateOrderDetailsAction(
   const trackingNumber = String(formData.get("trackingNumber") ?? "").trim();
   const carrier = String(formData.get("carrier") ?? "").trim();
 
-  if (!ORDER_TERMS.includes(terms as CreditTerms)) return { error: "Select valid payment terms." };
+  if (!ORDER_TERMS.includes(terms as CreditTerms)) return { error: "Διάλεξε όρους πληρωμής." };
   // Now that this renders as a link, it has to actually be one — the field previously
   // accepted any string (a literal "not-a-url" saved fine) because nothing ever used it.
   if (invoiceUrl && !/^https?:\/\/\S+$/i.test(invoiceUrl)) {
-    return { error: "Invoice URL must be a full link starting with http:// or https://" };
+    return { error: "Το link τιμολογίου πρέπει να ξεκινά με http:// ή https://" };
   }
 
   await updateOrderDetailsInDb(orderId, accountId, {
@@ -167,7 +167,7 @@ export async function updateOrderDetailsAction(
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath("/admin");
   revalidatePath(`/dashboard/orders/${orderId}`);
-  return { success: "Order updated." };
+  return { success: "Η παραγγελία ενημερώθηκε." };
 }
 
 /** Bound to `.bind(null, orderId)` — a <form action> per line row's qty stepper. */
@@ -215,7 +215,7 @@ export async function approveApplication(applicationId: string, _prev: FormState
   const rawMultiplier = String(formData.get("priceMultiplier") ?? "").trim();
   const priceMultiplier = rawMultiplier ? Number(rawMultiplier) : 1;
   if (!Number.isFinite(priceMultiplier) || priceMultiplier <= 0 || priceMultiplier > 5) {
-    return { error: "Price multiplier must be between 0.01 and 5." };
+    return { error: "Ο συντελεστής τιμής πρέπει να είναι από 0,01 έως 5." };
   }
 
   const { changed } = await approveApplicationWithAssignment(applicationId, { repId, priceMultiplier });
@@ -230,7 +230,7 @@ export async function approveApplication(applicationId: string, _prev: FormState
     await notifyApplicationDecision(applicationId, "approved");
   }
   revalidatePath("/admin/applications");
-  return { success: "Application approved." };
+  return { success: "Η αίτηση εγκρίθηκε." };
 }
 
 /**
@@ -251,18 +251,18 @@ export async function resendActivationEmail(applicationId: string, _prev: FormSt
   // absolutely nothing: the button was indistinguishable from a dead control
   // whether it had just sent an email, refused to, or hit a no-op. Every branch
   // now says which one happened.
-  if (!application) return { error: "That application no longer exists." };
+  if (!application) return { error: "Η αίτηση δεν υπάρχει πια." };
   if (application.status !== "approved") {
-    return { error: `Nothing to resend — this application is ${application.status}, not awaiting activation.` };
+    return { error: `Δεν υπάρχει κάτι για αποστολή: η αίτηση δεν περιμένει ενεργοποίηση.` };
   }
   const existingAccount = await getAccountByEmail(application.email);
   if (existingAccount) {
-    return { error: `${application.email} has already activated their account — no activation link to resend.` };
+    return { error: `Το ${application.email} έχει ήδη ενεργοποιήσει λογαριασμό.` };
   }
   await logAudit(admin.id, "application.activation_email_resent", "application", applicationId);
   await notifyApplicationDecision(applicationId, "approved");
   revalidatePath("/admin/applications");
-  return { success: `Activation email resent to ${application.email}.` };
+  return { success: `Το email ενεργοποίησης στάλθηκε ξανά στο ${application.email}.` };
 }
 
 export async function declineApplication(applicationId: string) {
@@ -278,7 +278,7 @@ export async function declineApplication(applicationId: string) {
 /** Bulk status update — loops the same per-order guard (e.g. shipped requires tracking). */
 export async function bulkUpdateOrderStatus(orderIds: string[], status: OrderStatus): Promise<FormState> {
   const admin = await requirePermission("orders.manage");
-  if (!ORDER_STATUSES.includes(status)) return { error: "Invalid status." };
+  if (!ORDER_STATUSES.includes(status)) return { error: "Μη έγκυρη κατάσταση." };
   const failures: string[] = [];
   for (const orderId of orderIds) {
     const result = await updateOrderStatusInDb(orderId, status, admin.id);
@@ -290,8 +290,8 @@ export async function bulkUpdateOrderStatus(orderIds: string[], status: OrderSta
     }
   }
   revalidatePath("/admin");
-  if (failures.length > 0) return { error: `${failures.length} of ${orderIds.length} orders couldn't be updated — ${failures.join("; ")}` };
-  return { success: `Updated ${orderIds.length} orders to ${status}.` };
+  if (failures.length > 0) return { error: `${failures.length} από ${orderIds.length} παραγγελίες δεν ενημερώθηκαν: ${failures.join("; ")}` };
+  return { success: `Ενημερώθηκαν ${orderIds.length} παραγγελίες.` };
 }
 
 /** Bulk approve — loops the same single-application approval path. */
@@ -304,7 +304,7 @@ export async function bulkApproveApplications(applicationIds: string[]): Promise
     await notifyApplicationDecision(applicationId, "approved");
   }
   revalidatePath("/admin/applications");
-  return { success: `Approved ${applicationIds.length} applications.` };
+  return { success: `Εγκρίθηκαν ${applicationIds.length} αιτήσεις.` };
 }
 
 export interface UploadState {
@@ -335,11 +335,11 @@ export async function updateAvailableBoxTypesAction(formData: FormData) {
 export async function updateAccountPriceMultiplierAction(accountId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("accounts.manage");
   const priceMultiplier = Number(formData.get("priceMultiplier") ?? 1);
-  if (!Number.isFinite(priceMultiplier) || priceMultiplier <= 0 || priceMultiplier > 5) return { error: "Price multiplier must be between 0.01 and 5." };
+  if (!Number.isFinite(priceMultiplier) || priceMultiplier <= 0 || priceMultiplier > 5) return { error: "Ο συντελεστής τιμής πρέπει να είναι από 0,01 έως 5." };
   await updateAccountPriceMultiplier(accountId, priceMultiplier);
   await logAudit(admin.id, "account.price_multiplier_updated", "account", accountId, String(priceMultiplier));
   revalidatePath("/admin/accounts");
-  return { success: "Price multiplier saved." };
+  return { success: "Αποθηκεύτηκε." };
 }
 
 /**
@@ -355,27 +355,27 @@ export async function updateAccountMinOrderPairsAction(accountId: string, _prev:
     await updateAccountMinOrderPairs(accountId, null);
     await logAudit(admin.id, "account.min_order_pairs_updated", "account", accountId, "cleared");
     revalidatePath("/admin/accounts");
-    return { success: `Minimum order reset to the standard ${MIN_ORDER_PAIRS} pairs.` };
+    return { success: `Το ελάχιστο γύρισε στα ${MIN_ORDER_PAIRS} ζευγάρια.` };
   }
   const minOrderPairs = Number(raw);
   if (!Number.isInteger(minOrderPairs) || minOrderPairs <= 0 || minOrderPairs > MIN_ORDER_PAIRS) {
-    return { error: `Minimum order must be a whole number between 1 and ${MIN_ORDER_PAIRS} pairs.` };
+    return { error: `Το ελάχιστο πρέπει να είναι ακέραιος από 1 έως ${MIN_ORDER_PAIRS} ζευγάρια.` };
   }
   await updateAccountMinOrderPairs(accountId, minOrderPairs);
   await logAudit(admin.id, "account.min_order_pairs_updated", "account", accountId, String(minOrderPairs));
   revalidatePath("/admin/accounts");
-  return { success: "Minimum order saved." };
+  return { success: "Αποθηκεύτηκε." };
 }
 
 /** Backfills/corrects the WhatsApp number for accounts that predate this feature or never went through the application flow. */
 export async function updateAccountPhoneAction(accountId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("accounts.manage");
   const phone = String(formData.get("phone") ?? "").trim();
-  if (phone && phone.replace(/\D/g, "").length < 7) return { error: "Enter a valid phone number, including country code." };
+  if (phone && phone.replace(/\D/g, "").length < 7) return { error: "Γράψε έγκυρο τηλέφωνο με κωδικό χώρας." };
   await updateAccountPhoneAdmin(accountId, phone);
   await logAudit(admin.id, "account.phone_updated", "account", accountId);
   revalidatePath("/admin/accounts");
-  return { success: "Phone saved." };
+  return { success: "Αποθηκεύτηκε." };
 }
 
 const ACCOUNT_TERMS: CreditTerms[] = ["prepay", "net30", "net60"];
@@ -384,18 +384,18 @@ const ACCOUNT_TERMS: CreditTerms[] = ["prepay", "net30", "net60"];
 export async function updateAccountCreditTermsAction(accountId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("accounts.manage");
   const terms = String(formData.get("creditTerms") ?? "");
-  if (!ACCOUNT_TERMS.includes(terms as CreditTerms)) return { error: "Invalid credit terms." };
+  if (!ACCOUNT_TERMS.includes(terms as CreditTerms)) return { error: "Μη έγκυροι όροι." };
   await updateAccountCreditTerms(accountId, terms as CreditTerms);
   await logAudit(admin.id, "account.credit_terms_updated", "account", accountId, terms);
   revalidatePath("/admin/accounts");
-  return { success: "Credit terms saved." };
+  return { success: "Αποθηκεύτηκε." };
 }
 
 /** Bound to `.bind(null, accountId)` — the country decides whether Greek VAT is charged. */
 export async function updateAccountCountryAction(accountId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("accounts.manage");
   const country = String(formData.get("country") ?? "").trim().toUpperCase();
-  if (!isKnownCountry(country)) return { error: "Choose a country from the list." };
+  if (!isKnownCountry(country)) return { error: "Διάλεξε χώρα από τη λίστα." };
   await updateAccountCountry(accountId, country);
   await logAudit(admin.id, "account.country_updated", "account", accountId, country);
   revalidatePath("/admin/accounts");
@@ -408,11 +408,11 @@ export async function updateAccountCountryAction(accountId: string, _prev: FormS
 export async function updateAccountCreditLimitAction(accountId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("accounts.manage");
   const creditLimit = Number(formData.get("creditLimit") ?? 0);
-  if (!Number.isFinite(creditLimit) || creditLimit < 0 || creditLimit > 10_000_000) return { error: "Credit limit must be between €0 and €10,000,000." };
+  if (!Number.isFinite(creditLimit) || creditLimit < 0 || creditLimit > 10_000_000) return { error: "Το όριο πίστωσης πρέπει να είναι από 0 € έως 10.000.000 €." };
   await updateAccountCreditLimit(accountId, creditLimit);
   await logAudit(admin.id, "account.credit_limit_updated", "account", accountId, String(creditLimit));
   revalidatePath("/admin/accounts");
-  return { success: "Credit limit saved." };
+  return { success: "Αποθηκεύτηκε." };
 }
 
 /** Bound to `.bind(null, accountId)` — a <form action> per account row's rep select. */
@@ -422,7 +422,7 @@ export async function updateAccountRepAction(accountId: string, _prev: FormState
   await updateAccountRep(accountId, repId || null);
   await logAudit(admin.id, "account.rep_updated", "account", accountId, repId || "unassigned");
   revalidatePath("/admin/accounts");
-  return { success: "Sales rep saved." };
+  return { success: "Αποθηκεύτηκε." };
 }
 
 /** Bound to `.bind(null, repId)` — a <form action> per sales-rep row on /admin/sales-reps. */
@@ -434,12 +434,12 @@ export async function updateSalesRepAction(repId: string, _prev: FormState, form
   const phone = String(formData.get("phone") ?? "").trim();
   const initials = String(formData.get("initials") ?? "").trim();
   const territory = String(formData.get("territory") ?? "").trim();
-  if (!name || !email) return { error: "Name and email are required." };
+  if (!name || !email) return { error: "Συμπλήρωσε όνομα και email." };
   await updateSalesRep(repId, { name, title, email, phone, initials, territory });
   await logAudit(admin.id, "sales_rep.updated", "sales_rep", repId, name);
   revalidatePath("/admin/sales-reps");
   revalidatePath("/admin/accounts");
-  return { success: "Saved." };
+  return { success: "Αποθηκεύτηκε." };
 }
 
 export async function createSalesRepAction(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -450,11 +450,11 @@ export async function createSalesRepAction(_prev: FormState, formData: FormData)
   const phone = String(formData.get("phone") ?? "").trim();
   const initials = String(formData.get("initials") ?? "").trim();
   const territory = String(formData.get("territory") ?? "").trim();
-  if (!name || !email) return { error: "Name and email are required." };
+  if (!name || !email) return { error: "Συμπλήρωσε όνομα και email." };
   const rep = await createSalesRep({ name, title, email, phone, initials: initials || name.slice(0, 2).toUpperCase(), territory });
   await logAudit(admin.id, "sales_rep.created", "sales_rep", rep.id, name);
   revalidatePath("/admin/sales-reps");
-  return { success: "Sales rep added." };
+  return { success: "Ο εκπρόσωπος προστέθηκε." };
 }
 
 /** Bound to `.bind(null, repId)` — uses useActionState so a "rep still assigned" error can surface inline. */
@@ -465,7 +465,7 @@ export async function deleteSalesRepAction(repId: string, _prev: FormState, _for
   if (result.error) return { error: result.error };
   await logAudit(admin.id, "sales_rep.deleted", "sales_rep", repId);
   revalidatePath("/admin/sales-reps");
-  return { success: "Sales rep removed." };
+  return { success: "Ο εκπρόσωπος αφαιρέθηκε." };
 }
 
 export async function updateHomepageHeroAction(formData: FormData) {

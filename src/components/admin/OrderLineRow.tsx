@@ -54,7 +54,7 @@ export function OrderLineRow({
       <td className="px-3 py-2">
         {fulfillment === "production" ? (
           <span className="whitespace-nowrap text-xs font-medium text-ink">
-            Production{productionEta ? ` · ETA ${formatDate(productionEta)}` : ""}
+            Παραγωγή{productionEta ? ` · έως ${formatDate(productionEta)}` : ""}
           </span>
         ) : (
           <span className="text-xs text-ink-soft">Σε απόθεμα</span>

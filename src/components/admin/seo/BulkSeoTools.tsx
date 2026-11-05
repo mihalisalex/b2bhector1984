@@ -257,12 +257,10 @@ function GenerateAltTextCard() {
     <form action={formAction} className="border border-stone-300 bg-white p-4">
       <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Δημιουργία περιγραφών φωτογραφιών</h3>
       <p className="mt-1.5 text-sm text-ink-soft">
-        Writes descriptive alt text for every product photo that has none, using the product name and
-        category. Never touches alt text that already exists.
+        Γράφει περιγραφή σε κάθε φωτογραφία προϊόντος που δεν έχει, με βάση το όνομα και την κατηγορία. Δεν αγγίζει όσες έχουν ήδη.
       </p>
       <p className="mt-2 text-xs text-ink-soft">
-        Alt text is an accessibility requirement first and an SEO signal second — screen-reader users
-        depend on it.
+        Οι περιγραφές βοηθούν πρώτα τους χρήστες με αναγνώστη οθόνης και μετά το SEO.
       </p>
       <button
         type="submit"

@@ -8,12 +8,12 @@ import type { OrderStatus } from "@/lib/types";
 const STATUSES: OrderStatus[] = ["submitted", "confirmed", "in_production", "shipped", "delivered", "cancelled"];
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
-  submitted: "Submitted",
-  confirmed: "Confirmed",
-  in_production: "In Production",
-  shipped: "Handed to courier",
-  delivered: "Delivered",
-  cancelled: "Cancelled",
+  submitted: "Προτιμολόγιο",
+  confirmed: "Επιβεβαιώθηκε",
+  in_production: "Στην παραγωγή",
+  shipped: "Στον μεταφορέα",
+  delivered: "Παραδόθηκε",
+  cancelled: "Ακυρώθηκε",
 };
 
 const initialState: FormState = {};

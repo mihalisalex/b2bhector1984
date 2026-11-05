@@ -168,16 +168,16 @@ export async function updateGeneralAction(styleId: string, _prev: FormState, for
     collectionIds: formData.getAll("collectionIds").map(String),
     createdAt: parseCreatedAt(formData.get("createdAt")),
   };
-  if (!input.name) return { error: "Product name is required." };
-  if (!input.styleNumber) return { error: "Style number is required." };
+  if (!input.name) return { error: "Συμπλήρωσε το όνομα του προϊόντος." };
+  if (!input.styleNumber) return { error: "Συμπλήρωσε τον κωδικό." };
   if (formData.get("createdAt") && !input.createdAt) {
-    return { error: "Catalogue date isn't a valid date and time." };
+    return { error: "Η ημερομηνία καταλόγου δεν είναι έγκυρη." };
   }
   const failure = await runOrError(() => updateStyleGeneral(styleId, input));
   if (failure) return failure;
   await logAudit(admin.id, "product.updated", "style", styleId, "general");
   revalidateProduct(styleId);
-  return { success: "General details saved." };
+  return { success: "Αποθηκεύτηκε." };
 }
 
 // ---------------------------------------------------------------------------
@@ -316,7 +316,7 @@ export async function updatePricingAction(styleId: string, _prev: FormState, for
     taxClass: String(formData.get("taxClass") ?? "standard"),
     vatRate: num("vatRate", 0.24),
   };
-  if (input.basePrice <= 0) return { error: "Wholesale price must be greater than zero." };
+  if (input.basePrice <= 0) return { error: "Η χονδρική πρέπει να είναι πάνω από μηδέν." };
   // A sale price is what buyers are actually charged (see getEffectiveBasePrice), so an
   // out-of-range value here isn't a display bug — it's the price on the invoice. Both
   // bounds are real mistakes worth blocking: 0 or negative sells the product for nothing,
@@ -324,45 +324,45 @@ export async function updatePricingAction(styleId: string, _prev: FormState, for
   // would notice it from the storefront.
   if (input.salePrice !== undefined) {
     if (input.salePrice <= 0) {
-      return { error: "Sale price must be greater than zero. Leave the field blank to remove the sale." };
+      return { error: "Η τιμή έκπτωσης πρέπει να είναι πάνω από μηδέν. Άφησέ την κενή για να φύγει η έκπτωση." };
     }
     if (input.salePrice >= input.basePrice) {
       return {
-        error: `Sale price (${formatEUR(input.salePrice)}) must be below the wholesale price (${formatEUR(input.basePrice)}) — otherwise it isn't a discount.`,
+        error: `Η τιμή έκπτωσης (${formatEUR(input.salePrice)}) πρέπει να είναι κάτω από τη χονδρική (${formatEUR(input.basePrice)}).`,
       };
     }
   }
   if (input.saleStartAt && input.saleEndAt && new Date(input.saleEndAt) <= new Date(input.saleStartAt)) {
-    return { error: "The sale's end date must be after its start date." };
+    return { error: "Η λήξη της έκπτωσης πρέπει να είναι μετά την έναρξη." };
   }
   const failure = await runOrError(() => updateStylePricing(styleId, input));
   if (failure) return failure;
   await logAudit(admin.id, "product.price_changed", "style", styleId, `base=${input.basePrice} cost=${input.costPrice} sale=${input.salePrice ?? "none"}`);
   revalidateProduct(styleId);
-  return { success: "Pricing saved." };
+  return { success: "Οι τιμές αποθηκεύτηκαν." };
 }
 
 export async function addCustomerGroupPriceAction(styleId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("products.pricing");
   const groupName = String(formData.get("groupName") ?? "").trim();
   const price = Number(formData.get("price"));
-  if (!groupName || !Number.isFinite(price)) return { error: "Group name and a valid price are required." };
+  if (!groupName || !Number.isFinite(price)) return { error: "Συμπλήρωσε όνομα ομάδας και έγκυρη τιμή." };
   const failure = await runOrError(() => setCustomerGroupPrice(styleId, groupName, price));
   if (failure) return failure;
   await logAudit(admin.id, "product.price_changed", "style", styleId, `group ${groupName} -> ${price}`);
   revalidateProduct(styleId);
-  return { success: "Group price added." };
+  return { success: "Η τιμή προστέθηκε." };
 }
 
 export async function deleteCustomerGroupPriceAction(styleId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("products.pricing");
   const id = String(formData.get("id") ?? "");
-  if (!id) return { error: "Missing group price." };
+  if (!id) return { error: "Η τιμή δεν βρέθηκε." };
   const failure = await runOrError(() => deleteCustomerGroupPrice(id));
   if (failure) return failure;
   await logAudit(admin.id, "product.price_changed", "style", styleId, "removed group price");
   revalidateProduct(styleId);
-  return { success: "Group price removed." };
+  return { success: "Η τιμή αφαιρέθηκε." };
 }
 
 // ---------------------------------------------------------------------------
@@ -386,7 +386,7 @@ export async function updateInventoryMetaAction(styleId: string, _prev: FormStat
   if (failure) return failure;
   await logAudit(admin.id, "product.inventory_changed", "style", styleId, "identifiers/thresholds");
   revalidateProduct(styleId);
-  return { success: "Inventory settings saved." };
+  return { success: "Αποθηκεύτηκε." };
 }
 
 /** Bound to `.bind(null, styleId)` — per colorway/box-type/warehouse stock cell. */
@@ -396,12 +396,12 @@ export async function updateProductInventoryLevelAction(styleId: string, _prev: 
   const boxTypeId = String(formData.get("boxTypeId") ?? "") as BoxTypeId;
   const warehouseId = String(formData.get("warehouseId") ?? "main");
   const onHand = Number(formData.get("onHand") ?? 0);
-  if (!colorwayId || !boxTypeId || !Number.isFinite(onHand)) return { error: "Invalid stock value." };
+  if (!colorwayId || !boxTypeId || !Number.isFinite(onHand)) return { error: "Μη έγκυρο απόθεμα." };
   const failure = await runOrError(() => setInventoryLevel(styleId, colorwayId, boxTypeId, Math.round(onHand), warehouseId, admin.id));
   if (failure) return failure;
   await logAudit(admin.id, "product.inventory_changed", "style", styleId, `${colorwayId}/${boxTypeId}@${warehouseId} -> ${Math.round(onHand)}`);
   revalidateProduct(styleId);
-  return { success: "Stock updated." };
+  return { success: "Το απόθεμα ενημερώθηκε." };
 }
 
 export async function updateReservedStockAction(styleId: string, _prev: FormState, formData: FormData): Promise<FormState> {
@@ -410,22 +410,22 @@ export async function updateReservedStockAction(styleId: string, _prev: FormStat
   const boxTypeId = String(formData.get("boxTypeId") ?? "") as BoxTypeId;
   const warehouseId = String(formData.get("warehouseId") ?? "main");
   const reserved = Number(formData.get("reserved") ?? 0);
-  if (!colorwayId || !boxTypeId || !Number.isFinite(reserved)) return { error: "Invalid reserved value." };
+  if (!colorwayId || !boxTypeId || !Number.isFinite(reserved)) return { error: "Μη έγκυρη τιμή." };
   const failure = await runOrError(() => setReservedStock(styleId, colorwayId, boxTypeId, Math.round(reserved), warehouseId));
   if (failure) return failure;
   await logAudit(admin.id, "product.inventory_changed", "style", styleId, `reserved ${colorwayId}/${boxTypeId} -> ${Math.round(reserved)}`);
   revalidateProduct(styleId);
-  return { success: "Reserved stock updated." };
+  return { success: "Ενημερώθηκε." };
 }
 
 export async function createWarehouseAction(_prev: FormState, formData: FormData): Promise<FormState> {
   await requirePermission("products.inventory");
   const name = String(formData.get("name") ?? "").trim();
-  if (!name) return { error: "Warehouse name is required." };
+  if (!name) return { error: "Συμπλήρωσε όνομα αποθήκης." };
   const failure = await runOrError(() => createWarehouse(name, String(formData.get("location") ?? "").trim() || undefined).then(() => undefined));
   if (failure) return failure;
   revalidatePath("/admin/products");
-  return { success: "Warehouse added." };
+  return { success: "Η αποθήκη προστέθηκε." };
 }
 
 // ---------------------------------------------------------------------------
@@ -482,7 +482,7 @@ export async function updateSeoAction(styleId: string, _prev: FormState, formDat
 
   await logAudit(admin.id, "product.seo_changed", "style", styleId);
   revalidateProduct(styleId);
-  return { success: `SEO saved.${slugNote}` };
+  return { success: `Το SEO αποθηκεύτηκε.${slugNote}` };
 }
 
 // ---------------------------------------------------------------------------
@@ -517,7 +517,7 @@ export async function updateShippingAction(styleId: string, _prev: FormState, fo
   if (failure) return failure;
   await logAudit(admin.id, "product.updated", "style", styleId, "shipping");
   revalidateProduct(styleId);
-  return { success: "Shipping details saved." };
+  return { success: "Αποθηκεύτηκε." };
 }
 
 // ---------------------------------------------------------------------------
@@ -534,7 +534,7 @@ export async function updateVisibilityAction(styleId: string, _prev: FormState, 
   if (failure) return failure;
   await logAudit(admin.id, "product.updated", "style", styleId, `status -> ${status}${featured ? " (featured)" : ""}`);
   revalidateProduct(styleId);
-  return { success: "Visibility saved." };
+  return { success: "Αποθηκεύτηκε." };
 }
 
 // ---------------------------------------------------------------------------
@@ -545,23 +545,23 @@ export async function addStyleAttributeAction(styleId: string, _prev: FormState,
   const admin = await requirePermission("products.edit");
   const key = String(formData.get("key") ?? "").trim();
   const value = String(formData.get("value") ?? "").trim();
-  if (!key || !value) return { error: "Both attribute and value are required." };
+  if (!key || !value) return { error: "Συμπλήρωσε ιδιότητα και τιμή." };
   const failure = await runOrError(() => addStyleAttribute(styleId, key, value));
   if (failure) return failure;
   await logAudit(admin.id, "product.updated", "style", styleId, `attribute ${key}`);
   revalidateProduct(styleId);
-  return { success: "Attribute added." };
+  return { success: "Προστέθηκε." };
 }
 
 export async function deleteStyleAttributeAction(styleId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("products.edit");
   const id = String(formData.get("id") ?? "");
-  if (!id) return { error: "Missing attribute." };
+  if (!id) return { error: "Δεν βρέθηκε." };
   const failure = await runOrError(() => deleteStyleAttribute(id));
   if (failure) return failure;
   await logAudit(admin.id, "product.updated", "style", styleId, "removed attribute");
   revalidateProduct(styleId);
-  return { success: "Attribute removed." };
+  return { success: "Αφαιρέθηκε." };
 }
 
 // ---------------------------------------------------------------------------
@@ -572,23 +572,23 @@ export async function addStyleRelationAction(styleId: string, _prev: FormState, 
   const admin = await requirePermission("products.edit");
   const relatedStyleId = String(formData.get("relatedStyleId") ?? "");
   const relationType = String(formData.get("relationType") ?? "related") as RelationType;
-  if (!relatedStyleId || relatedStyleId === styleId) return { error: "Choose a different product to relate." };
+  if (!relatedStyleId || relatedStyleId === styleId) return { error: "Διάλεξε άλλο προϊόν." };
   const failure = await runOrError(() => addStyleRelation(styleId, relatedStyleId, relationType));
   if (failure) return failure;
   await logAudit(admin.id, "product.updated", "style", styleId, `related -> ${relatedStyleId} (${relationType})`);
   revalidateProduct(styleId);
-  return { success: "Related product added." };
+  return { success: "Προστέθηκε." };
 }
 
 export async function deleteStyleRelationAction(styleId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("products.edit");
   const id = String(formData.get("id") ?? "");
-  if (!id) return { error: "Missing relation." };
+  if (!id) return { error: "Δεν βρέθηκε." };
   const failure = await runOrError(() => deleteStyleRelation(id));
   if (failure) return failure;
   await logAudit(admin.id, "product.updated", "style", styleId, "removed relation");
   revalidateProduct(styleId);
-  return { success: "Relation removed." };
+  return { success: "Αφαιρέθηκε." };
 }
 
 // ---------------------------------------------------------------------------
@@ -624,13 +624,13 @@ export async function addColorwayAction(styleId: string, _prev: FormState, formD
   const admin = await requirePermission("products.edit");
   const input = colorwayInputFromForm(formData);
   const localId = `c${Date.now().toString(36)}`;
-  if (!input.name) return { error: "Colorway name is required." };
+  if (!input.name) return { error: "Συμπλήρωσε το χρώμα." };
   const localIdSnapshot = localId;
   const failure = await runOrError(() => addColorway(styleId, localIdSnapshot, input));
   if (failure) return failure;
   await logAudit(admin.id, "product.variant_modified", "style", styleId, `added variant ${input.name}`);
   revalidateProduct(styleId);
-  return { success: "Variant added." };
+  return { success: "Το χρώμα προστέθηκε." };
 }
 
 export async function updateColorwayAction(styleId: string, colorwayLocalId: string, _prev: FormState, formData: FormData): Promise<FormState> {
@@ -639,7 +639,7 @@ export async function updateColorwayAction(styleId: string, colorwayLocalId: str
   if (failure) return failure;
   await logAudit(admin.id, "product.variant_modified", "style", styleId, `edited variant ${colorwayLocalId}`);
   revalidateProduct(styleId);
-  return { success: "Variant saved." };
+  return { success: "Το χρώμα αποθηκεύτηκε." };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- signature required by useActionState
@@ -654,7 +654,7 @@ export async function deleteColorwayAction(styleId: string, colorwayLocalId: str
   if (result.error) return { error: result.error };
   await logAudit(admin.id, "product.variant_modified", "style", styleId, `removed variant ${colorwayLocalId}`);
   revalidateProduct(styleId);
-  return { success: "Variant removed." };
+  return { success: "Το χρώμα αφαιρέθηκε." };
 }
 
 // ---------------------------------------------------------------------------
@@ -689,11 +689,11 @@ export async function setPrimaryProductImageAction(_prev: FormState, formData: F
   await requirePermission("products.edit");
   const styleId = String(formData.get("styleId") ?? "");
   const imageId = String(formData.get("imageId") ?? "");
-  if (!styleId || !imageId) return { error: "Missing image." };
+  if (!styleId || !imageId) return { error: "Η φωτογραφία δεν βρέθηκε." };
   const failure = await runOrError(() => setPrimaryImage(styleId, imageId));
   if (failure) return failure;
   revalidateProduct(styleId);
-  return { success: "Featured photo updated." };
+  return { success: "Η κύρια φωτογραφία άλλαξε." };
 }
 
 export async function updateImageAltTextAction(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -701,11 +701,11 @@ export async function updateImageAltTextAction(_prev: FormState, formData: FormD
   const styleId = String(formData.get("styleId") ?? "");
   const imageId = String(formData.get("imageId") ?? "");
   const altText = String(formData.get("altText") ?? "");
-  if (!imageId) return { error: "Missing image." };
+  if (!imageId) return { error: "Η φωτογραφία δεν βρέθηκε." };
   const failure = await runOrError(() => updateImageAltText(imageId, altText));
   if (failure) return failure;
   revalidateProduct(styleId);
-  return { success: "Alt text saved." };
+  return { success: "Αποθηκεύτηκε." };
 }
 
 export async function updateImageColorwayAction(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -713,23 +713,23 @@ export async function updateImageColorwayAction(_prev: FormState, formData: Form
   const styleId = String(formData.get("styleId") ?? "");
   const imageId = String(formData.get("imageId") ?? "");
   const colorwayId = String(formData.get("colorwayId") ?? "").trim();
-  if (!imageId) return { error: "Missing image." };
+  if (!imageId) return { error: "Η φωτογραφία δεν βρέθηκε." };
   const failure = await runOrError(() => updateImageColorway(styleId, imageId, colorwayId || null));
   if (failure) return failure;
   revalidateProduct(styleId);
-  return { success: "Colorway saved." };
+  return { success: "Αποθηκεύτηκε." };
 }
 
 export async function deleteProductImageAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const admin = await requirePermission("products.edit");
   const styleId = String(formData.get("styleId") ?? "");
   const imageId = String(formData.get("imageId") ?? "");
-  if (!imageId) return { error: "Missing image." };
+  if (!imageId) return { error: "Η φωτογραφία δεν βρέθηκε." };
   const failure = await runOrError(() => deleteStyleImage(imageId));
   if (failure) return failure;
   await logAudit(admin.id, "product.updated", "style", styleId, "removed image");
   revalidateProduct(styleId);
-  return { success: "Photo removed." };
+  return { success: "Η φωτογραφία αφαιρέθηκε." };
 }
 
 // ---------------------------------------------------------------------------
@@ -766,12 +766,12 @@ export async function deleteDocumentAction(_prev: FormState, formData: FormData)
   const admin = await requirePermission("products.edit");
   const styleId = String(formData.get("styleId") ?? "");
   const documentId = String(formData.get("documentId") ?? "");
-  if (!documentId) return { error: "Missing document." };
+  if (!documentId) return { error: "Το έγγραφο δεν βρέθηκε." };
   const failure = await runOrError(() => deleteStyleDocument(documentId));
   if (failure) return failure;
   await logAudit(admin.id, "product.updated", "style", styleId, "removed document");
   revalidateProduct(styleId);
-  return { success: "Document removed." };
+  return { success: "Το έγγραφο αφαιρέθηκε." };
 }
 
 // ---------------------------------------------------------------------------
@@ -851,7 +851,7 @@ export async function deleteProductAction(styleId: string): Promise<FormState> {
   if (result.error) return { error: result.error };
   await logAudit(admin.id, "product.deleted", "style", styleId);
   revalidatePath("/admin/products");
-  return { success: "Product deleted." };
+  return { success: "Το προϊόν διαγράφηκε." };
 }
 
 // ---------------------------------------------------------------------------
@@ -871,7 +871,7 @@ export async function bulkUpdateStatusAction(styleIds: string[], status: Product
     return { error: friendlyDbError(err) };
   }
   revalidatePath("/admin/products");
-  return { success: `Updated ${styleIds.length} products to ${status}.` };
+  return { success: `Ενημερώθηκαν ${styleIds.length} προϊόντα.` };
 }
 
 export async function bulkArchiveAction(styleIds: string[]): Promise<FormState> {
@@ -885,7 +885,7 @@ export async function bulkArchiveAction(styleIds: string[]): Promise<FormState> 
     return { error: friendlyDbError(err) };
   }
   revalidatePath("/admin/products");
-  return { success: `Archived ${styleIds.length} products.` };
+  return { success: `Αρχειοθετήθηκαν ${styleIds.length} προϊόντα.` };
 }
 
 /**
@@ -912,8 +912,8 @@ export async function bulkDeleteAction(styleIds: string[]): Promise<FormState> {
   }
   revalidatePath("/admin/products");
   if (deleted === 0) return { error: firstError ?? "Nothing was deleted." };
-  if (firstError) return { error: `Deleted ${deleted} of ${styleIds.length} — ${firstError}` };
-  return { success: `Deleted ${deleted} product${deleted === 1 ? "" : "s"}.` };
+  if (firstError) return { error: `Διαγράφηκαν ${deleted} από ${styleIds.length}: ${firstError}` };
+  return { success: `Διαγράφηκαν ${deleted} προϊόντα.` };
 }
 
 export async function bulkAdjustPriceAction(styleIds: string[], mode: "set" | "increase_pct" | "decrease_pct", value: number): Promise<FormState> {
@@ -952,7 +952,7 @@ export async function bulkAdjustPriceAction(styleIds: string[], mode: "set" | "i
     deactivatedSales.length > 0
       ? ` Note: the sale price on ${deactivatedSales.join(", ")} is now at or above the new wholesale price, so those sales no longer apply — clear or lower them.`
       : "";
-  return { success: `Updated pricing for ${rows.length} products.${note}` };
+  return { success: `Άλλαξαν οι τιμές σε ${rows.length} προϊόντα.${note}` };
 }
 
 export async function bulkSetBrandAction(styleIds: string[], brandId: string): Promise<FormState> {
@@ -981,7 +981,7 @@ export async function bulkSetBrandAction(styleIds: string[], brandId: string): P
     return { error: friendlyDbError(err) };
   }
   revalidatePath("/admin/products");
-  return { success: `Updated brand for ${rows.length} products.` };
+  return { success: `Άλλαξε η μάρκα σε ${rows.length} προϊόντα.` };
 }
 
 export async function bulkSetSupplierAction(styleIds: string[], supplierId: string): Promise<FormState> {
@@ -1010,13 +1010,13 @@ export async function bulkSetSupplierAction(styleIds: string[], supplierId: stri
     return { error: friendlyDbError(err) };
   }
   revalidatePath("/admin/products");
-  return { success: `Updated supplier for ${rows.length} products.` };
+  return { success: `Άλλαξε ο προμηθευτής σε ${rows.length} προϊόντα.` };
 }
 
 export async function bulkAddTagAction(styleIds: string[], tag: string): Promise<FormState> {
   const admin = await requirePermission("products.bulk");
   const trimmed = tag.trim();
-  if (!trimmed) return { error: "Tag can't be empty." };
+  if (!trimmed) return { error: "Γράψε μια ετικέτα." };
   const rows = (await listProductsForAdmin({ pageSize: 100000 })).items.filter((r) => styleIds.includes(r.id));
   try {
     for (const row of rows) {
@@ -1042,7 +1042,7 @@ export async function bulkAddTagAction(styleIds: string[], tag: string): Promise
     return { error: friendlyDbError(err) };
   }
   revalidatePath("/admin/products");
-  return { success: `Added tag to ${rows.length} products.` };
+  return { success: `Η ετικέτα μπήκε σε ${rows.length} προϊόντα.` };
 }
 
 // ---------------------------------------------------------------------------
@@ -1058,7 +1058,7 @@ export async function createSupplierAction(_prev: FormState, formData: FormData)
     phone: String(formData.get("phone") ?? "").trim() || undefined,
     leadTimeDays: formData.get("leadTimeDays") ? Number(formData.get("leadTimeDays")) : undefined,
   };
-  if (!input.name) return { error: "Supplier name is required." };
+  if (!input.name) return { error: "Συμπλήρωσε το όνομα." };
   try {
     await createSupplier(input);
   } catch (err) {
@@ -1066,7 +1066,7 @@ export async function createSupplierAction(_prev: FormState, formData: FormData)
   }
   revalidatePath("/admin/products");
   revalidatePath("/admin/suppliers");
-  return { success: "Supplier added." };
+  return { success: "Ο προμηθευτής προστέθηκε." };
 }
 
 export async function updateSupplierAction(supplierId: string, _prev: FormState, formData: FormData): Promise<FormState> {
@@ -1078,14 +1078,14 @@ export async function updateSupplierAction(supplierId: string, _prev: FormState,
     phone: String(formData.get("phone") ?? "").trim() || undefined,
     leadTimeDays: formData.get("leadTimeDays") ? Number(formData.get("leadTimeDays")) : undefined,
   };
-  if (!input.name) return { error: "Supplier name is required." };
+  if (!input.name) return { error: "Συμπλήρωσε το όνομα." };
   try {
     await updateSupplier(supplierId, input);
   } catch (err) {
     return { error: friendlyDbError(err) };
   }
   revalidatePath("/admin/suppliers");
-  return { success: "Supplier saved." };
+  return { success: "Αποθηκεύτηκε." };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- signature required by useActionState
@@ -1099,7 +1099,7 @@ export async function deleteSupplierAction(supplierId: string, _prev: FormState,
   }
   if (result.error) return { error: result.error };
   revalidatePath("/admin/suppliers");
-  return { success: "Supplier removed." };
+  return { success: "Ο προμηθευτής αφαιρέθηκε." };
 }
 
 // ---------------------------------------------------------------------------

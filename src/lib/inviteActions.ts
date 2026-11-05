@@ -48,15 +48,15 @@ export async function inviteShop(_prev: InviteState, formData: FormData): Promis
   const localeRaw = str("locale");
   const locale: Locale = (LOCALES as readonly string[]).includes(localeRaw) ? (localeRaw as Locale) : country === "GR" || country === "CY" ? "el" : "en";
 
-  if (!businessName || !contactName || !email) return { error: "Shop name, contact name and email are required." };
-  if (!EMAIL_RE.test(email)) return { error: `“${email}” doesn't look like an email address.` };
-  if (!isKnownCountry(country)) return { error: "Choose a country from the list." };
+  if (!businessName || !contactName || !email) return { error: "Συμπλήρωσε κατάστημα, όνομα και email." };
+  if (!EMAIL_RE.test(email)) return { error: `Το «${email}» δεν μοιάζει με email.` };
+  if (!isKnownCountry(country)) return { error: "Διάλεξε χώρα από τη λίστα." };
   if (!Number.isFinite(priceMultiplier) || priceMultiplier <= 0 || priceMultiplier > 5) {
-    return { error: "Price multiplier must be between 0.01 and 5 (1 = normal prices)." };
+    return { error: "Ο συντελεστής τιμής πρέπει να είναι από 0,01 έως 5 (1 = κανονικές τιμές)." };
   }
-  if (await getAccountByEmail(email)) return { error: `${email} already has an account — nothing to invite.` };
+  if (await getAccountByEmail(email)) return { error: `Το ${email} έχει ήδη λογαριασμό.` };
   if (await hasOpenApplication(email)) {
-    return { error: `${email} already has an application or invitation waiting — resend it from Applications instead.` };
+    return { error: `Το ${email} έχει ήδη αίτηση ή πρόσκληση σε αναμονή. Ξαναστείλε την από τις Αιτήσεις.` };
   }
 
   const id = await insertInvitedApplication({ businessName, contactName, email, phone, country, city, vatNumber, repId, priceMultiplier });
@@ -75,5 +75,5 @@ export async function inviteShop(_prev: InviteState, formData: FormData): Promis
 
   const firstName = contactName.split(" ")[0] || contactName;
   const whatsappLink = waLinkTo(phone, t(e.inviteWhatsapp, { name: firstName, business: businessName, link })) ?? undefined;
-  return { success: `Invitation emailed to ${email}.`, link, whatsappLink };
+  return { success: `Η πρόσκληση στάλθηκε στο ${email}.`, link, whatsappLink };
 }

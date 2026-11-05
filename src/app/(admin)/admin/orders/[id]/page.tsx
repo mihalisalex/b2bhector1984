@@ -7,6 +7,7 @@ import { getBoxType } from "@/lib/data/boxTypes";
 import { formatEUR, summarizeOrder } from "@/lib/pricing";
 import { formatDate, formatDayMonth, telHref } from "@/lib/format";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import type { OrderStatus } from "@/lib/types";
 import { OrderStatusForm } from "@/components/admin/OrderStatusForm";
 import { OrderDetailsForm } from "@/components/admin/OrderDetailsForm";
 import { OrderLineRow } from "@/components/admin/OrderLineRow";
@@ -20,6 +21,15 @@ import { urlForLocale } from "@/i18n/domains";
 import { waLinkTo } from "@/lib/whatsapp";
 import { getDictionary } from "@/i18n/getDictionary";
 import { resolveLocale } from "@/lib/localeHeuristic";
+
+const ORDER_STATUS_EL: Record<OrderStatus, string> = {
+  submitted: "Προτιμολόγιο",
+  confirmed: "Επιβεβαιώθηκε",
+  in_production: "Στην παραγωγή",
+  shipped: "Στον μεταφορέα",
+  delivered: "Παραδόθηκε",
+  cancelled: "Ακυρώθηκε",
+};
 
 export const metadata = { title: "Order", robots: { index: false, follow: false } };
 
@@ -71,7 +81,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
         <div>
           <div className="flex items-center gap-3">
             <h1 className="font-mono-tab text-2xl font-bold text-ink">{order.id}</h1>
-            <StatusBadge status={order.status} />
+            <StatusBadge status={order.status} label={ORDER_STATUS_EL[order.status]} />
           </div>
           <p className="mt-1 text-sm text-ink-soft">
             {order.businessName} · Placed {formatDate(order.placedAt)}

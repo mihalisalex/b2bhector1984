@@ -71,9 +71,7 @@ export default async function AdminProformaPage() {
         Προτιμολόγιο
       </h1>
       <p className="mt-4 max-w-[70ch] text-sm leading-relaxed text-ink-soft">
-        Build a proforma for anyone — an existing account, or a retailer standing in front of you with no account at
-        all. It produces a PDF you can print or email. Nothing is saved: no order is created, no stock is reserved,
-        and nothing appears in anyone&rsquo;s order history.
+        Φτιάξε προτιμολόγιο για οποιονδήποτε: υπάρχοντα πελάτη ή κατάστημα χωρίς λογαριασμό. Βγαίνει PDF για εκτύπωση ή email. Δεν αποθηκεύεται τίποτα: δεν δημιουργείται παραγγελία και δεν φαίνεται στο ιστορικό κανενός.
       </p>
 
       {styleData.length === 0 ? (

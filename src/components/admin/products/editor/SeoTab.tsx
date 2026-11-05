@@ -115,10 +115,7 @@ export function SeoTab({
         <div className="border border-stone-300 bg-stone-50 px-4 py-3 text-xs text-ink-soft">
           <p className="font-semibold text-ink">Η σελίδα δεν εμφανίζεται στις μηχανές αναζήτησης.</p>
           <p className="mt-1">
-            The trade catalogue is private, so every product page is disallowed in robots.txt and
-            serves <code className="font-mono-tab">noindex</code>. These fields still matter: they
-            control the title, description and image that appear when a rep shares this product&rsquo;s
-            link by email, WhatsApp or Slack. Indexing policy lives in{" "}
+            Ο κατάλογος είναι ιδιωτικός, οπότε κάθε σελίδα προϊόντος έχει <code className="font-mono-tab">noindex</code>. Τα πεδία μετράνε όμως: καθορίζουν τίτλο, περιγραφή και φωτογραφία όταν στέλνεις το link με email ή WhatsApp. Η ευρετηρίαση ρυθμίζεται στις{" "}
             <Link href="/admin/seo/settings?section=indexing" className="underline underline-offset-2">
               Ρυθμίσεις SEO
             </Link>
@@ -410,10 +407,10 @@ function BlankFieldHint({
   if (!isBlank) return null;
   return (
     <p className="mt-1 text-xs text-ink-soft">
-      Blank — the auto-generated value shown above will be used.{" "}
+      Κενό: θα χρησιμοποιηθεί η αυτόματη τιμή από πάνω.{" "}
       {canEdit && (
         <button type="button" onClick={onUse} className="underline underline-offset-2 hover:text-ink">
-          Use it as a starting point
+          Χρήση ως αρχή
         </button>
       )}
       {generated.length > 0 && !canEdit && <span className="italic"> &ldquo;{generated}&rdquo;</span>}

@@ -10,9 +10,7 @@ export default function SeoLayout({ children }: { children: React.ReactNode }) {
           Search &amp; Discoverability
         </h1>
         <p className="mt-2 max-w-3xl text-sm text-ink-soft">
-          Everything that decides how this site appears in search results and on social — titles,
-          descriptions, structured data, redirects and indexing policy. All of it takes effect
-          without a deploy.
+          Όλα όσα καθορίζουν πώς φαίνεται το site στις αναζητήσεις και στα social: τίτλοι, περιγραφές, δομημένα δεδομένα, ανακατευθύνσεις και ευρετηρίαση. Ισχύουν αμέσως.
         </p>
       </header>
       <div className="mt-6">
