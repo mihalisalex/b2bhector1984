@@ -13,10 +13,10 @@ const initialState: FormState = {};
 type Section = "general" | "indexing" | "organization" | "schema";
 
 const SECTIONS: { id: Section; label: string; blurb: string }[] = [
-  { id: "general", label: "Defaults & social", blurb: "The title, description and share card used wherever a page doesn't set its own." },
-  { id: "indexing", label: "Indexing & robots", blurb: "What search engines are allowed to crawl and index." },
-  { id: "organization", label: "Organization", blurb: "Business identity — feeds the Organization / LocalBusiness structured data." },
-  { id: "schema", label: "Structured data", blurb: "Which JSON-LD types this site emits." },
+  { id: "general", label: "Προεπιλογές και κοινωνικά δίκτυα", blurb: "The title, description and share card used wherever a page doesn't set its own." },
+  { id: "indexing", label: "Ευρετηρίαση", blurb: "What search engines are allowed to crawl and index." },
+  { id: "organization", label: "Επιχείρηση", blurb: "Business identity — feeds the Organization / LocalBusiness structured data." },
+  { id: "schema", label: "Δομημένα δεδομένα", blurb: "Which JSON-LD types this site emits." },
 ];
 
 export function SeoSettingsForm({
@@ -83,7 +83,7 @@ function useSeoForm() {
 
 function SaveButton({ isPending, canEdit }: { isPending: boolean; canEdit: boolean }) {
   if (!canEdit) {
-    return <p className="text-xs text-ink-soft">Your role can view these settings but not change them.</p>;
+    return <p className="text-xs text-ink-soft">Ο ρόλος σου επιτρέπει μόνο προβολή.</p>;
   }
   return (
     <button
@@ -117,10 +117,10 @@ function GeneralSection({
       <input type="hidden" name="locale" value={locale} />
       <LocaleBar section="general" locale={locale} />
 
-      <TextField label="Site name" name="siteName" defaultValue={settings.siteName} disabled={!canEdit} />
+      <TextField label="Όνομα site" name="siteName" defaultValue={settings.siteName} disabled={!canEdit} />
       <div>
         <TextField
-          label="Title template"
+          label="Πρότυπο τίτλου"
           name="titleTemplate"
           defaultValue={localeSettings.titleTemplate}
           disabled={!canEdit}
@@ -134,7 +134,7 @@ function GeneralSection({
 
       <div>
         <label htmlFor="defaultTitle" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">
-          Default title
+          Προεπιλεγμένος τίτλος
         </label>
         <input
           id="defaultTitle"
@@ -151,7 +151,7 @@ function GeneralSection({
           htmlFor="defaultDescription"
           className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft"
         >
-          Default meta description
+          Προεπιλεγμένη περιγραφή
         </label>
         <textarea
           id="defaultDescription"
@@ -167,7 +167,7 @@ function GeneralSection({
       <SerpPreview title={title} description={description} path="/" />
 
       <TextField
-        label="Default share image URL"
+        label="Φωτογραφία κοινοποίησης (URL)"
         name="defaultOgImageUrl"
         defaultValue={settings.defaultOgImageUrl}
         disabled={!canEdit}
@@ -180,7 +180,7 @@ function GeneralSection({
       </div>
 
       <SelectField
-        label="Default card type"
+        label="Τύπος κάρτας"
         name="defaultTwitterCard"
         defaultValue={settings.defaultTwitterCard}
         disabled={!canEdit}
@@ -192,7 +192,7 @@ function GeneralSection({
 
       <fieldset className="border border-stone-300 bg-white p-4">
         <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-ink-soft">
-          Search engine verification
+          Επαλήθευση μηχανών αναζήτησης
         </legend>
         <p className="mb-3 text-xs text-ink-soft">
           Paste the content value from the verification meta tag. Verification is per
@@ -224,7 +224,7 @@ function IndexingSection({ settings, canEdit }: { settings: SeoSettings; canEdit
 
       <fieldset className="border border-stone-300 bg-white p-4">
         <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-ink-soft">
-          Trade catalogue visibility
+          Ορατότητα καταλόγου
         </legend>
         <label className="flex cursor-pointer items-start gap-3 text-sm text-ink">
           <input
@@ -236,7 +236,7 @@ function IndexingSection({ settings, canEdit }: { settings: SeoSettings; canEdit
             className="mt-0.5 h-4 w-4 accent-ink"
           />
           <span>
-            Allow search engines to index the catalogue and product pages
+            Να εμφανίζονται κατάλογος και προϊόντα στις μηχανές αναζήτησης
             <span className="mt-1 block text-xs text-ink-soft">
               Off by default. This one switch controls robots.txt, the sitemap and every product
               page&rsquo;s robots tag together, so they can never contradict each other.
@@ -246,7 +246,7 @@ function IndexingSection({ settings, canEdit }: { settings: SeoSettings; canEdit
 
         {indexable && (
           <p className="mt-3 border border-stone-300 bg-stone-100 px-3 py-2 text-xs text-ink">
-            <strong>Prices stay private.</strong> The catalogue and product pages are readable
+            <strong>Οι τιμές μένουν ιδιωτικές.</strong> The catalogue and product pages are readable
             without a login, so Google can crawl and list them — names, photography, colourways,
             materials and specifications. Wholesale prices, MSRP and the order form are shown only
             to signed-in approved accounts, and the price is withheld from the pages&rsquo;
@@ -256,22 +256,22 @@ function IndexingSection({ settings, canEdit }: { settings: SeoSettings; canEdit
       </fieldset>
 
       <fieldset className="space-y-3 border border-stone-300 bg-white p-4">
-        <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-ink-soft">Crawling</legend>
+        <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-ink-soft">Ανίχνευση</legend>
         <CheckboxField
           label="Serve robots.txt normally (uncheck to block all crawlers — staging only)"
           name="robotsEnabled"
           defaultChecked={settings.robotsEnabled}
           disabled={!canEdit}
         />
-        <CheckboxField label="Publish an XML sitemap" name="sitemapEnabled" defaultChecked={settings.sitemapEnabled} disabled={!canEdit} />
+        <CheckboxField label="Δημοσίευση sitemap" name="sitemapEnabled" defaultChecked={settings.sitemapEnabled} disabled={!canEdit} />
         <CheckboxField
-          label="Include product images in the sitemap"
+          label="Με φωτογραφίες προϊόντων στο sitemap"
           name="sitemapIncludeImages"
           defaultChecked={settings.sitemapIncludeImages}
           disabled={!canEdit}
         />
         <TextField
-          label="Crawl delay (seconds, blank for none)"
+          label="Καθυστέρηση ανίχνευσης (δευτερόλεπτα)"
           name="crawlDelay"
           type="number"
           defaultValue={settings.crawlDelay}
@@ -319,28 +319,28 @@ function OrganizationSection({
       <LocaleBar section="organization" locale={locale} />
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <TextField label="Legal name" name="organizationLegalName" defaultValue={settings.organizationLegalName} disabled={!canEdit} />
-        <TextField label="Founded (year)" name="organizationFoundingYear" defaultValue={settings.organizationFoundingYear} disabled={!canEdit} placeholder="1984" />
+        <TextField label="Επίσημη επωνυμία" name="organizationLegalName" defaultValue={settings.organizationLegalName} disabled={!canEdit} />
+        <TextField label="Έτος ίδρυσης" name="organizationFoundingYear" defaultValue={settings.organizationFoundingYear} disabled={!canEdit} placeholder="1984" />
       </div>
-      <TextField label="Logo URL" name="organizationLogoUrl" defaultValue={settings.organizationLogoUrl} disabled={!canEdit} />
+      <TextField label="Λογότυπο (URL)" name="organizationLogoUrl" defaultValue={settings.organizationLogoUrl} disabled={!canEdit} />
       <div className="grid gap-4 sm:grid-cols-2">
-        <TextField label="Contact email" name="organizationEmail" type="email" defaultValue={settings.organizationEmail} disabled={!canEdit} />
-        <TextField label="Contact phone" name="organizationPhone" defaultValue={settings.organizationPhone} disabled={!canEdit} />
+        <TextField label="Email επικοινωνίας" name="organizationEmail" type="email" defaultValue={settings.organizationEmail} disabled={!canEdit} />
+        <TextField label="Τηλέφωνο επικοινωνίας" name="organizationPhone" defaultValue={settings.organizationPhone} disabled={!canEdit} />
       </div>
 
       <fieldset className="space-y-4 border border-stone-300 bg-white p-4">
-        <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-ink-soft">Address</legend>
-        <TextField label="Street" name="organizationStreet" defaultValue={localeSettings.organizationStreet} disabled={!canEdit} />
+        <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-ink-soft">Διεύθυνση</legend>
+        <TextField label="Οδός" name="organizationStreet" defaultValue={localeSettings.organizationStreet} disabled={!canEdit} />
         <div className="grid gap-4 sm:grid-cols-3">
-          <TextField label="City" name="organizationCity" defaultValue={localeSettings.organizationCity} disabled={!canEdit} />
-          <TextField label="Region" name="organizationRegion" defaultValue={localeSettings.organizationRegion} disabled={!canEdit} />
-          <TextField label="Postal code" name="organizationPostalCode" defaultValue={settings.organizationPostalCode} disabled={!canEdit} />
+          <TextField label="Πόλη" name="organizationCity" defaultValue={localeSettings.organizationCity} disabled={!canEdit} />
+          <TextField label="Περιοχή" name="organizationRegion" defaultValue={localeSettings.organizationRegion} disabled={!canEdit} />
+          <TextField label="Τ.Κ." name="organizationPostalCode" defaultValue={settings.organizationPostalCode} disabled={!canEdit} />
         </div>
-        <TextField label="Country code" name="organizationCountry" defaultValue={settings.organizationCountry} disabled={!canEdit} placeholder="GR" />
+        <TextField label="Κωδικός χώρας" name="organizationCountry" defaultValue={settings.organizationCountry} disabled={!canEdit} placeholder="GR" />
       </fieldset>
 
       <TextAreaField
-        label="Social profile URLs (one per line)"
+        label="Προφίλ κοινωνικών δικτύων (ένα σε κάθε γραμμή)"
         name="socialProfiles"
         defaultValue={settings.socialProfiles.join("\n")}
         rows={4}
@@ -352,7 +352,7 @@ function OrganizationSection({
       </p>
 
       <fieldset className="space-y-3 border border-stone-300 bg-white p-4">
-        <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-ink-soft">Local business</legend>
+        <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-ink-soft">Τοπική επιχείρηση</legend>
         <CheckboxField
           label="Publish as a LocalBusiness (only if there's a real showroom or trade counter)"
           name="localBusinessEnabled"
@@ -360,7 +360,7 @@ function OrganizationSection({
           disabled={!canEdit}
         />
         <TextField
-          label="Opening hours"
+          label="Ωράριο"
           name="openingHours"
           defaultValue={localeSettings.openingHours}
           disabled={!canEdit}

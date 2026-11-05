@@ -9,10 +9,10 @@ import type { ProductStatus, Style } from "@/lib/types";
 const initialState: FormState = {};
 
 const STATUS_OPTIONS: { value: ProductStatus; label: string; description: string }[] = [
-  { value: "active", label: "Published", description: "Visible in the catalogue and orderable." },
-  { value: "draft", label: "Draft", description: "Hidden from buyers, editable in admin only." },
-  { value: "private", label: "Private", description: "Reachable by direct link only, not listed." },
-  { value: "archived", label: "Archived", description: "Retired — kept for order history, not orderable." },
+  { value: "active", label: "Δημοσιευμένο", description: "Visible in the catalogue and orderable." },
+  { value: "draft", label: "Πρόχειρο", description: "Hidden from buyers, editable in admin only." },
+  { value: "private", label: "Ιδιωτικό", description: "Reachable by direct link only, not listed." },
+  { value: "archived", label: "Αρχειοθετημένο", description: "Retired — kept for order history, not orderable." },
 ];
 
 function toLocalInput(iso?: string): string {
@@ -40,7 +40,7 @@ export function VisibilityTab({ style, canEdit }: { style: Style; canEdit: boole
     <form action={formAction} className="max-w-xl space-y-6 pb-20">
       {hiddenForLackOfColorway && (
         <p className="border border-ember bg-ember/5 px-4 py-3 text-sm text-ink">
-          <strong>This product has no colourway yet, so buyers can&rsquo;t see it</strong> — it stays out of
+          <strong>Το προϊόν δεν έχει χρώμα, οπότε δεν το βλέπουν οι πελάτες</strong> — it stays out of
           the catalogue and its product page returns 404 even when Published. Add one on the Media tab
           and it will appear.
         </p>
@@ -61,7 +61,7 @@ export function VisibilityTab({ style, canEdit }: { style: Style; canEdit: boole
         {/* Named for what it does. "Schedule publish" reads as automation — nothing acts on
             this date, and the note below already said so, but the label was writing a cheque
             the feature doesn't cash. */}
-        <label htmlFor="publishAt" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Planned publish date (reminder only)</label>
+        <label htmlFor="publishAt" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Σχεδιαζόμενη δημοσίευση (μόνο υπενθύμιση)</label>
         <input
           id="publishAt"
           name="publishAt"
@@ -70,17 +70,17 @@ export function VisibilityTab({ style, canEdit }: { style: Style; canEdit: boole
           disabled={!canEdit}
           className="border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal disabled:bg-stone-100"
         />
-        <p className="mt-1 text-xs text-ink-soft">Stored for reference — flipping status at the scheduled time still requires a save here (no background job runs this automatically).</p>
+        <p className="mt-1 text-xs text-ink-soft">Μόνο για σημείωση: η κατάσταση δεν αλλάζει αυτόματα, την αλλάζεις εσύ.</p>
       </div>
 
       <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
         <input type="checkbox" name="featured" defaultChecked={style.featured} disabled={!canEdit} className="h-4 w-4 accent-ink" />
-        Featured product
+        Προβεβλημένο προϊόν
       </label>
 
       <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
         <input type="checkbox" name="newArrival" defaultChecked={style.newArrival} disabled={!canEdit} className="h-4 w-4 accent-ink" />
-        New arrival — show on the homepage
+        Νέο μοντέλο: να φαίνεται στην αρχική
       </label>
 
       {canEdit && (

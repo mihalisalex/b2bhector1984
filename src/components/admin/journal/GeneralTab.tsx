@@ -19,20 +19,20 @@ export function GeneralTab({ post }: { post: JournalPost }) {
 
   return (
     <form action={formAction} className="max-w-xl space-y-5 pb-20">
-      <Field label="Title">
+      <Field label="Τίτλος">
         <input name="title" defaultValue={post.title} required className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink" />
       </Field>
 
-      <Field label="URL slug" hint={`Live at /journal/${post.slug}`}>
+      <Field label="Διεύθυνση (URL)" hint={`Live at /journal/${post.slug}`}>
         <input name="slug" defaultValue={post.slug} required className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink" />
       </Field>
 
-      <Field label="Excerpt" hint="Shown on the journal listing and used as a fallback meta description.">
+      <Field label="Περίληψη" hint="Shown on the journal listing and used as a fallback meta description.">
         <textarea name="excerpt" defaultValue={post.excerpt} rows={3} className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink" />
       </Field>
 
       <div className="grid grid-cols-2 gap-4">
-        <Field label="Category">
+        <Field label="Κατηγορία">
           <select name="category" defaultValue={post.category} className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink">
             {JOURNAL_CATEGORIES.map((c) => (
               <option key={c} value={c}>
@@ -41,12 +41,12 @@ export function GeneralTab({ post }: { post: JournalPost }) {
             ))}
           </select>
         </Field>
-        <Field label="Author">
+        <Field label="Συγγραφέας">
           <input name="authorName" defaultValue={post.authorName} className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink" />
         </Field>
       </div>
 
-      <Field label="Tags" hint="Comma-separated.">
+      <Field label="Ετικέτες" hint="Comma-separated.">
         <input name="tags" defaultValue={post.tags.join(", ")} className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink" />
       </Field>
 

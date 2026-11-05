@@ -19,20 +19,20 @@ export function NewJournalPostForm() {
 
   return (
     <form action={formAction} className="mt-8 max-w-xl space-y-5">
-      <Field label="Title">
+      <Field label="Τίτλος">
         <input name="title" required className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink" />
       </Field>
 
-      <Field label="URL slug" hint="Leave blank to generate one from the title.">
+      <Field label="Διεύθυνση (URL)" hint="Leave blank to generate one from the title.">
         <input name="slug" placeholder="how-to-find-reliable-suppliers" className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink" />
       </Field>
 
-      <Field label="Excerpt" hint="Shown on the journal listing and used as a fallback meta description.">
+      <Field label="Περίληψη" hint="Shown on the journal listing and used as a fallback meta description.">
         <textarea name="excerpt" rows={3} className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink" />
       </Field>
 
       <div className="grid grid-cols-2 gap-4">
-        <Field label="Category">
+        <Field label="Κατηγορία">
           <select name="category" defaultValue={JOURNAL_CATEGORIES[0]} className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink">
             {JOURNAL_CATEGORIES.map((c) => (
               <option key={c} value={c}>
@@ -41,12 +41,12 @@ export function NewJournalPostForm() {
             ))}
           </select>
         </Field>
-        <Field label="Author">
+        <Field label="Συγγραφέας">
           <input name="authorName" defaultValue="Hector Footwear Team" className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink" />
         </Field>
       </div>
 
-      <Field label="Tags" hint="Comma-separated.">
+      <Field label="Ετικέτες" hint="Comma-separated.">
         <input name="tags" placeholder="sourcing, leather, wholesale" className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink" />
       </Field>
 

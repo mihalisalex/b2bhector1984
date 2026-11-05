@@ -58,7 +58,7 @@ function displayUrl(path: string): string {
 export function SerpPreview({ title, description, path }: { title: string; description: string; path: string }) {
   return (
     <div className="border border-stone-300 bg-white px-4 py-3">
-      <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Google search preview</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Προεπισκόπηση Google</p>
       <div className="mt-3 max-w-[600px] font-sans">
         <p className="truncate text-xs text-[#4d5156]">{displayUrl(path)}</p>
         <p className="mt-0.5 text-[18px] leading-snug text-[#1a0dab]">
@@ -69,8 +69,8 @@ export function SerpPreview({ title, description, path }: { title: string; descr
         </p>
       </div>
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
-        <LengthMeter value={title} min={TITLE_MIN} max={TITLE_MAX} label="Title" />
-        <LengthMeter value={description} min={DESCRIPTION_MIN} max={DESCRIPTION_MAX} label="Description" />
+        <LengthMeter value={title} min={TITLE_MIN} max={TITLE_MAX} label="Τίτλος" />
+        <LengthMeter value={description} min={DESCRIPTION_MIN} max={DESCRIPTION_MAX} label="Περιγραφή" />
       </div>
     </div>
   );
@@ -109,7 +109,7 @@ export function SocialPreview({
             />
           ) : (
             <span className="absolute inset-0 grid place-items-center text-[10px] uppercase tracking-wide text-ink-soft">
-              No image
+              Χωρίς φωτογραφία
             </span>
           )}
         </div>
@@ -143,7 +143,7 @@ export function StructuredDataPreview({ schema, testUrl }: { schema: unknown; te
             rel="noopener noreferrer"
             className="text-[11px] underline underline-offset-2 hover:text-ink"
           >
-            Test in Google
+            Δοκιμή στο Google
           </a>
         )}
       </div>

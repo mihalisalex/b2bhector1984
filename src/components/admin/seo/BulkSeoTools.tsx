@@ -27,10 +27,10 @@ export interface BulkProductRow {
 }
 
 const FIELDS = [
-  { value: "seoTitle", label: "SEO title" },
-  { value: "metaDescription", label: "Meta description" },
-  { value: "focusKeyword", label: "Focus keyword" },
-  { value: "secondaryKeywords", label: "Secondary keywords" },
+  { value: "seoTitle", label: "Τίτλος SEO" },
+  { value: "metaDescription", label: "Περιγραφή SEO" },
+  { value: "focusKeyword", label: "Βασική λέξη-κλειδί" },
+  { value: "secondaryKeywords", label: "Δευτερεύουσες λέξεις-κλειδιά" },
   { value: "canonicalUrl", label: "Canonical URL" },
   { value: "robots", label: "Robots directive" },
   { value: "ogTitle", label: "Open Graph title" },
@@ -86,7 +86,7 @@ export function BulkSeoTools({ products, canEdit }: { products: BulkProductRow[]
       )}
 
       <section>
-        <h2 className="font-display text-lg font-bold uppercase tracking-tight text-ink">Bulk edit</h2>
+        <h2 className="font-display text-lg font-bold uppercase tracking-tight text-ink">Μαζική επεξεργασία</h2>
         <p className="mt-1 max-w-3xl text-sm text-ink-soft">
           Select products, pick a field, and apply one value to all of them. Placeholders{" "}
           <code className="font-mono-tab">{"{name}"}</code>,{" "}
@@ -102,8 +102,8 @@ export function BulkSeoTools({ products, canEdit }: { products: BulkProductRow[]
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Filter products…"
-            aria-label="Filter products"
+            placeholder="Φίλτρο προϊόντων…"
+            aria-label="Φίλτρο προϊόντων"
             className="w-64 border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal"
           />
           <label className="flex items-center gap-2 text-sm text-ink">
@@ -113,7 +113,7 @@ export function BulkSeoTools({ products, canEdit }: { products: BulkProductRow[]
               onChange={(event) => setOnlyIncomplete(event.target.checked)}
               className="h-4 w-4 accent-ink"
             />
-            Only products missing title or description
+            Μόνο όσα δεν έχουν τίτλο ή περιγραφή
           </label>
           <span className="text-xs text-ink-soft">
             {filtered.length} of {products.length}
@@ -135,15 +135,15 @@ export function BulkSeoTools({ products, canEdit }: { products: BulkProductRow[]
                       type="checkbox"
                       checked={allVisibleSelected}
                       onChange={toggleAll}
-                      aria-label="Select all visible products"
+                      aria-label="Επιλογή όλων"
                       className="h-4 w-4 accent-ink"
                     />
                   </th>
                 )}
-                <th scope="col" className="px-4 py-2.5 font-semibold">Product</th>
-                <th scope="col" className="px-4 py-2.5 font-semibold">SEO title</th>
-                <th scope="col" className="px-4 py-2.5 font-semibold">Meta description</th>
-                <th scope="col" className="px-4 py-2.5 font-semibold">Focus keyword</th>
+                <th scope="col" className="px-4 py-2.5 font-semibold">Προϊόν</th>
+                <th scope="col" className="px-4 py-2.5 font-semibold">Τίτλος SEO</th>
+                <th scope="col" className="px-4 py-2.5 font-semibold">Περιγραφή SEO</th>
+                <th scope="col" className="px-4 py-2.5 font-semibold">Βασική λέξη-κλειδί</th>
                 <th scope="col" className="px-4 py-2.5 font-semibold">Robots</th>
               </tr>
             </thead>
@@ -217,7 +217,7 @@ function GenerateMissingSeoCard() {
         }
       }}
     >
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Fill in missing SEO copy</h3>
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Συμπλήρωση όσων λείπουν</h3>
       <p className="mt-1.5 text-sm text-ink-soft">
         Writes a generated title and meta description for every product that doesn&rsquo;t have one,
         built from its name, category, tagline and materials.
@@ -231,8 +231,8 @@ function GenerateMissingSeoCard() {
           className="mt-0.5 h-4 w-4 accent-ink"
         />
         <span>
-          Also overwrite copy that was written by hand
-          <span className="mt-0.5 block text-xs text-ember">Destructive — there&rsquo;s no undo.</span>
+          Να αντικατασταθούν και όσα γράφτηκαν με το χέρι
+          <span className="mt-0.5 block text-xs text-ember">Δεν αναιρείται.</span>
         </span>
       </label>
       <button
@@ -255,7 +255,7 @@ function GenerateAltTextCard() {
 
   return (
     <form action={formAction} className="border border-stone-300 bg-white p-4">
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Generate missing alt text</h3>
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Δημιουργία περιγραφών φωτογραφιών</h3>
       <p className="mt-1.5 text-sm text-ink-soft">
         Writes descriptive alt text for every product photo that has none, using the product name and
         category. Never touches alt text that already exists.
@@ -301,7 +301,7 @@ function BulkEditBar({ ids, onDone }: { ids: string[]; onDone: () => void }) {
       <span className="self-center text-sm text-ink">{ids.length} selected</span>
 
       <label className="block">
-        <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Field</span>
+        <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Πεδίο</span>
         <select
           name="field"
           value={field}
@@ -315,7 +315,7 @@ function BulkEditBar({ ids, onDone }: { ids: string[]; onDone: () => void }) {
       </label>
 
       <label className="block min-w-64 flex-1">
-        <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Value</span>
+        <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Τιμή</span>
         {field === "robots" ? (
           <select name="value" className="w-full border border-stone-300 bg-white px-3 py-2 text-sm">
             <option value="index,follow">Index, Follow</option>
@@ -378,7 +378,7 @@ function ExportButton({ products }: { products: BulkProductRow[] }) {
       disabled={products.length === 0}
       className="border border-stone-300 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-wide text-ink hover:border-ink disabled:opacity-40"
     >
-      Export CSV
+      Εξαγωγή (CSV)
     </button>
   );
 }

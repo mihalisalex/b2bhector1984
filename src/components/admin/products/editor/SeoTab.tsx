@@ -113,14 +113,14 @@ export function SeoTab({
     <form action={formAction} className="max-w-3xl space-y-6 pb-20">
       {!commerceIndexable && (
         <div className="border border-stone-300 bg-stone-50 px-4 py-3 text-xs text-ink-soft">
-          <p className="font-semibold text-ink">This page is not indexed by search engines.</p>
+          <p className="font-semibold text-ink">Η σελίδα δεν εμφανίζεται στις μηχανές αναζήτησης.</p>
           <p className="mt-1">
             The trade catalogue is private, so every product page is disallowed in robots.txt and
             serves <code className="font-mono-tab">noindex</code>. These fields still matter: they
             control the title, description and image that appear when a rep shares this product&rsquo;s
             link by email, WhatsApp or Slack. Indexing policy lives in{" "}
             <Link href="/admin/seo/settings?section=indexing" className="underline underline-offset-2">
-              SEO settings
+              Ρυθμίσεις SEO
             </Link>
             .
           </p>
@@ -160,13 +160,13 @@ export function SeoTab({
             disabled={!canEdit}
             className="mt-2 text-xs underline underline-offset-2 hover:text-ink disabled:opacity-40"
           >
-            Rebuild from product name
+            Από το όνομα προϊόντος
           </button>
         </div>
 
         {slugHistory.filter((entry) => !entry.isCurrent).length > 0 && (
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Previous URLs</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Προηγούμενες διευθύνσεις</p>
             <ul className="mt-1 space-y-0.5">
               {slugHistory
                 .filter((entry) => !entry.isCurrent)
@@ -186,7 +186,7 @@ export function SeoTab({
       {/* ---- Search result ------------------------------------------------ */}
       <div>
         <label htmlFor="seoTitle" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">
-          SEO title
+          Τίτλος SEO
         </label>
         <input
           id="seoTitle"
@@ -202,7 +202,7 @@ export function SeoTab({
 
       <div>
         <label htmlFor="metaDescription" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">
-          Meta description
+          Περιγραφή SEO
         </label>
         <textarea
           id="metaDescription"
@@ -226,10 +226,10 @@ export function SeoTab({
 
       {/* ---- Keywords ------------------------------------------------------ */}
       <fieldset className="space-y-3 border border-stone-300 bg-white p-4">
-        <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-ink-soft">Keywords</legend>
+        <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-ink-soft">Λέξεις-κλειδιά</legend>
         <div>
           <label htmlFor="focusKeyword" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">
-            Focus keyword
+            Βασική λέξη-κλειδί
           </label>
           <input
             id="focusKeyword"
@@ -250,7 +250,7 @@ export function SeoTab({
         </div>
 
         <TextField
-          label="Secondary keywords (comma-separated)"
+          label="Δευτερεύουσες λέξεις-κλειδιά (με κόμμα)"
           name="secondaryKeywords"
           defaultValue={style.secondaryKeywords.length ? style.secondaryKeywords.join(", ") : ""}
           placeholder={generated.secondaryKeywords}
@@ -324,7 +324,7 @@ export function SeoTab({
                   }`}
                   style={{ backgroundImage: `url("${image.publicUrl.replace(/"/g, "%22")}")` }}
                 >
-                  <span className="sr-only">Use this photo as the share image</span>
+                  <span className="sr-only">Χρήση ως φωτογραφία κοινοποίησης</span>
                 </button>
               ))}
             </div>
@@ -334,13 +334,13 @@ export function SeoTab({
 
       <fieldset className="space-y-4 border border-stone-300 bg-white p-4">
         <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-ink-soft">X / Twitter</legend>
-        <p className="text-xs text-ink-soft">Leave blank to reuse the Open Graph values.</p>
+        <p className="text-xs text-ink-soft">Άφησέ το κενό για τις τιμές Open Graph.</p>
         <TextField label="Twitter title" name="twitterTitle" defaultValue={style.twitterTitle} disabled={!canEdit} />
         <TextAreaField label="Twitter description" name="twitterDescription" defaultValue={style.twitterDescription} rows={2} disabled={!canEdit} />
         <TextField label="Twitter image URL" name="twitterImageUrl" defaultValue={style.twitterImageUrl} disabled={!canEdit} />
         <div>
           <label htmlFor="twitterCard" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">
-            Card type
+            Τύπος κάρτας
           </label>
           <select
             id="twitterCard"
@@ -378,7 +378,7 @@ export function SeoTab({
           <strong>{missingAlt}</strong> of {images.length} photos have no alt text. Add it on the{" "}
           <em>Images &amp; Media</em> tab, or generate it for the whole catalogue from{" "}
           <Link href="/admin/seo/bulk" className="underline underline-offset-2">
-            SEO bulk tools
+            Μαζικά εργαλεία SEO
           </Link>
           .
         </div>
@@ -386,7 +386,7 @@ export function SeoTab({
 
       <StructuredDataPreview schema={structuredData} testUrl={`${SITE_URL}/product/${slug}`} />
 
-      {canEdit && <SaveBar isPending={isPending} label="Save SEO" />}
+      {canEdit && <SaveBar isPending={isPending} label="Αποθήκευση SEO" />}
     </form>
   );
 }

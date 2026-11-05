@@ -98,13 +98,13 @@ function isMissingSchemaError(message: string): boolean {
 function friendlyDbError(err: unknown): string {
   const message = err instanceof Error ? err.message : String(err);
   if (isMissingSchemaError(message)) {
-    return "Can't save this yet — the Product Management schema migrations (supabase/migrations/0013-0017) haven't been run against this database. Run them in the Supabase SQL Editor, then try again.";
+    return "Δεν αποθηκεύτηκε: λείπει ενημέρωση της βάσης (migrations 0013-0017).";
   }
   if (message.includes("duplicate key value") && message.includes("style_number")) {
-    return "That style number is already used by another product — style numbers must be unique.";
+    return "Ο κωδικός χρησιμοποιείται ήδη σε άλλο προϊόν.";
   }
   if (message.includes("duplicate key value") && message.includes("slug")) {
-    return "That URL slug is already used by another product — try a more specific one.";
+    return "Η διεύθυνση χρησιμοποιείται ήδη σε άλλο προϊόν.";
   }
   return message;
 }

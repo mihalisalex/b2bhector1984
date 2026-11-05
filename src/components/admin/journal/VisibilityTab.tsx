@@ -9,10 +9,10 @@ import type { JournalPost, JournalStatus } from "@/lib/types";
 const initialState: FormState = {};
 
 const STATUS_OPTIONS: { value: JournalStatus; label: string; description: string }[] = [
-  { value: "draft", label: "Draft", description: "Hidden from the public journal, editable in admin only." },
-  { value: "scheduled", label: "Scheduled", description: "Not live yet — set a target date below, then flip to Published when it arrives." },
-  { value: "published", label: "Published", description: "Live on /journal, indexable, and included in the sitemap." },
-  { value: "archived", label: "Archived", description: "Retired — no longer listed or linked to." },
+  { value: "draft", label: "Πρόχειρο", description: "Hidden from the public journal, editable in admin only." },
+  { value: "scheduled", label: "Προγραμματισμένο", description: "Not live yet — set a target date below, then flip to Published when it arrives." },
+  { value: "published", label: "Δημοσιευμένο", description: "Live on /journal, indexable, and included in the sitemap." },
+  { value: "archived", label: "Αρχειοθετημένο", description: "Retired — no longer listed or linked to." },
 ];
 
 function toLocalInput(iso?: string): string {
@@ -45,7 +45,7 @@ export function VisibilityTab({ post }: { post: JournalPost }) {
 
       <div>
         <label htmlFor="publishAt" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">
-          Scheduled date (optional)
+          Προγραμματισμένη ημερομηνία (προαιρετικό)
         </label>
         <input
           id="publishAt"
@@ -55,13 +55,13 @@ export function VisibilityTab({ post }: { post: JournalPost }) {
           className="border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal"
         />
         <p className="mt-1 text-xs text-ink-soft">
-          Stored for reference — reaching this date doesn&rsquo;t auto-publish the article, you still flip the status above yourself.
+          Μόνο για σημείωση: το άρθρο δεν δημοσιεύεται αυτόματα.
         </p>
       </div>
 
       <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
         <input type="checkbox" name="featured" defaultChecked={post.featured} className="h-4 w-4 accent-ink" />
-        Featured article (shown in the journal&rsquo;s featured section)
+        Προβεβλημένο άρθρο
       </label>
 
       {post.publishedAt && (

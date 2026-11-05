@@ -5,17 +5,17 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 
 const TABS = [
-  { href: "/admin/seo", label: "Overview" },
-  { href: "/admin/seo/settings", label: "Global settings" },
-  { href: "/admin/seo/pages", label: "Pages & categories" },
-  { href: "/admin/seo/redirects", label: "Redirects" },
-  { href: "/admin/seo/bulk", label: "Bulk tools" },
+  { href: "/admin/seo", label: "Επισκόπηση" },
+  { href: "/admin/seo/settings", label: "Γενικές ρυθμίσεις" },
+  { href: "/admin/seo/pages", label: "Σελίδες και κατηγορίες" },
+  { href: "/admin/seo/redirects", label: "Ανακατευθύνσεις" },
+  { href: "/admin/seo/bulk", label: "Μαζικά εργαλεία" },
 ];
 
 export function SeoSubNav() {
   const pathname = usePathname();
   return (
-    <nav className="scroll-thin -mb-px flex gap-1 overflow-x-auto border-b border-stone-300" aria-label="SEO sections">
+    <nav className="scroll-thin -mb-px flex gap-1 overflow-x-auto border-b border-stone-300" aria-label="Ενότητες SEO">
       {TABS.map((tab) => {
         // "/admin/seo" is a prefix of every other tab, so it only lights up on
         // an exact match.

@@ -49,7 +49,7 @@ export function InventoryTab({
     <div className="max-w-4xl space-y-8 pb-20">
       <section>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Stock by warehouse</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Απόθεμα ανά αποθήκη</h3>
           <select
             value={warehouseId}
             onChange={(e) => setWarehouseId(e.target.value)}
@@ -65,7 +65,7 @@ export function InventoryTab({
           <table className="w-full min-w-[500px] border-collapse text-sm">
             <thead>
               <tr className="border-b border-stone-300 bg-stone-100 text-left text-[11px] uppercase tracking-wide text-ink-soft">
-                <th className="px-4 py-2.5">Variant</th>
+                <th className="px-4 py-2.5">Χρώμα</th>
                 {offeredBoxTypes.map((box) => (
                   <th key={box.id} className="px-3 py-2.5 text-right">{box.label} on hand / reserved</th>
                 ))}
@@ -97,20 +97,20 @@ export function InventoryTab({
         {canEdit && (
           <form action={async (formData) => { const r = await createWarehouseAction(initialState, formData); showResult(r); }} className="mt-3 flex items-end gap-3">
             <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">New warehouse</label>
-              <input name="name" placeholder="Warehouse name" className="border border-stone-300 bg-white px-3 py-1.5 text-sm outline-none focus-visible:border-signal" />
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Νέα αποθήκη</label>
+              <input name="name" placeholder="Όνομα αποθήκης" className="border border-stone-300 bg-white px-3 py-1.5 text-sm outline-none focus-visible:border-signal" />
             </div>
-            <input name="location" placeholder="Location (optional)" className="border border-stone-300 bg-white px-3 py-1.5 text-sm outline-none focus-visible:border-signal" />
+            <input name="location" placeholder="Τοποθεσία (προαιρετικό)" className="border border-stone-300 bg-white px-3 py-1.5 text-sm outline-none focus-visible:border-signal" />
             <button type="submit" className="border border-ink px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-white">
-              Add
+              Προσθήκη
             </button>
           </form>
         )}
       </section>
 
       <section className="border-t border-stone-300 pt-6">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Box sizes offered</h3>
-        <p className="mt-1 text-xs text-ink-soft">Not every style ships in all three pre-packs — uncheck any this style doesn&rsquo;t offer.</p>
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Διαθέσιμα κιβώτια</h3>
+        <p className="mt-1 text-xs text-ink-soft">Ξετσέκαρε όσα κιβώτια δεν προσφέρει αυτό το μοντέλο.</p>
         <form action={updateAvailableBoxTypesAction} className="mt-3 flex flex-wrap items-center gap-5">
           <input type="hidden" name="styleId" value={style.id} />
           {BOX_TYPES.map((box) => (
@@ -121,14 +121,14 @@ export function InventoryTab({
           ))}
           {canEdit && (
             <button type="submit" className="border border-ink bg-ink px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85">
-              Save
+              Αποθήκευση
             </button>
           )}
         </form>
       </section>
 
       <form action={formAction} className="space-y-5 border-t border-stone-300 pt-6">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Identifiers & thresholds</h3>
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Κωδικοί και όρια</h3>
         <div className="grid grid-cols-2 gap-4">
           <TextField label="Barcode" name="barcode" defaultValue={style.barcode} disabled={!canEdit} />
           <TextField label="GTIN" name="gtin" defaultValue={style.gtin} disabled={!canEdit} />
@@ -136,15 +136,15 @@ export function InventoryTab({
           <TextField label="MPN" name="mpn" defaultValue={style.mpn} disabled={!canEdit} />
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <TextField label="Low stock threshold" name="lowStockThreshold" type="number" defaultValue={style.lowStockThreshold} disabled={!canEdit} />
-          <TextField label="Incoming stock" name="incomingStock" type="number" defaultValue={style.incomingStock} disabled={!canEdit} />
+          <TextField label="Όριο χαμηλού αποθέματος" name="lowStockThreshold" type="number" defaultValue={style.lowStockThreshold} disabled={!canEdit} />
+          <TextField label="Εισερχόμενο απόθεμα" name="incomingStock" type="number" defaultValue={style.incomingStock} disabled={!canEdit} />
         </div>
         <div className="flex flex-wrap items-end gap-6">
-          <CheckboxField label="Track inventory" name="trackInventory" defaultChecked={style.trackInventory} disabled={!canEdit} />
-          <CheckboxField label="Allow backorders" name="allowBackorder" defaultChecked={style.allowBackorder} disabled={!canEdit} />
+          <CheckboxField label="Παρακολούθηση αποθέματος" name="trackInventory" defaultChecked={style.trackInventory} disabled={!canEdit} />
+          <CheckboxField label="Παραγγελία χωρίς απόθεμα" name="allowBackorder" defaultChecked={style.allowBackorder} disabled={!canEdit} />
           <div>
             <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">
-              When backordered, show as
+              Όταν δεν υπάρχει απόθεμα, να φαίνεται ως
             </label>
             <select
               name="backorderMode"
@@ -152,11 +152,11 @@ export function InventoryTab({
               disabled={!canEdit}
               className="border border-stone-300 bg-white px-3 py-1.5 text-sm outline-none focus-visible:border-signal disabled:bg-stone-100"
             >
-              <option value="made_to_order">Made to order — ~40-day ETA shown</option>
-              <option value="pre_order">Pre-order — ships upon arrangement, no fixed ETA</option>
+              <option value="made_to_order">Κατά παραγγελία, με χρόνο παράδοσης</option>
+              <option value="pre_order">Προπαραγγελία, χωρίς σταθερό χρόνο</option>
             </select>
             <p className="mt-1 max-w-xs text-[11px] text-ink-soft">
-              Only shown to buyers when a line isn&rsquo;t fully in stock and &ldquo;Allow backorders&rdquo; is on above.
+              Φαίνεται μόνο όταν δεν υπάρχει απόθεμα και είναι ενεργή η παραγγελία χωρίς απόθεμα.
             </p>
           </div>
         </div>
@@ -164,16 +164,16 @@ export function InventoryTab({
       </form>
 
       <section className="border-t border-stone-300 pt-6">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Inventory movements log</h3>
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Ιστορικό αποθέματος</h3>
         <div className="scroll-thin mt-3 max-h-80 overflow-y-auto overflow-x-auto border border-stone-300 bg-white">
           <table className="w-full min-w-[500px] border-collapse text-sm">
             <thead>
               <tr className="sticky top-0 border-b border-stone-300 bg-stone-100 text-left text-[11px] uppercase tracking-wide text-ink-soft">
-                <th className="px-3 py-2">When</th>
-                <th className="px-3 py-2">Variant / box</th>
-                <th className="px-3 py-2">Warehouse</th>
-                <th className="px-3 py-2 text-right">Change</th>
-                <th className="px-3 py-2">Reason</th>
+                <th className="px-3 py-2">Πότε</th>
+                <th className="px-3 py-2">Χρώμα / κιβώτιο</th>
+                <th className="px-3 py-2">Αποθήκη</th>
+                <th className="px-3 py-2 text-right">Αλλαγή</th>
+                <th className="px-3 py-2">Αιτία</th>
               </tr>
             </thead>
             <tbody>
@@ -190,7 +190,7 @@ export function InventoryTab({
               ))}
               {movements.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-3 py-6 text-center text-ink-soft">No movements recorded yet.</td>
+                  <td colSpan={5} className="px-3 py-6 text-center text-ink-soft">Καμία κίνηση ακόμα.</td>
                 </tr>
               )}
             </tbody>

@@ -18,12 +18,12 @@ export function SalesRepRow({ rep }: { rep: AdminSalesRep }) {
     <tr className="border-b border-stone-200 last:border-b-0 align-top">
       <td className="px-3 py-3">
         <form id={`rep-form-${rep.id}`} action={updateAction} className="grid grid-cols-2 gap-2">
-          <input name="name" defaultValue={rep.name} placeholder="Name" className={inputClass} />
-          <input name="title" defaultValue={rep.title} placeholder="Title" className={inputClass} />
+          <input name="name" defaultValue={rep.name} placeholder="Όνομα" className={inputClass} />
+          <input name="title" defaultValue={rep.title} placeholder="Τίτλος" className={inputClass} />
           <input name="email" type="email" defaultValue={rep.email} placeholder="Email" className={inputClass} />
-          <input name="phone" defaultValue={rep.phone} placeholder="Phone" className={inputClass} />
-          <input name="initials" defaultValue={rep.initials} placeholder="Initials" className={inputClass} />
-          <input name="territory" defaultValue={rep.territory} placeholder="Territory" className={inputClass} />
+          <input name="phone" defaultValue={rep.phone} placeholder="Τηλέφωνο" className={inputClass} />
+          <input name="initials" defaultValue={rep.initials} placeholder="Αρχικά" className={inputClass} />
+          <input name="territory" defaultValue={rep.territory} placeholder="Περιοχή" className={inputClass} />
         </form>
         {updateState.error && <p className="mt-1 text-[11px] text-ember">{updateState.error}</p>}
       </td>
@@ -34,14 +34,14 @@ export function SalesRepRow({ rep }: { rep: AdminSalesRep }) {
             form={`rep-form-${rep.id}`}
             className="border border-ink bg-ink px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85"
           >
-            Save
+            Αποθήκευση
           </button>
           <form action={deleteAction}>
             <button
               type="submit"
               className="text-xs font-medium uppercase tracking-wide text-ink-soft hover:text-ember"
             >
-              Delete
+              Διαγραφή
             </button>
           </form>
           {deleteState.error && <p className="max-w-[160px] text-right text-[11px] text-ember">{deleteState.error}</p>}

@@ -10,12 +10,12 @@ import type { DocumentKind, Style } from "@/lib/types";
 const initialState: FormState = {};
 
 const DOC_KINDS: { value: DocumentKind; label: string }[] = [
-  { value: "manual", label: "Manual" },
-  { value: "datasheet", label: "Datasheet" },
-  { value: "certificate", label: "Certificate" },
-  { value: "installation_guide", label: "Installation guide" },
-  { value: "warranty", label: "Warranty document" },
-  { value: "other", label: "Other" },
+  { value: "manual", label: "Εγχειρίδιο" },
+  { value: "datasheet", label: "Τεχνικό φύλλο" },
+  { value: "certificate", label: "Πιστοποιητικό" },
+  { value: "installation_guide", label: "Οδηγός" },
+  { value: "warranty", label: "Εγγύηση" },
+  { value: "other", label: "Άλλο" },
 ];
 
 const DOC_LABEL: Record<DocumentKind, string> = {
@@ -45,21 +45,21 @@ export function DocumentsTab({ style, canEdit }: { style: Style; canEdit: boolea
         {documents.map((doc) => (
           <DocumentRow key={doc.id} styleId={style.id} documentId={doc.id} kindLabel={DOC_LABEL[doc.kind]} label={doc.label || doc.storagePath.split("/").pop() || ""} publicUrl={doc.publicUrl} canEdit={canEdit} />
         ))}
-        {documents.length === 0 && <p className="text-sm text-ink-soft">No documents uploaded yet.</p>}
+        {documents.length === 0 && <p className="text-sm text-ink-soft">Κανένα έγγραφο ακόμα.</p>}
       </div>
 
       {canEdit && (
         <div className="border-t border-stone-300 pt-4">
           <div className="mb-3 flex flex-wrap items-end gap-3">
             <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Document type</label>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Τύπος εγγράφου</label>
               <select value={kind} onChange={(e) => setKind(e.target.value as DocumentKind)} className="border border-stone-300 bg-white px-3 py-2 text-sm">
                 {DOC_KINDS.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Label</label>
-              <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Care instructions" className="border border-stone-300 bg-white px-3 py-2 text-sm" />
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Ονομασία</label>
+              <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="π.χ. Οδηγίες φροντίδας" className="border border-stone-300 bg-white px-3 py-2 text-sm" />
             </div>
           </div>
           <ImageUploadForm
@@ -107,7 +107,7 @@ function DocumentRow({
         <form action={deleteAction}>
           <input type="hidden" name="styleId" value={styleId} />
           <input type="hidden" name="documentId" value={documentId} />
-          <button type="submit" disabled={isDeleting} className="text-xs font-medium text-ember hover:underline disabled:opacity-50">Remove</button>
+          <button type="submit" disabled={isDeleting} className="text-xs font-medium text-ember hover:underline disabled:opacity-50">Αφαίρεση</button>
         </form>
       )}
     </div>

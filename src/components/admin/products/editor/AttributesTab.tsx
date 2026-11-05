@@ -20,26 +20,26 @@ export function AttributesTab({ style, canEdit }: { style: Style; canEdit: boole
 
   return (
     <div className="max-w-2xl space-y-6 pb-20">
-      <p className="text-xs text-ink-soft">Unlimited custom key/value attributes — Material, Finish, Country of Origin, Warranty, and anything else specific to this product.</p>
+      <p className="text-xs text-ink-soft">Ελεύθερες ιδιότητες, π.χ. υλικό, φινίρισμα, εγγύηση.</p>
 
       <div className="space-y-2">
         {style.attributes.map((attr) => (
           <AttributeRow key={attr.id} styleId={style.id} attributeId={attr.id} attrKey={attr.key} attrValue={attr.value} canEdit={canEdit} />
         ))}
-        {style.attributes.length === 0 && <p className="text-sm text-ink-soft">No custom attributes yet.</p>}
+        {style.attributes.length === 0 && <p className="text-sm text-ink-soft">Καμία ιδιότητα ακόμα.</p>}
       </div>
 
       {canEdit && (
         <form action={addAction} className="flex items-end gap-3 border-t border-stone-300 pt-4">
           <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Attribute</label>
+            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Ιδιότητα</label>
             <input name="key" list="attribute-suggestions" required className="border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal" />
             <datalist id="attribute-suggestions">
               {SUGGESTIONS.map((s) => <option key={s} value={s} />)}
             </datalist>
           </div>
           <div className="flex-1">
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Value</label>
+            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Τιμή</label>
             <input name="value" required className="w-full border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal" />
           </div>
           <button type="submit" disabled={isAdding} className="border border-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-white disabled:opacity-50">
@@ -79,7 +79,7 @@ function AttributeRow({
       {canEdit && (
         <form action={deleteAction}>
           <input type="hidden" name="id" value={attributeId} />
-          <button type="submit" disabled={isDeleting} className="text-xs font-medium text-ember hover:underline disabled:opacity-50">Remove</button>
+          <button type="submit" disabled={isDeleting} className="text-xs font-medium text-ember hover:underline disabled:opacity-50">Αφαίρεση</button>
         </form>
       )}
     </div>

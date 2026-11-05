@@ -35,11 +35,11 @@ export function PricingTab({ style, canEdit }: { style: Style; canEdit: boolean 
 
   return (
     <form action={formAction} className="max-w-3xl space-y-5 pb-20">
-      {!canEdit && <p className="border border-stone-300 bg-stone-100 px-4 py-2 text-sm text-ink-soft">Your role has view-only access to pricing.</p>}
+      {!canEdit && <p className="border border-stone-300 bg-stone-100 px-4 py-2 text-sm text-ink-soft">Ο ρόλος σου δεν αλλάζει τιμές.</p>}
 
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <label htmlFor="costPrice" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Cost price</label>
+          <label htmlFor="costPrice" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Κόστος</label>
           <input
             id="costPrice"
             name="costPrice"
@@ -52,7 +52,7 @@ export function PricingTab({ style, canEdit }: { style: Style; canEdit: boolean 
           />
         </div>
         <div>
-          <label htmlFor="basePrice" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Wholesale price (list)</label>
+          <label htmlFor="basePrice" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Χονδρική (τιμή καταλόγου)</label>
           <input
             id="basePrice"
             name="basePrice"
@@ -65,20 +65,20 @@ export function PricingTab({ style, canEdit }: { style: Style; canEdit: boolean 
             className="w-full border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal disabled:bg-stone-100"
           />
         </div>
-        <TextField label="MSRP" name="msrp" type="number" step="0.01" defaultValue={style.msrp} disabled={!canEdit} />
+        <TextField label="Προτεινόμενη λιανική" name="msrp" type="number" step="0.01" defaultValue={style.msrp} disabled={!canEdit} />
       </div>
       <div className="border border-stone-300 bg-stone-100 px-4 py-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Automatic margin</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Περιθώριο κέρδους</p>
         <p className="font-mono-tab mt-1 text-lg text-ink">{margin}%</p>
-        <p className="text-xs text-ink-soft">(Wholesale − Cost) ÷ Wholesale, recalculated as you type above.</p>
+        <p className="text-xs text-ink-soft">(Χονδρική − Κόστος) ÷ Χονδρική, υπολογίζεται καθώς γράφεις.</p>
       </div>
 
-      <TextField label="Distributor price" name="distributorPrice" type="number" step="0.01" defaultValue={style.distributorPrice} disabled={!canEdit} />
+      <TextField label="Τιμή διανομέα" name="distributorPrice" type="number" step="0.01" defaultValue={style.distributorPrice} disabled={!canEdit} />
 
       <div className="grid grid-cols-3 gap-4">
-        <TextField label="Sale price" name="salePrice" type="number" step="0.01" defaultValue={style.salePrice} disabled={!canEdit} />
-        <TextField label="Sale starts" name="saleStartAt" type="datetime-local" defaultValue={toLocalInput(style.saleStartAt)} disabled={!canEdit} />
-        <TextField label="Sale ends" name="saleEndAt" type="datetime-local" defaultValue={toLocalInput(style.saleEndAt)} disabled={!canEdit} />
+        <TextField label="Τιμή έκπτωσης" name="salePrice" type="number" step="0.01" defaultValue={style.salePrice} disabled={!canEdit} />
+        <TextField label="Έναρξη έκπτωσης" name="saleStartAt" type="datetime-local" defaultValue={toLocalInput(style.saleStartAt)} disabled={!canEdit} />
+        <TextField label="Λήξη έκπτωσης" name="saleEndAt" type="datetime-local" defaultValue={toLocalInput(style.saleEndAt)} disabled={!canEdit} />
       </div>
       <p className="text-xs text-ink-soft">
         A scheduled sale price actually overrides the wholesale list price sitewide while active — see the catalog/cart
@@ -86,9 +86,9 @@ export function PricingTab({ style, canEdit }: { style: Style; canEdit: boolean 
       </p>
 
       <div className="grid grid-cols-3 gap-4">
-        <SelectField label="Currency" name="currency" defaultValue={style.currency} disabled={!canEdit} options={[{ value: "EUR", label: "EUR" }, { value: "USD", label: "USD" }, { value: "GBP", label: "GBP" }]} />
-        <SelectField label="Tax class" name="taxClass" defaultValue={style.taxClass} disabled={!canEdit} options={[{ value: "standard", label: "Standard" }, { value: "reduced", label: "Reduced" }, { value: "zero", label: "Zero-rated" }]} />
-        <TextField label="VAT rate" name="vatRate" type="number" step="0.01" defaultValue={style.vatRate} disabled={!canEdit} />
+        <SelectField label="Νόμισμα" name="currency" defaultValue={style.currency} disabled={!canEdit} options={[{ value: "EUR", label: "EUR" }, { value: "USD", label: "USD" }, { value: "GBP", label: "GBP" }]} />
+        <SelectField label="Φορολογική κατηγορία" name="taxClass" defaultValue={style.taxClass} disabled={!canEdit} options={[{ value: "standard", label: "Κανονικό" }, { value: "reduced", label: "Μειωμένο" }, { value: "zero", label: "Μηδενικό" }]} />
+        <TextField label="Συντελεστής ΦΠΑ" name="vatRate" type="number" step="0.01" defaultValue={style.vatRate} disabled={!canEdit} />
       </div>
 
       {canEdit && <SaveBar isPending={isPending} />}
@@ -109,7 +109,7 @@ function CustomerGroupPricing({ style, canEdit }: { style: Style; canEdit: boole
 
   return (
     <div className="border-t border-stone-300 pt-5">
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Customer group pricing</h3>
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Τιμές ανά ομάδα πελατών</h3>
       <p className="mt-1 text-xs text-ink-soft">
         Stored and editable here for account segmentation — deliberately not wired into the live checkout pricing
         engine, which stays on the settled payment-terms-discount model.
@@ -118,16 +118,16 @@ function CustomerGroupPricing({ style, canEdit }: { style: Style; canEdit: boole
         {style.customerGroupPrices.map((g) => (
           <GroupPriceRow key={g.id} styleId={style.id} groupPriceId={g.id} groupName={g.groupName} price={g.price} canEdit={canEdit} />
         ))}
-        {style.customerGroupPrices.length === 0 && <p className="text-sm text-ink-soft">No group overrides yet.</p>}
+        {style.customerGroupPrices.length === 0 && <p className="text-sm text-ink-soft">Καμία ειδική τιμή ακόμα.</p>}
       </div>
       {canEdit && (
         <form action={addAction} className="mt-3 flex items-end gap-3">
           <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Group name</label>
+            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Όνομα ομάδας</label>
             <input name="groupName" required className="border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal" />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Price</label>
+            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Τιμή</label>
             <input name="price" type="number" step="0.01" required className="w-28 border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal" />
           </div>
           <button type="submit" disabled={isAdding} className="border border-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-white disabled:opacity-50">
@@ -167,7 +167,7 @@ function GroupPriceRow({
       {canEdit && (
         <form action={deleteAction}>
           <input type="hidden" name="id" value={groupPriceId} />
-          <button type="submit" disabled={isDeleting} className="text-xs font-medium text-ember hover:underline disabled:opacity-50">Remove</button>
+          <button type="submit" disabled={isDeleting} className="text-xs font-medium text-ember hover:underline disabled:opacity-50">Αφαίρεση</button>
         </form>
       )}
     </div>

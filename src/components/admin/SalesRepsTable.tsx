@@ -19,8 +19,8 @@ export function SalesRepsTable({ reps }: { reps: AdminSalesRep[] }) {
         <table className="w-full min-w-[640px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-stone-300 bg-stone-100 text-left text-[11px] uppercase tracking-wide text-ink-soft">
-              <th className="px-3 py-2.5 font-semibold">Details</th>
-              <th className="px-3 py-2.5 text-right font-semibold">Actions</th>
+              <th className="px-3 py-2.5 font-semibold">Στοιχεία</th>
+              <th className="px-3 py-2.5 text-right font-semibold">Ενέργειες</th>
             </tr>
           </thead>
           <tbody>

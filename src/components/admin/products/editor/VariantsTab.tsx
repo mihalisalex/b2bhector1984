@@ -67,31 +67,31 @@ function VariantRow({ styleId, colorway, canEdit }: { styleId: string; colorway:
       {expanded && (
         <form action={updateAction} className="space-y-3 border-t border-stone-300 bg-stone-50 px-4 py-4">
           <div className="grid grid-cols-3 gap-3">
-            <Mini label="Name" name="name" defaultValue={colorway.name} disabled={!canEdit} />
-            <Mini label="SKU suffix" name="skuSuffix" defaultValue={colorway.skuSuffix} disabled={!canEdit} />
-            <Mini label="SKU" name="sku" defaultValue={colorway.sku} disabled={!canEdit} />
+            <Mini label="Όνομα" name="name" defaultValue={colorway.name} disabled={!canEdit} />
+            <Mini label="Κατάληξη κωδικού" name="skuSuffix" defaultValue={colorway.skuSuffix} disabled={!canEdit} />
+            <Mini label="Κωδικός" name="sku" defaultValue={colorway.sku} disabled={!canEdit} />
           </div>
           <div className="grid grid-cols-3 gap-3">
             <Mini label="Barcode" name="barcode" defaultValue={colorway.barcode} disabled={!canEdit} />
-            <Mini label="Swatch 1" name="swatch1" type="color" defaultValue={colorway.swatch[0]} disabled={!canEdit} />
-            <Mini label="Swatch 2" name="swatch2" type="color" defaultValue={colorway.swatch[1] ?? colorway.swatch[0]} disabled={!canEdit} />
+            <Mini label="Δείγμα 1" name="swatch1" type="color" defaultValue={colorway.swatch[0]} disabled={!canEdit} />
+            <Mini label="Δείγμα 2" name="swatch2" type="color" defaultValue={colorway.swatch[1] ?? colorway.swatch[0]} disabled={!canEdit} />
           </div>
           <div className="grid grid-cols-3 gap-3">
-            <Mini label="Price override" name="priceOverride" type="number" step="0.01" defaultValue={colorway.priceOverride} disabled={!canEdit} />
-            <Mini label="Cost override" name="costOverride" type="number" step="0.01" defaultValue={colorway.costOverride} disabled={!canEdit} />
-            <Mini label="Sale price override" name="salePriceOverride" type="number" step="0.01" defaultValue={colorway.salePriceOverride} disabled={!canEdit} />
+            <Mini label="Ειδική τιμή" name="priceOverride" type="number" step="0.01" defaultValue={colorway.priceOverride} disabled={!canEdit} />
+            <Mini label="Ειδικό κόστος" name="costOverride" type="number" step="0.01" defaultValue={colorway.costOverride} disabled={!canEdit} />
+            <Mini label="Ειδική τιμή έκπτωσης" name="salePriceOverride" type="number" step="0.01" defaultValue={colorway.salePriceOverride} disabled={!canEdit} />
           </div>
           <div className="grid grid-cols-4 gap-3">
-            <Mini label="Weight (oz)" name="weightOz" type="number" step="0.01" defaultValue={colorway.weightOz} disabled={!canEdit} />
-            <Mini label="Length (cm)" name="lengthCm" type="number" step="0.1" defaultValue={colorway.lengthCm} disabled={!canEdit} />
-            <Mini label="Width (cm)" name="widthCm" type="number" step="0.1" defaultValue={colorway.widthCm} disabled={!canEdit} />
-            <Mini label="Height (cm)" name="heightCm" type="number" step="0.1" defaultValue={colorway.heightCm} disabled={!canEdit} />
+            <Mini label="Βάρος (oz)" name="weightOz" type="number" step="0.01" defaultValue={colorway.weightOz} disabled={!canEdit} />
+            <Mini label="Μήκος (cm)" name="lengthCm" type="number" step="0.1" defaultValue={colorway.lengthCm} disabled={!canEdit} />
+            <Mini label="Πλάτος (cm)" name="widthCm" type="number" step="0.1" defaultValue={colorway.widthCm} disabled={!canEdit} />
+            <Mini label="Ύψος (cm)" name="heightCm" type="number" step="0.1" defaultValue={colorway.heightCm} disabled={!canEdit} />
           </div>
           <div className="flex items-center justify-between">
             <select name="status" defaultValue={colorway.status ?? "active"} disabled={!canEdit} className="border border-stone-300 bg-white px-2 py-1.5 text-xs">
-              <option value="active">Active</option>
-              <option value="draft">Draft</option>
-              <option value="archived">Archived</option>
+              <option value="active">Ενεργό</option>
+              <option value="draft">Πρόχειρο</option>
+              <option value="archived">Αρχειοθετημένο</option>
             </select>
             {canEdit && (
               <div className="flex items-center gap-3">
@@ -104,7 +104,7 @@ function VariantRow({ styleId, colorway, canEdit }: { styleId: string; colorway:
                   disabled={isDeleting}
                   className="text-xs font-semibold uppercase tracking-wide text-ember hover:underline disabled:opacity-50"
                 >
-                  Delete
+                  Διαγραφή
                 </button>
               </div>
             )}
@@ -125,15 +125,15 @@ function AddVariantForm({ styleId }: { styleId: string }) {
 
   return (
     <form action={formAction} className="space-y-3 border-t border-stone-300 pt-4">
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Add variant</h3>
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Προσθήκη χρώματος</h3>
       <div className="grid grid-cols-3 gap-3">
-        <Mini label="Name" name="name" required />
-        <Mini label="SKU suffix" name="skuSuffix" />
-        <Mini label="SKU" name="sku" />
+        <Mini label="Όνομα" name="name" required />
+        <Mini label="Κατάληξη κωδικού" name="skuSuffix" />
+        <Mini label="Κωδικός" name="sku" />
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <Mini label="Swatch 1" name="swatch1" type="color" defaultValue="#121212" />
-        <Mini label="Swatch 2" name="swatch2" type="color" defaultValue="#6b6b6b" />
+        <Mini label="Δείγμα 1" name="swatch1" type="color" defaultValue="#121212" />
+        <Mini label="Δείγμα 2" name="swatch2" type="color" defaultValue="#6b6b6b" />
       </div>
       <button type="submit" disabled={isPending} className="border border-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-white disabled:opacity-50">
         {isPending ? "Adding…" : "Add variant"}

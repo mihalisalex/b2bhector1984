@@ -7,23 +7,23 @@ import { validateImportRowsAction, importProductRowsAction } from "@/lib/product
 import type { ImportRow, ImportRowPreview, ImportRowResult } from "@/lib/data/productImport";
 
 const TARGET_FIELDS: { value: keyof ImportRow | "ignore"; label: string }[] = [
-  { value: "ignore", label: "— Ignore this column —" },
-  { value: "styleNumber", label: "Style number (required, matches existing)" },
-  { value: "name", label: "Product name (required)" },
-  { value: "category", label: "Category" },
-  { value: "season", label: "Season" },
-  { value: "gender", label: "Gender" },
-  { value: "tagline", label: "Short description" },
-  { value: "description", label: "Full description" },
-  { value: "taglineEl", label: "Short description — Greek" },
-  { value: "descriptionEl", label: "Full description — Greek" },
-  { value: "materialsEl", label: "Materials — Greek (pipe-separated)" },
-  { value: "lastNoteEl", label: "Last note — Greek" },
-  { value: "basePrice", label: "Wholesale price" },
-  { value: "msrp", label: "MSRP" },
-  { value: "costPrice", label: "Cost price" },
-  { value: "brandName", label: "Brand name" },
-  { value: "tags", label: "Tags (comma/semicolon-separated)" },
+  { value: "ignore", label: "— Αγνόησε τη στήλη —" },
+  { value: "styleNumber", label: "Κωδικός (υποχρεωτικό, ταιριάζει με υπάρχον)" },
+  { value: "name", label: "Όνομα προϊόντος (υποχρεωτικό)" },
+  { value: "category", label: "Κατηγορία" },
+  { value: "season", label: "Σεζόν" },
+  { value: "gender", label: "Φύλο" },
+  { value: "tagline", label: "Σύντομη περιγραφή" },
+  { value: "description", label: "Πλήρης περιγραφή" },
+  { value: "taglineEl", label: "Σύντομη περιγραφή, ελληνικά" },
+  { value: "descriptionEl", label: "Πλήρης περιγραφή, ελληνικά" },
+  { value: "materialsEl", label: "Υλικά, ελληνικά (με |)" },
+  { value: "lastNoteEl", label: "Σχόλιο, ελληνικά" },
+  { value: "basePrice", label: "Χονδρική" },
+  { value: "msrp", label: "Προτεινόμενη λιανική" },
+  { value: "costPrice", label: "Κόστος" },
+  { value: "brandName", label: "Μάρκα" },
+  { value: "tags", label: "Ετικέτες (με κόμμα ή ;)" },
 ];
 
 function guessMapping(column: string): keyof ImportRow | "ignore" {
@@ -132,7 +132,7 @@ export function ImportWizard() {
     <div className="max-w-3xl space-y-6">
       {step === "upload" && (
         <div className="border border-dashed border-stone-300 bg-white px-6 py-10 text-center">
-          <p className="text-sm text-ink-soft">Upload a CSV, JSON, or XML file of products.</p>
+          <p className="text-sm text-ink-soft">Ανέβασε αρχείο προϊόντων CSV, JSON ή XML.</p>
           <p className="mt-1 text-xs text-ink-soft">
             (&ldquo;Excel&rdquo; import means CSV — the format Excel itself opens/saves natively — rather than the
             binary .xlsx format, since the only npm-available parser for that has an unpatched high-severity
@@ -192,11 +192,11 @@ export function ImportWizard() {
             <table className="w-full min-w-[680px] border-collapse text-sm">
               <thead>
                 <tr className="border-b border-stone-300 bg-stone-100 text-left text-[11px] uppercase tracking-wide text-ink-soft">
-                  <th className="px-3 py-2">Row</th>
-                  <th className="px-3 py-2">Style #</th>
-                  <th className="px-3 py-2">Name</th>
-                  <th className="px-3 py-2">Action</th>
-                  <th className="px-3 py-2">Errors</th>
+                  <th className="px-3 py-2">Γραμμή</th>
+                  <th className="px-3 py-2">Κωδικός</th>
+                  <th className="px-3 py-2">Όνομα</th>
+                  <th className="px-3 py-2">Ενέργεια</th>
+                  <th className="px-3 py-2">Σφάλματα</th>
                 </tr>
               </thead>
               <tbody>
@@ -216,7 +216,7 @@ export function ImportWizard() {
           </div>
           <div className="mt-4 flex items-center gap-3">
             <button type="button" onClick={() => setStep("map")} className="border border-stone-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-wide text-ink hover:border-ink">
-              Back
+              Πίσω
             </button>
             <button
               type="button"
@@ -249,7 +249,7 @@ export function ImportWizard() {
             </table>
           </div>
           <Link href="/admin/products" className="mt-4 inline-block border border-ink bg-ink px-5 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85">
-            Back to Products
+            Πίσω στα προϊόντα
           </Link>
         </div>
       )}

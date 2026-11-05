@@ -2,7 +2,7 @@ import Link from "next/link";
 import { listJournalPostsForAdmin } from "@/lib/data/journalPosts";
 import type { JournalStatus } from "@/lib/types";
 
-export const metadata = { title: "Journal", robots: { index: false, follow: false } };
+export const metadata = { title: "Άρθρα", robots: { index: false, follow: false } };
 
 const STATUS_CLASSES: Record<JournalStatus, string> = {
   published: "bg-positive-100 text-positive",
@@ -18,14 +18,14 @@ export default async function AdminJournalPage() {
     <div>
       <div className="flex items-center justify-between border-b border-stone-300 pb-6">
         <div>
-          <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink">Journal</h1>
-          <p className="mt-2 text-sm text-ink-soft">SEO content hub — buyer/supplier guides, market insights, case studies.</p>
+          <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink">Άρθρα</h1>
+          <p className="mt-2 text-sm text-ink-soft">Οδηγοί και άρθρα για αγοραστές.</p>
         </div>
         <Link
           href="/admin/journal/new"
           className="border border-ink bg-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85"
         >
-          New article
+          Νέο άρθρο
         </Link>
       </div>
 
@@ -38,10 +38,10 @@ export default async function AdminJournalPage() {
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="border-b border-stone-300 bg-stone-100 text-xs font-semibold uppercase tracking-wide text-ink-soft">
               <tr>
-                <th className="px-4 py-3">Title</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Updated</th>
+                <th className="px-4 py-3">Τίτλος</th>
+                <th className="px-4 py-3">Κατηγορία</th>
+                <th className="px-4 py-3">Κατάσταση</th>
+                <th className="px-4 py-3">Ενημερώθηκε</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-200">
@@ -60,7 +60,7 @@ export default async function AdminJournalPage() {
                     </span>
                     {post.featured && (
                       <span className="ml-1.5 inline-block bg-ink px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
-                        Featured
+                        Προβεβλημένο
                       </span>
                     )}
                   </td>

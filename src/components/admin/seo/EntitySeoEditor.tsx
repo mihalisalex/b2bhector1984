@@ -48,7 +48,7 @@ export function EntitySeoEditor({
   });
 
   const active = allTargets.find((target) => `${target.type}:${target.key}` === activeKey) ?? allTargets[0];
-  if (!active) return <p className="text-sm text-ink-soft">Nothing to edit yet.</p>;
+  if (!active) return <p className="text-sm text-ink-soft">Τίποτα ακόμα.</p>;
 
   return (
     <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
@@ -140,7 +140,7 @@ function EntityForm({
 
       <div>
         <label htmlFor="seoTitle" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">
-          SEO title
+          Τίτλος SEO
         </label>
         <input
           id="seoTitle"
@@ -152,7 +152,7 @@ function EntityForm({
           className="w-full border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal disabled:bg-stone-100"
         />
         <p className="mt-1 text-xs text-ink-soft">
-          Leave blank to use the built-in default shown as placeholder text.
+          Άφησέ το κενό για την προεπιλογή.
         </p>
       </div>
 
@@ -161,7 +161,7 @@ function EntityForm({
           htmlFor="metaDescription"
           className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft"
         >
-          Meta description
+          Περιγραφή SEO
         </label>
         <textarea
           id="metaDescription"
@@ -178,9 +178,9 @@ function EntityForm({
       <SerpPreview title={effectiveTitle} description={effectiveDescription} path={target.path} />
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <TextField label="Focus keyword" name="focusKeyword" defaultValue={override?.focusKeyword} disabled={!canEdit} />
+        <TextField label="Βασική λέξη-κλειδί" name="focusKeyword" defaultValue={override?.focusKeyword} disabled={!canEdit} />
         <TextField
-          label="Secondary keywords (comma-separated)"
+          label="Δευτερεύουσες λέξεις-κλειδιά (με κόμμα)"
           name="secondaryKeywords"
           defaultValue={override?.secondaryKeywords.join(", ")}
           disabled={!canEdit}
@@ -230,12 +230,12 @@ function EntityForm({
 
       <fieldset className="space-y-4 border border-stone-300 bg-white p-4">
         <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-ink-soft">X / Twitter</legend>
-        <p className="text-xs text-ink-soft">Leave blank to reuse the Open Graph values.</p>
+        <p className="text-xs text-ink-soft">Άφησέ το κενό για τις τιμές Open Graph.</p>
         <TextField label="Twitter title" name="twitterTitle" defaultValue={override?.twitterTitle} disabled={!canEdit} />
         <TextAreaField label="Twitter description" name="twitterDescription" defaultValue={override?.twitterDescription} rows={2} disabled={!canEdit} />
         <TextField label="Twitter image URL" name="twitterImageUrl" defaultValue={override?.twitterImageUrl} disabled={!canEdit} />
         <SelectField
-          label="Card type"
+          label="Τύπος κάρτας"
           name="twitterCard"
           defaultValue={override?.twitterCard ?? "summary_large_image"}
           disabled={!canEdit}
@@ -280,7 +280,7 @@ function ResetButton({ type, entityKey, label }: { type: SeoEntityType; entityKe
       }}
     >
       <button type="submit" className="text-xs text-ember underline underline-offset-2">
-        Reset to defaults
+        Επαναφορά
       </button>
     </form>
   );

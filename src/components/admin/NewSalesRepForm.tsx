@@ -19,21 +19,21 @@ export function NewSalesRepForm() {
 
   return (
     <form ref={formRef} action={formAction} className="mt-6 border border-stone-300 bg-stone-50 p-4">
-      <h2 className="text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Add a sales rep</h2>
+      <h2 className="text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Νέος εκπρόσωπος</h2>
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <input name="name" placeholder="Name" required className={inputClass} />
-        <input name="title" placeholder="Title" className={inputClass} />
+        <input name="name" placeholder="Όνομα" required className={inputClass} />
+        <input name="title" placeholder="Τίτλος" className={inputClass} />
         <input name="email" type="email" placeholder="Email" required className={inputClass} />
-        <input name="phone" placeholder="Phone" className={inputClass} />
-        <input name="initials" placeholder="Initials (optional)" className={inputClass} />
-        <input name="territory" placeholder="Territory" className={inputClass} />
+        <input name="phone" placeholder="Τηλέφωνο" className={inputClass} />
+        <input name="initials" placeholder="Αρχικά (προαιρετικό)" className={inputClass} />
+        <input name="territory" placeholder="Περιοχή" className={inputClass} />
       </div>
       <div className="mt-3 flex items-center gap-3">
         <button
           type="submit"
           className="bg-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85"
         >
-          Add Rep
+          Προσθήκη
         </button>
         {state.error && <p className="text-xs text-ember">{state.error}</p>}
         {state.success && <p className="text-xs text-positive">{state.success}</p>}

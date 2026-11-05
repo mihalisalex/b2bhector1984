@@ -25,12 +25,12 @@ export default async function AdminContentPage() {
   return (
     <div>
       <h1 className="font-display border-b border-stone-300 pb-6 text-2xl font-bold uppercase tracking-tight text-ink">
-        Content
+        Περιεχόμενο
       </h1>
-      <p className="mt-2 text-sm text-ink-soft">Edit the homepage hero image and copy.</p>
+      <p className="mt-2 text-sm text-ink-soft">Φωτογραφία και κείμενα της αρχικής σελίδας.</p>
 
       <div className="mt-6 max-w-xl border border-stone-300 bg-stone-100 p-4 text-xs leading-relaxed text-ink-soft">
-        <p className="font-semibold uppercase tracking-wide text-ink">Note — homepage image dimensions</p>
+        <p className="font-semibold uppercase tracking-wide text-ink">Σημείωση: διαστάσεις φωτογραφιών αρχικής</p>
         <p className="mt-2">
           The hero and the season spotlight photos (below, on the homepage — not this page) use fixed
           box sizes per screen width, not the source photo&rsquo;s own proportions, so pick photos that
@@ -46,7 +46,7 @@ export default async function AdminContentPage() {
       </div>
 
       <section className="mt-8">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Hero image</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Κεντρική φωτογραφία</h2>
         <div className="relative mt-3 aspect-[21/9] w-full max-w-xl overflow-hidden border border-stone-300 bg-ink">
           <Image
             src={hero.heroImageUrl}
@@ -64,18 +64,18 @@ export default async function AdminContentPage() {
       </section>
 
       <section className="mt-10 max-w-xl">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Hero copy</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Κείμενα αρχικής</h2>
         <form action={updateHomepageHeroAction} className="mt-3 space-y-5">
           <div className="border border-stone-300 bg-stone-100 p-4">
             <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-ink-soft">
               <input type="checkbox" name="announcementEnabled" defaultChecked={hero.announcementEnabled} className="h-4 w-4 accent-ink" />
-              Announcement bar
+              Γραμμή ανακοίνωσης
             </label>
             <p className="mt-0.5 text-[11px] font-normal normal-case tracking-normal text-ink-soft/70">
-              The bar above the hero on the homepage — e.g. a season or collection launch. Unchecked hides it.
+              Η γραμμή πάνω από την αρχική, π.χ. για νέα σεζόν. Ξετσεκαρισμένη δεν φαίνεται.
             </p>
             <div className="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <Field label="Text — English">
+              <Field label="Κείμενο, αγγλικά">
                 <input
                   type="text"
                   name="announcementText"
@@ -84,7 +84,7 @@ export default async function AdminContentPage() {
                   className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
                 />
               </Field>
-              <Field label="Text — Ελληνικά" hint="Empty falls back to the English text.">
+              <Field label="Κείμενο, ελληνικά" hint="Empty falls back to the English text.">
                 <input
                   type="text"
                   name="announcementTextEl"
@@ -95,7 +95,7 @@ export default async function AdminContentPage() {
                 />
               </Field>
             </div>
-            <Field label="Links to">
+            <Field label="Οδηγεί στο">
               <input
                 type="text"
                 name="announcementHref"
@@ -104,14 +104,14 @@ export default async function AdminContentPage() {
                 className="w-full max-w-[240px] border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
               />
             </Field>
-            <Field label="Bar color">
+            <Field label="Χρώμα γραμμής">
               <select
                 name="announcementColor"
                 defaultValue={hero.announcementColor}
                 className="w-full max-w-[180px] border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
               >
-                <option value="black">Black</option>
-                <option value="burgundy">Burgundy</option>
+                <option value="black">Μαύρο</option>
+                <option value="burgundy">Μπορντό</option>
               </select>
             </Field>
           </div>
@@ -119,7 +119,7 @@ export default async function AdminContentPage() {
           <div className="border border-stone-300 bg-stone-100 p-4">
             <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-ink-soft">
               <input type="checkbox" name="orderPulseEnabled" defaultChecked={hero.orderPulseEnabled} className="h-4 w-4 accent-ink" />
-              Live order activity strip
+              Λωρίδα πρόσφατων παραγγελιών
             </label>
             <p className="mt-0.5 text-[11px] font-normal normal-case tracking-normal text-ink-soft/70">
               The dark band on the homepage showing today&rsquo;s order counts and the month&rsquo;s
@@ -142,7 +142,7 @@ export default async function AdminContentPage() {
           )}
 
           <div className="grid grid-cols-1 gap-x-4 gap-y-4 lg:grid-cols-2">
-            <Field label="Eyebrow — English">
+            <Field label="Μικρή γραμμή, αγγλικά">
               <input
                 type="text"
                 name="eyebrow"
@@ -151,7 +151,7 @@ export default async function AdminContentPage() {
                 className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
               />
             </Field>
-            <Field label="Eyebrow — Ελληνικά">
+            <Field label="Μικρή γραμμή, ελληνικά">
               <input
                 type="text"
                 name="eyebrowEl"
@@ -162,7 +162,7 @@ export default async function AdminContentPage() {
               />
             </Field>
 
-            <Field label="Heading — English" hint="One line per row — each becomes a line break.">
+            <Field label="Τίτλος, αγγλικά" hint="One line per row — each becomes a line break.">
               <textarea
                 name="heading"
                 defaultValue={hero.heading}
@@ -171,7 +171,7 @@ export default async function AdminContentPage() {
                 className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
               />
             </Field>
-            <Field label="Heading — Ελληνικά" hint="One line per row — each becomes a line break.">
+            <Field label="Τίτλος, ελληνικά" hint="One line per row — each becomes a line break.">
               <textarea
                 name="headingEl"
                 defaultValue={hero.headingEl}
@@ -182,7 +182,7 @@ export default async function AdminContentPage() {
               />
             </Field>
 
-            <Field label="Body — English">
+            <Field label="Κείμενο, αγγλικά">
               <textarea
                 name="body"
                 defaultValue={hero.body}
@@ -191,7 +191,7 @@ export default async function AdminContentPage() {
                 className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
               />
             </Field>
-            <Field label="Body — Ελληνικά">
+            <Field label="Κείμενο, ελληνικά">
               <textarea
                 name="bodyEl"
                 defaultValue={hero.bodyEl}
@@ -202,7 +202,7 @@ export default async function AdminContentPage() {
               />
             </Field>
 
-            <Field label="Primary button label — English">
+            <Field label="Κύριο κουμπί, αγγλικά">
               <input
                 type="text"
                 name="primaryCtaLabel"
@@ -211,7 +211,7 @@ export default async function AdminContentPage() {
                 className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
               />
             </Field>
-            <Field label="Primary button label — Ελληνικά">
+            <Field label="Κύριο κουμπί, ελληνικά">
               <input
                 type="text"
                 name="primaryCtaLabelEl"
@@ -222,7 +222,7 @@ export default async function AdminContentPage() {
               />
             </Field>
 
-            <Field label="Secondary button label — English">
+            <Field label="Δεύτερο κουμπί, αγγλικά">
               <input
                 type="text"
                 name="secondaryCtaLabel"
@@ -231,7 +231,7 @@ export default async function AdminContentPage() {
                 className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
               />
             </Field>
-            <Field label="Secondary button label — Ελληνικά">
+            <Field label="Δεύτερο κουμπί, ελληνικά">
               <input
                 type="text"
                 name="secondaryCtaLabelEl"
@@ -246,7 +246,7 @@ export default async function AdminContentPage() {
           {/* The two links are shared, not duplicated per language: they are routes, and
               each domain serves the same page at the same path. */}
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Primary button link" hint="Shared by both languages.">
+            <Field label="Link κύριου κουμπιού" hint="Shared by both languages.">
               <input
                 type="text"
                 name="primaryCtaHref"
@@ -255,7 +255,7 @@ export default async function AdminContentPage() {
                 className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink"
               />
             </Field>
-            <Field label="Secondary button link" hint="Shared by both languages.">
+            <Field label="Link δεύτερου κουμπιού" hint="Shared by both languages.">
               <input
                 type="text"
                 name="secondaryCtaHref"
@@ -267,7 +267,7 @@ export default async function AdminContentPage() {
           </div>
 
           <Field
-            label="Production lead time (days)"
+            label="Ανώτατος χρόνος παράδοσης (ημέρες)"
             hint="Shown to buyers as the estimated wait ('Made to order — ships in ~N days') for any order line that isn't fully covered by on-hand stock, for styles set to 'Made to order' on their Inventory tab. Styles set to 'Pre-order' there show no fixed ETA instead."
           >
             <input
@@ -281,7 +281,7 @@ export default async function AdminContentPage() {
           </Field>
 
           <Field
-            label="WhatsApp order message — closing note"
+            label="Μήνυμα παραγγελίας WhatsApp: κλείσιμο"
             hint="The one free-text line in the automatic WhatsApp message sent to a buyer's phone when they request a proforma invoice — appended after the order figures (pairs, subtotal, VAT, total)."
           >
             {/* Whether WhatsApp is actually wired up is invisible from inside the app — the send
@@ -290,11 +290,11 @@ export default async function AdminContentPage() {
                 deployment's real configuration is visible without shell access. */}
             {whatsappEnabled ? (
               <p className="mb-2 inline-block border border-positive/40 bg-positive-100 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-positive">
-                WhatsApp connected — this note is being sent
+                Το WhatsApp είναι συνδεδεμένο: στέλνεται αυτή η σημείωση
               </p>
             ) : (
               <p className="mb-2 border border-court/50 bg-court-100 px-3 py-2 text-xs text-ink">
-                <strong className="font-semibold uppercase tracking-wide">Not connected.</strong> No
+                <strong className="font-semibold uppercase tracking-wide">Δεν είναι συνδεδεμένο.</strong> No
                 WhatsApp message is sent to anyone yet — buyers get their order confirmation by email
                 only. This note is saved and will be used as soon as{" "}
                 <code className="font-mono-tab">WHATSAPP_ACCESS_TOKEN</code>,{" "}
@@ -315,7 +315,7 @@ export default async function AdminContentPage() {
             type="submit"
             className="border border-ink bg-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85"
           >
-            Save changes
+            Αποθήκευση αλλαγών
           </button>
         </form>
       </section>

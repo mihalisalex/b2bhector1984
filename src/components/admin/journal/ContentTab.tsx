@@ -22,12 +22,12 @@ export function ContentTab({ post }: { post: JournalPost }) {
   return (
     <form action={formAction} className="max-w-3xl space-y-4 pb-20">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Article body</span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Κείμενο άρθρου</span>
         <Link href={`/journal/${post.slug}`} target="_blank" className="text-xs font-semibold uppercase tracking-wide text-ink-soft hover:text-ink">
-          Preview →
+          Προεπισκόπηση →
         </Link>
       </div>
-      <RichTextEditor name="contentHtml" label="Article body" defaultValue={post.contentHtml} allowImages />
+      <RichTextEditor name="contentHtml" label="Κείμενο άρθρου" defaultValue={post.contentHtml} allowImages />
       <button type="submit" disabled={isPending} className="border border-ink bg-ink px-5 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85 disabled:opacity-50">
         {isPending ? "Saving…" : "Save"}
       </button>

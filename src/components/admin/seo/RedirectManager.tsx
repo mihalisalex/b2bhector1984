@@ -70,8 +70,8 @@ export function RedirectManager({ redirects, canEdit }: { redirects: SeoRedirect
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Filter redirects…"
-          aria-label="Filter redirects"
+          placeholder="Φίλτρο…"
+          aria-label="Φίλτρο"
           className="w-64 border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal"
         />
         <span className="text-xs text-ink-soft">
@@ -107,13 +107,13 @@ export function RedirectManager({ redirects, canEdit }: { redirects: SeoRedirect
             <thead className="border-b border-stone-300 bg-stone-50 text-left text-xs uppercase tracking-wide text-ink-soft">
               <tr>
                 {canEdit && <th scope="col" className="w-10 px-3 py-2.5" />}
-                <th scope="col" className="px-4 py-2.5 font-semibold">From</th>
-                <th scope="col" className="px-4 py-2.5 font-semibold">To</th>
-                <th scope="col" className="px-4 py-2.5 font-semibold">Status</th>
-                <th scope="col" className="px-4 py-2.5 font-semibold">Origin</th>
-                <th scope="col" className="px-4 py-2.5 text-right font-semibold">Hits</th>
-                <th scope="col" className="px-4 py-2.5 font-semibold">State</th>
-                {canEdit && <th scope="col" className="px-4 py-2.5 text-right font-semibold">Actions</th>}
+                <th scope="col" className="px-4 py-2.5 font-semibold">Από</th>
+                <th scope="col" className="px-4 py-2.5 font-semibold">Προς</th>
+                <th scope="col" className="px-4 py-2.5 font-semibold">Κατάσταση</th>
+                <th scope="col" className="px-4 py-2.5 font-semibold">Προέλευση</th>
+                <th scope="col" className="px-4 py-2.5 text-right font-semibold">Επισκέψεις</th>
+                <th scope="col" className="px-4 py-2.5 font-semibold">Κατάσταση</th>
+                {canEdit && <th scope="col" className="px-4 py-2.5 text-right font-semibold">Ενέργειες</th>}
               </tr>
             </thead>
             <tbody>
@@ -154,7 +154,7 @@ export function RedirectManager({ redirects, canEdit }: { redirects: SeoRedirect
                           onClick={() => setEditing(redirect.id)}
                           className="text-xs underline underline-offset-2 hover:text-ink"
                         >
-                          Edit
+                          Επεξεργασία
                         </button>
                         <DeleteButton id={redirect.id} fromPath={redirect.fromPath} />
                       </td>
@@ -179,10 +179,10 @@ function CreateRedirectForm() {
 
   return (
     <form action={formAction} className="border border-stone-300 bg-white p-4">
-      <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Add a redirect</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Νέα ανακατεύθυνση</p>
       <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_1fr_auto_auto]">
         <label className="block">
-          <span className="sr-only">From path</span>
+          <span className="sr-only">Από διεύθυνση</span>
           <input
             name="fromPath"
             required
@@ -191,7 +191,7 @@ function CreateRedirectForm() {
           />
         </label>
         <label className="block">
-          <span className="sr-only">To path</span>
+          <span className="sr-only">Προς διεύθυνση</span>
           <input
             name="toPath"
             required
@@ -200,7 +200,7 @@ function CreateRedirectForm() {
           />
         </label>
         <label className="block">
-          <span className="sr-only">Status code</span>
+          <span className="sr-only">Κωδικός</span>
           <select
             name="statusCode"
             defaultValue="301"
@@ -221,7 +221,7 @@ function CreateRedirectForm() {
       </div>
       <input
         name="notes"
-        placeholder="Note (optional) — why this redirect exists"
+        placeholder="Σημείωση (προαιρετικό)"
         className="mt-3 w-full border border-stone-300 px-3 py-2 text-sm outline-none focus-visible:border-signal"
       />
       <p className="mt-2 text-xs text-ink-soft">
@@ -249,20 +249,20 @@ function EditRow({ redirect, onDone }: { redirect: SeoRedirect; onDone: () => vo
             name="fromPath"
             defaultValue={redirect.fromPath}
             required
-            aria-label="From path"
+            aria-label="Από διεύθυνση"
             className="w-full border border-stone-300 px-3 py-2 font-mono-tab text-sm"
           />
           <input
             name="toPath"
             defaultValue={redirect.toPath}
             required
-            aria-label="To path"
+            aria-label="Προς διεύθυνση"
             className="w-full border border-stone-300 px-3 py-2 font-mono-tab text-sm"
           />
           <select
             name="statusCode"
             defaultValue={String(redirect.statusCode)}
-            aria-label="Status code"
+            aria-label="Κωδικός"
             className="border border-stone-300 bg-white px-3 py-2 text-sm"
           >
             {STATUS_OPTIONS.map((option) => (
@@ -271,7 +271,7 @@ function EditRow({ redirect, onDone }: { redirect: SeoRedirect; onDone: () => vo
           </select>
           <label className="flex items-center gap-2 text-xs text-ink">
             <input type="checkbox" name="enabled" defaultChecked={redirect.enabled} className="h-4 w-4 accent-ink" />
-            Active
+            Ενεργό
           </label>
           <button
             type="submit"
@@ -285,13 +285,13 @@ function EditRow({ redirect, onDone }: { redirect: SeoRedirect; onDone: () => vo
             onClick={onDone}
             className="border border-stone-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-wide text-ink-soft"
           >
-            Cancel
+            Άκυρο
           </button>
           <input
             name="notes"
             defaultValue={redirect.notes ?? ""}
-            placeholder="Note"
-            aria-label="Note"
+            placeholder="Σημείωση"
+            aria-label="Σημείωση"
             className="w-full border border-stone-300 px-3 py-2 text-sm lg:col-span-6"
           />
         </form>
@@ -314,7 +314,7 @@ function DeleteButton({ id, fromPath }: { id: string; fromPath: string }) {
       }}
     >
       <button type="submit" className="ml-3 text-xs text-ember underline underline-offset-2">
-        Delete
+        Διαγραφή
       </button>
     </form>
   );
@@ -426,7 +426,7 @@ function ExportButton({ redirects }: { redirects: SeoRedirect[] }) {
       disabled={redirects.length === 0}
       className="border border-stone-300 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-wide text-ink hover:border-ink disabled:opacity-40"
     >
-      Export CSV
+      Εξαγωγή (CSV)
     </button>
   );
 }

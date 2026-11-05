@@ -14,12 +14,12 @@ export function NewSupplierForm() {
       {/* The submit button already reads "Add supplier"; repeating it as the heading made the
           same two words appear twice in one small card. The heading now says what the form is
           for, the button says what it does. */}
-      <h2 className="col-span-2 text-xs font-semibold uppercase tracking-wide text-ink-soft">New supplier</h2>
-      <input name="name" placeholder="Name" required className="border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal" />
-      <input name="contactName" placeholder="Contact name" className="border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal" />
+      <h2 className="col-span-2 text-xs font-semibold uppercase tracking-wide text-ink-soft">Νέος προμηθευτής</h2>
+      <input name="name" placeholder="Όνομα" required className="border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal" />
+      <input name="contactName" placeholder="Όνομα επικοινωνίας" className="border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal" />
       <input name="email" type="email" placeholder="Email" className="border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal" />
-      <input name="phone" placeholder="Phone" className="border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal" />
-      <input name="leadTimeDays" type="number" placeholder="Lead time (days)" className="border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal" />
+      <input name="phone" placeholder="Τηλέφωνο" className="border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal" />
+      <input name="leadTimeDays" type="number" placeholder="Χρόνος παράδοσης (ημέρες)" className="border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal" />
       {state.error && <p className="col-span-2 text-xs text-ember">{state.error}</p>}
       <button type="submit" disabled={isPending} className="col-span-2 border border-ink bg-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85 disabled:opacity-50">
         {isPending ? "Adding…" : "Add supplier"}

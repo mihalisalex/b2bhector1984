@@ -1,7 +1,7 @@
 import { getAnalyticsSummary } from "@/lib/data/analytics";
 import { formatEUR } from "@/lib/pricing";
 
-export const metadata = { title: "Analytics", robots: { index: false, follow: false } };
+export const metadata = { title: "Στατιστικά", robots: { index: false, follow: false } };
 
 export default async function AdminAnalyticsPage() {
   const { monthlyRevenue, topStyles, reorderRatePct } = await getAnalyticsSummary();
@@ -11,13 +11,13 @@ export default async function AdminAnalyticsPage() {
   return (
     <div>
       <h1 className="font-display border-b border-stone-300 pb-6 text-2xl font-bold uppercase tracking-tight text-ink">
-        Analytics
+        Στατιστικά
       </h1>
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <section className="border border-stone-300 bg-white p-5 lg:col-span-2">
           <h2 className="text-[11px] font-semibold uppercase tracking-wide text-ink-soft">
-            Revenue — last 6 months
+            Τζίρος, τελευταίοι 6 μήνες
           </h2>
           <div className="mt-4 flex flex-col gap-2.5">
             {monthlyRevenue.map((m) => (
@@ -38,18 +38,18 @@ export default async function AdminAnalyticsPage() {
         </section>
 
         <section className="border border-stone-300 bg-white p-5">
-          <h2 className="text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Reorder rate</h2>
+          <h2 className="text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Ποσοστό επαναληπτικών</h2>
           <p className="font-mono-tab mt-3 text-4xl font-bold text-ink">{reorderRatePct}%</p>
           <p className="mt-2 text-xs text-ink-soft">
-            Share of buyer accounts with more than one order placed, among accounts with at least one.
+            Πελάτες με πάνω από μία παραγγελία, από όσους έχουν τουλάχιστον μία.
           </p>
         </section>
       </div>
 
       <section className="mt-6 border border-stone-300 bg-white p-5">
-        <h2 className="text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Top styles by pairs sold</h2>
+        <h2 className="text-[11px] font-semibold uppercase tracking-wide text-ink-soft">Κορυφαία μοντέλα σε ζευγάρια</h2>
         {topStyles.length === 0 ? (
-          <p className="mt-4 text-sm text-ink-soft">No orders yet.</p>
+          <p className="mt-4 text-sm text-ink-soft">Καμία παραγγελία ακόμα.</p>
         ) : (
           <div className="mt-4 flex flex-col gap-2.5">
             {topStyles.map((s) => (

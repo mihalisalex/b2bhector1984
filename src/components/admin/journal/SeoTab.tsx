@@ -30,7 +30,7 @@ export function SeoTab({ post, siteName }: { post: JournalPost; siteName: string
   return (
     <form action={formAction} className="max-w-xl space-y-5 pb-20">
       <div className="border border-stone-300 bg-stone-100 p-4">
-        <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Live SERP preview</span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Προεπισκόπηση Google</span>
         <div className="mt-2 border border-stone-300 bg-white p-3">
           <p className="truncate text-[13px] text-court">hectorfootwear.gr › journal › {post.slug}</p>
           <p className="mt-0.5 truncate text-lg text-signal">{previewTitle}</p>
@@ -38,12 +38,12 @@ export function SeoTab({ post, siteName }: { post: JournalPost; siteName: string
         </div>
       </div>
 
-      <Field label="SEO title" hint={`Blank uses the generated title: "${generatedTitle}"`} grade={gradeLength(title || generatedTitle, 1, TITLE_MAX)}>
+      <Field label="Τίτλος SEO" hint={`Blank uses the generated title: "${generatedTitle}"`} grade={gradeLength(title || generatedTitle, 1, TITLE_MAX)}>
         <input name="seoTitle" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full border border-stone-300 bg-white px-3 py-2 text-sm text-ink" />
       </Field>
 
       <Field
-        label="Meta description"
+        label="Περιγραφή SEO"
         hint={`Blank uses the generated description.`}
         grade={gradeLength(description || generatedDescription, 1, DESCRIPTION_MAX)}
       >

@@ -6,8 +6,8 @@ import type { JournalPost } from "@/lib/types";
 export function MediaTab({ post }: { post: JournalPost }) {
   return (
     <div className="max-w-xl pb-20">
-      <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Featured image</span>
-      <p className="mt-1 text-xs text-ink-soft">Used on the journal listing, the article header, and as the fallback Open Graph image.</p>
+      <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Κύρια φωτογραφία</span>
+      <p className="mt-1 text-xs text-ink-soft">Φαίνεται στη λίστα, στην κορυφή του άρθρου και στις κοινοποιήσεις.</p>
 
       <div className="relative mt-3 aspect-[16/9] w-full overflow-hidden border border-stone-300 bg-stone-100">
         {post.featuredImageUrl ? (
@@ -19,7 +19,7 @@ export function MediaTab({ post }: { post: JournalPost }) {
             className="object-cover"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-xs text-ink-soft">No image uploaded yet</div>
+          <div className="flex h-full items-center justify-center text-xs text-ink-soft">Καμία φωτογραφία ακόμα</div>
         )}
       </div>
 

@@ -35,39 +35,39 @@ export function GeneralTab({
 
   return (
     <form action={formAction} className="max-w-3xl space-y-5 pb-20">
-      {!canEdit && <p className="border border-stone-300 bg-stone-100 px-4 py-2 text-sm text-ink-soft">Your role has view-only access to this tab.</p>}
+      {!canEdit && <p className="border border-stone-300 bg-stone-100 px-4 py-2 text-sm text-ink-soft">Ο ρόλος σου επιτρέπει μόνο προβολή.</p>}
 
       <div className="grid grid-cols-2 gap-4">
-        <TextField label="Product name" name="name" defaultValue={style.name} required disabled={!canEdit} />
-        <TextField label="Style number (SKU)" name="styleNumber" defaultValue={style.styleNumber} required disabled={!canEdit} />
+        <TextField label="Όνομα προϊόντος" name="name" defaultValue={style.name} required disabled={!canEdit} />
+        <TextField label="Κωδικός" name="styleNumber" defaultValue={style.styleNumber} required disabled={!canEdit} />
       </div>
 
-      <TextField label="Product type" name="productType" defaultValue={style.productType} disabled={!canEdit} />
+      <TextField label="Τύπος προϊόντος" name="productType" defaultValue={style.productType} disabled={!canEdit} />
 
-      <TextField label="Short description" name="tagline" defaultValue={style.tagline} disabled={!canEdit} />
+      <TextField label="Σύντομη περιγραφή" name="tagline" defaultValue={style.tagline} disabled={!canEdit} />
 
       <div>
-        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Full description</label>
-        <RichTextEditor name="description" label="Full description" defaultValue={style.description} disabled={!canEdit} />
+        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Πλήρης περιγραφή</label>
+        <RichTextEditor name="description" label="Πλήρης περιγραφή" defaultValue={style.description} disabled={!canEdit} />
       </div>
 
       <div className="grid grid-cols-3 gap-4">
         <SelectField
-          label="Category"
+          label="Κατηγορία"
           name="category"
           defaultValue={style.category}
           disabled={!canEdit}
           options={Object.entries(CATEGORY_LABEL).map(([value, label]) => ({ value, label }))}
         />
         <SelectField
-          label="Season"
+          label="Σεζόν"
           name="season"
           defaultValue={style.season}
           disabled={!canEdit}
           options={Object.entries(SEASON_LABEL).map(([value, label]) => ({ value, label }))}
         />
         <SelectField
-          label="Gender"
+          label="Φύλο"
           name="gender"
           defaultValue={style.gender}
           disabled={!canEdit}
@@ -76,22 +76,22 @@ export function GeneralTab({
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <SelectField label="Brand" name="brandId" defaultValue={style.brandId} disabled={!canEdit} options={brands.map((b) => ({ value: b.id, label: b.name }))} />
+        <SelectField label="Μάρκα" name="brandId" defaultValue={style.brandId} disabled={!canEdit} options={brands.map((b) => ({ value: b.id, label: b.name }))} />
         <SelectField
-          label="Supplier"
+          label="Προμηθευτής"
           name="supplierId"
           defaultValue={style.supplierId ?? ""}
           disabled={!canEdit}
-          options={[{ value: "", label: "— None —" }, ...suppliers.map((s) => ({ value: s.id, label: s.name }))]}
+          options={[{ value: "", label: "— Κανένας —" }, ...suppliers.map((s) => ({ value: s.id, label: s.name }))]}
         />
       </div>
 
-      <TextAreaField label="Materials (comma-separated)" name="materials" defaultValue={style.materials.join(", ")} rows={2} disabled={!canEdit} />
-      <TextField label="Tags (comma-separated)" name="tags" defaultValue={style.tags.join(", ")} disabled={!canEdit} />
+      <TextAreaField label="Υλικά (με κόμμα)" name="materials" defaultValue={style.materials.join(", ")} rows={2} disabled={!canEdit} />
+      <TextField label="Ετικέτες (με κόμμα)" name="tags" defaultValue={style.tags.join(", ")} disabled={!canEdit} />
 
       <div>
         <TextField
-          label="Catalogue date"
+          label="Ημερομηνία καταλόγου"
           name="createdAt"
           type="datetime-local"
           defaultValue={toDateTimeInput(style.createdAt)}
@@ -105,7 +105,7 @@ export function GeneralTab({
 
       {collections.length > 0 && (
         <div>
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Collections</label>
+          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Συλλογές</label>
           <div className="flex flex-wrap gap-3">
             {collections.map((c) => (
               <label key={c.id} className="flex items-center gap-1.5 text-sm text-ink">

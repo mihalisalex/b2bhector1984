@@ -42,7 +42,7 @@ export function RelatedTab({ style, allStyles, canEdit }: { style: Style; allSty
             {entries.map((r) => (
               <RelationRow key={r.id} styleId={style.id} relationId={r.id} name={nameById.get(r.relatedStyleId) ?? r.relatedStyleId} canEdit={canEdit} />
             ))}
-            {entries.length === 0 && <p className="text-sm text-ink-soft">None set.</p>}
+            {entries.length === 0 && <p className="text-sm text-ink-soft">Κανένα.</p>}
           </div>
         </div>
       ))}
@@ -50,7 +50,7 @@ export function RelatedTab({ style, allStyles, canEdit }: { style: Style; allSty
       {canEdit && (
         <form action={addAction} className="flex items-end gap-3 border-t border-stone-300 pt-4">
           <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Product</label>
+            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Προϊόν</label>
             <select
               name="relatedStyleId"
               value={relatedStyleId}
@@ -63,7 +63,7 @@ export function RelatedTab({ style, allStyles, canEdit }: { style: Style; allSty
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Relationship</label>
+            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Σχέση</label>
             <select
               name="relationType"
               value={relationType}
@@ -99,7 +99,7 @@ function RelationRow({ styleId, relationId, name, canEdit }: { styleId: string; 
       {canEdit && (
         <form action={deleteAction}>
           <input type="hidden" name="id" value={relationId} />
-          <button type="submit" disabled={isDeleting} className="text-xs font-medium text-ember hover:underline disabled:opacity-50">Remove</button>
+          <button type="submit" disabled={isDeleting} className="text-xs font-medium text-ember hover:underline disabled:opacity-50">Αφαίρεση</button>
         </form>
       )}
     </div>

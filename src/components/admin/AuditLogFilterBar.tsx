@@ -31,9 +31,9 @@ export function AuditLogFilterBar() {
       type="search"
       value={searchValue}
       onChange={(e) => handleSearchChange(e.target.value)}
-      placeholder="Search action, target, or detail…"
+      placeholder="Αναζήτηση…"
       className="mt-4 w-full max-w-sm border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal"
-      aria-label="Search audit log"
+      aria-label="Αναζήτηση στο ιστορικό"
     />
   );
 }

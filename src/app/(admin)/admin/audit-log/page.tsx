@@ -4,7 +4,7 @@ import { formatDate } from "@/lib/format";
 import { AuditLogFilterBar } from "@/components/admin/AuditLogFilterBar";
 import { Pagination } from "@/components/admin/products/Pagination";
 
-export const metadata = { title: "Audit Log", robots: { index: false, follow: false } };
+export const metadata = { title: "Ιστορικό ενεργειών", robots: { index: false, follow: false } };
 
 const PAGE_SIZE = 50;
 
@@ -29,10 +29,10 @@ export default async function AdminAuditLogPage({ searchParams }: { searchParams
   return (
     <div>
       <h1 className="font-display border-b border-stone-300 pb-6 text-2xl font-bold uppercase tracking-tight text-ink">
-        Audit Log
+        Ιστορικό ενεργειών
       </h1>
       <p className="mt-3 max-w-2xl text-sm text-ink-soft">
-        Every admin-initiated order, account, application, and sales-rep change, most recent first.
+        Κάθε αλλαγή από το admin, με τις πιο πρόσφατες πρώτες.
       </p>
 
       <AuditLogFilterBar />
@@ -47,11 +47,11 @@ export default async function AdminAuditLogPage({ searchParams }: { searchParams
             <table className="w-full min-w-[760px] border-collapse text-sm">
               <thead>
                 <tr className="border-b border-stone-300 bg-stone-100 text-left text-[11px] uppercase tracking-wide text-ink-soft">
-                  <th className="px-3 py-2.5 font-semibold">When</th>
-                  <th className="px-3 py-2.5 font-semibold">Actor</th>
-                  <th className="px-3 py-2.5 font-semibold">Action</th>
-                  <th className="px-3 py-2.5 font-semibold">Target</th>
-                  <th className="px-3 py-2.5 font-semibold">Detail</th>
+                  <th className="px-3 py-2.5 font-semibold">Πότε</th>
+                  <th className="px-3 py-2.5 font-semibold">Ποιος</th>
+                  <th className="px-3 py-2.5 font-semibold">Ενέργεια</th>
+                  <th className="px-3 py-2.5 font-semibold">Σε τι</th>
+                  <th className="px-3 py-2.5 font-semibold">Λεπτομέρεια</th>
                 </tr>
               </thead>
               <tbody>

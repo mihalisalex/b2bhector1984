@@ -29,7 +29,7 @@ export function JournalEditorShell({ post, siteName }: { post: JournalPost; site
       <div className="sticky top-0 z-20 -mx-6 border-b border-stone-300 bg-stone-50/95 px-6 pb-4 pt-2 backdrop-blur lg:-mx-10 lg:px-10">
         <nav className="pt-2 text-xs text-ink-soft">
           <Link href="/admin/journal" className="hover:text-ink">
-            Journal
+            Άρθρα
           </Link>{" "}
           / {post.title}
         </nav>
@@ -47,16 +47,16 @@ export function JournalEditorShell({ post, siteName }: { post: JournalPost; site
               target="_blank"
               className="border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-ink hover:border-ink"
             >
-              Preview
+              Προεπισκόπηση
             </Link>
             {confirmingDelete ? (
               <span className="flex items-center gap-2 border border-ember bg-ember-100 px-2 py-1 text-xs text-ember">
-                Delete permanently?
+                Οριστική διαγραφή;
                 <button type="button" onClick={handleDelete} disabled={isPending} className="font-semibold underline">
-                  Yes
+                  Ναι
                 </button>
                 <button type="button" onClick={() => setConfirmingDelete(false)} className="underline">
-                  Cancel
+                  Άκυρο
                 </button>
               </span>
             ) : (
@@ -65,7 +65,7 @@ export function JournalEditorShell({ post, siteName }: { post: JournalPost; site
                 onClick={() => setConfirmingDelete(true)}
                 className="border border-ember px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-ember hover:bg-ember-100"
               >
-                Delete
+                Διαγραφή
               </button>
             )}
           </div>

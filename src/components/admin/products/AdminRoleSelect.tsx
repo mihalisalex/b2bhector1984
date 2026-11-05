@@ -39,7 +39,7 @@ export function AdminRoleSelect({
         defaultValue={currentRole}
         disabled={Boolean(disabledReason)}
         title={disabledReason}
-        aria-label="Role"
+        aria-label="Ρόλος"
         onChange={(event) => event.currentTarget.form?.requestSubmit()}
         className="border border-stone-300 bg-white px-2 py-1.5 text-sm outline-none focus-visible:border-signal disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-ink-soft"
       >

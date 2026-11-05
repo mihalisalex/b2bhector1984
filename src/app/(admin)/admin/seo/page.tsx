@@ -34,21 +34,21 @@ export default async function SeoOverviewPage() {
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <ScoreTile score={report.overallScore} />
-        <Tile label="Critical issues" value={report.counts.critical} tone={report.counts.critical > 0 ? "bad" : "good"} />
-        <Tile label="Warnings" value={report.counts.warning} tone={report.counts.warning > 0 ? "warn" : "good"} />
-        <Tile label="Notices" value={report.counts.notice} tone="neutral" />
+        <Tile label="Κρίσιμα" value={report.counts.critical} tone={report.counts.critical > 0 ? "bad" : "good"} />
+        <Tile label="Προειδοποιήσεις" value={report.counts.warning} tone={report.counts.warning > 0 ? "warn" : "good"} />
+        <Tile label="Σημειώσεις" value={report.counts.notice} tone="neutral" />
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Tile label="Products audited" value={report.counts.productsAudited} tone="neutral" />
-        <Tile label="Public pages" value={report.counts.pagesAudited} tone="neutral" />
+        <Tile label="Προϊόντα που ελέγχθηκαν" value={report.counts.productsAudited} tone="neutral" />
+        <Tile label="Δημόσιες σελίδες" value={report.counts.pagesAudited} tone="neutral" />
         <Tile
-          label="Images missing alt text"
+          label="Φωτογραφίες χωρίς περιγραφή"
           value={`${report.counts.imagesMissingAlt} / ${report.counts.imagesAudited}`}
           tone={report.counts.imagesMissingAlt > 0 ? "warn" : "good"}
         />
         <Tile
-          label="Redirects"
+          label="Ανακατευθύνσεις"
           value={`${report.counts.redirects}${report.counts.redirectsDisabled ? ` (${report.counts.redirectsDisabled} off)` : ""}`}
           tone="neutral"
         />
@@ -57,17 +57,17 @@ export default async function SeoOverviewPage() {
       <IssueList issues={report.issues} />
 
       <section>
-        <h2 className="font-display text-lg font-bold uppercase tracking-tight text-ink">Page scores</h2>
-        <p className="mt-1 text-sm text-ink-soft">Lowest first — these are the pages worth fixing next.</p>
+        <h2 className="font-display text-lg font-bold uppercase tracking-tight text-ink">Βαθμολογία σελίδων</h2>
+        <p className="mt-1 text-sm text-ink-soft">Οι χαμηλότερες πρώτες: αυτές αξίζει να διορθωθούν.</p>
         <div className="scroll-thin mt-4 overflow-x-auto border border-stone-300 bg-white">
           <table className="w-full min-w-[640px] text-sm">
             <thead className="border-b border-stone-300 bg-stone-50 text-left text-xs uppercase tracking-wide text-ink-soft">
               <tr>
-                <th scope="col" className="px-4 py-2.5 font-semibold">Page</th>
+                <th scope="col" className="px-4 py-2.5 font-semibold">Σελίδα</th>
                 <th scope="col" className="px-4 py-2.5 font-semibold">URL</th>
-                <th scope="col" className="px-4 py-2.5 font-semibold">Issues</th>
-                <th scope="col" className="px-4 py-2.5 text-right font-semibold">Score</th>
-                <th scope="col" className="px-4 py-2.5 text-right font-semibold">Fix</th>
+                <th scope="col" className="px-4 py-2.5 font-semibold">Προβλήματα</th>
+                <th scope="col" className="px-4 py-2.5 text-right font-semibold">Βαθμός</th>
+                <th scope="col" className="px-4 py-2.5 text-right font-semibold">Διόρθωση</th>
               </tr>
             </thead>
             <tbody>
@@ -81,7 +81,7 @@ export default async function SeoOverviewPage() {
                   </td>
                   <td className="px-4 py-2.5 text-right">
                     <Link href={page.editHref} className="text-xs underline underline-offset-2 hover:text-ink">
-                      Edit
+                      Επεξεργασία
                     </Link>
                   </td>
                 </tr>
@@ -92,7 +92,7 @@ export default async function SeoOverviewPage() {
       </section>
 
       <section className="border border-stone-300 bg-white px-4 py-3 text-sm">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">What this dashboard can&rsquo;t tell you</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Τι δεν δείχνει αυτή η σελίδα</h2>
         <ul className="mt-2 list-disc space-y-1 pl-5 text-ink-soft">
           <li>
             <strong className="text-ink">Indexed page count, impressions and click-through</strong> — these come from
@@ -139,7 +139,7 @@ function IndexingPolicyCard({ indexable, robotsEnabled }: { indexable: boolean; 
 
   return (
     <div className="border border-stone-300 bg-white px-4 py-3 text-sm">
-      <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Indexing policy</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Πολιτική ευρετηρίασης</p>
       {indexable ? (
         <p className="mt-1.5 text-ink">
           <strong>The trade catalogue is public.</strong> Catalogue and product pages are in robots.txt,
@@ -159,7 +159,7 @@ function IndexingPolicyCard({ indexable, robotsEnabled }: { indexable: boolean; 
         href="/admin/seo/settings?section=indexing"
         className="mt-2 inline-block text-xs underline underline-offset-2 hover:text-ink"
       >
-        Change indexing policy
+        Αλλαγή πολιτικής ευρετηρίασης
       </Link>
     </div>
   );
@@ -168,9 +168,9 @@ function IndexingPolicyCard({ indexable, robotsEnabled }: { indexable: boolean; 
 function ScoreTile({ score }: { score: number }) {
   return (
     <div className="border border-stone-300 bg-ink px-4 py-3 text-white">
-      <p className="text-xs font-semibold uppercase tracking-wide text-white/70">Overall SEO score</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-white/70">Συνολική βαθμολογία SEO</p>
       <p className="mt-1 font-display text-3xl font-bold">{score}</p>
-      <p className="text-xs text-white/70">out of 100, averaged across every page</p>
+      <p className="text-xs text-white/70">στα 100, μέσος όρος όλων των σελίδων</p>
     </div>
   );
 }
@@ -216,7 +216,7 @@ function IssueList({ issues }: { issues: SeoIssue[] }) {
   if (issues.length === 0) {
     return (
       <section className="border border-positive bg-positive/5 px-4 py-3 text-sm text-ink">
-        No SEO issues found across products, public pages or redirects.
+        Κανένα πρόβλημα SEO.
       </section>
     );
   }
@@ -229,9 +229,9 @@ function IssueList({ issues }: { issues: SeoIssue[] }) {
   return (
     <section>
       <h2 className="font-display text-lg font-bold uppercase tracking-tight text-ink">
-        Issues <span className="text-ink-soft">({issues.length})</span>
+        Προβλήματα <span className="text-ink-soft">({issues.length})</span>
       </h2>
-      <p className="mt-1 text-sm text-ink-soft">Most severe first.</p>
+      <p className="mt-1 text-sm text-ink-soft">Τα σοβαρότερα πρώτα.</p>
       <ul className="mt-4 divide-y divide-stone-200 border border-stone-300 bg-white">
         {shown.map((issue, index) => (
           <li key={`${issue.code}-${issue.entityLabel}-${index}`} className="flex flex-wrap items-start gap-3 px-4 py-3">
@@ -247,7 +247,7 @@ function IssueList({ issues }: { issues: SeoIssue[] }) {
             </div>
             {issue.fixHref && (
               <Link href={issue.fixHref} className="shrink-0 text-xs underline underline-offset-2 hover:text-ink">
-                Fix
+                Διόρθωση
               </Link>
             )}
           </li>
