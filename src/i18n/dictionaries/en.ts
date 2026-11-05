@@ -481,6 +481,7 @@ const en = {
   /** Product cards, badges, the buy panel — everything around a style on catalogue and
    * product pages. */
   catalog: {
+    allStyles: "All",
     catLoafers: "Loafers", catWedding: "Wedding", catSneakers: "Sneakers", catSandals: "Sandals",
     catBoots: "Boots", catFormal: "Formal", catAnatomic: "Anatomic",
     /** Heading over the journal articles shown beneath a product. */

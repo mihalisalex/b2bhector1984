@@ -80,8 +80,12 @@
   --color-burgundy: var(--color-burgundy);
 }
 
-* {
-  border-color: var(--color-stone-300);
+/* In a layer, so `border-ink` and friends can win: unlayered, this rule outranked every border
+   colour utility on the site, and all borders came out the same light grey. */
+@layer base {
+  * {
+    border-color: var(--color-stone-300);
+  }
 }
 
 html {

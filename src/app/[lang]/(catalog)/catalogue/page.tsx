@@ -15,7 +15,9 @@ import { getFavoriteStyleIds } from "@/lib/data/favorites";
 import { getAccountForAudience } from "@/lib/session";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { getSeasonSettings, toSeasonOptions } from "@/lib/data/seasonSettings";
-import { CatalogSearchInput, CatalogFiltersPanel, CatalogResultsToolbar } from "@/components/catalog/CatalogToolbar";
+import { CatalogCategoryNav, CatalogSearchInput, CatalogFiltersPanel, CatalogResultsToolbar } from "@/components/catalog/CatalogToolbar";
+import { categoryCounts, groupByCategory } from "@/lib/catalogGroups";
+import { categoryLabel } from "@/lib/data/styleLabels";
 import { SaleBanner } from "@/components/catalog/SaleBanner";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductListRow } from "@/components/product/ProductListRow";
@@ -91,53 +93,45 @@ export default async function CatalogPage({
   const showPricing = account !== null;
   const results = sortStyles(filtered, sort, orderLineRows ? pairsSoldByStyle(orderLineRows) : undefined);
   // Only for what's actually rendered this request — cheaper than batching the whole catalogue.
+  // Just looking, as opposed to asking for something specific.
+  const isBrowsing = sort === "newest" && !filters.q && filters.category.length === 0 && filters.season.length === 0 && filters.color.length === 0 && filters.flag.length === 0 && filters.price.length === 0 && filters.box.length === 0 && filters.gender.length === 0 && filters.availability.length === 0;
   const imagesByStyle = view === "grid" ? await listImagesForStyles(results.map((s) => s.id)) : {};
 
   return (
-    <div className="mx-auto max-w-[1440px] px-6 py-10 lg:px-10">
-      {/* "Home" used to point at /dashboard, which redirects a signed-out visitor to
-          /login — a dead end on a page that is now public, and a crawlable link into a
-          gated route. Signed-in buyers still get their dashboard. */}
-      <nav className="mb-3 text-xs text-ink-soft">
-        <Link href={withLocale(locale, account ? "/dashboard" : "/")} className="hover:text-ink">
-          {dict.catalog.home}
-        </Link>{" "}
-        <span className="mx-1">/</span> <span className="text-ink">{dict.nav.catalogue}</span>
-      </nav>
-      <div className="mb-6 flex flex-col gap-5 pt-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          {/* Real per-locale keyword copy. This page carries all 31 products and became
-              publicly indexable on 18 Aug, at which point its H1 was the single word
-              "Catalog" — no keyword, and inconsistent with the "Catalogue" spelling used
-              everywhere else on the site. */}
-          <h1 className="font-display text-4xl leading-[1.1] text-ink sm:text-5xl">
-            {dict.seo.catalogueHeading}
-          </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-ink-soft">{dict.seo.catalogueIntro}</p>
-        </div>
-        <div className="flex items-center gap-2">
+    <div className="mx-auto max-w-[1800px] pb-24">
+      {/* A title and the one thing true of every style; the longer keyword copy sits at the
+          foot of the page, where it serves search engines without standing between a buyer
+          and the shoes. */}
+      <header className="px-6 pb-12 pt-16 lg:px-10 lg:pt-24">
+        <h1 className="font-display text-5xl leading-[1.05] text-ink lg:text-7xl">{dict.seo.catalogueHeading}</h1>
+        <p className="mt-6 text-sm text-ink-soft">
+          {t(dict.catalog.arrivesAround, { date: arrivalLabel })}
+          {!showPricing && ` · ${dict.catalog.tradePricingOnApproval}`}
+        </p>
+      </header>
+
+      <div className="sticky top-(--shell-header-h) z-20 border-y border-stone-200 bg-white/95 backdrop-blur">
+        <div className="flex flex-col gap-2 px-6 py-3 lg:flex-row lg:items-center lg:justify-between lg:gap-8 lg:px-10">
           <Suspense fallback={null}>
-            <CatalogSearchInput />
+            <CatalogCategoryNav categories={categoryCounts(styles)} total={styles.length} />
           </Suspense>
-          <Suspense fallback={null}>
-            <CatalogFiltersPanel
+          <div className="flex items-center gap-5 lg:shrink-0 lg:gap-6">
+            <div className="min-w-0 flex-1 lg:flex-none">
+              <Suspense fallback={null}>
+                <CatalogSearchInput />
+              </Suspense>
+            </div>
+            <Suspense fallback={null}>
+              <CatalogResultsToolbar showPricing={showPricing} />
+            </Suspense>
+            <Suspense fallback={null}>
+              <CatalogFiltersPanel
               seasonOptions={seasonOptions}
               colorOptions={colorOptionsFromStyles(styles)}
             />
-          </Suspense>
+            </Suspense>
+          </div>
         </div>
-      </div>
-
-      {/* True of every style, so it is said once here rather than on each of the cards. */}
-      <p className="mt-4 text-sm text-ink-soft">
-        {t(dict.catalog.arrivesAround, { date: arrivalLabel })}
-        {!showPricing && ` · ${dict.catalog.tradePricingOnApproval}`}
-      </p>
-
-      <div className="mb-4 mt-4">
-        <Suspense fallback={null}>
-          <CatalogResultsToolbar resultCount={results.length} showPricing={showPricing} />
-        </Suspense>
       </div>
 
       {/* Reads the currently-visible results, not the whole catalogue, so the figures always
@@ -145,10 +139,10 @@ export default async function CatalogPage({
           style is in view. */}
       {/* Quotes a discount rate and says it is "already applied to the prices below" —
           meaningless, and slightly misleading, when there are no prices below. */}
-      {showPricing && <SaleBanner styles={results} seasonFiltered={filters.season.length > 0} dict={dict} locale={locale} />}
+      {showPricing && <div className="px-6 pt-6 lg:px-10"><SaleBanner styles={results} seasonFiltered={filters.season.length > 0} dict={dict} locale={locale} /></div>}
 
       {results.length === 0 ? (
-        <div className="border border-dashed border-stone-300 bg-stone-100 px-6 py-20 text-center">
+        <div className="mx-6 mt-10 bg-stone-100 px-6 py-24 text-center lg:mx-10">
           <p className="font-display text-lg font-bold uppercase text-ink">{dict.catalog.emptyTitle}</p>
           <p className="mt-2 text-sm text-ink-soft">{t(dict.catalog.emptyBody, { count: styles.length })}</p>
           {/* A dead-end empty state is the one place a buyer is most likely to give up, so it
@@ -172,7 +166,7 @@ export default async function CatalogPage({
           </div>
         </div>
       ) : view === "list" ? (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 px-6 pt-10 lg:px-10">
           {results.map((style) => (
             <ProductListRow
               key={style.id}
@@ -187,35 +181,48 @@ export default async function CatalogPage({
           ))}
         </div>
       ) : (
-        // Denser than the original editorial 2→3 grid (2026-09-25): buyers compare ~30
-        // styles, and three tall 4:5 cards meant about six per laptop screen. With 4:3
-        // photos and four columns from `xl` the same screen holds about twelve, each card
-        // carrying its own pair/box price and delivery date. Never one column on a phone.
-        // A hairline gap is the only separation, breaking out of the page padding.
+        // Chapters (2026-11-05, owner: the flat grid "looks like some little photos"). Large
+        // photos edge to edge, one chapter per category, the colours of a model side by side.
+        // A search, filter or chosen sort is a question with its own order, so it gets one
+        // plain grid instead. On a phone, an odd chapter opens with one full-width photo.
         <div>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 md:grid-cols-3 xl:grid-cols-4">
-            {results.map((style, i) => (
-              <ProductCard
-                key={style.id}
-                style={style}
-                totalOnHand={totalOnHandForStyle(style.id, inventory)}
-                priceMultiplier={priceMultiplier}
-                showPricing={showPricing}
-                favorited={account ? favoriteIds.has(style.id) : undefined}
-                inventory={account ? inventory[style.id] : undefined}
-                images={imagesByStyle[style.id] ?? []}
-                // Deliberately still 2, not 3, even though `lg` now fits three per row: this
-                // preloads, and on a phone (where LCP is actually measured) the third card
-                // is below the fold, so a third preload would compete with the two visible
-                // ones for bandwidth — the same mistake that cost the homepage hero on
-                // 2026-08-13. The desktop third card lazy-loads, but it's in the viewport
-                // on load so the browser fetches it immediately anyway.
-                priority={i < 2}
-              />
-            ))}
-          </div>
+          {(isBrowsing ? groupByCategory(results) : [{ category: undefined, styles: results }]).map((group, g) => (
+            <section key={group.category ?? "results"} className="pt-14 lg:pt-20">
+              <div className="mb-8 flex items-baseline justify-between gap-4 px-6 lg:px-10">
+                {group.category ? (
+                  <h2 className="font-display text-3xl leading-tight text-ink lg:text-5xl">{categoryLabel(dict, group.category)}</h2>
+                ) : (
+                  <span />
+                )}
+                <span className="text-sm tabular-nums text-ink-soft">
+                  {group.styles.length === 1 ? dict.catalog.styleCountOne : t(dict.catalog.styleCount, { count: group.styles.length })}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-x-0.5 gap-y-12 lg:grid-cols-3">
+                {group.styles.map((style, i) => (
+                  <div key={style.id} className={i === 0 && group.styles.length % 2 === 1 ? "col-span-2 lg:col-span-1" : undefined}>
+                    <ProductCard
+                      style={style}
+                      totalOnHand={totalOnHandForStyle(style.id, inventory)}
+                      priceMultiplier={priceMultiplier}
+                      showPricing={showPricing}
+                      favorited={account ? favoriteIds.has(style.id) : undefined}
+                      inventory={account ? inventory[style.id] : undefined}
+                      images={imagesByStyle[style.id] ?? []}
+                      inset
+                      // Only what can be on the first screen: more would compete for bandwidth
+                      // with the photos actually visible on a phone.
+                      priority={g === 0 && i < 2}
+                    />
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))}
         </div>
       )}
+
+      <p className="mt-24 max-w-2xl px-6 text-sm leading-relaxed text-ink-soft lg:px-10">{dict.seo.catalogueIntro}</p>
     </div>
   );
 }

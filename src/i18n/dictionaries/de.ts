@@ -436,6 +436,7 @@ const de: Dictionary = {
     journeyCurrent: "aktueller Schritt",
   },
   catalog: {
+    allStyles: "Alle",
     catLoafers: "Loafer", catWedding: "Hochzeit", catSneakers: "Sneaker", catSandals: "Sandalen",
     catBoots: "Stiefel", catFormal: "Business", catAnatomic: "Anatomisch",
     /** Heading over the journal articles shown beneath a product. */

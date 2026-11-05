@@ -42,6 +42,7 @@ export function ProductCard({
   inventory,
   images = [],
   priority = false,
+  inset = false,
 }: {
   style: Style;
   totalOnHand?: number;
@@ -56,6 +57,8 @@ export function ProductCard({
    * The catalogue's first row is the Largest Contentful Paint element, and lazy-loading it
    * delays LCP by a round trip. */
   priority?: boolean;
+  /** For an edge-to-edge grid: the photo runs to the tile's edge, so the words need their own margin. */
+  inset?: boolean;
   /** Per-colorway/box stock. Omit to hide Quick Add (e.g. marketing surfaces with no cart). */
   inventory?: StyleInventory;
   /** Real per-colorway tagged photos. A colorway with none just keeps showing the
@@ -97,16 +100,15 @@ export function ProductCard({
     <div className="group flex flex-col">
       <div className="relative overflow-hidden bg-transparent">
         <Link href={`/product/${style.slug}`} tabIndex={-1} aria-hidden className="block">
-          {/* 4:3, not the old 4:5. The photos are portrait with the shoe centred, so the
-              taller box was mostly empty grey above and below a small shoe. The wider box
-              crops that empty space, shows the shoe larger and fits a row more per screen. */}
+          {/* 4:5 (2026-11-05, owner): the shoe with room around it reads as a photograph, where
+              the denser 4:3 crop read as a row of thumbnails. */}
           <StylePlate
             key={imageUrl}
             swatch={activeColorway.swatch}
             imageUrl={imageUrl}
             alt={style.name}
             priority={priority}
-            className={cn("aspect-[4/3] w-full transition-transform duration-700 ease-out group-hover:scale-[1.02]", soldOut && "grayscale")}
+            className={cn("aspect-[4/5] w-full transition-transform duration-700 ease-out group-hover:scale-[1.02]", soldOut && "grayscale")}
           />
           {secondImage && (
             <Image
@@ -133,12 +135,12 @@ export function ProductCard({
         )}
       </div>
 
-      <div className="flex flex-1 flex-col gap-2.5 pt-3.5">
+      <div className={cn("flex flex-1 flex-col gap-2.5 pt-4", inset && "px-4 sm:px-6")}>
         <div>
           {/* Sentence case in the body face: a long name like "5109 Brown - Leather formal
               boots" set in display capitals ran to three lines and was slow to scan across a
               grid. The display face stays for page headings. */}
-          <h3 className="text-[15px] font-medium leading-snug text-ink">
+          <h3 className="text-base leading-snug text-ink">
             <Link href={`/product/${style.slug}`} className="transition-opacity duration-300 hover:opacity-60">
               {styleTitle(style)}
             </Link>

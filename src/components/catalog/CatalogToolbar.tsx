@@ -1,12 +1,12 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SORT_OPTIONS } from "@/lib/catalogSort";
 import { TextAction } from "@/components/ui/TextAction";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/i18n/I18nProvider";
-import { t } from "@/i18n/format";
 import {
   categoryLabel,
   seasonLabel,
@@ -17,16 +17,6 @@ import type { Category, Season } from "@/lib/types";
 const DEFAULT_SEASON_OPTIONS = [
   { value: "summer", label: "Summer" },
   { value: "winter", label: "Winter" },
-];
-
-const CATEGORY_OPTIONS = [
-  { value: "loafers", label: "Loafers" },
-  { value: "wedding", label: "Wedding" },
-  { value: "sneakers", label: "Sneakers" },
-  { value: "sandals", label: "Sandals" },
-  { value: "boots", label: "Boots" },
-  { value: "formal", label: "Formal" },
-  { value: "anatomic", label: "Anatomic" },
 ];
 
 const SEASON_CATEGORIES: Record<string, string[]> = {
@@ -71,7 +61,7 @@ export function CatalogSearchInput() {
       onChange={(e) => handleSearchChange(e.target.value)}
       placeholder={c.searchPlaceholder}
       aria-label={c.searchStyles}
-      className="w-full border border-stone-300 bg-white px-4 py-2 text-sm outline-none focus-visible:border-signal sm:w-64"
+      className="w-full border-b border-stone-300 bg-transparent py-1.5 text-sm outline-none transition-colors duration-300 placeholder:text-ink-soft focus-visible:border-ink sm:w-44"
     />
   );
 }
@@ -144,18 +134,12 @@ export function CatalogFiltersPanel({
 
   const clearAll = () => {
     const params = new URLSearchParams(searchParams.toString());
-    ["category", "season", "gender", "availability", "color", "price", "box", "flag"].forEach((key) => params.delete(key));
+    ["season", "gender", "availability", "color", "price", "box", "flag"].forEach((key) => params.delete(key));
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   const isChecked = (key: string, value: string) => searchParams.getAll(key).includes(value);
-  const checkedSeasons = searchParams.getAll("season");
-  const visibleCategoryOptions =
-    checkedSeasons.length > 0
-      ? CATEGORY_OPTIONS.filter((opt) => checkedSeasons.some((s) => SEASON_CATEGORIES[s]?.includes(opt.value)))
-      : CATEGORY_OPTIONS;
   const activeCount =
-    searchParams.getAll("category").length +
     searchParams.getAll("season").length +
     searchParams.getAll("gender").length +
     searchParams.getAll("availability").length +
@@ -171,8 +155,8 @@ export function CatalogFiltersPanel({
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         className={cn(
-          "flex items-center gap-2 border px-4 py-2 text-xs font-semibold uppercase tracking-wide transition-colors",
-          activeCount > 0 || open ? "border-ink bg-ink text-white" : "border-ink text-ink hover:bg-ink hover:text-white",
+          "flex items-center gap-2 py-1.5 text-sm transition-colors duration-300 hover:text-ink",
+          open || activeCount > 0 ? "text-ink" : "text-ink-soft",
         )}
       >
         {c.filters} {activeCount > 0 && `(${activeCount})`}
@@ -188,12 +172,6 @@ export function CatalogFiltersPanel({
               ))}
             </FilterGroup>
           )}
-
-          <FilterGroup title={c.grpCategory}>
-            {visibleCategoryOptions.map((opt) => (
-              <Checkbox key={opt.value} label={categoryLabel(dict, opt.value as Category)} checked={isChecked("category", opt.value)} onChange={() => toggle("category", opt.value)} />
-            ))}
-          </FilterGroup>
 
 
 
@@ -219,21 +197,14 @@ export function CatalogFiltersPanel({
 
 /** Result count + sort + grid/list toggle row, shown above the results. */
 export function CatalogResultsToolbar({
-  resultCount,
-  showViewToggle = true,
   showPricing = true,
 }: {
-  resultCount: number;
-  showViewToggle?: boolean;
   /** False for visitors who aren't signed in — sorting by a price they can't see is noise. */
   showPricing?: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { dict } = useI18n();
-  const c = dict.catalog;
-
   const setParam = useCallback(
     (key: string, value: string) => {
       const params = new URLSearchParams(searchParams.toString());
@@ -244,19 +215,10 @@ export function CatalogResultsToolbar({
     [pathname, router, searchParams],
   );
 
-  const view = searchParams.get("view") === "list" ? "list" : "grid";
   const sort = searchParams.get("sort") ?? "newest";
 
   return (
-    <div className="flex items-center justify-between gap-2">
-      <span className="font-mono-tab text-xs text-ink-soft">
-        {resultCount === 1 ? c.styleCountOne : t(c.styleCount, { count: resultCount })}
-      </span>
-      <div className="flex items-center gap-2">
-        <SortSelect value={sort} onChange={(v) => setParam("sort", v)} showPricing={showPricing} />
-        {showViewToggle && <ViewToggle view={view} onChange={(v) => setParam("view", v)} />}
-      </div>
-    </div>
+    <SortSelect value={sort} onChange={(v) => setParam("sort", v)} showPricing={showPricing} />
   );
 }
 
@@ -276,7 +238,7 @@ function SortSelect({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       aria-label={c.sortBy}
-      className="border border-stone-300 bg-white px-4 py-2 text-xs uppercase tracking-wide text-ink-soft outline-none focus-visible:border-signal"
+      className="max-w-40 bg-transparent py-1.5 text-sm text-ink-soft outline-none transition-colors duration-300 hover:text-ink"
     >
       {SORT_OPTIONS.filter((o) => showPricing || !o.value.startsWith("price_")).map((o) => (
         <option key={o.value} value={o.value}>{`${c.sortPrefix}: ${sortLabel(dict, o.value)}`}</option>
@@ -285,53 +247,41 @@ function SortSelect({
   );
 }
 
-function ViewToggle({ view, onChange }: { view: string; onChange: (v: "grid" | "list") => void }) {
-  const c = useI18n().dict.catalog;
+/**
+ * The catalogue's chapters as plain words: every category, with how many styles it holds.
+ * Selecting one replaces any other, because it answers "show me the boots", not a query.
+ */
+export function CatalogCategoryNav({ categories, total }: { categories: { value: Category; count: number }[]; total: number }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { dict } = useI18n();
+  const active = searchParams.getAll("category");
+  const href = (value?: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("category");
+    if (value) params.set("category", value);
+    const query = params.toString();
+    return query ? `${pathname}?${query}` : pathname;
+  };
+  const item = (label: string, count: number, value: string | undefined, on: boolean) => (
+    <Link
+      key={label}
+      href={href(value)}
+      scroll={false}
+      aria-current={on ? "true" : undefined}
+      className={cn(
+        "shrink-0 whitespace-nowrap border-b py-1.5 text-sm transition-colors duration-300",
+        on ? "border-ink text-ink" : "border-transparent text-ink-soft hover:text-ink",
+      )}
+    >
+      {label} <span className="text-xs tabular-nums text-ink-soft">{count}</span>
+    </Link>
+  );
   return (
-    <div className="flex items-center overflow-hidden border border-stone-300 text-xs font-semibold uppercase tracking-wide">
-      <button
-        type="button"
-        onClick={() => onChange("grid")}
-        aria-pressed={view === "grid"}
-        aria-label={c.gridView}
-        className={cn("px-2.5 py-1.5 transition-colors", view === "grid" ? "bg-ink text-white" : "bg-white text-ink-soft hover:text-ink")}
-      >
-        <GridIcon />
-      </button>
-      <button
-        type="button"
-        onClick={() => onChange("list")}
-        aria-pressed={view === "list"}
-        aria-label={c.listView}
-        className={cn(
-          "border-l border-stone-300 px-2.5 py-1.5 transition-colors",
-          view === "list" ? "bg-ink text-white" : "bg-white text-ink-soft hover:text-ink",
-        )}
-      >
-        <ListIcon />
-      </button>
+    <div className="flex items-center gap-6 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label={dict.catalog.quickCategoryFilter}>
+      {item(dict.catalog.allStyles, total, undefined, active.length === 0)}
+      {categories.map((c) => item(categoryLabel(dict, c.value), c.count, c.value, active.includes(c.value)))}
     </div>
-  );
-}
-
-function GridIcon() {
-  return (
-    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="currentColor" aria-hidden>
-      <rect x="1" y="1" width="6" height="6" />
-      <rect x="9" y="1" width="6" height="6" />
-      <rect x="1" y="9" width="6" height="6" />
-      <rect x="9" y="9" width="6" height="6" />
-    </svg>
-  );
-}
-
-function ListIcon() {
-  return (
-    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="currentColor" aria-hidden>
-      <rect x="1" y="2" width="14" height="3" />
-      <rect x="1" y="7" width="14" height="3" />
-      <rect x="1" y="12" width="14" height="3" />
-    </svg>
   );
 }
 
