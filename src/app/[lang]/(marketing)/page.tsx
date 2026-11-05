@@ -66,13 +66,10 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   // Note what this deliberately never does: fall back to the ENGLISH database row on a
   // non-English page. That was the old failure this whole project exists to stop, and the
   // dictionary rung guarantees there is always a translated string to reach instead.
-  // PREMIUM_COPY: the new brand copy lives in the dictionary while this redesign is reviewed,
-  // because the database row is shared with the live site. Once approved, the copy goes into
-  // the row and this returns to reading the admin's fields.
   const heroEl = lang === "el";
-  const displayEyebrow = h.heroEyebrow;
-  const displayHeadingRaw = h.heroHeading;
-  const displayBody = h.heroBody;
+  const displayEyebrow = lang === "en" ? hero.eyebrow : (heroEl && hero.eyebrowEl) || h.heroEyebrow;
+  const displayHeadingRaw = lang === "en" ? hero.heading : (heroEl && hero.headingEl) || h.heroHeading;
+  const displayBody = lang === "en" ? hero.body : (heroEl && hero.bodyEl) || h.heroBody;
   /**
    * CTA labels are resolved from the button's own DESTINATION, not from a fixed dictionary
    * key per slot.
