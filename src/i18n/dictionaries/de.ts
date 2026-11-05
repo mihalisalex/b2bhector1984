@@ -437,6 +437,8 @@ const de: Dictionary = {
     journeyCurrent: "aktueller Schritt",
   },
   catalog: {
+    seasonNoteSummer: "Dieser Katalog gilt für die Sommersaison.",
+    seasonNoteWinter: "Dieser Katalog gilt für die Wintersaison.",
     seasonClosedTitle: "Derzeit nicht bestellbar",
     seasonClosedBody: "Dieses Modell lässt sich nicht mehr rechtzeitig zur Saison liefern und ist deshalb gerade nicht bestellbar. Es kommt zurück, sobald die Saison wieder öffnet.",
     seasonClosedCta: "Jetzt bestellbare Modelle ansehen",

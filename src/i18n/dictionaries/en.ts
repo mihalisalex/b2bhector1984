@@ -482,6 +482,8 @@ const en = {
   /** Product cards, badges, the buy panel — everything around a style on catalogue and
    * product pages. */
   catalog: {
+    seasonNoteSummer: "This catalogue is for the summer season.",
+    seasonNoteWinter: "This catalogue is for the winter season.",
     seasonClosedTitle: "Closed for orders this season",
     seasonClosedBody: "This style can’t be delivered in time for its season, so it isn’t open for orders right now. It will be back when the season opens again.",
     seasonClosedCta: "See what you can order now",

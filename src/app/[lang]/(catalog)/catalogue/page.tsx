@@ -5,9 +5,6 @@ import { getStorefrontStyles, searchStyleIds } from "@/lib/data/styles";
 import { matchStylesBySynonyms } from "@/lib/searchSynonyms";
 import { colorOptionsFromStyles, filterStyles, parseFilters } from "@/lib/catalogFilters";
 import { t } from "@/i18n/format";
-import { getHomepageHero } from "@/lib/data/siteContent";
-import { estimatedArrivalIso } from "@/lib/delivery";
-import { formatDayMonth } from "@/lib/format";
 import { isSortKey, pairsSoldByStyle, sortStyles } from "@/lib/catalogSort";
 import { getInventoryForStyles, totalOnHandForStyle } from "@/lib/data/inventory";
 import { listImagesForStyles } from "@/lib/data/styleImages";
@@ -62,7 +59,7 @@ export default async function CatalogPage({
   // Inventory covers the *whole* catalogue rather than the filtered subset: the
   // "in stock now" filter has to be evaluated before we know what's left, and Quick Add
   // needs per-colorway stock for whatever survives anyway.
-  const [styles, seasonSettings, account, { data: orderLineRows }, hero] = await Promise.all([
+  const [styles, seasonSettings, account, { data: orderLineRows }] = await Promise.all([
     getStorefrontStyles(),
     getSeasonSettings(),
     getAccountForAudience(audience),
@@ -73,9 +70,7 @@ export default async function CatalogPage({
           .select("style_id, box_type_id, qty, orders!inner(status)")
           .neq("orders.status", "cancelled")
       : Promise.resolve({ data: null }),
-    getHomepageHero(),
   ]);
-  const arrivalLabel = formatDayMonth(estimatedArrivalIso(hero.productionLeadTimeDays), locale);
   const seasonOptions = toSeasonOptions(seasonSettings);
   // An old link to a closed season shows what is open, not just its all-season styles.
   filters.season = filters.season.filter((season) => seasonOptions.some((o) => o.value === season));
@@ -102,6 +97,9 @@ export default async function CatalogPage({
     .filter((value) => seasonOptions.some((o) => o.value === value))
     .map((value) => ({ value, count: styles.filter((s) => matchesSeason(s, value)).length }));
   const inSeason = filters.season.length > 0 ? styles.filter((s) => filters.season.some((season) => matchesSeason(s, season))) : styles;
+  // The one season on screen: the only one open, or the one the buyer picked.
+  const shownSeason = seasonOptions.length === 1 ? seasonOptions[0].value : filters.season.length === 1 ? filters.season[0] : undefined;
+  const seasonNote = shownSeason === "summer" ? dict.catalog.seasonNoteSummer : shownSeason === "winter" ? dict.catalog.seasonNoteWinter : undefined;
   // Just looking, as opposed to asking for something specific.
   const isBrowsing = sort === "newest" && !filters.q && filters.category.length === 0 && filters.color.length === 0 && filters.flag.length === 0 && filters.price.length === 0 && filters.box.length === 0 && filters.gender.length === 0 && filters.availability.length === 0;
   const imagesByStyle = view === "grid" ? await listImagesForStyles(results.map((s) => s.id)) : {};
@@ -113,10 +111,13 @@ export default async function CatalogPage({
           and the shoes. */}
       <header className="px-6 pb-12 pt-16 lg:px-10 lg:pt-24">
         <h1 className="font-display text-5xl leading-[1.05] text-ink lg:text-7xl">{dict.seo.catalogueHeading}</h1>
-        <p className="mt-6 text-sm text-ink-soft">
-          {t(dict.catalog.arrivesAround, { date: arrivalLabel })}
-          {!showPricing && ` · ${dict.catalog.tradePricingOnApproval}`}
-        </p>
+        {/* Which season this is, not a delivery date: summer is delivered whenever the buyer
+            wants it (owner, 2026-11-05), so one date for the whole list would be wrong. */}
+        {(seasonNote || !showPricing) && (
+          <p className="mt-6 text-sm text-ink-soft">
+            {[seasonNote, !showPricing && dict.catalog.tradePricingOnApproval].filter(Boolean).join(" · ")}
+          </p>
+        )}
         {/* With a season closed there is nothing to choose between. */}
         {seasons.length > 1 && (
           <Suspense fallback={null}>
