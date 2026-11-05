@@ -51,10 +51,7 @@ export default async function OrderDetailPage({
   const uniqueStyleIds = Array.from(new Set(order.lines.map((l) => l.styleId)));
   const styleEntries = await Promise.all(uniqueStyleIds.map(async (sid) => [sid, await getStyleById(sid)] as const));
   const styleById = new Map(styleEntries);
-  // Every order is produced for the buyer; the estimate counts from confirmation once there
-  // is one, otherwise from when the request was sent.
   const hero = await getHomepageHero();
-  const confirmedAt = statusHistory.find((e) => e.status === "confirmed")?.changedAt;
   const termsLabel = { prepay: dict.checkout.termsPrepay, net30: dict.checkout.termsNet30, net60: dict.checkout.termsNet60 }[order.terms];
 
   const thanksName = greetingFirstName(account.contactName);
