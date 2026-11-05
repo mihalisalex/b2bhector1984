@@ -17,6 +17,7 @@ const NAV_SECTIONS: AdminNavSection[] = [
       { href: "/admin/invite", label: "Πρόσκληση καταστήματος" },
       { href: "/admin/buyer-emails", label: "Emails πελατών" },
       { href: "/admin/proforma", label: "Προτιμολόγιο" },
+      { href: "/admin/catalogue", label: "Κατάλογος PDF" },
     ],
   },
   {
