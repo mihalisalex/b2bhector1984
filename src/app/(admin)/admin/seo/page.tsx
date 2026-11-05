@@ -98,7 +98,7 @@ export default async function SeoOverviewPage() {
             <strong className="text-ink">Σελίδες στο ευρετήριο, εμφανίσεις και κλικ</strong>: έρχονται από το Google Search Console, για το οποίο δεν υπάρχει σύνδεση εδώ. Βάλε τον κωδικό επαλήθευσης στις γενικές ρυθμίσεις και δες τα νούμερα στο ίδιο το Search Console.
           </li>
           <li>
-            <strong className="text-ink">Χαλασμένα εξωτερικά links</strong>: θέλουν έλεγχο του site απ' έξω. Ο παραπάνω έλεγχος καλύπτει μόνο τους εσωτερικούς προορισμούς ανακατευθύνσεων.
+            <strong className="text-ink">Χαλασμένα εξωτερικά links</strong>: θέλουν έλεγχο του site από έξω. Ο παραπάνω έλεγχος καλύπτει μόνο τους εσωτερικούς προορισμούς ανακατευθύνσεων.
           </li>
           <li>
             <strong className="text-ink">Έλεγχος δομημένων δεδομένων</strong>: το JSON-LD βγαίνει από τα πραγματικά δεδομένα, αλλά τον τελικό λόγο τον έχει η Google. Η ενότητα SEO κάθε προϊόντος έχει link στο Rich Results Test.
