@@ -15,7 +15,7 @@ import { getFavoriteStyleIds } from "@/lib/data/favorites";
 import { getAccountForAudience } from "@/lib/session";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { getSeasonSettings, toSeasonOptions } from "@/lib/data/seasonSettings";
-import { CatalogCategoryNav, CatalogSearchInput, CatalogFiltersPanel, CatalogResultsToolbar } from "@/components/catalog/CatalogToolbar";
+import { CatalogCategoryNav, CatalogSeasonSwitch, CatalogSearchInput, CatalogFiltersPanel, CatalogResultsToolbar } from "@/components/catalog/CatalogToolbar";
 import { categoryCounts, groupByCategory } from "@/lib/catalogGroups";
 import { categoryLabel } from "@/lib/data/styleLabels";
 import { SaleBanner } from "@/components/catalog/SaleBanner";
@@ -93,8 +93,15 @@ export default async function CatalogPage({
   const showPricing = account !== null;
   const results = sortStyles(filtered, sort, orderLineRows ? pairsSoldByStyle(orderLineRows) : undefined);
   // Only for what's actually rendered this request — cheaper than batching the whole catalogue.
+  // Winter first: that's the order a buyer reads them in, and it's fixed so it doesn't jump.
+  // A style sold in both seasons belongs to both, same as `filterStyles`.
+  const matchesSeason = (style: (typeof styles)[number], season: string) => style.season === "both" || style.season === season;
+  const seasons = ["winter", "summer"]
+    .filter((value) => seasonOptions.some((o) => o.value === value))
+    .map((value) => ({ value, count: styles.filter((s) => matchesSeason(s, value)).length }));
+  const inSeason = filters.season.length > 0 ? styles.filter((s) => filters.season.some((season) => matchesSeason(s, season))) : styles;
   // Just looking, as opposed to asking for something specific.
-  const isBrowsing = sort === "newest" && !filters.q && filters.category.length === 0 && filters.season.length === 0 && filters.color.length === 0 && filters.flag.length === 0 && filters.price.length === 0 && filters.box.length === 0 && filters.gender.length === 0 && filters.availability.length === 0;
+  const isBrowsing = sort === "newest" && !filters.q && filters.category.length === 0 && filters.color.length === 0 && filters.flag.length === 0 && filters.price.length === 0 && filters.box.length === 0 && filters.gender.length === 0 && filters.availability.length === 0;
   const imagesByStyle = view === "grid" ? await listImagesForStyles(results.map((s) => s.id)) : {};
 
   return (
@@ -108,12 +115,15 @@ export default async function CatalogPage({
           {t(dict.catalog.arrivesAround, { date: arrivalLabel })}
           {!showPricing && ` · ${dict.catalog.tradePricingOnApproval}`}
         </p>
+        <Suspense fallback={null}>
+          <CatalogSeasonSwitch seasons={seasons} total={styles.length} />
+        </Suspense>
       </header>
 
       <div className="sticky top-(--shell-header-h) z-20 border-y border-stone-200 bg-white/95 backdrop-blur">
         <div className="flex flex-col gap-2 px-6 py-3 lg:flex-row lg:items-center lg:justify-between lg:gap-8 lg:px-10">
           <Suspense fallback={null}>
-            <CatalogCategoryNav categories={categoryCounts(styles)} total={styles.length} />
+            <CatalogCategoryNav categories={categoryCounts(inSeason)} total={inSeason.length} />
           </Suspense>
           <div className="flex items-center gap-5 lg:shrink-0 lg:gap-6">
             <div className="min-w-0 flex-1 lg:flex-none">
@@ -126,7 +136,6 @@ export default async function CatalogPage({
             </Suspense>
             <Suspense fallback={null}>
               <CatalogFiltersPanel
-              seasonOptions={seasonOptions}
               colorOptions={colorOptionsFromStyles(styles)}
             />
             </Suspense>

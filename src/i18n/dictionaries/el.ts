@@ -440,6 +440,8 @@ const el: Dictionary = {
     journeyCurrent: "τρέχον βήμα",
   },
   catalog: {
+    seasonNavWinter: "Χειμερινά",
+    seasonNavSummer: "Καλοκαιρινά",
     allStyles: "Όλα",
     catLoafers: "Loafers", catWedding: "Γαμήλια", catSneakers: "Sneakers", catSandals: "Σανδάλια",
     catBoots: "Μπότες", catFormal: "Επίσημα", catAnatomic: "Ανατομικά",

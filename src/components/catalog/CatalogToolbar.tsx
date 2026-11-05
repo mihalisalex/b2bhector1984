@@ -9,20 +9,9 @@ import { cn } from "@/lib/cn";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
   categoryLabel,
-  seasonLabel,
   sortLabel,
 } from "@/lib/data/styleLabels";
-import type { Category, Season } from "@/lib/types";
-
-const DEFAULT_SEASON_OPTIONS = [
-  { value: "summer", label: "Summer" },
-  { value: "winter", label: "Winter" },
-];
-
-const SEASON_CATEGORIES: Record<string, string[]> = {
-  summer: ["loafers", "wedding", "sneakers", "sandals"],
-  winter: ["boots", "sneakers", "formal", "anatomic"],
-};
+import type { Category } from "@/lib/types";
 
 
 /** Standalone search box, meant to sit next to the page title. Syncs the `q` param same as before. */
@@ -68,11 +57,8 @@ export function CatalogSearchInput() {
 
 /** "Filters" button that opens a dropdown panel anchored to its own top-right corner. */
 export function CatalogFiltersPanel({
-  seasonOptions = DEFAULT_SEASON_OPTIONS,
   colorOptions = [],
 }: {
-  /** Enabled seasons with their admin-configured display labels; omit to fall back to the stock Summer/Winter pair. */
-  seasonOptions?: { value: string; label: string }[];
   /** Real colourway names from the catalogue (`colorOptionsFromStyles`). Empty hides the group entirely — never invent options here, that was the bug. */
   colorOptions?: string[];
 }) {
@@ -108,39 +94,14 @@ export function CatalogFiltersPanel({
     [pathname, router, searchParams],
   );
 
-  const toggleSeason = useCallback(
-    (value: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      const existingSeasons = params.getAll("season");
-      const nextSeasons = existingSeasons.includes(value)
-        ? existingSeasons.filter((v) => v !== value)
-        : [...existingSeasons, value];
-
-      // Drop any checked category that isn't offered in the new season selection,
-      // so the checkbox list and the active filter never disagree.
-      const allowedCategories =
-        nextSeasons.length > 0 ? new Set(nextSeasons.flatMap((s) => SEASON_CATEGORIES[s] ?? [])) : null;
-      const nextCategories = params.getAll("category").filter((c) => !allowedCategories || allowedCategories.has(c));
-
-      params.delete("season");
-      nextSeasons.forEach((v) => params.append("season", v));
-      params.delete("category");
-      nextCategories.forEach((v) => params.append("category", v));
-
-      router.push(`${pathname}?${params.toString()}`, { scroll: false });
-    },
-    [pathname, router, searchParams],
-  );
-
   const clearAll = () => {
     const params = new URLSearchParams(searchParams.toString());
-    ["season", "gender", "availability", "color", "price", "box", "flag"].forEach((key) => params.delete(key));
+    ["gender", "availability", "color", "price", "box", "flag"].forEach((key) => params.delete(key));
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   const isChecked = (key: string, value: string) => searchParams.getAll(key).includes(value);
   const activeCount =
-    searchParams.getAll("season").length +
     searchParams.getAll("gender").length +
     searchParams.getAll("availability").length +
     searchParams.getAll("color").length +
@@ -164,14 +125,6 @@ export function CatalogFiltersPanel({
 
       {open && (
         <div className="absolute right-0 top-full z-40 mt-2 flex max-h-[70vh] w-72 flex-col gap-5 overflow-y-auto border border-stone-300 bg-white p-4 text-left shadow-lg">
-
-          {seasonOptions.length > 0 && (
-            <FilterGroup title={c.grpSeason}>
-              {seasonOptions.map((opt) => (
-                <Checkbox key={opt.value} label={seasonLabel(dict, opt.value as Season)} checked={isChecked("season", opt.value)} onChange={() => toggleSeason(opt.value)} />
-              ))}
-            </FilterGroup>
-          )}
 
 
 
@@ -300,5 +253,46 @@ function Checkbox({ label, checked, onChange }: { label: string; checked: boolea
       <input type="checkbox" checked={checked} onChange={onChange} className="h-4 w-4 accent-ink" />
       {label}
     </label>
+  );
+}
+
+/**
+ * The first choice a shop owner makes: which season they are buying for. Large words at the top
+ * of the page, as links, so each season has its own shareable address. A style sold in both
+ * seasons counts in both. Changing season clears the category, which may not exist in the other.
+ */
+export function CatalogSeasonSwitch({ seasons, total }: { seasons: { value: string; count: number }[]; total: number }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const c = useI18n().dict.catalog;
+  const active = searchParams.get("season");
+  const href = (value?: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("season");
+    params.delete("category");
+    if (value) params.set("season", value);
+    const query = params.toString();
+    return query ? `${pathname}?${query}` : pathname;
+  };
+  const item = (label: string, count: number, value: string | undefined) => {
+    const on = value ? active === value : !active;
+    return (
+      <Link
+        key={label}
+        href={href(value)}
+        scroll={false}
+        aria-current={on ? "true" : undefined}
+        className={cn("transition-colors duration-300", on ? "text-ink" : "text-ink-soft hover:text-ink")}
+      >
+        <span className="font-display text-xl lg:text-4xl">{label}</span>{" "}
+        <span className="text-xs tabular-nums text-ink-soft">{count}</span>
+      </Link>
+    );
+  };
+  return (
+    <nav className="mt-10 flex flex-wrap items-baseline gap-x-4 gap-y-2 sm:gap-x-8 lg:gap-x-12">
+      {item(c.allStyles, total, undefined)}
+      {seasons.map((s) => item(s.value === "winter" ? c.seasonNavWinter : c.seasonNavSummer, s.count, s.value))}
+    </nav>
   );
 }

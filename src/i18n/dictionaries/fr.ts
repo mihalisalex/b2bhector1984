@@ -436,6 +436,8 @@ const fr: Dictionary = {
     journeyCurrent: "étape en cours",
   },
   catalog: {
+    seasonNavWinter: "Hiver",
+    seasonNavSummer: "Été",
     allStyles: "Tout",
     catLoafers: "Mocassins", catWedding: "Mariage", catSneakers: "Sneakers", catSandals: "Sandales",
     catBoots: "Bottes", catFormal: "Ville", catAnatomic: "Anatomique",
