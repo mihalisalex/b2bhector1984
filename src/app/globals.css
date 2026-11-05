@@ -128,16 +128,12 @@ body {
 
 /* Premium pass (2026-11-05): headings are a regular-weight serif in normal case. Unlayered on
    purpose, so it outranks the `font-bold uppercase` utilities still on many headings. The
-   admin keeps its heavier working style, and the wordmark is its own class. */
+   wordmark is its own class. */
 .font-display {
   font-family: var(--font-display), Arial, Helvetica, sans-serif;
   font-weight: 400;
   text-transform: none;
   letter-spacing: -0.015em;
-}
-[data-admin-theme] .font-display {
-  font-weight: revert-layer;
-  text-transform: revert-layer;
 }
 .brand-mark {
   font-family: var(--font-display), Arial, Helvetica, sans-serif;

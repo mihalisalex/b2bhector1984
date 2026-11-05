@@ -57,7 +57,7 @@ export function OrderLineRow({
             Production{productionEta ? ` · ETA ${formatDate(productionEta)}` : ""}
           </span>
         ) : (
-          <span className="text-xs text-ink-soft">In stock</span>
+          <span className="text-xs text-ink-soft">Σε απόθεμα</span>
         )}
       </td>
       <td className="px-3 py-2 text-right">
@@ -73,7 +73,7 @@ export function OrderLineRow({
             title={canDelete ? "Remove line" : "An order needs at least one line item"}
             className="text-xs font-medium text-ember hover:underline disabled:cursor-not-allowed disabled:text-ink-soft/40 disabled:no-underline"
           >
-            Remove
+            Αφαίρεση
           </button>
         </form>
       </td>

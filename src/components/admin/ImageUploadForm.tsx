@@ -80,7 +80,7 @@ export function ImageUploadForm({
         disabled={pending}
         className="border border-ink bg-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {pending ? "Uploading…" : buttonLabel}
+        {pending ? "Ανέβασμα…" : buttonLabel}
       </button>
       {error && (
         <p role="alert" className="w-full border border-ember/40 bg-ember-100 px-3 py-2 text-xs text-ember">

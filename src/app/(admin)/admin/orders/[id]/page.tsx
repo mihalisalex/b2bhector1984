@@ -53,7 +53,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
   return (
     <div>
       <nav className="mb-6 text-xs text-ink-soft">
-        <Link href="/admin" className="hover:text-ink">Orders</Link> / {order.id}
+        <Link href="/admin" className="hover:text-ink">Παραγγελίες</Link> / {order.id}
       </nav>
 
       {/* Same reasoning as the buyer-facing order page: production is an ordinary
@@ -82,17 +82,17 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
             href={`/api/orders/${order.id}/invoice`}
             className="border border-stone-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-ink-soft hover:border-ink hover:text-ink"
           >
-            Download Invoice
+            Λήψη τιμολογίου
           </a>
           <OrderNextStep orderId={order.id} status={order.status} />
-          <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Status</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Κατάσταση</span>
           <OrderStatusForm orderId={order.id} status={order.status} />
         </div>
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <section className="border border-stone-300 bg-white p-5 lg:col-span-2">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Order Details</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Στοιχεία παραγγελίας</h2>
           <div className="mt-4">
             <OrderDetailsForm
               orderId={order.id}
@@ -110,7 +110,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 
         <div className="flex flex-col gap-6">
           <section className="border border-stone-300 bg-ink p-5 text-stone-200">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-stone-300/70">Buyer</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-stone-300/70">Πελάτης</h2>
             <div className="mt-3">
               <p className="text-sm font-semibold text-white">{order.contactName}</p>
               <p className="text-xs text-stone-300/70">{order.businessName}</p>
@@ -119,10 +119,10 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
               <a href={`mailto:${order.email}`} className="hover:text-white">{order.email}</a>
               {whatsappToBuyer ? (
                 <a href={whatsappToBuyer} target="_blank" rel="noopener noreferrer" className="font-semibold text-[#25D366] hover:text-white">
-                  WhatsApp the buyer this status →
+                  Στείλε την κατάσταση με WhatsApp →
                 </a>
               ) : (
-                <span className="text-stone-300/50">No mobile on file for WhatsApp (add it in Accounts)</span>
+                <span className="text-stone-300/50">Δεν υπάρχει κινητό για WhatsApp (πρόσθεσέ το στους Πελάτες)</span>
               )}
               {account &&
                 (account.rep.phone ? (
@@ -143,7 +143,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
           </section>
 
           <section className="border border-stone-300 bg-white p-5">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Status History</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Ιστορικό</h2>
             <div className="mt-4">
               <StatusTimeline events={statusHistory} />
             </div>
@@ -153,19 +153,19 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 
       <section className="mt-6 border border-stone-300 bg-white">
         <h2 className="border-b border-stone-300 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-ink-soft">
-          Line Items
+          Προϊόντα
         </h2>
         <div className="scroll-thin overflow-x-auto">
           <table className="w-full min-w-[700px] border-collapse text-sm">
             <thead>
               <tr className="border-b border-stone-300 bg-stone-100 text-left text-[11px] uppercase tracking-wide text-ink-soft">
-                <th className="px-4 py-2.5">Style</th>
-                <th className="px-3 py-2.5">Colorway</th>
-                <th className="px-3 py-2.5">Box</th>
-                <th className="px-3 py-2.5 text-right">Qty</th>
-                <th className="px-3 py-2.5 text-right">Unit (per pair)</th>
-                <th className="px-4 py-2.5 text-right">Total</th>
-                <th className="px-3 py-2.5">Status</th>
+                <th className="px-4 py-2.5">Μοντέλο</th>
+                <th className="px-3 py-2.5">Χρώμα</th>
+                <th className="px-3 py-2.5">Κιβώτιο</th>
+                <th className="px-3 py-2.5 text-right">Ποσότητα</th>
+                <th className="px-3 py-2.5 text-right">Τιμή ζεύγους</th>
+                <th className="px-4 py-2.5 text-right">Σύνολο</th>
+                <th className="px-3 py-2.5">Κατάσταση</th>
                 <th className="px-3 py-2.5" />
               </tr>
             </thead>
@@ -203,21 +203,21 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
                   {totalBoxes} boxes · {totalPairs} pairs
                 </td>
                 <td colSpan={3} className="px-3 py-2 text-right text-xs uppercase tracking-wide text-ink-soft">
-                  Subtotal
+                  Μερικό σύνολο
                 </td>
                 <td className="px-4 py-2 text-right text-sm tabular-nums text-ink-soft">{formatEUR(total)}</td>
               </tr>
               {vatTotal > 0 && (
                 <tr className="bg-stone-50">
                   <td colSpan={3} className="px-3 py-2 text-right text-xs uppercase tracking-wide text-ink-soft">
-                    VAT
+                    ΦΠΑ
                   </td>
                   <td className="px-4 py-2 text-right text-sm tabular-nums text-ink-soft">{formatEUR(vatTotal)}</td>
                 </tr>
               )}
               <tr className="bg-stone-50">
                 <td colSpan={3} className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-ink-soft">
-                  Order Total
+                  Σύνολο παραγγελίας
                 </td>
                 <td className="px-4 py-3 text-right text-base font-semibold tabular-nums text-ink">
                   {formatEUR(grandTotal)}

@@ -196,13 +196,13 @@ export function ProformaBuilder({ styles, accounts }: { styles: ProformaStyle[];
     <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_20rem] lg:items-start">
       <div className="grid gap-6">
         <section className="border border-stone-300 bg-white p-4">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Bill to</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Τιμολόγηση σε</h2>
 
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <label className="grid gap-1 sm:col-span-2">
-              <span className="text-[11px] uppercase tracking-wide text-ink-soft">Existing account (optional)</span>
+              <span className="text-[11px] uppercase tracking-wide text-ink-soft">Υπάρχων πελάτης (προαιρετικό)</span>
               <select value={accountId} onChange={(e) => pickAccount(e.target.value)} className={INPUT}>
-                <option value="">— New recipient, type below —</option>
+                <option value="">— Νέος παραλήπτης, γράψε παρακάτω —</option>
                 {accounts.map((a) => (
                   <option key={a.id} value={a.id}>
                     {a.businessName} · {a.contactName}
@@ -211,24 +211,24 @@ export function ProformaBuilder({ styles, accounts }: { styles: ProformaStyle[];
               </select>
             </label>
 
-            <input value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="Business name *" className={INPUT} />
-            <input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Contact name" className={INPUT} />
+            <input value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="Επωνυμία *" className={INPUT} />
+            <input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Όνομα επικοινωνίας" className={INPUT} />
             {/* Only required to email it — a quote you print and hand over needs no address. */}
             <input
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               type="email"
-              placeholder="Email (needed to send)"
+              placeholder="Email (για αποστολή)"
               className={`${INPUT} sm:col-span-2`}
             />
-            <input value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} placeholder="Address line 1" className={INPUT} />
-            <input value={addressLine2} onChange={(e) => setAddressLine2(e.target.value)} placeholder="Address line 2" className={INPUT} />
-            <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" className={INPUT} />
-            <input value={region} onChange={(e) => setRegion(e.target.value)} placeholder="Region" className={INPUT} />
-            <input value={postalCode} onChange={(e) => setPostalCode(e.target.value)} placeholder="Postal code" className={INPUT} />
+            <input value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} placeholder="Διεύθυνση" className={INPUT} />
+            <input value={addressLine2} onChange={(e) => setAddressLine2(e.target.value)} placeholder="Διεύθυνση (συνέχεια)" className={INPUT} />
+            <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Πόλη" className={INPUT} />
+            <input value={region} onChange={(e) => setRegion(e.target.value)} placeholder="Περιοχή" className={INPUT} />
+            <input value={postalCode} onChange={(e) => setPostalCode(e.target.value)} placeholder="Τ.Κ." className={INPUT} />
             <label className="flex items-center gap-2 text-sm text-ink sm:col-span-2">
               <input type="checkbox" checked={chargeVat} onChange={(e) => setChargeVat(e.target.checked)} className="accent-ink" />
-              Charge Greek VAT (buyer based in Greece). Untick for buyers abroad — invoiced at 0%.
+              Με ελληνικό ΦΠΑ (πελάτης στην Ελλάδα). Ξετσέκαρε για το εξωτερικό: τιμολόγηση με 0%.
             </label>
           </div>
 
@@ -246,27 +246,27 @@ export function ProformaBuilder({ styles, accounts }: { styles: ProformaStyle[];
 
         <section className="border border-stone-300 bg-white p-4">
           <div className="flex flex-wrap items-end justify-between gap-3">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Products</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Προϊόντα</h2>
             <button type="button" onClick={addLine} className="border border-ink px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-white">
-              Add line
+              Προσθήκη γραμμής
             </button>
           </div>
 
           {lines.length === 0 ? (
             <p className="mt-4 border border-dashed border-stone-300 px-4 py-8 text-center text-sm text-ink-soft">
-              No lines yet. Add one to start building the quote.
+              Καμία γραμμή ακόμα. Πρόσθεσε μία για να ξεκινήσεις.
             </p>
           ) : (
             <div className="scroll-thin mt-4 overflow-x-auto">
               <table className="w-full min-w-[720px] border-collapse text-sm">
                 <thead>
                   <tr className="border-b border-stone-300 text-left text-[11px] uppercase tracking-wide text-ink-soft">
-                    <th className="py-2 pr-3 font-semibold">Style</th>
-                    <th className="py-2 pr-3 font-semibold">Colourway</th>
-                    <th className="py-2 pr-3 font-semibold">Box</th>
-                    <th className="py-2 pr-3 font-semibold">Boxes</th>
-                    <th className="py-2 pr-3 text-right font-semibold">Pairs</th>
-                    <th className="py-2 pr-3 text-right font-semibold">Line net</th>
+                    <th className="py-2 pr-3 font-semibold">Μοντέλο</th>
+                    <th className="py-2 pr-3 font-semibold">Χρώμα</th>
+                    <th className="py-2 pr-3 font-semibold">Κιβώτιο</th>
+                    <th className="py-2 pr-3 font-semibold">Κιβώτια</th>
+                    <th className="py-2 pr-3 text-right font-semibold">Ζευγάρια</th>
+                    <th className="py-2 pr-3 text-right font-semibold">Καθαρή αξία</th>
                     <th className="py-2 font-semibold" />
                   </tr>
                 </thead>
@@ -333,10 +333,10 @@ export function ProformaBuilder({ styles, accounts }: { styles: ProformaStyle[];
                           <button
                             type="button"
                             onClick={() => setLines((p) => p.filter((l) => l.key !== line.key))}
-                            aria-label="Remove line"
+                            aria-label="Αφαίρεση γραμμής"
                             className="px-2 py-1 text-xs uppercase tracking-wide text-ink-soft hover:text-ember"
                           >
-                            Remove
+                            Αφαίρεση
                           </button>
                         </td>
                       </tr>
@@ -350,10 +350,10 @@ export function ProformaBuilder({ styles, accounts }: { styles: ProformaStyle[];
       </div>
 
       <aside className="border border-stone-300 bg-white p-4 lg:sticky lg:top-6">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Terms &amp; totals</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Όροι και σύνολα</h2>
 
         <label className="mt-3 grid gap-1">
-          <span className="text-[11px] uppercase tracking-wide text-ink-soft">Payment terms</span>
+          <span className="text-[11px] uppercase tracking-wide text-ink-soft">Όροι πληρωμής</span>
           <select value={terms} onChange={(e) => setTerms(e.target.value as CreditTerms)} className={INPUT}>
             {(Object.keys(TERMS_LABEL) as CreditTerms[]).map((t) => (
               <option key={t} value={t}>
@@ -364,7 +364,7 @@ export function ProformaBuilder({ styles, accounts }: { styles: ProformaStyle[];
         </label>
 
         <label className="mt-3 grid gap-1">
-          <span className="text-[11px] uppercase tracking-wide text-ink-soft">Document language</span>
+          <span className="text-[11px] uppercase tracking-wide text-ink-soft">Γλώσσα εγγράφου</span>
           <select value={locale} onChange={(e) => setLocale(e.target.value as Locale)} className={INPUT}>
             {(Object.keys(LOCALE_LABEL) as Locale[]).map((l) => (
               <option key={l} value={l}>
@@ -375,15 +375,15 @@ export function ProformaBuilder({ styles, accounts }: { styles: ProformaStyle[];
         </label>
 
         <dl className="mt-4 grid grid-cols-2 gap-y-1.5 border-t border-stone-200 pt-4 text-sm">
-          <dt className="text-ink-soft">Boxes</dt>
+          <dt className="text-ink-soft">Κιβώτια</dt>
           <dd className="text-right font-mono-tab tabular-nums text-ink">{totals.boxes}</dd>
-          <dt className="text-ink-soft">Pairs</dt>
+          <dt className="text-ink-soft">Ζευγάρια</dt>
           <dd className="text-right font-mono-tab tabular-nums text-ink">{totals.pairs}</dd>
-          <dt className="text-ink-soft">Net</dt>
+          <dt className="text-ink-soft">Καθαρή αξία</dt>
           <dd className="text-right font-mono-tab tabular-nums text-ink">{eur(totals.net)}</dd>
-          <dt className="text-ink-soft">VAT</dt>
+          <dt className="text-ink-soft">ΦΠΑ</dt>
           <dd className="text-right font-mono-tab tabular-nums text-ink">{eur(totals.vat)}</dd>
-          <dt className="pt-1 font-semibold text-ink">Total</dt>
+          <dt className="pt-1 font-semibold text-ink">Σύνολο</dt>
           <dd className="pt-1 text-right font-mono-tab tabular-nums font-semibold text-ink">{eur(totals.gross)}</dd>
         </dl>
 

@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/adminGuard";
 import { activePresets } from "@/lib/campaignEmail";
 import { CampaignForm } from "@/components/admin/CampaignForm";
 
-export const metadata = { title: "Buyer emails", robots: { index: false, follow: false } };
+export const metadata = { title: "Emails πελατών", robots: { index: false, follow: false } };
 
 /**
  * Campaign email to every buyer: pick styles, generate or write the text (or start from a
@@ -22,10 +22,9 @@ export default async function BuyerEmailsPage({ searchParams }: { searchParams: 
 
   return (
     <div className="max-w-6xl">
-      <h1 className="font-display border-b border-stone-300 pb-6 text-2xl font-bold uppercase tracking-tight text-ink">Buyer emails</h1>
+      <h1 className="font-display border-b border-stone-300 pb-6 text-2xl font-bold uppercase tracking-tight text-ink">Emails πελατών</h1>
       <p className="mt-3 max-w-2xl text-sm text-ink-soft">
-        Show your buyers what&rsquo;s new. Start from a ready-made campaign or pick the styles and press{" "}
-        <strong>Generate text</strong>. Check the preview, send yourself a test, then send it to everyone.
+        Δείξε στους πελάτες τα νέα σου. Ξεκίνα από έτοιμη καμπάνια ή διάλεξε μοντέλα και πάτα <strong>Δημιουργία κειμένου</strong>. Δες την προεπισκόπηση, στείλε δοκιμή στον εαυτό σου και μετά σε όλους.
       </p>
       <div className="mt-8">
         <CampaignForm

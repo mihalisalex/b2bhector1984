@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import Image from "next/image";
+import { campaignImageUrl } from "@/lib/campaignEmail";
 import { ImageUploadForm } from "@/components/admin/ImageUploadForm";
 import { useToastResult } from "@/components/ui/ToastProvider";
 import {
@@ -26,25 +26,18 @@ export function MediaTab({ style, images, canEdit }: { style: Style; images: Sty
   return (
     <div className="max-w-4xl space-y-8 pb-20">
       <section>
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Photos</h3>
-        <p className="mt-1 text-xs text-ink-soft">
-          Drag-and-drop isn&rsquo;t implemented — file picker uploads straight to storage via a signed URL (same
-          pipeline as every upload in this app). Sizing/format optimization is handled by next/image at render time,
-          not a separate transform pipeline. Tag a photo to a colorway below so it&rsquo;s the one shown when a buyer
-          selects that colorway on the product page — leave it &ldquo;All colorways&rdquo; for a generic shot.
-        </p>
         {canEdit && (
           <ImageUploadForm
             createUploadTarget={createProductImageUploadUrlAction.bind(null, style.id)}
             finalizeUpload={finalizeProductImageUploadAction.bind(null, style.id)}
-            buttonLabel="Upload photo"
+            buttonLabel="Ανέβασμα φωτογραφίας"
           />
         )}
         <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
           {images.map((image, index) => (
             <ImageCard key={image.id} image={image} styleId={style.id} colorways={style.colorways} canEdit={canEdit} index={index} isFirst={index === 0} isLast={index === images.length - 1} />
           ))}
-          {images.length === 0 && <p className="text-sm text-ink-soft">No photos uploaded yet — the catalog shows a generated plate instead.</p>}
+          {images.length === 0 && <p className="text-sm text-ink-soft">Δεν έχει φωτογραφία ακόμα.</p>}
         </div>
       </section>
 
@@ -123,9 +116,10 @@ function ImageCard({
   return (
     <div className="border border-stone-300 bg-white">
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-stone-200">
-        <Image src={image.publicUrl} alt={alt} fill sizes="(min-width: 1024px) 25vw, 50vw" className="object-cover" />
+        {/* eslint-disable-next-line @next/next/no-img-element -- our own resizer, see /api/img */}
+        <img src={campaignImageUrl(image.publicUrl, 560)} alt={alt} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
         {image.isPrimary && (
-          <span className="absolute left-2 top-2 bg-signal px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">Featured</span>
+          <span className="absolute left-2 top-2 bg-signal px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">Κύρια</span>
         )}
       </div>
       <div className="space-y-2 p-2.5">
@@ -137,8 +131,8 @@ function ImageCard({
             value={alt}
             onChange={(e) => setAlt(e.target.value)}
             disabled={!canEdit}
-            placeholder="Alt text"
-            aria-label={`Alt text for photo ${index + 1}`}
+            placeholder="Περιγραφή φωτογραφίας"
+            aria-label={`Περιγραφή φωτογραφίας ${index + 1}`}
             className="w-full border border-stone-300 bg-white px-2 py-1 text-xs outline-none focus-visible:border-signal disabled:bg-stone-100"
           />
         </form>
@@ -151,10 +145,10 @@ function ImageCard({
               defaultValue={image.colorwayId ?? ""}
               disabled={!canEdit}
               onChange={(e) => e.currentTarget.form?.requestSubmit()}
-              aria-label={`Colorway shown in photo ${index + 1}`}
+              aria-label={`Χρώμα φωτογραφίας ${index + 1}`}
               className="w-full border border-stone-300 bg-white px-2 py-1 text-xs outline-none focus-visible:border-signal disabled:bg-stone-100"
             >
-              <option value="">All colorways</option>
+              <option value="">Όλα τα χρώματα</option>
               {colorways.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
@@ -168,7 +162,7 @@ function ImageCard({
                 <input type="hidden" name="styleId" value={styleId} />
                 <input type="hidden" name="imageId" value={image.id} />
                 <button type="submit" disabled={isSettingPrimary} className="text-[11px] font-semibold uppercase tracking-wide text-signal hover:underline disabled:opacity-50">
-                  Set featured
+                  Κάνε την κύρια
                 </button>
               </form>
             ) : (
@@ -178,7 +172,7 @@ function ImageCard({
               <input type="hidden" name="styleId" value={styleId} />
               <input type="hidden" name="imageId" value={image.id} />
               <button type="submit" disabled={isDeleting} className="text-[11px] font-semibold uppercase tracking-wide text-ember hover:underline disabled:opacity-50">
-                Delete
+                Διαγραφή
               </button>
             </form>
           </div>
@@ -223,7 +217,7 @@ function DocumentRow({
         <form action={deleteAction}>
           <input type="hidden" name="styleId" value={styleId} />
           <input type="hidden" name="documentId" value={documentId} />
-          <button type="submit" disabled={isDeleting} className="text-xs font-medium text-ember hover:underline disabled:opacity-50">Remove</button>
+          <button type="submit" disabled={isDeleting} className="text-xs font-medium text-ember hover:underline disabled:opacity-50">Αφαίρεση</button>
         </form>
       )}
     </div>

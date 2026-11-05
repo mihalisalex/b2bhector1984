@@ -44,7 +44,7 @@ export function ApproveApplicationForm({
         aria-label={`Sales rep for ${businessName}`}
         className="border border-stone-300 bg-white px-2 py-1.5 text-xs outline-none focus-visible:border-signal"
       >
-        <option value="">Unassigned</option>
+        <option value="">Χωρίς εκπρόσωπο</option>
         {reps.map((rep) => (
           <option key={rep.id} value={rep.id}>
             {rep.name}

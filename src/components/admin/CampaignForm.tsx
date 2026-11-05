@@ -29,10 +29,10 @@ const DEFAULT_PICK = 6;
 
 type SeasonFilter = "all" | StyleSeason;
 const SEASON_FILTERS: { value: SeasonFilter; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "winter", label: "Winter" },
-  { value: "summer", label: "Summer" },
-  { value: "both", label: "All-season" },
+  { value: "all", label: "Όλα" },
+  { value: "winter", label: "Χειμερινά" },
+  { value: "summer", label: "Καλοκαιρινά" },
+  { value: "both", label: "Και οι δύο" },
 ];
 
 /**
@@ -131,12 +131,12 @@ export function CampaignForm({
       <div className="grid gap-10">
         {presets.length > 0 && (
           <label className={LABEL}>
-            Start from
+            Ξεκίνα από
             <select value={presetId} onChange={(e) => startFrom(e.target.value)} className={`${INPUT} max-w-md`}>
-              <option value="">New styles (blank — generate the text)</option>
+              <option value="">Νέα μοντέλα (κενό, γράψε ή δημιούργησε κείμενο)</option>
               {presets.map((p) => (
                 <option key={p.id} value={p.id}>
-                  Ready-made: {p.label}
+                  Έτοιμο: {p.label}
                 </option>
               ))}
             </select>
@@ -146,9 +146,9 @@ export function CampaignForm({
         {/* 1 — styles */}
         <section className="grid gap-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className={STEP}>1 · Styles</p>
+            <p className={STEP}>1 · Μοντέλα</p>
             <p className="text-xs text-ink-soft">
-              {picked.length} of {CAMPAIGN_MAX_STYLES} picked · newest first
+              {picked.length} από {CAMPAIGN_MAX_STYLES} · νεότερα πρώτα
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -169,11 +169,11 @@ export function CampaignForm({
               onClick={() => setPicked(visible.slice(0, CAMPAIGN_MAX_STYLES).map((s) => s.id))}
               className="rounded-full border border-stone-300 px-3 py-1.5 text-xs font-semibold text-ink hover:border-ink"
             >
-              Pick the newest {Math.min(CAMPAIGN_MAX_STYLES, visible.length)}
+              Τα {Math.min(CAMPAIGN_MAX_STYLES, visible.length)} νεότερα
             </button>
             {picked.length > 0 && (
               <button type="button" onClick={() => setPicked([])} className="px-2 text-xs font-semibold text-ink-soft underline hover:text-ink">
-                Clear
+                Καθαρισμός
               </button>
             )}
           </div>
@@ -220,7 +220,7 @@ export function CampaignForm({
               onClick={() => setShowAll((v) => !v)}
               className="justify-self-start text-xs font-semibold text-ink underline hover:text-ink-soft"
             >
-              {showAll ? "Show fewer" : `Show all ${visible.length} styles`}
+              {showAll ? "Λιγότερα" : `Όλα τα ${visible.length} μοντέλα`}
             </button>
           )}
         </section>
@@ -228,7 +228,7 @@ export function CampaignForm({
         {/* 2 — text */}
         <section className="grid gap-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className={STEP}>2 · Text</p>
+            <p className={STEP}>2 · Κείμενο</p>
             <div className="flex items-center gap-2">
               <div className="flex rounded-full border border-stone-300 p-0.5 text-xs font-semibold">
                 {(["el", "en"] as const).map((l) => (
@@ -248,44 +248,44 @@ export function CampaignForm({
                 disabled={pickedStyles.length === 0}
                 className="rounded-full bg-ink px-4 py-2 text-xs font-semibold text-white hover:bg-ink/85 disabled:opacity-40"
               >
-                ✦ Generate text
+                ✦ Δημιουργία κειμένου
               </button>
             </div>
           </div>
           <p className="-mt-2 text-xs text-ink-soft">
-            Each press writes a new version from the styles you picked. Change anything you like afterwards.
+            Κάθε πάτημα γράφει νέα εκδοχή από τα μοντέλα που διάλεξες. Μετά αλλάζεις ό,τι θέλεις.
           </p>
           <label className={LABEL}>
-            Subject (what buyers see in their inbox)
+            Θέμα (αυτό βλέπουν στα εισερχόμενα)
             <input name="subject" value={text.subject} onChange={edit("subject")} maxLength={150} className={INPUT} />
           </label>
           <label className={LABEL}>
-            Headline (big title — press Enter for a new line)
+            Τίτλος (Enter για νέα γραμμή)
             <textarea name="headline" value={text.headline} onChange={edit("headline")} rows={2} maxLength={120} className={`${INPUT} text-lg font-bold leading-tight`} />
           </label>
           <label className={LABEL}>
-            Offer (optional — a black strip above the photos)
+            Προσφορά (προαιρετικό, μαύρη λωρίδα πάνω από τις φωτογραφίες)
             <input name="offer" value={text.offer ?? ""} onChange={edit("offer")} maxLength={160} placeholder="π.χ. −10% σε όλα τα χειμερινά μοντέλα, έως 31 Οκτωβρίου" className={INPUT} />
           </label>
           <label className={LABEL}>
-            Intro (above the photos)
+            Εισαγωγή (πάνω από τις φωτογραφίες)
             <textarea name="intro" value={text.intro} onChange={edit("intro")} rows={4} maxLength={1500} className={INPUT} />
           </label>
           <label className={LABEL}>
-            Closing (below the button)
+            Κλείσιμο (κάτω από το κουμπί)
             <textarea name="closing" value={text.closing} onChange={edit("closing")} rows={2} maxLength={800} className={INPUT} />
           </label>
         </section>
 
         {/* 3 — send */}
         <section className="grid gap-4">
-          <p className={STEP}>3 · Test, then send</p>
+          <p className={STEP}>3 · Δοκιμή και αποστολή</p>
           {state.success && (
             <div className="grid gap-3 rounded-lg border border-positive/40 bg-positive-100 p-4 text-sm" role="status">
               <p className="font-semibold text-positive">{state.success}</p>
               {state.whatsappText && (
                 <>
-                  <p className="text-xs text-ink-soft">The same message as text, for a WhatsApp broadcast list:</p>
+                  <p className="text-xs text-ink-soft">Το ίδιο μήνυμα ως κείμενο, για λίστα WhatsApp:</p>
                   <textarea readOnly value={state.whatsappText} rows={8} className={`${INPUT} text-xs`} />
                   <button
                     type="button"
@@ -299,7 +299,7 @@ export function CampaignForm({
                     }}
                     className="justify-self-start rounded-full border border-ink px-4 py-2 text-xs font-semibold text-ink hover:bg-ink hover:text-white"
                   >
-                    {copied ? "Copied ✓" : "Copy for WhatsApp"}
+                    {copied ? "Αντιγράφηκε ✓" : "Αντιγραφή για WhatsApp"}
                   </button>
                 </>
               )}
@@ -311,9 +311,9 @@ export function CampaignForm({
             </p>
           )}
           <div className="grid gap-3 rounded-lg border border-stone-200 bg-stone-50 p-4">
-            <p className="text-sm font-semibold text-ink">Send yourself a test</p>
+            <p className="text-sm font-semibold text-ink">Στείλε δοκιμή στον εαυτό σου</p>
             <div className="flex flex-wrap items-center gap-2">
-              <input type="email" name="testEmail" defaultValue={adminEmail} aria-label="Test email address" className={`${INPUT} max-w-xs`} />
+              <input type="email" name="testEmail" defaultValue={adminEmail} aria-label="Email δοκιμής" className={`${INPUT} max-w-xs`} />
               <button
                 type="submit"
                 name="intent"
@@ -321,17 +321,17 @@ export function CampaignForm({
                 disabled={pending || pickedStyles.length === 0}
                 className="rounded-full border border-ink px-5 py-2 text-xs font-semibold text-ink hover:bg-ink hover:text-white disabled:opacity-40"
               >
-                {pending ? "Sending…" : "Send test"}
+                {pending ? "Αποστολή…" : "Αποστολή δοκιμής"}
               </button>
             </div>
           </div>
           <div className="grid gap-3 rounded-lg border border-stone-200 p-4">
-            <p className="text-sm font-semibold text-ink">Send to all buyers</p>
+            <p className="text-sm font-semibold text-ink">Αποστολή σε όλους τους πελάτες</p>
             <label className="flex items-center gap-2 text-sm text-ink">
               <input type="checkbox" name="confirm" className="accent-ink" />
-              Yes, email all {buyerCount} buyer{buyerCount === 1 ? "" : "s"} now
+              Ναι, στείλε τώρα σε {buyerCount} πελάτες
             </label>
-            <p className="-mt-1 text-xs text-ink-soft">A copy of the real email also goes to {CAMPAIGN_COPY_TO}.</p>
+            <p className="-mt-1 text-xs text-ink-soft">Αντίγραφο του πραγματικού email πάει και στο {CAMPAIGN_COPY_TO}.</p>
             <div>
               <button
                 type="submit"
@@ -340,7 +340,7 @@ export function CampaignForm({
                 disabled={pending || pickedStyles.length === 0}
                 className="rounded-full bg-ink px-6 py-2.5 text-xs font-semibold text-white hover:bg-ink/85 disabled:opacity-40"
               >
-                {pending ? "Sending…" : "Send to buyers"}
+                {pending ? "Αποστολή…" : "Αποστολή σε πελάτες"}
               </button>
             </div>
           </div>
@@ -349,13 +349,13 @@ export function CampaignForm({
 
       {/* live preview */}
       <aside className="grid gap-2 lg:sticky lg:top-6">
-        <p className={STEP}>Preview</p>
+        <p className={STEP}>Προεπισκόπηση</p>
         <div className="overflow-hidden rounded-xl border border-stone-300 bg-white shadow-sm">
           <div className="border-b border-stone-200 px-4 py-3">
             <p className="text-[11px] text-ink-soft">Hector Footwear Wholesale</p>
             <p className="truncate text-sm font-semibold text-ink">{text.subject || "—"}</p>
           </div>
-          <iframe title="Email preview" srcDoc={preview} sandbox="" className="block h-[720px] w-full" />
+          <iframe title="Προεπισκόπηση email" srcDoc={preview} sandbox="" className="block h-[720px] w-full" />
         </div>
       </aside>
     </form>

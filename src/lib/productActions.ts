@@ -7,6 +7,9 @@ import { invalidateCatalog } from "@/lib/cacheInvalidation";
 import { logAudit } from "@/lib/data/auditLog";
 import { sanitizeProductDescription } from "@/lib/sanitizeHtml";
 import { formatEUR } from "@/lib/pricing";
+import { updateAvailableBoxTypes } from "@/lib/data/styles";
+import { getStyleDetailForAdmin } from "@/lib/data/productAdmin";
+import { hasPermission } from "@/lib/data/permissions";
 import {
   updateStyleGeneral,
   updateStylePricing,
@@ -14,6 +17,9 @@ import {
   updateStyleSeo,
   updateStyleShipping,
   updateStyleVisibility,
+  updateStyleQuickFields,
+  updateStyleCopy,
+  setStyleColour,
   setCustomerGroupPrice,
   deleteCustomerGroupPrice,
   addStyleAttribute,
@@ -58,7 +64,9 @@ import { setPermission, ADMIN_ROLES } from "@/lib/data/permissions";
 import { getAccountById, updateAdminRole, countSuperAdmins } from "@/lib/data/accounts";
 import { importProductRows, validateImportRows, type ImportRow, type ImportRowPreview, type ImportRowResult } from "@/lib/data/productImport";
 import type { FormState } from "@/lib/actions";
-import type { AdminRole, BoxTypeId, DocumentKind, ProductPermissionKey, ProductStatus, RelationType } from "@/lib/types";
+import type { AdminRole, BoxTypeId, DocumentKind, ProductPermissionKey, ProductStatus, RelationType, Style } from "@/lib/types";
+
+const BOX_IDS: BoxTypeId[] = ["box8", "box10", "box12"];
 
 /**
  * The single choke point for "a product changed" — called by all 26 mutations in this file,
@@ -170,6 +178,111 @@ export async function updateGeneralAction(styleId: string, _prev: FormState, for
   await logAudit(admin.id, "product.updated", "style", styleId, "general");
   revalidateProduct(styleId);
   return { success: "General details saved." };
+}
+
+// ---------------------------------------------------------------------------
+// The main editor: one page, one Save
+// ---------------------------------------------------------------------------
+
+const lines = (raw: FormDataEntryValue | null) => String(raw ?? "").split("\n").map((l) => l.trim()).filter(Boolean);
+const commas = (raw: FormDataEntryValue | null) => String(raw ?? "").split(",").map((l) => l.trim()).filter(Boolean);
+
+/**
+ * Saves the main editor in one go. It reads the current product first and writes its advanced
+ * fields (brand, cost, VAT, tags…) back unchanged, because the shared update functions replace
+ * every column they own. Prices need the pricing permission, the rest the edit permission.
+ */
+export async function saveProductEssentialsAction(styleId: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  const admin = await requirePermission("products.edit");
+  const style = await getStyleDetailForAdmin(styleId);
+  if (!style) return { error: "Το προϊόν δεν βρέθηκε." };
+
+  const name = String(formData.get("name") ?? "").trim();
+  const styleNumber = String(formData.get("styleNumber") ?? "").trim();
+  const colourName = String(formData.get("colourName") ?? "").trim();
+  if (!name) return { error: "Συμπλήρωσε το όνομα του προϊόντος." };
+  if (!styleNumber) return { error: "Συμπλήρωσε τον κωδικό." };
+  if (!colourName) return { error: "Συμπλήρωσε το χρώμα." };
+
+  const canPrice = await hasPermission(admin.adminRole, "products.pricing");
+  const basePrice = Number(formData.get("basePrice"));
+  // Blank keeps the current figure: Number("") is 0, which would erase the recommended retail.
+  const msrpRaw = String(formData.get("msrp") ?? "").trim();
+  const msrp = msrpRaw ? Number(msrpRaw) : style.msrp;
+  const saleRaw = String(formData.get("salePrice") ?? "").trim();
+  const salePrice = saleRaw ? Number(saleRaw) : undefined;
+  const saleEndAt = String(formData.get("saleEndAt") ?? "").trim() || undefined;
+  if (canPrice) {
+    if (!Number.isFinite(basePrice) || basePrice <= 0) return { error: "Η χονδρική πρέπει να είναι πάνω από μηδέν." };
+    if (salePrice !== undefined && !(salePrice > 0 && salePrice < basePrice)) {
+      return { error: "Η τιμή έκπτωσης πρέπει να είναι πάνω από μηδέν και κάτω από τη χονδρική. Άφησέ την κενή αν δεν έχει έκπτωση." };
+    }
+    if (salePrice !== undefined && saleEndAt && style.saleStartAt && new Date(saleEndAt) <= new Date(style.saleStartAt)) {
+      return { error: "Η λήξη της έκπτωσης πρέπει να είναι μετά την έναρξή της." };
+    }
+  }
+
+  const boxTypeIds = BOX_IDS.filter((id) => formData.get(id) === "on");
+  if (boxTypeIds.length === 0) return { error: "Διάλεξε τουλάχιστον ένα κιβώτιο." };
+  const status = String(formData.get("status") ?? style.status) as ProductStatus;
+
+  const failure = await runOrError(async () => {
+    await updateStyleGeneral(styleId, {
+      name,
+      styleNumber,
+      tagline: String(formData.get("tagline") ?? "").trim(),
+      description: sanitizeProductDescription(String(formData.get("description") ?? "")),
+      productType: style.productType,
+      brandId: style.brandId,
+      supplierId: style.supplierId,
+      category: String(formData.get("category") ?? style.category) as GeneralInput["category"],
+      season: String(formData.get("season") ?? style.season) as GeneralInput["season"],
+      gender: style.gender,
+      materials: commas(formData.get("materials")),
+      tags: style.tags,
+      collectionIds: style.collectionIds,
+    });
+    await updateStyleCopy(styleId, {
+      taglineEl: String(formData.get("taglineEl") ?? "").trim(),
+      descriptionEl: sanitizeProductDescription(String(formData.get("descriptionEl") ?? "")),
+      materialsEl: commas(formData.get("materialsEl")),
+      featuresEl: lines(formData.get("featuresEl")),
+      lastNoteEl: String(formData.get("lastNoteEl") ?? "").trim(),
+      features: lines(formData.get("features")),
+      lastNote: String(formData.get("lastNote") ?? "").trim(),
+    });
+    await setStyleColour(styleId, style.colorways[0]?.id, colourName, String(formData.get("colourSwatch") ?? "#121212"));
+    await updateAvailableBoxTypes(styleId, boxTypeIds);
+    await updateStyleQuickFields(styleId, { status, newArrival: formData.get("newArrival") === "on" });
+    if (canPrice) {
+      await updateStylePricing(styleId, {
+        costPrice: style.costPrice,
+        basePrice,
+        msrp: Number.isFinite(msrp) ? msrp : style.msrp,
+        distributorPrice: style.distributorPrice,
+        salePrice,
+        saleStartAt: salePrice === undefined ? undefined : style.saleStartAt,
+        saleEndAt: salePrice === undefined ? undefined : saleEndAt,
+        currency: style.currency,
+        taxClass: style.taxClass,
+        vatRate: style.vatRate,
+      });
+    }
+  });
+  if (failure) return failure;
+  await logAudit(admin.id, "product.updated", "style", styleId, "main editor");
+  revalidateProduct(styleId);
+  return { success: "Αποθηκεύτηκε." };
+}
+
+/** One tap in the product list: the "New style" tick or the season. */
+export async function setProductQuickFieldAction(styleId: string, fields: { season?: Style["season"]; newArrival?: boolean }): Promise<FormState> {
+  const admin = await requirePermission("products.edit");
+  const failure = await runOrError(() => updateStyleQuickFields(styleId, fields));
+  if (failure) return failure;
+  await logAudit(admin.id, "product.updated", "style", styleId, `quick ${JSON.stringify(fields)}`);
+  revalidateProduct(styleId);
+  return { success: "Αποθηκεύτηκε." };
 }
 
 // ---------------------------------------------------------------------------
@@ -670,8 +783,9 @@ export async function createProductAction(_prev: FormState, formData: FormData):
   const name = String(formData.get("name") ?? "").trim();
   const styleNumber = String(formData.get("styleNumber") ?? "").trim();
   const basePrice = Number(formData.get("basePrice"));
-  if (!name || !styleNumber) return { error: "Name and style number are required." };
-  if (!Number.isFinite(basePrice) || basePrice <= 0) return { error: "Wholesale price must be greater than zero." };
+  const colourName = String(formData.get("colourName") ?? "").trim();
+  if (!name || !styleNumber || !colourName) return { error: "Συμπλήρωσε όνομα, κωδικό και χρώμα." };
+  if (!Number.isFinite(basePrice) || basePrice <= 0) return { error: "Η χονδρική πρέπει να είναι πάνω από μηδέν." };
 
   const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
   const id = `st-${crypto.randomUUID().slice(0, 8)}`;
@@ -683,7 +797,7 @@ export async function createProductAction(_prev: FormState, formData: FormData):
       name,
       category: String(formData.get("category") ?? "loafers") as GeneralInput["category"],
       season: String(formData.get("season") ?? "summer") as GeneralInput["season"],
-      gender: String(formData.get("gender") ?? "unisex") as GeneralInput["gender"],
+      gender: String(formData.get("gender") ?? "mens") as GeneralInput["gender"],
       availability: "available",
       tagline: String(formData.get("tagline") ?? "").trim(),
       // Sanitized here, exactly as in `updateGeneralAction` — the product page renders
@@ -695,6 +809,8 @@ export async function createProductAction(_prev: FormState, formData: FormData):
       msrp: Number(formData.get("msrp")) || basePrice * 2,
       costPrice: Number(formData.get("costPrice")) || 0,
     });
+    // A product with no colour never reaches the catalogue, so it gets one from the start.
+    await setStyleColour(id, undefined, colourName, String(formData.get("colourSwatch") ?? "#121212"));
   } catch (err) {
     return { error: friendlyDbError(err) };
   }
@@ -746,7 +862,9 @@ export async function bulkUpdateStatusAction(styleIds: string[], status: Product
   const admin = await requirePermission("products.bulk");
   try {
     for (const styleId of styleIds) {
-      await updateStyleVisibility(styleId, status, false);
+      // Status only: going through updateStyleVisibility here cleared "New arrival" and
+      // "Featured" on every selected product.
+      await updateStyleQuickFields(styleId, { status });
       await logAudit(admin.id, "product.updated", "style", styleId, `bulk status -> ${status}`);
     }
   } catch (err) {

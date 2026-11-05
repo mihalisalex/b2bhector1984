@@ -23,7 +23,7 @@ export function EmailBuyerPanel({
   if (!open) {
     return (
       <Button type="button" variant="secondary" size="sm" onClick={() => setOpen(true)}>
-        Email buyer
+        Email στον πελάτη
       </Button>
     );
   }
@@ -35,12 +35,12 @@ export function EmailBuyerPanel({
           Email {toName || "buyer"} · {to}
         </h3>
         <button type="button" onClick={() => setOpen(false)} className="text-xs text-ink-soft hover:text-ink">
-          Cancel
+          Άκυρο
         </button>
       </div>
 
       <label className="flex flex-col gap-1.5">
-        <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Subject</span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Θέμα</span>
         <input
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
@@ -49,7 +49,7 @@ export function EmailBuyerPanel({
       </label>
 
       <label className="flex flex-col gap-1.5">
-        <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Message</span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Μήνυμα</span>
         <textarea
           value={body}
           onChange={(e) => setBody(e.target.value)}
@@ -61,10 +61,10 @@ export function EmailBuyerPanel({
       <div className="flex items-center gap-3">
         <a href={mailtoHref}>
           <Button type="button" size="sm">
-            Open in email app
+            Άνοιγμα στο email
           </Button>
         </a>
-        <p className="text-xs text-ink-soft">Drafts in your default mail app — nothing sends automatically.</p>
+        <p className="text-xs text-ink-soft">Ανοίγει ως πρόχειρο στο email σου, δεν στέλνεται μόνο του.</p>
       </div>
     </div>
   );

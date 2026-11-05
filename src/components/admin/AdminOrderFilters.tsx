@@ -4,13 +4,13 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { OrderStatus } from "@/lib/types";
 
 const STATUS_OPTIONS: { value: OrderStatus | ""; label: string }[] = [
-  { value: "", label: "All statuses" },
-  { value: "submitted", label: "Submitted" },
-  { value: "confirmed", label: "Confirmed" },
-  { value: "in_production", label: "In Production" },
-  { value: "shipped", label: "Shipped" },
-  { value: "delivered", label: "Delivered" },
-  { value: "cancelled", label: "Cancelled" },
+  { value: "", label: "Όλες οι καταστάσεις" },
+  { value: "submitted", label: "Νέο αίτημα" },
+  { value: "confirmed", label: "Επιβεβαιωμένη" },
+  { value: "in_production", label: "Σε παραγωγή" },
+  { value: "shipped", label: "Στη μεταφορική" },
+  { value: "delivered", label: "Παραδόθηκε" },
+  { value: "cancelled", label: "Ακυρώθηκε" },
 ];
 
 export function AdminOrderFilters() {
@@ -31,7 +31,7 @@ export function AdminOrderFilters() {
         type="search"
         defaultValue={searchParams.get("q") ?? ""}
         onChange={(e) => setParam("q", e.target.value)}
-        placeholder="Search order #, PO #, or account"
+        placeholder="Αναζήτηση με αριθμό ή πελάτη"
         className="w-full max-w-xs border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal"
       />
       <select

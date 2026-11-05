@@ -49,8 +49,8 @@ export function AccountsTable({
           setQuery(e.target.value);
           setPage(1);
         }}
-        placeholder="Search business, contact, or email…"
-        aria-label="Search accounts"
+        placeholder="Αναζήτηση με κατάστημα, όνομα ή email…"
+        aria-label="Αναζήτηση πελατών"
         className="mt-4 w-full max-w-sm border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal"
       />
 
@@ -64,14 +64,14 @@ export function AccountsTable({
             <table className="w-full min-w-[880px] border-collapse text-sm">
               <thead>
                 <tr className="border-b border-stone-300 bg-stone-100 text-left text-[11px] uppercase tracking-wide text-ink-soft">
-                  <th className="px-4 py-2.5 font-semibold">Business</th>
-                  <th className="px-4 py-2.5 font-semibold">WhatsApp phone</th>
-                  <th className="px-4 py-2.5 font-semibold" title="Decides VAT: only Greece is charged Greek VAT">Country</th>
-                  <th className="px-4 py-2.5 font-semibold">Terms</th>
-                  <th className="px-4 py-2.5 font-semibold">Credit limit</th>
-                  <th className="px-4 py-2.5 font-semibold">Rep</th>
-                  <th className="px-4 py-2.5 text-right font-semibold">Price multiplier</th>
-                  <th className="px-4 py-2.5 text-right font-semibold">Min order</th>
+                  <th className="px-4 py-2.5 font-semibold">Κατάστημα</th>
+                  <th className="px-4 py-2.5 font-semibold">Κινητό WhatsApp</th>
+                  <th className="px-4 py-2.5 font-semibold" title="Καθορίζει το ΦΠΑ: ελληνικό ΦΠΑ μόνο για Ελλάδα">Χώρα</th>
+                  <th className="px-4 py-2.5 font-semibold">Όροι</th>
+                  <th className="px-4 py-2.5 font-semibold">Όριο πίστωσης</th>
+                  <th className="px-4 py-2.5 font-semibold">Εκπρόσωπος</th>
+                  <th className="px-4 py-2.5 text-right font-semibold">Συντελεστής τιμής</th>
+                  <th className="px-4 py-2.5 text-right font-semibold">Ελάχιστο</th>
                 </tr>
               </thead>
               <tbody>

@@ -37,7 +37,7 @@ export function OrdersCsvExportButton({ orders }: { orders: AdminOrder[] }) {
       onClick={exportCsv}
       className="border border-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-white"
     >
-      Export CSV
+      Εξαγωγή (CSV)
     </button>
   );
 }

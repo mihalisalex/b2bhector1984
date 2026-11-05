@@ -41,7 +41,7 @@ export function InviteShopForm({
                 rel="noopener noreferrer"
                 className="rounded-full bg-[#25D366] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:opacity-90"
               >
-                Send on WhatsApp
+                Αποστολή με WhatsApp
               </a>
             )}
             <button type="button" onClick={() => copy(state.link!)} className="rounded-full border border-ink px-4 py-2 text-xs font-semibold uppercase tracking-wide text-ink hover:bg-ink hover:text-white">
@@ -55,7 +55,7 @@ export function InviteShopForm({
               }}
               className="px-2 text-xs font-semibold uppercase tracking-wide text-ink-soft underline hover:text-ink"
             >
-              Invite another shop
+              Πρόσκληση άλλου καταστήματος
             </button>
           </div>
         </div>
@@ -63,23 +63,23 @@ export function InviteShopForm({
 
       <form key={formKey} action={formAction} className="grid gap-4 border border-stone-300 bg-white p-5 sm:grid-cols-2">
         <label className={LABEL}>
-          Shop name *
-          <input name="businessName" required className={INPUT} placeholder="e.g. Papadakis Shoes" />
+          Κατάστημα *
+          <input name="businessName" required className={INPUT} placeholder="π.χ. Υποδήματα Παπαδάκης" />
         </label>
         <label className={LABEL}>
-          Contact name *
-          <input name="contactName" required className={INPUT} placeholder="e.g. Nikos Papadakis" />
+          Όνομα επικοινωνίας *
+          <input name="contactName" required className={INPUT} placeholder="π.χ. Νίκος Παπαδάκης" />
         </label>
         <label className={LABEL}>
           Email *
           <input name="email" type="email" required className={INPUT} placeholder="shop@example.com" />
         </label>
         <label className={LABEL}>
-          Mobile (for WhatsApp)
+          Κινητό (για WhatsApp)
           <input name="phone" type="tel" className={INPUT} placeholder="69… or +49…" />
         </label>
         <label className={LABEL}>
-          Country *
+          Χώρα *
           <select name="country" defaultValue="GR" className={INPUT}>
             {countries.map((c) => (
               <option key={c.value} value={c.value}>
@@ -89,27 +89,27 @@ export function InviteShopForm({
           </select>
         </label>
         <label className={LABEL}>
-          Town
-          <input name="city" className={INPUT} placeholder="e.g. Chania" />
+          Πόλη
+          <input name="city" className={INPUT} placeholder="π.χ. Χανιά" />
         </label>
         <label className={LABEL}>
-          VAT number (ΑΦΜ)
+          ΑΦΜ
           <input name="vatNumber" className={INPUT} />
         </label>
         <label className={LABEL}>
-          Language of the invitation
+          Γλώσσα της πρόσκλησης
           <select name="locale" defaultValue="" className={INPUT}>
-            <option value="">From the country (Greece/Cyprus → Greek, else English)</option>
-            <option value="el">Greek</option>
-            <option value="en">English</option>
-            <option value="de">German</option>
-            <option value="fr">French</option>
+            <option value="">Από τη χώρα (Ελλάδα/Κύπρος ελληνικά, αλλιώς αγγλικά)</option>
+            <option value="el">Ελληνικά</option>
+            <option value="en">Αγγλικά</option>
+            <option value="de">Γερμανικά</option>
+            <option value="fr">Γαλλικά</option>
           </select>
         </label>
         <label className={LABEL}>
-          Rep
+          Εκπρόσωπος
           <select name="repId" defaultValue="" className={INPUT}>
-            <option value="">— Unassigned —</option>
+            <option value="">— Χωρίς εκπρόσωπο —</option>
             {reps.map((r) => (
               <option key={r.id} value={r.id}>
                 {r.name}
@@ -118,7 +118,7 @@ export function InviteShopForm({
           </select>
         </label>
         <label className={LABEL}>
-          Price multiplier (1 = normal prices)
+          Συντελεστής τιμής (1 = κανονικές τιμές)
           <input name="priceMultiplier" inputMode="decimal" defaultValue="1" className={INPUT} />
         </label>
 

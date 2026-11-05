@@ -116,14 +116,14 @@ export function AdminOrdersTable({ orders }: { orders: AdminOrder[] }) {
           <thead>
             <tr className="border-b border-stone-300 bg-stone-100 text-left text-[11px] uppercase tracking-wide text-ink-soft">
               <th className="px-3 py-2.5">
-                <input type="checkbox" checked={allSelected} onChange={toggleAll} aria-label="Select all orders" />
+                <input type="checkbox" checked={allSelected} onChange={toggleAll} aria-label="Επιλογή όλων" />
               </th>
-              <th className="px-4 py-2.5">Order</th>
-              <th className="px-3 py-2.5">Account</th>
-              <th className="px-3 py-2.5">Placed</th>
-              <th className="px-3 py-2.5">Terms</th>
-              <th className="px-3 py-2.5 text-right">Total (incl. VAT)</th>
-              <th className="px-4 py-2.5">Status</th>
+              <th className="px-4 py-2.5">Παραγγελία</th>
+              <th className="px-3 py-2.5">Πελάτης</th>
+              <th className="px-3 py-2.5">Ημερομηνία</th>
+              <th className="px-3 py-2.5">Όροι</th>
+              <th className="px-3 py-2.5 text-right">Σύνολο (με ΦΠΑ)</th>
+              <th className="px-4 py-2.5">Κατάσταση</th>
               <th className="px-3 py-2.5" />
             </tr>
           </thead>
@@ -161,7 +161,7 @@ export function AdminOrdersTable({ orders }: { orders: AdminOrder[] }) {
                 </td>
                 <td className="px-3 py-2.5 text-right">
                   <Link href={`/admin/orders/${order.id}`} className="text-xs font-medium text-ink-soft hover:text-ink">
-                    Details
+                    Λεπτομέρειες
                   </Link>
                 </td>
               </tr>

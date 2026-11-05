@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { createProductAction } from "@/lib/productActions";
-import { CATEGORY_LABEL, SEASON_LABEL, GENDER_LABEL } from "@/lib/data/styleLabels";
+import { CATEGORY_LABEL } from "@/lib/data/styleLabels";
 import type { FormState } from "@/lib/actions";
 
 const initialState: FormState = {};
@@ -15,32 +15,31 @@ export function NewProductForm() {
       {state?.error && <p className="border border-ember bg-ember-100 px-4 py-2 text-sm text-ember">{state.error}</p>}
 
       <div className="grid grid-cols-2 gap-4">
-        <Field label="Product name" name="name" required />
-        <Field label="Style number" name="styleNumber" required />
+        <Field label="Όνομα προϊόντος" name="name" required />
+        <Field label="Κωδικός" name="styleNumber" required />
       </div>
 
-      <Field label="Short description (tagline)" name="tagline" />
-
-      <div>
-        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Full description</label>
-        <textarea name="description" rows={4} className="w-full border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal" />
+      <div className="grid grid-cols-[1fr_auto] gap-4">
+        <Field label="Χρώμα (στα αγγλικά, π.χ. Brown)" name="colourName" required />
+        <div>
+          <label htmlFor="colourSwatch" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Δείγμα</label>
+          <input id="colourSwatch" type="color" name="colourSwatch" defaultValue="#121212" className="h-[38px] w-16 border border-stone-300 bg-white p-1" />
+        </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <SelectField label="Category" name="category" options={Object.entries(CATEGORY_LABEL)} />
-        <SelectField label="Season" name="season" options={Object.entries(SEASON_LABEL)} />
-        <SelectField label="Gender" name="gender" options={Object.entries(GENDER_LABEL)} />
+      <div className="grid grid-cols-2 gap-4">
+        <SelectField label="Κατηγορία" name="category" options={Object.entries(CATEGORY_LABEL)} />
+        <SelectField label="Σεζόν" name="season" options={[["summer", "Καλοκαιρινό"], ["winter", "Χειμερινό"], ["both", "Και οι δύο σεζόν"]]} />
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <Field label="Wholesale price (EUR)" name="basePrice" type="number" step="0.01" required />
-        <Field label="MSRP (EUR)" name="msrp" type="number" step="0.01" />
-        <Field label="Cost price (EUR)" name="costPrice" type="number" step="0.01" />
+      <div className="grid grid-cols-2 gap-4">
+        <Field label="Χονδρική (€ το ζευγάρι)" name="basePrice" type="number" step="0.01" required />
+        <Field label="Προτεινόμενη λιανική (€)" name="msrp" type="number" step="0.01" />
       </div>
 
-      <p className="text-xs text-ink-soft">
-        Created as a Draft — colorways, images, inventory, and everything else can be added from the editor after
-        creation.
+      <p className="text-sm text-ink-soft">
+        Μπαίνει ως πρόχειρο, οπότε δεν το βλέπουν οι πελάτες. Στην επόμενη οθόνη ανεβάζεις φωτογραφίες και γράφεις τα
+        κείμενα. Για ένα νέο χρώμα υπάρχοντος μοντέλου, πάτα «Νέο χρώμα» στη λίστα, είναι πιο γρήγορο.
       </p>
 
       <button
@@ -48,7 +47,7 @@ export function NewProductForm() {
         disabled={isPending}
         className="border border-ink bg-ink px-5 py-2.5 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85 disabled:opacity-50"
       >
-        {isPending ? "Creating…" : "Create Product"}
+        {isPending ? "Δημιουργία…" : "Συνέχεια"}
       </button>
     </form>
   );

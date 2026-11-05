@@ -70,7 +70,7 @@ export function AdminApplicationsList({ applications, reps }: { applications: Ap
         <div className="mb-3 flex flex-wrap items-center gap-3 border border-stone-300 bg-stone-100 px-4 py-3">
           <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-ink-soft">
             <input type="checkbox" checked={allSelected} onChange={toggleAll} />
-            Select all pending
+            Επιλογή όλων σε αναμονή
           </label>
           {selected.size > 0 && (
             <>
@@ -95,8 +95,8 @@ export function AdminApplicationsList({ applications, reps }: { applications: Ap
           setQuery(e.target.value);
           setPage(1);
         }}
-        placeholder="Search business, email, or status…"
-        aria-label="Search applications"
+        placeholder="Αναζήτηση με κατάστημα ή email…"
+        aria-label="Αναζήτηση αιτήσεων"
         className="mb-3 w-full max-w-sm border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus-visible:border-signal"
       />
 
@@ -142,7 +142,7 @@ export function AdminApplicationsList({ applications, reps }: { applications: Ap
                     type="submit"
                     className="border border-stone-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-ink-soft hover:border-ember hover:text-ember"
                   >
-                    Decline
+                    Απόρριψη
                   </button>
                 </form>
               </div>

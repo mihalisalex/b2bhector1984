@@ -7,7 +7,7 @@ import { resolveLocale } from "@/lib/localeHeuristic";
 import { chargesGreekVat } from "@/lib/tax";
 import { ProformaBuilder, type ProformaAccount, type ProformaStyle } from "@/components/admin/proforma/ProformaBuilder";
 
-export const metadata = { title: "Proforma Builder", robots: { index: false, follow: false } };
+export const metadata = { title: "Προτιμολόγιο", robots: { index: false, follow: false } };
 
 /**
  * Build a proforma for anyone, from the real catalogue, without them having an account.
@@ -68,7 +68,7 @@ export default async function AdminProformaPage() {
   return (
     <div>
       <h1 className="font-display border-b border-stone-300 pb-6 text-2xl font-bold uppercase tracking-tight text-ink">
-        Proforma Builder
+        Προτιμολόγιο
       </h1>
       <p className="mt-4 max-w-[70ch] text-sm leading-relaxed text-ink-soft">
         Build a proforma for anyone — an existing account, or a retailer standing in front of you with no account at
@@ -78,7 +78,7 @@ export default async function AdminProformaPage() {
 
       {styleData.length === 0 ? (
         <div className="mt-8 border border-dashed border-stone-300 bg-stone-100 px-6 py-16 text-center text-sm text-ink-soft">
-          No active products to quote from.
+          Δεν υπάρχουν ενεργά προϊόντα.
         </div>
       ) : (
         <ProformaBuilder styles={styleData} accounts={accountData} />

@@ -33,7 +33,7 @@ export function ListPager({
           onClick={() => onChange(page - 1)}
           className="border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-wide hover:border-ink disabled:opacity-40 disabled:hover:border-stone-300"
         >
-          Previous
+          Προηγούμενα
         </button>
         <span className="font-mono-tab text-xs">
           Page {page} of {pageCount}
@@ -44,7 +44,7 @@ export function ListPager({
           onClick={() => onChange(page + 1)}
           className="border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-wide hover:border-ink disabled:opacity-40 disabled:hover:border-stone-300"
         >
-          Next
+          Επόμενα
         </button>
       </div>
     </div>

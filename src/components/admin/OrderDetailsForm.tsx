@@ -37,7 +37,7 @@ export function OrderDetailsForm({
     <form action={formAction} className="flex flex-col gap-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <label className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Payment terms</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Όροι πληρωμής</span>
           <select
             name="terms"
             defaultValue={terms}
@@ -52,7 +52,7 @@ export function OrderDetailsForm({
         </label>
 
         <label className="flex flex-col gap-1.5 sm:col-span-2">
-          <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Ship to</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Αποστολή σε</span>
           <select
             name="shipToId"
             defaultValue={shipToId}
@@ -71,7 +71,7 @@ export function OrderDetailsForm({
             link once set, so an admin can actually reach whatever they filed here (an
             accounting-system invoice, a signed PDF) instead of re-reading a text box. */}
         <div className="flex flex-col gap-1.5 sm:col-span-2">
-          <Field label="Invoice URL" name="invoiceUrl" defaultValue={invoiceUrl} />
+          <Field label="Link τιμολογίου" name="invoiceUrl" defaultValue={invoiceUrl} />
           {invoiceUrl && (
             <a
               href={invoiceUrl}
@@ -79,16 +79,16 @@ export function OrderDetailsForm({
               rel="noreferrer noopener"
               className="self-start text-xs text-signal underline underline-offset-2"
             >
-              Open saved invoice ↗
+              Άνοιγμα τιμολογίου ↗
             </a>
           )}
         </div>
 
-        <Field label="Carrier" name="carrier" defaultValue={carrier} placeholder="e.g. UPS, DHL" />
-        <Field label="Tracking number" name="trackingNumber" defaultValue={trackingNumber} />
+        <Field label="Μεταφορική" name="carrier" defaultValue={carrier} placeholder="π.χ. ACS, DHL" />
+        <Field label="Αριθμός αποστολής" name="trackingNumber" defaultValue={trackingNumber} />
 
         <label className="flex flex-col gap-1.5 sm:col-span-2">
-          <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Notes</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Σημειώσεις</span>
           <textarea
             name="notes"
             defaultValue={notes}

@@ -23,9 +23,9 @@ export default async function ProductEditorPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; newColour?: string }>;
 }) {
-  const [{ id }, { tab }] = await Promise.all([params, searchParams]);
+  const [{ id }, { tab, newColour }] = await Promise.all([params, searchParams]);
   const style = await getStyleDetailForAdmin(id);
   if (!style) notFound();
 
@@ -70,6 +70,7 @@ export default async function ProductEditorPage({
       // Any tab can be deep-linked (?tab=pricing, ?tab=inventory…); the shell keeps this
       // in sync as the admin clicks around.
       initialTab={parseTab(tab)}
+      isNewColour={newColour === "1"}
     />
   );
 }

@@ -27,7 +27,7 @@ export function OrderStatusForm({ orderId, status }: { orderId: string; status: 
         <select
           name="status"
           defaultValue={status}
-          aria-label="Order status"
+          aria-label="Κατάσταση παραγγελίας"
           onChange={(e) => {
             // Cancelling returns the order's stock and can't be undone — one stray pick in a
             // select that submits on change shouldn't be enough.

@@ -7,10 +7,10 @@ import type { OrderStatus } from "@/lib/types";
 
 /** The order journey the buyer sees, one step at a time (see OrderJourney). */
 const NEXT: Partial<Record<OrderStatus, { status: OrderStatus; label: string }>> = {
-  submitted: { status: "confirmed", label: "Mark confirmed & invoiced" },
-  confirmed: { status: "in_production", label: "Mark in production" },
-  in_production: { status: "shipped", label: "Mark handed to courier" },
-  shipped: { status: "delivered", label: "Mark delivered" },
+  submitted: { status: "confirmed", label: "Επιβεβαίωση & τιμολόγιο" },
+  confirmed: { status: "in_production", label: "Μπήκε στην παραγωγή" },
+  in_production: { status: "shipped", label: "Δόθηκε στη μεταφορική" },
+  shipped: { status: "delivered", label: "Παραδόθηκε" },
 };
 
 /**
@@ -32,7 +32,7 @@ export function OrderNextStep({ orderId, status }: { orderId: string; status: Or
       >
         {pending ? "Saving…" : `${next.label} →`}
       </button>
-      <span className="text-[11px] text-ink-soft">Emails the buyer automatically</span>
+      <span className="text-[11px] text-ink-soft">Ενημερώνει τον πελάτη με email</span>
       {state.error && <span className="max-w-[240px] text-right text-[11px] text-ember">{state.error}</span>}
     </form>
   );

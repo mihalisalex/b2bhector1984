@@ -11,6 +11,8 @@ const STORAGE_KEY = "hector_admin_theme";
 
 export interface AdminNavSection {
   title: string;
+  /** Folded away until opened, unless the current page is inside it. */
+  collapsible?: boolean;
   items: { href: string; label: string }[];
 }
 
@@ -106,7 +108,7 @@ export function AdminShell({
               <button
                 type="button"
                 onClick={() => setOpen(true)}
-                aria-label="Open admin menu"
+                aria-label="Άνοιγμα μενού"
                 aria-expanded={open}
                 className="group flex h-9 w-9 shrink-0 flex-col items-center justify-center gap-[6px]"
               >
@@ -114,7 +116,7 @@ export function AdminShell({
                 <span className="h-[1.5px] w-5 bg-white" aria-hidden />
                 <span className="h-[1.5px] w-5 bg-white" aria-hidden />
               </button>
-              <span className="font-display text-sm font-bold uppercase tracking-tight text-white">
+              <span className="brand-mark text-sm font-semibold tracking-[0.14em] text-white">
                 Hector Footwear — Admin
               </span>
             </header>
@@ -136,7 +138,7 @@ export function AdminShell({
           ref={drawerRef}
           role="dialog"
           aria-modal="true"
-          aria-label="Admin menu"
+          aria-label="Μενού"
           className={cn(
             "fixed inset-y-0 left-0 z-50 flex w-[280px] max-w-[85vw] flex-col bg-ink transition-transform duration-300 ease-out lg:hidden",
             open ? "translate-x-0" : "-translate-x-full",
@@ -147,7 +149,7 @@ export function AdminShell({
             <button
               type="button"
               onClick={() => setOpen(false)}
-              aria-label="Close admin menu"
+              aria-label="Κλείσιμο μενού"
               className="flex h-8 w-8 items-center justify-center text-stone-300/80 hover:text-white"
             >
               ✕
@@ -179,7 +181,7 @@ function Divider() {
 function AdminBrand() {
   return (
     <Link href="/admin" className="block px-5 py-4">
-      <span className="font-display block text-sm font-bold uppercase tracking-tight text-white">
+      <span className="brand-mark block text-sm font-semibold tracking-[0.14em] text-white">
         Hector Footwear
       </span>
       <span className="font-mono-tab mt-0.5 block text-[10px] uppercase tracking-[0.2em] text-stone-300/60">
@@ -192,11 +194,8 @@ function AdminBrand() {
 function AdminNav({ sections, pathname }: { sections: AdminNavSection[]; pathname: string }) {
   return (
     <nav className="flex flex-col gap-6" aria-label="Admin">
-      {sections.map((section) => (
-        <div key={section.title}>
-          <h2 className="px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-300/45">
-            {section.title}
-          </h2>
+      {sections.map((section) => {
+        const list = (
           <ul className="mt-1.5 flex flex-col gap-0.5">
             {section.items.map((item) => {
               const active = isActive(pathname, item.href);
@@ -217,8 +216,16 @@ function AdminNav({ sections, pathname }: { sections: AdminNavSection[]; pathnam
               );
             })}
           </ul>
-        </div>
-      ))}
+        );
+        return section.collapsible ? (
+          <details key={section.title} open={section.items.some((item) => isActive(pathname, item.href))}>
+            <summary className="cursor-pointer px-3 text-sm font-medium text-stone-300/70 hover:text-white">{section.title}</summary>
+            {list}
+          </details>
+        ) : (
+          <div key={section.title}>{list}</div>
+        );
+      })}
     </nav>
   );
 }
@@ -238,21 +245,21 @@ function AdminSidebarFooter({
         href="/"
         className="px-3 py-2 text-sm font-medium text-stone-300/80 transition-colors hover:text-white"
       >
-        View storefront
+        Προβολή site
       </Link>
       <button
         type="button"
         onClick={onToggleTheme}
         className="px-3 py-2 text-left text-sm font-medium text-stone-300/80 transition-colors hover:text-white"
       >
-        {theme === "dark" ? "Light mode" : "Dark mode"}
+        {theme === "dark" ? "Φωτεινό θέμα" : "Σκούρο θέμα"}
       </button>
       <form action={logoutAction}>
         <button
           type="submit"
           className="w-full px-3 py-2 text-left text-sm font-medium text-stone-300/80 transition-colors hover:text-white"
         >
-          Sign out
+          Αποσύνδεση
         </button>
       </form>
     </div>

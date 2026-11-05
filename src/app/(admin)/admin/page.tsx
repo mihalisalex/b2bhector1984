@@ -32,23 +32,23 @@ export default async function AdminOrdersPage({
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-300 pb-6">
         <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink">
-          Orders
+          Παραγγελίες
         </h1>
         <OrdersCsvExportButton orders={orders} />
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatCard label="Total orders" value={String(allOrders.length)} />
-        <StatCard label="Total revenue (excl. VAT)" value={formatEUR(totalRevenue)} isPrice />
-        <StatCard label="Awaiting action" value={String(awaitingAction)} highlight={awaitingAction > 0} />
-        <StatCard label="Buyers with orders" value={String(activeBuyers)} />
+        <StatCard label="Παραγγελίες" value={String(allOrders.length)} />
+        <StatCard label="Τζίρος (χωρίς ΦΠΑ)" value={formatEUR(totalRevenue)} isPrice />
+        <StatCard label="Περιμένουν ενέργεια" value={String(awaitingAction)} highlight={awaitingAction > 0} />
+        <StatCard label="Πελάτες με παραγγελίες" value={String(activeBuyers)} />
       </div>
 
       <AdminOrderFilters />
 
       {orders.length === 0 ? (
         <div className="mt-6 border border-dashed border-stone-300 bg-stone-100 px-6 py-16 text-center text-sm text-ink-soft">
-          {allOrders.length === 0 ? "No orders yet." : "No orders match this search."}
+          {allOrders.length === 0 ? "Καμία παραγγελία ακόμα." : "Καμία παραγγελία με αυτή την αναζήτηση."}
         </div>
       ) : (
         <div className="mt-6">

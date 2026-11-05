@@ -55,6 +55,9 @@ export interface ProductListParams {
   q?: string;
   status?: ProductStatus | "out_of_stock" | "all";
   category?: string;
+  season?: "winter" | "summer" | "both";
+  /** Products still needing work: no photo, or no Greek copy. */
+  missing?: "photo" | "greek";
   brandId?: string;
   supplierId?: string;
   inventory?: "in_stock" | "low_stock" | "out_of_stock" | "all";
@@ -115,7 +118,8 @@ export async function listProductsForAdmin(params: ProductListParams): Promise<P
 
   let rows: ProductRow[] = styles.map((s) => {
     const inv = inventoryTotals[s.id] ?? { onHand: 0, reserved: 0 };
-    const derivedStatus: ProductStatus | "out_of_stock" = s.trackInventory && inv.onHand <= 0 ? "out_of_stock" : s.status;
+    // Only when it truly can't be ordered: at zero stock a made-to-order style is still on sale.
+    const derivedStatus: ProductStatus | "out_of_stock" = s.trackInventory && !s.allowBackorder && inv.onHand <= 0 ? "out_of_stock" : s.status;
     const effectivePrice = s.basePrice;
     const marginPct = effectivePrice > 0 ? Math.round(((effectivePrice - s.costPrice) / effectivePrice) * 1000) / 10 : 0;
     return {
@@ -134,6 +138,9 @@ export async function listProductsForAdmin(params: ProductListParams): Promise<P
   if (matchedIds) rows = rows.filter((r) => matchedIds!.has(r.id));
   if (params.status && params.status !== "all") rows = rows.filter((r) => r.derivedStatus === params.status);
   if (params.category) rows = rows.filter((r) => r.category === params.category);
+  if (params.season) rows = rows.filter((r) => r.season === params.season);
+  if (params.missing === "photo") rows = rows.filter((r) => !r.primaryImageUrl);
+  if (params.missing === "greek") rows = rows.filter((r) => !r.taglineEl?.trim() || !r.descriptionEl?.trim());
   if (params.brandId) rows = rows.filter((r) => r.brandId === params.brandId);
   if (params.supplierId) rows = rows.filter((r) => r.supplierId === params.supplierId);
   if (params.inventory && params.inventory !== "all") {
@@ -445,6 +452,49 @@ export async function updateStyleVisibility(
   if (error) throw new Error(`styles: ${error.message}`);
 }
 
+/** One or two fields from the product list or the main editor, leaving everything else alone. */
+export async function updateStyleQuickFields(
+  styleId: string,
+  fields: { status?: ProductStatus; season?: Style["season"]; newArrival?: boolean },
+): Promise<void> {
+  const update: Record<string, unknown> = {};
+  if (fields.status) update.status = fields.status;
+  if (fields.season) update.season = fields.season;
+  if (fields.newArrival !== undefined) update.new_arrival = fields.newArrival;
+  const { error } = await supabaseAdmin.from("styles").update(update).eq("id", styleId);
+  if (error) throw new Error(`styles: ${error.message}`);
+}
+
+/** The translated copy, written side by side with the English in the main editor. Blank Greek is stored as null so the English fallback applies. */
+export async function updateStyleCopy(
+  styleId: string,
+  copy: { taglineEl: string; descriptionEl: string; materialsEl: string[]; featuresEl: string[]; lastNoteEl: string; features: string[]; lastNote: string },
+): Promise<void> {
+  const { error } = await supabaseAdmin
+    .from("styles")
+    .update({
+      tagline_el: copy.taglineEl || null,
+      description_el: copy.descriptionEl || null,
+      materials_el: copy.materialsEl.length ? copy.materialsEl : null,
+      features_el: copy.featuresEl.length ? copy.featuresEl : null,
+      last_note_el: copy.lastNoteEl || null,
+      features: copy.features,
+      last_note: copy.lastNote || null,
+    })
+    .eq("id", styleId);
+  if (error) throw new Error(`styles: ${error.message}`);
+}
+
+/** A product's own colour: every style is one colour, shown on its card and sibling links. */
+export async function setStyleColour(styleId: string, localId: string | undefined, name: string, swatch: string): Promise<void> {
+  if (localId) {
+    const { error } = await supabaseAdmin.from("colorways").update({ name, swatch_1: swatch }).eq("id", toDbId(styleId, localId));
+    if (error) throw new Error(`colorways: ${error.message}`);
+    return;
+  }
+  await addColorway(styleId, "c1", { name, skuSuffix: "", swatch1: swatch });
+}
+
 // ---------------------------------------------------------------------------
 // Attributes tab
 // ---------------------------------------------------------------------------
@@ -645,6 +695,7 @@ export async function duplicateStyle(styleId: string): Promise<{ id: string } | 
     name: `${original.name} (Copy)`,
     status: "draft",
     featured: false,
+    new_arrival: false,
     publish_at: null,
   });
   if (insertError) return { error: `styles: ${insertError.message}` };
