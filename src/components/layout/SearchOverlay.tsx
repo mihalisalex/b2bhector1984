@@ -211,7 +211,7 @@ export function SearchOverlay() {
                               key={r}
                               type="button"
                               onClick={() => runSearch(r)}
-                              className="rounded-full border border-stone-300 bg-white px-3 py-1.5 text-xs text-ink hover:border-ink"
+                              className="border border-stone-300 bg-white px-3 py-1.5 text-xs text-ink hover:border-ink"
                             >
                               {r}
                             </button>
@@ -230,7 +230,7 @@ export function SearchOverlay() {
                               setOpen(false);
                               router.push(`/catalogue?category=${c.value}`);
                             }}
-                            className="rounded-full border border-stone-300 bg-white px-3 py-1.5 text-xs text-ink hover:border-ink"
+                            className="border border-stone-300 bg-white px-3 py-1.5 text-xs text-ink hover:border-ink"
                           >
                             {c.label}
                           </button>
@@ -254,7 +254,7 @@ export function SearchOverlay() {
                             setOpen(false);
                             router.push(`/catalogue?category=${c.value}`);
                           }}
-                          className="rounded-full border border-stone-300 bg-white px-3 py-1.5 text-xs text-ink hover:border-ink"
+                          className="border border-stone-300 bg-white px-3 py-1.5 text-xs text-ink hover:border-ink"
                         >
                           Browse {c.label}
                         </button>

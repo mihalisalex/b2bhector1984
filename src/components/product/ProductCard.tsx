@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { backorderLabelFor, categoryLabel, getStyleImageUrl } from "@/lib/data/styleLabels";
 import { getUnitPrice, isOnSale } from "@/lib/pricing";
@@ -19,6 +20,7 @@ import { ColorSwatchButton } from "@/components/product/ColorSwatchButton";
 import { pickDefaultColorway } from "@/lib/productSelectionDefaults";
 import { cn } from "@/lib/cn";
 import { useBuyerTerms } from "@/lib/cart-context";
+import { styleTitle } from "@/lib/modelColours";
 
 /**
  * Card root is a plain container, not a single wrapping `<Link>`: the card carries real
@@ -81,6 +83,8 @@ export function ProductCard({
   const activeColorway = style.colorways.find((c) => c.id === activeColorwayId) ?? style.colorways[0];
   const taggedImage = images.find((img) => img.colorwayId === activeColorwayId);
   const imageUrl = taggedImage?.publicUrl ?? getStyleImageUrl(style);
+  // Another angle of the same colour on hover, where one exists.
+  const secondImage = images.find((img) => img.publicUrl !== imageUrl && (!img.colorwayId || img.colorwayId === activeColorwayId));
 
   const unitPrice = getUnitPrice(style, buyerTerms, priceMultiplier);
   const boxTypes = getAvailableBoxTypes(style);
@@ -90,7 +94,7 @@ export function ProductCard({
   const markup = style.msrp > 0 && unitPrice > 0 ? style.msrp / unitPrice : 0;
 
   return (
-    <div className="group flex flex-col bg-white">
+    <div className="group flex flex-col">
       <div className="relative overflow-hidden bg-transparent">
         <Link href={`/product/${style.slug}`} tabIndex={-1} aria-hidden className="block">
           {/* 4:3, not the old 4:5. The photos are portrait with the shoe centred, so the
@@ -102,8 +106,17 @@ export function ProductCard({
             imageUrl={imageUrl}
             alt={style.name}
             priority={priority}
-            className={cn("aspect-[4/3] w-full transition-transform duration-500 ease-out group-hover:scale-[1.02]", soldOut && "grayscale")}
+            className={cn("aspect-[4/3] w-full transition-transform duration-700 ease-out group-hover:scale-[1.02]", soldOut && "grayscale")}
           />
+          {secondImage && (
+            <Image
+              src={secondImage.publicUrl}
+              alt=""
+              fill
+              sizes="(min-width: 1280px) 25vw, (min-width: 768px) 33vw, 50vw"
+              className="bg-stone-100 object-contain opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
+            />
+          )}
         </Link>
         <div className="absolute left-2 top-2 flex flex-col items-start gap-1.5">
           <SaleBadge style={style} />
@@ -120,19 +133,17 @@ export function ProductCard({
         )}
       </div>
 
-      <div className="flex flex-1 flex-col gap-2.5 px-3 pb-3 pt-3 sm:px-4 sm:pb-4">
+      <div className="flex flex-1 flex-col gap-2.5 pt-3.5">
         <div>
           {/* Sentence case in the body face: a long name like "5109 Brown - Leather formal
               boots" set in display capitals ran to three lines and was slow to scan across a
               grid. The display face stays for page headings. */}
-          <h3 className="line-clamp-2 text-[15px] font-semibold leading-snug text-ink">
-            <Link href={`/product/${style.slug}`} className="hover:underline">
-              {style.name}
+          <h3 className="text-[15px] font-medium leading-snug text-ink">
+            <Link href={`/product/${style.slug}`} className="transition-opacity duration-300 hover:opacity-60">
+              {styleTitle(style)}
             </Link>
           </h3>
-          <p className="mt-0.5 text-xs text-ink-soft">
-            <span className="font-mono-tab">{style.styleNumber}</span> · {categoryLabel(dict, style.category)}
-          </p>
+          <p className="mt-0.5 text-[13px] text-ink-soft">{categoryLabel(dict, style.category)}</p>
         </div>
 
         {hasMultipleColorways && (
@@ -158,7 +169,7 @@ export function ProductCard({
         )}
 
         {showPricing && (
-          <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 border-t border-stone-200 pt-2.5 tabular-nums">
+          <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 tabular-nums">
             <div>
               <dt className="text-[11px] text-ink-soft">{dictCatalog.perPairLabel}</dt>
               <dd className="flex flex-wrap items-baseline gap-x-1.5">

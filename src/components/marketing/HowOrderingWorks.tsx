@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { LinkButton } from "@/components/ui/Button";
 import { withLocale } from "@/i18n/paths";
 import { t } from "@/i18n/format";
 import { whatsappHref } from "@/lib/contact";
@@ -43,42 +43,39 @@ export function HowOrderingWorks({
   ].filter(Boolean);
 
   return (
-    <section className="border-b border-stone-300 bg-white py-16 lg:py-20">
+    <section className="reveal bg-white py-20 lg:py-28">
       <div className="mx-auto max-w-[1440px] px-6 lg:px-10">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-soft">{h.howEyebrow}</p>
-        <h2 className="font-display mt-2 text-2xl font-bold tracking-tight text-ink sm:text-3xl">{h.howHeading}</h2>
+        <p className="text-[11px] uppercase tracking-[0.24em] text-ink-soft">{h.howEyebrow}</p>
+        <h2 className="font-display mt-4 text-4xl leading-[1.1] text-ink sm:text-5xl">{h.howHeading}</h2>
 
         {/* A real sequence, so the steps are numbered. */}
-        <ol className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-5 lg:gap-6">
+        <ol className="mt-14 grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-5 lg:gap-8">
           {steps.map((step, i) => (
-            <li key={step.title} className="relative border-t-2 border-ink pt-4">
-              <span className="font-mono-tab text-xs text-ink-soft">{String(i + 1).padStart(2, "0")}</span>
-              <p className="mt-1 text-base font-semibold text-ink">{step.title}</p>
-              <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">{step.body}</p>
+            <li key={step.title} className="border-t border-stone-300 pt-5">
+              <span className="text-xs tabular-nums text-ink-soft">{String(i + 1).padStart(2, "0")}</span>
+              <p className="font-display mt-3 text-xl text-ink">{step.title}</p>
+              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{step.body}</p>
             </li>
           ))}
         </ol>
 
-        <ul className="mt-10 flex flex-wrap gap-2">
+        <ul className="mt-16 grid grid-cols-1 gap-x-8 gap-y-3 text-sm text-ink sm:grid-cols-2 lg:grid-cols-3">
           {facts.map((fact) => (
-            <li key={fact} className="rounded-full border border-stone-300 bg-stone-50 px-3.5 py-1.5 text-xs font-medium text-ink">
+            <li key={fact} className="border-b border-stone-200 pb-3">
               {fact}
             </li>
           ))}
         </ul>
 
-        <div className="mt-8 flex flex-wrap items-center gap-4">
-          <Link
-            href={withLocale(locale, "/apply")}
-            className="rounded-full bg-ink px-6 py-3 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85"
-          >
+        <div className="mt-12 flex flex-wrap items-center gap-x-8 gap-y-4">
+          <LinkButton href={withLocale(locale, "/apply")} size="lg">
             {dict.nav.applyForAccess}
-          </Link>
+          </LinkButton>
           <a
             href={whatsappHref(dict.contact.whatsappMessage)}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-medium text-ink underline underline-offset-4 hover:text-signal"
+            className="text-sm text-ink underline decoration-ink/30 underline-offset-[6px] transition-colors duration-300 hover:decoration-ink"
           >
             {h.howAsk}
           </a>

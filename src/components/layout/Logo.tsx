@@ -9,7 +9,7 @@ export function Logo({ inverted = false, className }: { inverted?: boolean; clas
     <span className={cn("flex items-baseline gap-1.5 sm:gap-2", className)}>
       <span
         className={cn(
-          "font-display text-base font-bold uppercase leading-none tracking-[0.06em] sm:text-[23px] sm:tracking-[0.08em]",
+          "brand-mark text-base font-semibold leading-none tracking-[0.14em] sm:text-[22px] sm:tracking-[0.18em]",
           inverted ? "text-white" : "text-ink",
         )}
       >
@@ -17,7 +17,7 @@ export function Logo({ inverted = false, className }: { inverted?: boolean; clas
       </span>
       <span
         className={cn(
-          "font-display text-[8px] font-normal uppercase leading-none tracking-[0.14em] sm:text-[11px] sm:tracking-[0.18em]",
+          "brand-mark text-[8px] font-normal leading-none tracking-[0.2em] sm:text-[10px] sm:tracking-[0.28em]",
           inverted ? "text-stone-300" : "text-ink-soft",
         )}
       >

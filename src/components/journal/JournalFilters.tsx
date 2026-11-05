@@ -58,7 +58,7 @@ export function JournalFilters({ categoryCounts, dict }: { categoryCounts: Recor
           onClick={() => setParam("category", "")}
           aria-pressed={!activeCategory}
           className={cn(
-            "shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium uppercase tracking-wide transition-colors",
+            "shrink-0 whitespace-nowrap border px-3 py-1.5 text-xs font-medium uppercase tracking-wide transition-colors",
             !activeCategory ? "border-ink bg-ink text-white" : "border-stone-300 bg-white text-ink-soft hover:border-ink",
           )}
         >
@@ -71,7 +71,7 @@ export function JournalFilters({ categoryCounts, dict }: { categoryCounts: Recor
             onClick={() => setParam("category", activeCategory === c ? "" : c)}
             aria-pressed={activeCategory === c}
             className={cn(
-              "shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium uppercase tracking-wide transition-colors",
+              "shrink-0 whitespace-nowrap border px-3 py-1.5 text-xs font-medium uppercase tracking-wide transition-colors",
               activeCategory === c ? "border-ink bg-ink text-white" : "border-stone-300 bg-white text-ink-soft hover:border-ink",
             )}
           >

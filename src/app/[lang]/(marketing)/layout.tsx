@@ -25,7 +25,7 @@ export default async function MarketingLayout({
   const content = (
     <>
       <HomeAnnouncementBar
-        enabled={hero.announcementEnabled}
+        enabled={false /* PREMIUM_COPY: bar off during review; once approved, switched off in the row and this reads it again */}
         text={hero.announcementText}
         textEl={hero.announcementTextEl}
         href={hero.announcementHref}

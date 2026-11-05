@@ -12,7 +12,7 @@ import { cn } from "@/lib/cn";
  */
 
 const fieldClasses =
-  "border border-stone-300 bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors duration-200 focus-visible:border-signal";
+  "border border-stone-300 bg-white px-3.5 py-3 text-sm text-ink outline-none transition-colors duration-300 focus-visible:border-signal";
 
 export function TextField({
   label,
@@ -42,7 +42,7 @@ export function TextField({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{label}</span>
+      <span className="text-[13px] text-ink">{label}</span>
       <input
         name={name}
         type={type}
@@ -76,7 +76,7 @@ export function SelectField({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{label}</span>
+      <span className="text-[13px] text-ink">{label}</span>
       <select name={name} required={required} defaultValue="" className={fieldClasses}>
         <option value="" disabled>
           {placeholder}

@@ -22,3 +22,15 @@ export function modelSiblings(style: Style, all: Style[]): Style[] {
     .filter((s) => modelCode(s) === code)
     .sort((a, b) => a.styleNumber.localeCompare(b.styleNumber, "en", { numeric: true }));
 }
+
+/**
+ * How a shoe is named on the page: "5109 Brown", with its type shown beside it in the reader's
+ * language. Colour names stay in English on every site (owner's decision); the raw product
+ * name ("5109 Brown - Leather formal boots") stays the record for orders and search engines.
+ */
+export function styleTitle(style: Pick<Style, "name" | "styleNumber" | "colorways">): string {
+  const colour = (style.colorways[0]?.name ?? "")
+    .toLowerCase()
+    .replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+  return `${modelCode(style)} ${colour}`.trim();
+}

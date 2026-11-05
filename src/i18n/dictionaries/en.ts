@@ -96,6 +96,8 @@ const en = {
     signIn: "Sign in",
   },
   orderDetail: {
+    thanksNamed: "Thank you, {name}.",
+    thanksPlain: "Thank you.",
     title: "Order Detail",
     dashboard: "Dashboard",
     proformaNotice: "Request received — this isn’t a charge. We’ll check production for these quantities and send you the invoice with the final price, delivery date and payment details, usually within one business day.",
@@ -1130,10 +1132,17 @@ const en = {
     noResults: "No styles match this filter.",
   },
   home: {
-    heroEyebrow: "Wholesale Only — Est. 1984",
-    heroHeading: "Men's Leather Footwear\nWholesale, Since 1984.",
+    storyEyebrow: "Since 1984",
+    storyHeading: "Four decades. The same standards.",
+    storyBody: "We make our own men’s shoes in natural leather, and sell them only through retailers.",
+    storyStatYear: "Founded",
+    storyStatShops: "Points of sale",
+    storyStatLeather: "Genuine leather",
+    storyLink: "Our story",
+    heroEyebrow: "Hector Footwear · Wholesale",
+    heroHeading: "Men's leather shoes.\nSince 1984.",
     heroBody:
-      "Full-grain men's leather footwear — loafers to boots — wholesaled the way independent retailers expect. Box-only ordering, terms-based pricing, no DTC discounting.",
+      "For retailers only.",
     heroImageAlt: "Full-grain leather men's shoes from the Hector Footwear wholesale collection",
     /** Hero CTA labels. The DB's primary/secondary_cta_label columns are English-only, and
      * the hero rendered them verbatim under every locale — the Greek homepage shipped an

@@ -94,7 +94,7 @@ export default async function CatalogPage({
   const imagesByStyle = view === "grid" ? await listImagesForStyles(results.map((s) => s.id)) : {};
 
   return (
-    <div className="mx-auto max-w-[1600px] px-6 py-8 lg:px-10">
+    <div className="mx-auto max-w-[1440px] px-6 py-10 lg:px-10">
       {/* "Home" used to point at /dashboard, which redirects a signed-out visitor to
           /login — a dead end on a page that is now public, and a crawlable link into a
           gated route. Signed-in buyers still get their dashboard. */}
@@ -104,16 +104,16 @@ export default async function CatalogPage({
         </Link>{" "}
         <span className="mx-1">/</span> <span className="text-ink">{dict.nav.catalogue}</span>
       </nav>
-      <div className="mb-6 flex flex-col gap-3 border-b border-stone-300 pb-6 sm:flex-row sm:items-end sm:justify-between">
+      <div className="mb-6 flex flex-col gap-5 pt-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           {/* Real per-locale keyword copy. This page carries all 31 products and became
               publicly indexable on 18 Aug, at which point its H1 was the single word
               "Catalog" — no keyword, and inconsistent with the "Catalogue" spelling used
               everywhere else on the site. */}
-          <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink sm:text-3xl">
+          <h1 className="font-display text-4xl leading-[1.1] text-ink sm:text-5xl">
             {dict.seo.catalogueHeading}
           </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">{dict.seo.catalogueIntro}</p>
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-ink-soft">{dict.seo.catalogueIntro}</p>
         </div>
         <div className="flex items-center gap-2">
           <Suspense fallback={null}>
@@ -192,8 +192,8 @@ export default async function CatalogPage({
         // photos and four columns from `xl` the same screen holds about twelve, each card
         // carrying its own pair/box price and delivery date. Never one column on a phone.
         // A hairline gap is the only separation, breaking out of the page padding.
-        <div className="-mx-6 lg:-mx-10">
-          <div className="grid grid-cols-2 gap-0.5 bg-stone-200 px-0.5 md:grid-cols-3 xl:grid-cols-4">
+        <div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 md:grid-cols-3 xl:grid-cols-4">
             {results.map((style, i) => (
               <ProductCard
                 key={style.id}

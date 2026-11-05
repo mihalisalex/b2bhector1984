@@ -132,8 +132,8 @@ export function PrimaryPurchasePanel({
 
   return (
     <>
-      <div className="border border-stone-300 bg-white">
-        <div className="space-y-4 px-5 py-5 sm:px-6">
+      <div>
+        <div className="space-y-5">
           {/* Colour lives in the sticky bar on phones; on desktop there is no bar, so here. */}
           {style.colorways.length > 1 && (
             <div className="hidden lg:block">
@@ -186,7 +186,7 @@ export function PrimaryPurchasePanel({
                       onClick={() => setBoxTypeId(b.id)}
                       aria-pressed={active}
                       className={cn(
-                        "rounded-full px-3.5 py-2 text-xs font-semibold tabular-nums transition-colors duration-150",
+                        "px-3.5 py-2 text-xs font-semibold tabular-nums transition-colors duration-150",
                         active ? "bg-ink text-white" : "bg-stone-100 text-ink-soft hover:bg-stone-200",
                         stock === 0 && !allowBackorder && "opacity-45",
                       )}
@@ -200,7 +200,7 @@ export function PrimaryPurchasePanel({
           )}
 
           {/* A date, not a duration: "around 14 Nov" is what a buyer plans a season around. */}
-          <div className={cn("border-l-[3px] px-3 py-2 text-sm", outOfStock ? "border-ember bg-ember-100" : "border-positive bg-positive-100")}>
+          <div className={cn("border-l-[3px] px-3 py-2 text-sm", outOfStock ? "border-ember bg-ember-100" : "border-positive bg-stone-100")}>
             {outOfStock ? (
               <p className="font-medium text-ember">{c.outOfStockCombo}</p>
             ) : willBeProduction || onHand === 0 ? (
@@ -227,7 +227,7 @@ export function PrimaryPurchasePanel({
               type="button"
               onClick={handleAddToCart}
               disabled={outOfStock}
-              className="flex-1 rounded-full bg-ink px-4 py-3 text-xs font-semibold uppercase tracking-[0.06em] text-white tabular-nums transition-colors hover:bg-ink/85 disabled:bg-cinder-300 disabled:text-white/70"
+              className="flex-1 bg-ink px-4 py-3 text-xs font-semibold uppercase tracking-[0.06em] text-white tabular-nums transition-colors hover:bg-ink/85 disabled:bg-cinder-300 disabled:text-white/70"
             >
               {addLabel}
             </button>
@@ -286,7 +286,7 @@ export function PrimaryPurchasePanel({
               type="button"
               onClick={handleAddToCart}
               disabled={outOfStock}
-              className="flex-1 rounded-full bg-ink px-3 text-xs font-semibold uppercase tracking-[0.06em] text-white tabular-nums transition-transform active:scale-[0.99] disabled:bg-cinder-300 disabled:text-white/70"
+              className="flex-1 bg-ink px-3 text-xs font-semibold uppercase tracking-[0.06em] text-white tabular-nums transition-transform active:scale-[0.99] disabled:bg-cinder-300 disabled:text-white/70"
             >
               {addLabel}
             </button>
@@ -320,7 +320,7 @@ function QtyInput({
   const c = useI18n().dict.catalog;
   const [draft, setDraft] = useState<string | null>(null);
   return (
-    <div className="flex shrink-0 items-center overflow-hidden rounded-full bg-stone-100">
+    <div className="flex shrink-0 items-center overflow-hidden bg-stone-100">
       <button
         type="button"
         onClick={() => onChange(qty - 1)}

@@ -41,8 +41,8 @@ export function ModelColours({
                 href={withLocale(locale, `/product/${s.slug}`)}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex items-center gap-2 rounded-full border py-1.5 pl-1.5 pr-3 text-xs font-medium transition-colors",
-                  active ? "border-ink bg-ink text-white" : "border-stone-300 bg-white text-ink hover:border-ink",
+                  "flex items-center gap-2 border py-1.5 pl-2 pr-3 text-xs font-medium transition-colors duration-300",
+                  active ? "border-ink text-ink" : "border-stone-300 bg-white text-ink-soft hover:border-ink hover:text-ink",
                 )}
               >
                 <span
@@ -51,7 +51,6 @@ export function ModelColours({
                   style={{ background: upper }}
                 />
                 <span className="capitalize">{colorway.name.toLowerCase()}</span>
-                <span className={cn("font-mono-tab text-[10px]", active ? "text-white/70" : "text-ink-soft")}>{s.styleNumber}</span>
               </Link>
             </li>
           );

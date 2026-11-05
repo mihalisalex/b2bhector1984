@@ -53,7 +53,7 @@ export function ProductDetails({
   const copy = localizeStyle(style, locale);
 
   return (
-    <div className="mt-8 border-t border-stone-300">
+    <div className="mt-16 border-t border-stone-300">
       <Section title={p.description} defaultOpen>
         {/* Sanitized server-side on write (sanitizeProductDescription) to a fixed tag
             allowlist matching exactly what the admin rich-text editor can produce. */}
@@ -62,8 +62,8 @@ export function ProductDetails({
           dangerouslySetInnerHTML={{ __html: copy.description }}
         />
         {copy.lastNote && (
-          <p className="mt-4 border-l-2 border-court bg-court-100/60 px-3 py-2 text-sm text-ink-soft">
-            <span className="font-semibold text-ink">{p.repNote} — </span>
+          <p className="mt-4 text-sm text-ink-soft">
+            <span className="text-ink">{p.repNote} — </span>
             {copy.lastNote}
           </p>
         )}
@@ -191,7 +191,7 @@ function Section({
 }) {
   return (
     <details open={defaultOpen} className="group border-b border-stone-300">
-      <summary className="flex cursor-pointer list-none items-center justify-between py-4 text-sm font-semibold uppercase tracking-wide text-ink marker:hidden hover:text-signal [&::-webkit-details-marker]:hidden">
+      <summary className="flex cursor-pointer list-none items-center justify-between py-5 text-[15px] text-ink marker:hidden transition-opacity duration-300 hover:opacity-60 [&::-webkit-details-marker]:hidden">
         {title}
         <span
           aria-hidden

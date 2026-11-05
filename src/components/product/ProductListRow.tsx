@@ -4,13 +4,13 @@ import { categoryLabel, getStyleImageUrl } from "@/lib/data/styleLabels";
 import { formatEUR, isOnSale } from "@/lib/pricing";
 import { VatSuffix } from "@/components/ui/VatSuffix";
 import type { Style } from "@/lib/types";
-import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
 import { cn } from "@/lib/cn";
 import { BuyerPrice } from "@/components/product/BuyerPrice";
 import { t } from "@/i18n/format";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
+import { styleTitle } from "@/lib/modelColours";
 
 export function ProductListRow({
   style,
@@ -44,7 +44,7 @@ export function ProductListRow({
   return (
     <Link
       href={`/product/${style.slug}`}
-      className="group flex items-center gap-4 border border-stone-300 bg-white p-3 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-ink sm:gap-5 sm:p-4"
+      className="group flex items-center gap-4 border border-stone-300 bg-white p-3 transition-colors duration-300 ease-out hover:border-ink sm:gap-5 sm:p-4"
     >
       <div className="relative shrink-0 overflow-hidden">
         <StylePlate
@@ -58,12 +58,9 @@ export function ProductListRow({
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <AvailabilityBadge style={style} />
-          <span className="text-[11px] uppercase tracking-wide text-ink-soft">{categoryLabel(dict, style.category)}</span>
+          <span className="text-[13px] text-ink-soft">{categoryLabel(dict, style.category)}</span>
         </div>
-        <h3 className="font-display mt-1 truncate text-base font-bold uppercase leading-tight tracking-tight text-ink group-hover:underline">
-          {style.name}
-        </h3>
+        <h3 className="mt-1 truncate text-[15px] font-medium leading-tight text-ink">{styleTitle(style)}</h3>
         <p className="font-mono-tab text-xs text-ink-soft">
           {style.styleNumber} · {t(dict.catalog.colourCount, { count: style.colorways.length })}
         </p>

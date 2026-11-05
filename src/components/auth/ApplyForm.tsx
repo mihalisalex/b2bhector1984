@@ -21,25 +21,25 @@ export function ApplyForm({
   const a = useI18n().dict.apply;
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-16 lg:px-10">
-      <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">{a.eyebrow}</span>
-      <h1 className="font-display mt-2 text-3xl font-bold uppercase tracking-tight text-ink sm:text-4xl">
+    <div className="mx-auto max-w-2xl px-6 py-20 lg:px-10">
+      <p className="text-[11px] uppercase tracking-[0.24em] text-ink-soft">{a.eyebrow}</p>
+      <h1 className="font-display mt-4 text-4xl leading-[1.1] text-ink sm:text-5xl">
         {a.heading}
       </h1>
-      <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink-soft">{a.intro}</p>
+      <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-ink-soft">{a.intro}</p>
 
-      <form action={formAction} className="mt-10 flex flex-col gap-10">
-        <fieldset className="flex flex-col gap-4">
+      <form action={formAction} className="mt-14 flex flex-col gap-14">
+        <fieldset className="flex flex-col gap-5">
           <Legend>{a.legendBusiness}</Legend>
           <Field label={a.businessName} name="businessName" required />
           <Field label={a.resaleCert} name="resaleCertId" required placeholder={a.resaleCertPlaceholder} mono />
           <label className="flex flex-col gap-1.5">
-            <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{a.country}</span>
+            <span className="text-[13px] text-ink">{a.country}</span>
             <select
               name="country"
               required
               defaultValue={defaultCountry}
-              className="border border-stone-300 bg-white px-3 py-2.5 text-sm text-ink outline-none transition-colors duration-200 focus-visible:border-signal"
+              className="border border-stone-300 bg-white px-3.5 py-3 text-sm text-ink outline-none transition-colors duration-300 focus-visible:border-signal"
             >
               <option value="" disabled>
                 {a.selectOne}
@@ -58,7 +58,7 @@ export function ApplyForm({
           </div>
         </fieldset>
 
-        <fieldset className="flex flex-col gap-4">
+        <fieldset className="flex flex-col gap-5">
           <Legend>{a.legendContact}</Legend>
           <Row>
             <Field label={a.contactName} name="contactName" required />
@@ -81,7 +81,7 @@ export function ApplyForm({
 }
 
 function Legend({ children }: { children: React.ReactNode }) {
-  return <legend className="font-display text-sm font-bold uppercase tracking-wide text-ink">{children}</legend>;
+  return <legend className="font-display mb-6 text-2xl text-ink">{children}</legend>;
 }
 
 function Row({ children }: { children: React.ReactNode }) {

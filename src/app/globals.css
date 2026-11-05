@@ -5,10 +5,11 @@
   --color-ink: #121212;
   --color-ink-soft: #6b6b6b;
   --color-white: #ffffff;
-  --color-stone-50: #fafafa;
-  --color-stone-100: #f0f0f0;
-  --color-stone-200: #e0e0e0;
-  --color-stone-300: #d4d4d4;
+  --color-stone-50: #ffffff;
+  /* The exact grey behind every product photo, so a photo and its surroundings are one surface. */
+  --color-stone-100: #f1f1f1;
+  --color-stone-200: #ececec;
+  --color-stone-300: #e2e2e2;
   --color-cinder: #737373;
   --color-cinder-300: #a3a3a3;
   /* The big faint index numerals (01/02/03 on the homepage steps and brand-story
@@ -121,13 +122,27 @@ body {
   font-feature-settings: "cv11", "ss01";
 }
 
+/* Premium pass (2026-11-05): headings are a regular-weight serif in normal case. Unlayered on
+   purpose, so it outranks the `font-bold uppercase` utilities still on many headings. The
+   admin keeps its heavier working style, and the wordmark is its own class. */
 .font-display {
   font-family: var(--font-display), Arial, Helvetica, sans-serif;
-  letter-spacing: -0.01em;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: -0.015em;
+}
+[data-admin-theme] .font-display {
+  font-weight: revert-layer;
+  text-transform: revert-layer;
+}
+.brand-mark {
+  font-family: var(--font-display), Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
 }
 
 .font-mono-tab {
-  font-family: var(--font-mono), ui-monospace, monospace;
+  /* Codes and quantities keep aligned digits, without a typewriter face on a shoe brand. */
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
@@ -203,5 +218,27 @@ body {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Sections settle in as they scroll into view. Only where the browser can do it without
+   script, and never for someone who has asked for less motion. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal-up linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 30%;
+    }
+  }
+}
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }

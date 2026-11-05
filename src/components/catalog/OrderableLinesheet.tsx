@@ -371,7 +371,7 @@ function Stepper({
   return (
     <div
       className={cn(
-        "mx-auto flex w-24 items-center justify-between rounded-full border px-1 py-1",
+        "mx-auto flex w-24 items-center justify-between border px-1 py-1",
         outOfStock ? "border-stone-300 opacity-60" : value > 0 ? "border-ink bg-white" : "border-stone-300 bg-white",
       )}
     >

@@ -1,5 +1,5 @@
 import { ProductCard } from "@/components/product/ProductCard";
-import { LinkButton } from "@/components/ui/Button";
+import Link from "next/link";
 import { withLocale } from "@/i18n/paths";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/config";
@@ -39,24 +39,22 @@ export function NewArrivals({
   const h = dict.home;
 
   return (
-    <section className="border-b border-stone-300 bg-white py-16">
+    <section className="reveal bg-white py-20 lg:py-28">
       <div className="mx-auto max-w-[1440px] px-6 lg:px-10">
-        <div className="flex flex-col gap-3 border-b border-stone-300 pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <span className="font-mono-tab text-xs uppercase tracking-[0.2em] text-ink-soft">
-              {h.newArrivalsEyebrow}
-            </span>
-            <h2 className="font-display mt-2 text-2xl font-bold uppercase leading-[1.05] tracking-tight text-ink sm:text-3xl">
-              {h.newArrivalsHeading}
-            </h2>
-            <p className="mt-2 max-w-xl text-sm leading-relaxed text-ink-soft">{h.newArrivalsBody}</p>
+            <p className="text-[11px] uppercase tracking-[0.24em] text-ink-soft">{h.newArrivalsEyebrow}</p>
+            <h2 className="font-display mt-4 text-4xl leading-[1.1] text-ink sm:text-5xl">{h.newArrivalsHeading}</h2>
           </div>
-          <LinkButton href={withLocale(locale, "/catalogue")} size="sm" variant="secondary" className="shrink-0">
+          <Link
+            href={withLocale(locale, "/catalogue")}
+            className="shrink-0 text-xs font-medium uppercase tracking-[0.14em] text-ink underline decoration-ink/30 underline-offset-[6px] transition-colors duration-300 hover:decoration-ink"
+          >
             {h.newArrivalsCta}
-          </LinkButton>
+          </Link>
         </div>
 
-        <div className="mt-8 grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 sm:gap-y-10 lg:grid-cols-4">
+        <div className="mt-12 grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-4">
           {styles.map((style) => (
             <ProductCard
               key={style.id}

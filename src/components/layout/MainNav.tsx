@@ -152,8 +152,8 @@ export function MainNav({ account }: { account: Account | null }) {
               aria-modal="true"
               aria-label={dict.nav.mainMenu}
               className={cn(
-                "fixed inset-y-0 left-0 z-50 flex w-[320px] max-w-[88vw] flex-col bg-white shadow-[8px_0_32px_rgba(26,29,34,0.12)] transition-transform duration-300 ease-out",
-                open ? "translate-x-0" : "-translate-x-full",
+                "fixed inset-y-0 left-0 z-50 flex w-[320px] max-w-[88vw] flex-col bg-white transition-transform duration-300 ease-out",
+                open ? "translate-x-0 shadow-[8px_0_32px_rgba(26,29,34,0.12)]" : "-translate-x-full",
               )}
             >
               <div className="flex h-16 shrink-0 items-center justify-between border-b border-stone-200 px-6">

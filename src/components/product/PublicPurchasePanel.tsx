@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ColorwayPicker } from "@/components/product/ColorwayPicker";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { t } from "@/i18n/format";
-import { AvailabilityBadge } from "@/components/ui/Badge";
+import { LinkButton } from "@/components/ui/Button";
 import type { Style } from "@/lib/types";
 import type { StyleInventory } from "@/lib/data/inventory";
 
@@ -42,24 +42,18 @@ export function PublicPurchasePanel({
 }) {
   const c = dict.catalog;
   return (
-    <div className="flex flex-col gap-5">
-      <AvailabilityBadge style={style} />
-
+    <div className="flex flex-col gap-6">
       <ColorwayPicker style={style} inventory={inventory} />
 
-      <div className="border border-stone-300 bg-white p-5">
-        <p className="text-[11px] uppercase tracking-[0.14em] text-ink-soft">{dict.wholesale.only}</p>
-        <p className="mt-2 text-[15px] leading-relaxed text-ink">{t(c.publicPanelBody, { days: leadTimeDays })}</p>
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <Link
-            href={applyHref}
-            className="rounded-full bg-ink px-5 py-2.5 text-xs font-semibold uppercase tracking-wide text-white hover:bg-ink/85"
-          >
+      <div>
+        <p className="text-[15px] leading-relaxed text-ink-soft">{t(c.publicPanelBody, { days: leadTimeDays })}</p>
+        <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-4">
+          <LinkButton href={applyHref} size="lg">
             {c.publicPanelApply}
-          </Link>
+          </LinkButton>
           <Link
             href={loginHref}
-            className="text-xs font-semibold uppercase tracking-wide text-ink-soft underline underline-offset-4 hover:text-ink"
+            className="text-sm text-ink underline decoration-ink/30 underline-offset-[6px] transition-colors duration-300 hover:decoration-ink"
           >
             {c.publicPanelSignIn}
           </Link>

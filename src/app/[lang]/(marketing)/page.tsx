@@ -9,6 +9,7 @@ import { listImagesForStyles } from "@/lib/data/styleImages";
 import { getAccountForAudience } from "@/lib/session";
 import { BuyerWelcome } from "@/components/marketing/BuyerWelcome";
 import { HowOrderingWorks } from "@/components/marketing/HowOrderingWorks";
+import { BrandStory } from "@/components/marketing/BrandStory";
 import { lowestPairPrice } from "@/lib/pricing";
 import { getOrdersForAccount } from "@/lib/runtimeOrders";
 import { estimatedArrivalIso } from "@/lib/delivery";
@@ -65,10 +66,13 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   // Note what this deliberately never does: fall back to the ENGLISH database row on a
   // non-English page. That was the old failure this whole project exists to stop, and the
   // dictionary rung guarantees there is always a translated string to reach instead.
+  // PREMIUM_COPY: the new brand copy lives in the dictionary while this redesign is reviewed,
+  // because the database row is shared with the live site. Once approved, the copy goes into
+  // the row and this returns to reading the admin's fields.
   const heroEl = lang === "el";
-  const displayEyebrow = lang === "en" ? hero.eyebrow : (heroEl && hero.eyebrowEl) || h.heroEyebrow;
-  const displayHeadingRaw = lang === "en" ? hero.heading : (heroEl && hero.headingEl) || h.heroHeading;
-  const displayBody = lang === "en" ? hero.body : (heroEl && hero.bodyEl) || h.heroBody;
+  const displayEyebrow = h.heroEyebrow;
+  const displayHeadingRaw = h.heroHeading;
+  const displayBody = h.heroBody;
   /**
    * CTA labels are resolved from the button's own DESTINATION, not from a fixed dictionary
    * key per slot.
@@ -105,29 +109,11 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         <BuyerWelcome account={account} lastOrder={lastOrder} arrivalIso={arrivalIso} locale={lang} dict={dict} />
       ) : (
         <>
-      {/* Hero — redesigned 2026-08-11 (previously two same-weight buttons plus a third
-          "view collection" link, all competing for the first click, with the explanatory
-          sentence appearing *after* the buttons). One button, one quiet link, copy in the
-          order eyebrow → headline → offer → action. Centered rather than left-aligned, with
-          a symmetric top/bottom scrim instead of a one-sided diagonal one — centered text
-          needs even contrast on both sides. Taller (`94vh` vs. the old 520-720px) so it
-          actually commands the screen on load. */}
-      <section className="relative isolate flex min-h-[94vh] items-center justify-center overflow-hidden border-b border-stone-300 bg-ink">
-        {/* No dark overlay/scrim — removed on request (2026-08-11). object-bottom rather
-            than the object-cover default (center): the product sits low in this frame
-            (lower-third), and at this section's wide/short aspect ratio a center crop cuts
-            the shoes out of frame entirely, leaving just the chair legs and floor.
-            NOTE: this reopens two things the removed overlay was covering for — white
-            text/button now has no guaranteed contrast against a bright stretch of photo,
-            and the caption baked into the bottom of this photo ("SPRING/SUMMER 2027") is
-            visible again on a narrow/tall viewport, where object-cover shows the image's
-            full height with zero vertical crop margin (a fixed fact of this photo's
-            landscape proportions, not a tunable crop setting). */}
-        {/* `preload`, not the `priority` prop: as of Next 16 `priority` is deprecated in
-            favour of `preload` (they throw if combined). `fetchPriority` is a separate
-            pass-through prop that neither one sets for you — without it the browser gives
-            this image default priority, which is what Lighthouse's "LCP request discovery"
-            insight flags, since this is the LCP element on every viewport. */}
+      {/* Hero, 2026-11-05: the photo does the talking. Words sit low and to the left so they
+          no longer cover the shoes, over a soft shade that only the bottom of the photo needs.
+          No badges, no second block of copy: name, one sentence, one button, one quiet link. */}
+      <section className="relative isolate flex min-h-[calc(100svh-var(--shell-header-h))] items-end overflow-hidden bg-ink">
+        {/* `preload` + `fetchPriority`: this is the LCP element on every viewport. */}
         <Image
           src={hero.heroImageUrl}
           alt={h.heroImageAlt}
@@ -137,17 +123,11 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           sizes="100vw"
           className="object-cover object-[50%_60%]"
         />
-        {/* A 20% shade over the photo (owner, 2026-09-25) so the white headline and
-            button stay readable on the brighter parts of the image — deliberately far
-            lighter than the full scrim removed on 2026-08-11. */}
-        <div aria-hidden className="absolute inset-0 bg-black/20" />
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-        <div className="relative mx-auto max-w-2xl px-6 py-24 text-center [animation:hero-fade-up_900ms_cubic-bezier(0.16,1,0.3,1)_both] lg:px-10">
-          <span className="inline-flex items-center gap-2 font-mono-tab text-xs uppercase tracking-[0.25em] text-stone-300/80">
-            <span className="h-1 w-1 shrink-0 rounded-full bg-leather" aria-hidden />
-            {displayEyebrow}
-          </span>
-          <h1 className="font-display mt-6 text-4xl font-bold uppercase leading-[1.02] text-white sm:text-6xl lg:text-7xl">
+        <div className="relative mx-auto w-full max-w-[1440px] px-6 pb-14 [animation:hero-fade-up_1100ms_cubic-bezier(0.16,1,0.3,1)_both] sm:pb-20 lg:px-10">
+          <p className="text-[11px] uppercase tracking-[0.24em] text-white/80">{displayEyebrow}</p>
+          <h1 className="font-display mt-5 max-w-4xl text-[2.6rem] leading-[1.06] text-white sm:text-6xl lg:text-7xl">
             {headingLines.map((line, i) => (
               <span key={i}>
                 {line}
@@ -155,35 +135,19 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
               </span>
             ))}
           </h1>
-          <p className="mx-auto mt-6 max-w-md text-base leading-relaxed text-stone-300/85">{displayBody}</p>
-          <div className="mt-10 flex flex-col items-center gap-4">
-            {/* ring-1 ring-white/20: a bare edge that doesn't depend on the backdrop for
-                contrast — the button's own fill (bg-ink) is this site's --color-ink, the
-                same near-black the bottom scrim is built from, so on a dark stretch of the
-                photo the two could otherwise blend into each other with only the shadow
-                left to separate them. */}
-            <LinkButton
-              href={withLocale(lang, hero.primaryCtaHref)}
-              size="lg"
-              className="px-10 shadow-[0_10px_36px_rgba(0,0,0,0.35)] ring-1 ring-white/20 transition-shadow hover:shadow-[0_16px_48px_rgba(0,0,0,0.45)]"
-            >
+          <p className="mt-5 text-base text-white/85">{displayBody}</p>
+          <div className="mt-9 flex flex-wrap items-center gap-x-8 gap-y-4">
+            <LinkButton href={withLocale(lang, hero.primaryCtaHref)} size="lg" className="!bg-white !text-ink hover:!bg-white/85">
               {displayPrimaryCta}
             </LinkButton>
             <Link
               href={withLocale(lang, hero.secondaryCtaHref)}
-              className="text-xs font-medium uppercase tracking-[0.15em] text-stone-300/80 underline underline-offset-4 hover:text-white"
+              className="text-xs font-medium uppercase tracking-[0.14em] text-white underline decoration-white/50 underline-offset-[6px] transition-colors duration-300 hover:decoration-white"
             >
               {displaySecondaryCta}
             </Link>
           </div>
         </div>
-
-        <span
-          aria-hidden
-          className="absolute inset-x-0 bottom-8 mx-auto w-fit font-mono-tab text-[10px] uppercase tracking-[0.3em] text-white/50"
-        >
-          {dict.orderPulse.scroll}
-        </span>
       </section>
         </>
       )}
@@ -206,6 +170,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
       {/* Apply / log in / order — for visitors only; a signed-in buyer is past all three. */}
       {!account && (
         <>
+      <BrandStory dict={dict} locale={lang} />
       {/* How ordering works — the full process, the facts a buyer checks, and real
           stockists once supplied. Replaced the three-step apply/log in/order strip. */}
       <HowOrderingWorks

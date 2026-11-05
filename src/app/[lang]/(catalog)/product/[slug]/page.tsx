@@ -4,7 +4,7 @@ import { chargesGreekVat } from "@/lib/tax";
 import { t } from "@/i18n/format";
 import Link from "next/link";
 import { CATEGORY_LABEL, getRelatedStyles, getStorefrontStyles, getStyleBySlug, getStyleImageUrl } from "@/lib/data/styles";
-import { modelSiblings } from "@/lib/modelColours";
+import { styleTitle, modelSiblings } from "@/lib/modelColours";
 import { ModelColours } from "@/components/product/ModelColours";
 import { whatsappHref } from "@/lib/contact";
 import { getInventoryForStyle, getInventoryForStyles, totalOnHandForStyle } from "@/lib/data/inventory";
@@ -13,7 +13,6 @@ import { getAccountForAudience } from "@/lib/session";
 import { isFavorite } from "@/lib/data/favorites";
 import { pickDefaultColorway } from "@/lib/productSelectionDefaults";
 import { ColorwaySelectionProvider } from "@/lib/colorway-selection-context";
-import { AvailabilityBadge } from "@/components/ui/Badge";
 import { StylePlate } from "@/components/product/StylePlate";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductCard } from "@/components/product/ProductCard";
@@ -28,7 +27,7 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { getDictionary } from "@/i18n/getDictionary";
 import { localizeStyle } from "@/lib/localizeStyle";
 import { withLocale } from "@/i18n/paths";
-import { categoryLabel, genderLabel } from "@/lib/data/styleLabels";
+import { categoryLabel } from "@/lib/data/styleLabels";
 import type { Locale } from "@/i18n/config";
 import { productMetadata } from "@/lib/seo";
 import { buildBreadcrumbSchema, buildProductSchema } from "@/lib/seoJsonLd";
@@ -150,7 +149,7 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
           The cap widens 600px -> 1200px so each half lands at roughly the old single-column
           width rather than halving the photo. */}
       <div className="lg:mx-auto lg:max-w-[1200px]">
-        <nav className="mb-4 flex items-center gap-1.5 text-[11px] uppercase tracking-[0.06em] text-ink-soft">
+        <nav className="mb-6 flex items-center gap-1.5 text-xs text-ink-soft">
           <Link href={withLocale(locale, "/catalogue")} className="hover:text-ink">{dict.nav.catalogue}</Link>
           <span>/</span>
           {/* Buyers go to the orderable catalogue filter; everyone else (crawlers included)
@@ -162,7 +161,7 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
             {categoryLabel(dict, style.category)}
           </Link>
           <span>/</span>
-          <span className="text-ink">{style.name}</span>
+          <span className="text-ink">{styleTitle(style)}</span>
         </nav>
 
         <ColorwaySelectionProvider initialColorwayId={pickDefaultColorway(style, inventory, images)}>
@@ -170,12 +169,12 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
               panel are two halves of one colorway selection, so they have to stay under the
               same provider no matter how they're arranged. `items-start` keeps the details
               column from stretching to the photo's height. */}
-          <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-12">
+          <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-16">
             {/* Photo column. min-w-0 on both halves so a wide gallery can't blow the grid
                 track out past 50% — grid items default to min-width:auto. */}
             <div className="lg:min-w-0">
               {images.length > 0 ? (
-                <ProductGallery images={images} styleName={style.name} styleNumber={style.styleNumber} colorways={style.colorways} />
+                <ProductGallery images={images} styleName={style.name} colorways={style.colorways} />
               ) : (
                 // Full-bleed below lg: breaking out of the page's own horizontal padding is
                 // what makes the photo feel large rather than inset in a box. Reverts at lg,
@@ -184,7 +183,6 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
                 <div className="-mx-6 lg:mx-0">
                   <StylePlate
                     swatch={style.colorways[0].swatch}
-                    styleNumber={style.styleNumber}
                     imageUrl={getStyleImageUrl(style)}
                     alt={style.name}
                     className="aspect-[3/4] w-full"
@@ -196,37 +194,18 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
             {/* Details column. `lg:mt-0` on the first child so it aligns with the top of the
                 photo instead of inheriting the stacked-layout gap. */}
             <div className="lg:min-w-0">
-              <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 lg:mt-0">
-                {/* Same conflict as the catalogue card: the purchase panel below already
-                    states the real fulfilment ("Made to order — ships in ~N days"), so
-                    "Available now" beside it read as a contradiction. */}
-                <AvailabilityBadge
-                  style={style}
-                  stockOverridden={totalOnHandForStyle(style.id, { [style.id]: inventory }) === 0}
-                />
-                <span className="font-mono-tab text-[11px] uppercase tracking-[0.14em] text-ink-soft">
-                  {style.styleNumber}
-                </span>
-                <span className="text-[11px] uppercase tracking-[0.14em] text-ink-soft">
-                  {categoryLabel(dict, style.category)} · {genderLabel(dict, style.gender)}
-                </span>
-              </div>
+              {/* Name, what it is, a sentence. The style number lives in the specifications:
+                  it was on this screen three times, next to two "made to order" badges. */}
+              <h1 className="font-display mt-8 text-4xl leading-[1.08] text-ink sm:text-5xl lg:mt-0">{styleTitle(style)}</h1>
+              <p className="mt-2 text-sm text-ink-soft">{categoryLabel(dict, style.category)}</p>
+              {/* localizeStyle, not style.tagline — the Greek copy is in tagline_el. */}
+              <p className="mt-6 text-[15px] leading-relaxed text-ink-soft">{localizeStyle(style, locale).tagline}</p>
 
-              {/* Smaller and in normal case: long names ("5109 Brown - Leather formal boots")
-                  ran to three lines of display capitals and pushed the price off the first
-                  screen on a laptop. */}
-              <h1 className="font-display mt-3 text-[1.75rem] font-bold leading-[1.1] tracking-[-0.01em] text-ink sm:text-[2rem]">
-                {style.name}
-              </h1>
-              {/* localizeStyle, not style.tagline — the Greek copy is in tagline_el and this
-                  header was still reading the English column. */}
-              <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">{localizeStyle(style, locale).tagline}</p>
-
-              <div className="mt-5">
+              <div className="mt-7">
                 <ModelColours current={style} siblings={siblings} locale={locale} dict={dict} />
               </div>
 
-              <div className="mt-6">
+              <div className="mt-8">
                 {showPricing ? (
                   <PrimaryPurchasePanel
                     style={style}
@@ -246,7 +225,7 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
                 )}
               </div>
 
-              <TrustStrip rep={account?.rep} dict={dict} leadTimeDays={leadTimeDays} styleName={style.name} />
+              <ProductContact rep={account?.rep} dict={dict} styleName={style.name} />
             </div>
           </div>
         </ColorwaySelectionProvider>
@@ -315,60 +294,32 @@ export default async function ProductPage({ params }: { params: Promise<{ lang: 
 }
 
 /** Reassurance row under the buy box — every line is a real policy or real account data, never a generic badge. */
-function TrustStrip({
-  rep,
-  dict,
-  leadTimeDays,
-  styleName,
-}: {
-  rep?: SalesRep;
-  dict: Dictionary;
-  leadTimeDays: number;
-  styleName: string;
-}) {
-  // These four lines had dictionary keys from the day the shared wholesale strings landed
-  // (box.fixed, terms.discounts, stock.live, rep.assigned) — they were simply never wired
-  // to them, so a Greek buyer read the four policy claims in English.
+/**
+ * A person to ask. The policy points that used to be a five-tick list here are in the
+ * "Ordering, shipping & returns" section below, for whoever wants them.
+ */
+function ProductContact({ rep, dict, styleName }: { rep?: SalesRep; dict: Dictionary; styleName: string }) {
   return (
-    <ul className="mt-4 grid grid-cols-1 gap-2 text-xs text-ink-soft sm:grid-cols-2">
-      <TrustItem>{dict.box.fixed}</TrustItem>
-      <TrustItem>{dict.terms.discounts}</TrustItem>
-      <TrustItem>{t(dict.stock.live, { days: leadTimeDays })}</TrustItem>
-      {rep ? (
-        <TrustItem>
+    <p className="mt-7 flex flex-wrap gap-x-6 gap-y-2 text-sm text-ink-soft">
+      {rep && (
+        <span>
           {dict.dashboard.yourRep}{" "}
-          <a href={`mailto:${rep.email}`} className="font-medium text-ink underline hover:text-signal">
+          <a href={`mailto:${rep.email}`} className="text-ink underline decoration-ink/30 underline-offset-4 hover:decoration-ink">
             {rep.name}
           </a>
-          {rep.phone ? ` · ${rep.phone}` : ""}
-        </TrustItem>
-      ) : (
-        <TrustItem>{dict.rep.assigned}</TrustItem>
+        </span>
       )}
       {/* The floating WhatsApp button hides on a phone's product page (the buy bar sits
           there), so the same way to ask is offered here — with the product named. */}
-      <TrustItem>
-        <a
-          href={whatsappHref(t(dict.contact.whatsappProductMessage, { name: styleName }))}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-medium text-ink underline hover:text-signal"
-        >
-          {dict.contact.whatsappAria}
-        </a>
-      </TrustItem>
-    </ul>
-  );
-}
-
-function TrustItem({ children }: { children: React.ReactNode }) {
-  return (
-    <li className="flex items-start gap-2 leading-snug">
-      <span aria-hidden className="mt-[3px] text-ink">
-        ✓
-      </span>
-      <span>{children}</span>
-    </li>
+      <a
+        href={whatsappHref(t(dict.contact.whatsappProductMessage, { name: styleName }))}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-ink underline decoration-ink/30 underline-offset-4 hover:decoration-ink"
+      >
+        {dict.contact.whatsappAria}
+      </a>
+    </p>
   );
 }
 

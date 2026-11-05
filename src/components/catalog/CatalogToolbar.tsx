@@ -71,7 +71,7 @@ export function CatalogSearchInput() {
       onChange={(e) => handleSearchChange(e.target.value)}
       placeholder={c.searchPlaceholder}
       aria-label={c.searchStyles}
-      className="w-full rounded-full border border-stone-300 bg-white px-4 py-2 text-sm outline-none focus-visible:border-signal sm:w-64"
+      className="w-full border border-stone-300 bg-white px-4 py-2 text-sm outline-none focus-visible:border-signal sm:w-64"
     />
   );
 }
@@ -171,7 +171,7 @@ export function CatalogFiltersPanel({
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         className={cn(
-          "flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-wide transition-colors",
+          "flex items-center gap-2 border px-4 py-2 text-xs font-semibold uppercase tracking-wide transition-colors",
           activeCount > 0 || open ? "border-ink bg-ink text-white" : "border-ink text-ink hover:bg-ink hover:text-white",
         )}
       >
@@ -276,7 +276,7 @@ function SortSelect({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       aria-label={c.sortBy}
-      className="rounded-full border border-stone-300 bg-white px-4 py-2 text-xs uppercase tracking-wide text-ink-soft outline-none focus-visible:border-signal"
+      className="border border-stone-300 bg-white px-4 py-2 text-xs uppercase tracking-wide text-ink-soft outline-none focus-visible:border-signal"
     >
       {SORT_OPTIONS.filter((o) => showPricing || !o.value.startsWith("price_")).map((o) => (
         <option key={o.value} value={o.value}>{`${c.sortPrefix}: ${sortLabel(dict, o.value)}`}</option>
@@ -288,7 +288,7 @@ function SortSelect({
 function ViewToggle({ view, onChange }: { view: string; onChange: (v: "grid" | "list") => void }) {
   const c = useI18n().dict.catalog;
   return (
-    <div className="flex items-center overflow-hidden rounded-full border border-stone-300 text-xs font-semibold uppercase tracking-wide">
+    <div className="flex items-center overflow-hidden border border-stone-300 text-xs font-semibold uppercase tracking-wide">
       <button
         type="button"
         onClick={() => onChange("grid")}

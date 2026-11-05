@@ -166,8 +166,8 @@ export function buildCampaignHtml(input: {
         <a href="${esc(url)}" style="text-decoration:none;color:#121212;display:block;">
           ${
             image
-              ? `<img src="${esc(image)}" alt="${esc(style.name)}" width="270" style="display:block;width:100%;max-width:270px;height:auto;border:0;border-radius:6px;background-color:#f4f3f1;" />`
-              : `<div style="height:200px;border-radius:6px;background-color:#f4f3f1;"></div>`
+              ? `<img src="${esc(image)}" alt="${esc(style.name)}" width="270" style="display:block;width:100%;max-width:270px;height:auto;border:0;background-color:#f4f3f1;" />`
+              : `<div style="height:200px;background-color:#f4f3f1;"></div>`
           }
           <p style="margin:12px 0 0 0;font-family:${FONT};font-size:11px;letter-spacing:2px;color:#a3a09b;">${String(index + 1).padStart(2, "0")}</p>
           <p style="margin:2px 0 0 0;font-family:${FONT};font-size:16px;font-weight:700;color:#121212;letter-spacing:-0.2px;">${esc(code)}</p>
@@ -218,7 +218,7 @@ export function buildCampaignHtml(input: {
               <td style="padding:12px 0 4px 0;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                   <tr>
-                    <td style="background-color:#121212;border-radius:6px;padding:18px 22px;font-family:${FONT};font-size:16px;line-height:1.4;font-weight:700;color:#ffffff;letter-spacing:-0.1px;">${esc(offer)}</td>
+                    <td style="background-color:#121212;padding:18px 22px;font-family:${FONT};font-size:16px;line-height:1.4;font-weight:700;color:#ffffff;letter-spacing:-0.1px;">${esc(offer)}</td>
                   </tr>
                 </table>
               </td>
@@ -236,7 +236,7 @@ export function buildCampaignHtml(input: {
               <td style="padding:4px 0 36px 0;">
                 <table role="presentation" cellpadding="0" cellspacing="0">
                   <tr>
-                    <td style="background-color:#121212;border-radius:999px;">
+                    <td style="background-color:#121212;">
                       <a href="${esc(collectionUrl(input.text, input.links, input.lang))}" style="display:inline-block;padding:16px 30px;font-family:${FONT};font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;letter-spacing:0.3px;">${esc(f.cta)} &rarr;</a>
                     </td>
                   </tr>

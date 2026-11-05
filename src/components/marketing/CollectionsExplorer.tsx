@@ -122,12 +122,12 @@ export function CollectionsExplorer({
           <div
             role="tablist"
             aria-label="Season"
-            className="relative grid shrink-0 rounded-full border border-stone-300 bg-white p-0.5"
+            className="relative grid shrink-0 border border-stone-300 bg-white p-0.5"
             style={{ gridTemplateColumns: `repeat(${seasonOptions.length}, minmax(0, 1fr))` }}
           >
             <div
               aria-hidden
-              className="absolute inset-y-0.5 left-0.5 rounded-full bg-ink transition-transform duration-300 ease-out"
+              className="absolute inset-y-0.5 left-0.5 bg-ink transition-transform duration-300 ease-out"
               style={{
                 width: `calc(${100 / seasonOptions.length}% - 4px)`,
                 transform: `translateX(calc(${seasonIndex} * (100% + 4px)))`,
@@ -148,7 +148,7 @@ export function CollectionsExplorer({
                   // the labels are season names ("SPRING SUMMER 2027"), not translated copy.
                   // `whitespace-nowrap` has to stay — a season name broken across two lines
                   // inside a pill looks worse than the tighter padding.
-                  "relative z-10 whitespace-nowrap rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-colors duration-300 sm:px-5",
+                  "relative z-10 whitespace-nowrap px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-colors duration-300 sm:px-5",
                   season === opt.value ? "text-white" : "text-ink-soft hover:text-ink",
                 )}
               >
@@ -348,7 +348,7 @@ function PillDropdown({
         aria-haspopup="menu"
         aria-expanded={open}
         className={cn(
-          "flex h-9 items-center gap-1.5 whitespace-nowrap rounded-full border px-4 text-xs font-semibold uppercase tracking-wide transition-colors",
+          "flex h-9 items-center gap-1.5 whitespace-nowrap border px-4 text-xs font-semibold uppercase tracking-wide transition-colors",
           active ? "border-ink bg-ink text-white" : "border-stone-300 text-ink-soft hover:border-ink hover:text-ink",
         )}
       >

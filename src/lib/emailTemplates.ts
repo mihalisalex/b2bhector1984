@@ -326,22 +326,21 @@ export function textToHtml(text: string, subject: string, dict?: EmailDict, lang
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${esc(subject)}</title>
   </head>
-  <body style="margin:0;padding:0;background-color:#f0efec;">
+  <body style="margin:0;padding:0;background-color:#ffffff;">
     <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${esc(preheader)}</div>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0efec;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#ffffff;">
       <tr>
         <td align="center" style="padding:32px 16px;">
           <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#ffffff;">
             <tr>
-              <td style="background-color:#121212;padding:28px 32px;text-align:center;">
-                <span style="font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:bold;color:#ffffff;letter-spacing:0.5px;">HECTOR</span>
-                <span style="font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:bold;color:#c9c9c9;letter-spacing:3px;margin-left:8px;">FOOTWEAR</span>
+              <td style="padding:8px 40px 18px 40px;">
+                <div style="border-bottom:1px solid #121212;padding-bottom:18px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:13px;font-weight:bold;color:#121212;letter-spacing:6px;">HECTOR</div>
               </td>
             </tr>
             <tr>
               <td style="padding:40px 40px 8px 40px;">
                 <p style="margin:0 0 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:bold;color:#8a8a8a;letter-spacing:2px;text-transform:uppercase;">${esc(eyebrow)}</p>
-                <h1 style="margin:0 0 20px 0;font-family:Georgia,'Times New Roman',serif;font-size:21px;font-weight:bold;color:#121212;text-transform:uppercase;letter-spacing:0.3px;">${esc(subject)}</h1>
+                <h1 style="margin:0 0 20px 0;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:28px;line-height:1.15;font-weight:bold;color:#121212;letter-spacing:-0.5px;">${esc(subject)}</h1>
                 ${bodyHtml}
               </td>
             </tr>

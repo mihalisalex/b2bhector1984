@@ -14,6 +14,7 @@ import { PrintButton } from "@/components/dashboard/PrintButton";
 import { OrderJourney } from "@/components/order/OrderJourney";
 import { getHomepageHero } from "@/lib/data/siteContent";
 import { estimatedArrivalIso } from "@/lib/delivery";
+import { greekVocative, greetingFirstName } from "@/i18n/greek";
 import { getDictionary } from "@/i18n/getDictionary";
 import { withLocale } from "@/i18n/paths";
 import { t } from "@/i18n/format";
@@ -58,6 +59,8 @@ export default async function OrderDetailPage({
   const arrivalIso = estimatedArrivalIso(hero.productionLeadTimeDays, new Date(confirmedAt ?? order.placedAt));
   const termsLabel = { prepay: dict.checkout.termsPrepay, net30: dict.checkout.termsNet30, net60: dict.checkout.termsNet60 }[order.terms];
 
+  const thanksName = greetingFirstName(account.contactName);
+
   return (
     <div className="mx-auto max-w-[1000px] px-6 py-8 lg:px-10">
       {justPlaced === "1" && <ClearCartOnMount />}
@@ -67,15 +70,18 @@ export default async function OrderDetailPage({
       </nav>
 
       {justPlaced === "1" && (
-        <div className="mb-6 border border-positive/40 bg-positive-100 px-4 py-3 text-sm text-positive print:hidden">
-          {t(o.proformaNotice, { rep: account.rep.name })}
+        <div className="mb-12 mt-4 print:hidden">
+          <h1 className="font-display text-4xl leading-[1.1] text-ink sm:text-5xl">
+            {thanksName ? t(o.thanksNamed, { name: locale === "el" ? greekVocative(thanksName) : thanksName }) : o.thanksPlain}
+          </h1>
+          <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-ink-soft">{t(o.proformaNotice, { rep: account.rep.name })}</p>
         </div>
       )}
 
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-stone-300 pb-6">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="font-mono-tab text-2xl font-bold text-ink">{order.id}</h1>
+            {justPlaced === "1" ? <p className="text-lg text-ink">{order.id}</p> : <h1 className="font-mono-tab text-2xl font-bold text-ink">{order.id}</h1>}
             <StatusBadge status={order.status} />
           </div>
           <p className="mt-1 text-sm text-ink-soft">{t(o.placedOn, { date: formatDate(order.placedAt, locale) })}</p>
