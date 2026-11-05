@@ -11,7 +11,6 @@ import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { StylePlate } from "@/components/product/StylePlate";
 import { LinkButton } from "@/components/ui/Button";
 import { styleTitle } from "@/lib/modelColours";
-import { LinkButton } from "@/components/ui/Button";
 import { getDictionary } from "@/i18n/getDictionary";
 import { t } from "@/i18n/format";
 import { withLocale } from "@/i18n/paths";
