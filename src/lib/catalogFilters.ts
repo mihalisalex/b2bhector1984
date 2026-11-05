@@ -32,26 +32,6 @@ export function colorOptionsFromStyles(styles: Style[]): string[] {
   return [...names].sort((a, b) => a.localeCompare(b));
 }
 
-/**
- * The quick toggles that can actually return something, given the catalogue as
- * it stands this request. "Featured" and "In stock now" are both currently
- * dead — nothing is flagged featured and every style is pre-order with zero on
- * hand — and a checkbox whose only possible outcome is an empty grid is worse
- * than no checkbox.
- */
-export function availableFlagOptions(
-  styles: Style[],
-  inStockIds?: Set<string>,
-): (typeof FLAG_OPTIONS)[number][] {
-  return FLAG_OPTIONS.filter((opt) => {
-    if (opt.value === "sale") return styles.some((s) => isOnSale(s));
-    if (opt.value === "featured") return styles.some((s) => s.featured);
-    // Omitted inventory means the flag no-ops rather than filtering everything
-    // out (see `filterStyles`), so the honest thing is to not offer it at all.
-    return Boolean(inStockIds && styles.some((s) => inStockIds.has(s.id)));
-  });
-}
-
 export const PRICE_BANDS = [
   { id: "u30", label: "Under €30", min: 0, max: 30 },
   { id: "30-40", label: "€30–40", min: 30, max: 40 },
@@ -149,11 +129,4 @@ export function filterStyles(
     }
     return true;
   });
-}
-
-/** Box sizes (pairs per box) that at least one style is actually sold in, smallest first. */
-export function boxOptionsFromStyles(styles: Style[]): string[] {
-  const sizes = new Set<string>();
-  for (const style of styles) for (const id of style.availableBoxTypes ?? []) sizes.add(id.replace("box", ""));
-  return [...sizes].sort((a, b) => Number(a) - Number(b));
 }

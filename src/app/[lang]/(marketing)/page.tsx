@@ -2,12 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { getStorefrontStyles } from "@/lib/data/styles";
 import { getHomepageHero } from "@/lib/data/siteContent";
-import { getSeasonSettings, toSeasonOptions } from "@/lib/data/seasonSettings";
 import { getOrderPulse } from "@/lib/data/orderPulse";
 import { OrderPulse } from "@/components/marketing/OrderPulse";
 import { NewArrivals, pickNewArrivals } from "@/components/marketing/NewArrivals";
-import { SeasonShowcase } from "@/components/marketing/SeasonShowcase";
-import { pickSeasonStyles, countSeasonStyles } from "@/lib/seasonShowcase";
 import { listImagesForStyles } from "@/lib/data/styleImages";
 import { getAccountForAudience } from "@/lib/session";
 import { BuyerWelcome } from "@/components/marketing/BuyerWelcome";
@@ -41,10 +38,9 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
 export default async function HomePage({ params }: { params: Promise<{ lang: string; audience?: string }> }) {
   const { lang: rawLang, audience } = await params;
   const lang = rawLang as Locale;
-  const [styles, hero, seasonSettings, dict, pulse, account] = await Promise.all([
+  const [styles, hero, dict, pulse, account] = await Promise.all([
     getStorefrontStyles(),
     getHomepageHero(),
-    getSeasonSettings(),
     getDictionary(lang),
     getOrderPulse(),
     getAccountForAudience(audience),
@@ -59,16 +55,6 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
 
 
   const h = dict.home;
-  const seasonOptions = toSeasonOptions(seasonSettings);
-
-  // Season showcase: three styles per season, so the image lookup covers exactly
-  // those and the new-arrival tiles, not the whole catalogue.
-  const seasonValues = seasonOptions.map((o) => o.value);
-  const seasonShowcaseStyles = pickSeasonStyles(styles, seasonValues);
-  const seasonShowcaseCounts = countSeasonStyles(styles, seasonValues);
-  const seasonShowcaseImages = await listImagesForStyles(
-    Object.values(seasonShowcaseStyles).flat().map((s) => s.id),
-  );
   // Hero copy, in precedence order.
   //
   // English uses the admin's live DB row, exactly as it always has. Greek now has its own
@@ -230,58 +216,6 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
       />
         </>
       )}
-
-      {/* Season showcase: a toggle, three products, and a fourth cell into that
-          season on /collections. Replaced the two full-width editorial rows —
-          same information, one screen instead of two, and the products are real
-          tiles a buyer can click rather than a single representative photo. */}
-      <SeasonShowcase
-        seasonOptions={seasonOptions}
-        stylesBySeason={seasonShowcaseStyles}
-        countsBySeason={seasonShowcaseCounts}
-        imagesByStyle={seasonShowcaseImages}
-        showPricing={Boolean(account)}
-        priceMultiplier={account?.priceMultiplier ?? 1}
-        locale={lang}
-        dict={dict}
-      />
-
-      {/* Built for operators */}
-      <section className="border-y border-stone-300 bg-stone-100 py-20">
-        <div className="mx-auto max-w-[1440px] px-6 lg:px-10">
-          <h2 className="font-display max-w-lg text-2xl font-bold uppercase tracking-tight text-ink sm:text-3xl">
-            {h.operatorsHeading}
-          </h2>
-          <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            <Feature title={h.feature1Title} body={h.feature1Body} />
-            <Feature title={h.feature2Title} body={h.feature2Body} />
-            <Feature title={h.feature3Title} body={h.feature3Body} />
-            <Feature title={h.feature4Title} body={h.feature4Body} />
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="border-t border-stone-300 bg-ink py-16">
-        <div className="mx-auto flex max-w-[1440px] flex-col items-start justify-between gap-6 px-6 sm:flex-row sm:items-center lg:px-10">
-          <div>
-            <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-white">{h.ctaHeading}</h2>
-            <p className="mt-1 text-sm text-stone-300/80">{h.ctaBody}</p>
-          </div>
-          <LinkButton href={withLocale(lang, "/apply")} size="lg" className="!bg-white !text-ink hover:!bg-stone-200">
-            {h.ctaButton}
-          </LinkButton>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-function Feature({ title, body }: { title: string; body: string }) {
-  return (
-    <div className="border-l-2 border-ink pl-4">
-      <h3 className="font-display text-sm font-bold uppercase tracking-tight text-ink">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-ink-soft">{body}</p>
     </div>
   );
 }

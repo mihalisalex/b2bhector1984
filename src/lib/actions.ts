@@ -23,6 +23,7 @@ import {
   createAccount,
   updateAccountContact,
   updateAccountPassword as updateAccountPasswordData,
+  getAccountById,
   insertShipToAddress,
   updateShipToAddress as updateShipToAddressRow,
   deleteShipToAddress as deleteShipToAddressRow,
@@ -247,13 +248,8 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
     "email",
     "phone",
     "resaleCertId",
-    "businessType",
     "country",
-    "addressLine1",
     "city",
-    "state",
-    "zip",
-    "expectedVolume",
   ];
   const m = await messages();
   for (const field of required) {
@@ -272,12 +268,11 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
     return { error: m.applicationAlreadyReceived };
   }
 
-  // The public "City, region" field is gone from the form — it confused applicants ("you're
-  // going to publish my shop?"). The column is still what the dashboard and the language
-  // heuristic read, so it is built from the address instead.
+  // The form asks for the seven things needed to approve a shop. Its street address is asked
+  // for at the first checkout (see placeOrder), so those columns start empty, the same as an
+  // invited shop's. storeLocation is what the dashboard and the language heuristic read.
   const city = String(formData.get("city")).trim();
-  const region = String(formData.get("state")).trim();
-  const storeLocation = [city, region, country === "GR" ? "" : country].filter(Boolean).join(", ");
+  const storeLocation = [city, country === "GR" ? "" : country].filter(Boolean).join(", ");
 
   const application: Omit<Application, "id" | "status" | "submittedAt" | "repId" | "priceMultiplier"> = {
     businessName: String(formData.get("businessName")),
@@ -285,14 +280,13 @@ export async function submitApplication(_prev: FormState, formData: FormData): P
     email: String(formData.get("email")),
     phone: String(formData.get("phone")),
     resaleCertId: String(formData.get("resaleCertId")),
-    businessType: String(formData.get("businessType")),
+    businessType: "",
     storeLocation,
-    addressLine1: String(formData.get("addressLine1")),
-    city: String(formData.get("city")),
-    state: String(formData.get("state")),
-    zip: String(formData.get("zip")),
-    expectedVolume: String(formData.get("expectedVolume")),
-    website: String(formData.get("website") ?? "") || undefined,
+    addressLine1: "",
+    city,
+    state: "",
+    zip: "",
+    expectedVolume: "",
     country,
   };
 
@@ -469,8 +463,29 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
   }
   if (cartLines.length === 0) return { error: m.cartEmpty };
 
-  const shipToId = String(formData.get("shipToId") ?? "");
-  if (!account.shipTo.some((s) => s.id === shipToId)) return { error: m.selectShipTo };
+  // A shop that applied or was invited has no street address yet: an empty placeholder row at
+  // most. Its first order is where that gets filled in, because the invoice and the delivery
+  // both need it. An address with no street line is never a valid choice.
+  let shipToId = String(formData.get("shipToId") ?? "");
+  let shipToAddresses = account.shipTo;
+  const hasRealAddress = account.shipTo.some((s) => s.line1.trim());
+  if (!hasRealAddress) {
+    const line1 = String(formData.get("newLine1") ?? "").trim();
+    const city = String(formData.get("newCity") ?? "").trim();
+    const state = String(formData.get("newState") ?? "").trim();
+    const zip = String(formData.get("newZip") ?? "").trim();
+    if (!line1 || !city || !state || !zip) return { error: m.addressFieldsRequired };
+    const address = { label: account.businessName, line1, city, state, zip };
+    const placeholder = account.shipTo[0];
+    if (placeholder) {
+      await updateShipToAddressRow(account.id, placeholder.id, address);
+    } else {
+      await insertShipToAddress(account.id, { ...address, isDefault: true });
+    }
+    shipToAddresses = (await getAccountById(account.id))?.shipTo ?? [];
+    shipToId = shipToAddresses.find((s) => s.line1 === line1)?.id ?? "";
+  }
+  if (!shipToAddresses.some((s) => s.id === shipToId && s.line1.trim())) return { error: m.selectShipTo };
 
   // Parsed, not cast. A buyer choosing their own terms is deliberate (it routes the order
   // to a rep for credit approval), but the value was previously trusted verbatim: anything
@@ -647,7 +662,7 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
   after(async () => {
     let invoiceAttachment: EmailAttachment | undefined;
     try {
-      const shipTo = account.shipTo.find((s) => s.id === shipToId);
+      const shipTo = shipToAddresses.find((s) => s.id === shipToId);
       const pdfBuffer = await buildInvoicePdf({
         order: { id: order.id, placedAt: order.placedAt, status: order.status, terms: order.terms },
         businessName: account.businessName,

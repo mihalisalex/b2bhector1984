@@ -11,7 +11,7 @@ import { useFormat, useI18n } from "@/i18n/I18nProvider";
 import { withLocale } from "@/i18n/paths";
 import { t } from "@/i18n/format";
 import { VatNotice } from "@/components/ui/VatNotice";
-import { TermsSwitch } from "@/components/product/TermsSwitch";
+import { TermsNote } from "@/components/product/TermsNote";
 import type { BoxTypeId } from "@/lib/types";
 import type { StyleInventory } from "@/lib/data/inventory";
 import type { BoxOption } from "@/lib/orderMinimum";
@@ -354,9 +354,8 @@ export function CartView({
 
       <div className="mt-8 flex flex-col items-end gap-3 border-t border-stone-300 pt-6">
         <SaveAssortmentButton lines={lines} />
-        {/* Same switch as the product page: the cart total is at the terms the buyer picks,
-            and checkout opens on the same choice. */}
-        <TermsSwitch className="w-full max-w-sm" />
+        {/* The cart total is at the account's terms; the buyer can change them at checkout. */}
+        <TermsNote className="text-right" />
         <div className="flex items-baseline gap-3">
           <span className="text-sm font-semibold uppercase tracking-wide text-ink-soft">{c.cartTotalNet60}</span>
           <span className="text-2xl font-semibold tabular-nums text-ink">{eur(cartTotal)}</span>

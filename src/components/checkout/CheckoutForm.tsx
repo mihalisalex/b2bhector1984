@@ -26,6 +26,9 @@ export function CheckoutForm({ account }: { account: Account }) {
   const { locale, dict } = useI18n();
   const { leadTimeDays, arrivalIso } = useDelivery();
   const c = dict.checkout;
+  const d = dict.dashboard;
+  // A shop that applied or was invited has an empty placeholder until its first order.
+  const savedAddresses = account.shipTo.filter((a) => a.line1.trim());
   const termsLabel = (v: CreditTerms) =>
     v === "prepay" ? c.termsPrepay : v === "net30" ? c.termsNet30 : c.termsNet60;
   const { lines, chargesVat } = useCart();
@@ -122,10 +125,21 @@ export function CheckoutForm({ account }: { account: Account }) {
         </Section>
 
         <Section title={c.shipTo}>
+          {savedAddresses.length === 0 ? (
+            <div className="flex max-w-xl flex-col gap-3">
+              <p className="text-sm text-ink-soft">{c.addressNeeded}</p>
+              <AddressInput label={d.addressLine1} name="newLine1" autoComplete="street-address" />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <AddressInput label={d.city} name="newCity" defaultValue={account.shipTo[0]?.city} autoComplete="address-level2" />
+                <AddressInput label={d.state} name="newState" autoComplete="address-level1" />
+                <AddressInput label={d.zip} name="newZip" autoComplete="postal-code" />
+              </div>
+            </div>
+          ) : (
           <div className="flex flex-col gap-2">
-            {account.shipTo.map((addr) => (
+            {savedAddresses.map((addr) => (
               <label key={addr.id} className="flex cursor-pointer items-start gap-3 border border-stone-300 p-3 has-[:checked]:border-ink has-[:checked]:bg-stone-100">
-                <input type="radio" name="shipToId" value={addr.id} defaultChecked={addr.isDefault} className="mt-1 accent-ink" />
+                <input type="radio" name="shipToId" value={addr.id} defaultChecked={addr.isDefault || savedAddresses.length === 1} className="mt-1 accent-ink" />
                 <span className="text-sm">
                   <span className="block font-medium text-ink">{addr.label}</span>
                   <span className="block text-ink-soft">{addr.line1}{addr.line2 ? `, ${addr.line2}` : ""}</span>
@@ -134,6 +148,7 @@ export function CheckoutForm({ account }: { account: Account }) {
               </label>
             ))}
           </div>
+          )}
         </Section>
 
         <Section title={c.paymentTerms}>
@@ -299,6 +314,31 @@ export function CheckoutForm({ account }: { account: Account }) {
         {minimumError && <p className="mt-1.5 text-[11px] font-medium text-ember">{minimumError}</p>}
       </div>
     </form>
+  );
+}
+
+function AddressInput({
+  label,
+  name,
+  defaultValue,
+  autoComplete,
+}: {
+  label: string;
+  name: string;
+  defaultValue?: string;
+  autoComplete: string;
+}) {
+  return (
+    <label className="flex flex-col gap-1 text-xs font-medium text-ink-soft">
+      {label}
+      <input
+        name={name}
+        required
+        defaultValue={defaultValue}
+        autoComplete={autoComplete}
+        className="border border-stone-300 bg-white px-3 py-2.5 text-sm text-ink outline-none focus-visible:border-signal"
+      />
+    </label>
   );
 }
 

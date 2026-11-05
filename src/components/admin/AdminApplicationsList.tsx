@@ -130,7 +130,7 @@ export function AdminApplicationsList({ applications, reps }: { applications: Ap
                   {app.contactName} · {app.email} · {app.storeLocation} · {app.country} · Submitted {formatDate(app.submittedAt)}
                 </p>
                 <p className="mt-1 text-xs text-ink-soft">
-                  {app.businessType} · {app.expectedVolume} · VAT/Tax ID {app.resaleCertId}
+                  {[app.businessType, app.expectedVolume, `VAT/Tax ID ${app.resaleCertId}`].filter(Boolean).join(" · ")}
                 </p>
               </div>
             </div>

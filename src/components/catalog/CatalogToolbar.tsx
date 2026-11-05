@@ -2,7 +2,6 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FLAG_OPTIONS, PRICE_BANDS } from "@/lib/catalogFilters";
 import { SORT_OPTIONS } from "@/lib/catalogSort";
 import { TextAction } from "@/components/ui/TextAction";
 import { cn } from "@/lib/cn";
@@ -10,13 +9,10 @@ import { useI18n } from "@/i18n/I18nProvider";
 import { t } from "@/i18n/format";
 import {
   categoryLabel,
-  flagLabel,
-  genderLabel,
-  priceBandLabel,
   seasonLabel,
   sortLabel,
 } from "@/lib/data/styleLabels";
-import type { Category, Gender, Season } from "@/lib/types";
+import type { Category, Season } from "@/lib/types";
 
 const DEFAULT_SEASON_OPTIONS = [
   { value: "summer", label: "Summer" },
@@ -37,12 +33,6 @@ const SEASON_CATEGORIES: Record<string, string[]> = {
   summer: ["loafers", "wedding", "sneakers", "sandals"],
   winter: ["boots", "sneakers", "formal", "anatomic"],
 };
-
-const GENDER_OPTIONS = [
-  { value: "mens", label: "Men's" },
-  { value: "womens", label: "Women's" },
-  { value: "unisex", label: "Unisex" },
-];
 
 
 /** Standalone search box, meant to sit next to the page title. Syncs the `q` param same as before. */
@@ -90,20 +80,11 @@ export function CatalogSearchInput() {
 export function CatalogFiltersPanel({
   seasonOptions = DEFAULT_SEASON_OPTIONS,
   colorOptions = [],
-  flagOptions = FLAG_OPTIONS,
-  boxOptions = [],
-  showPricing = true,
 }: {
   /** Enabled seasons with their admin-configured display labels; omit to fall back to the stock Summer/Winter pair. */
   seasonOptions?: { value: string; label: string }[];
   /** Real colourway names from the catalogue (`colorOptionsFromStyles`). Empty hides the group entirely — never invent options here, that was the bug. */
   colorOptions?: string[];
-  /** Quick toggles that can actually match something (`availableFlagOptions`). Defaults to all of them. */
-  flagOptions?: readonly (typeof FLAG_OPTIONS)[number][];
-  /** Pairs-per-box values actually on sale (`boxOptionsFromStyles`). */
-  boxOptions?: string[];
-  /** False for visitors who aren't signed in — a price filter is no use without prices. */
-  showPricing?: boolean;
 }) {
   const router = useRouter();
   const { dict } = useI18n();
@@ -199,18 +180,6 @@ export function CatalogFiltersPanel({
 
       {open && (
         <div className="absolute right-0 top-full z-40 mt-2 flex max-h-[70vh] w-72 flex-col gap-5 overflow-y-auto border border-stone-300 bg-white p-4 text-left shadow-lg">
-          {flagOptions.length > 0 && (
-            <FilterGroup title={c.grpShowOnly}>
-              {flagOptions.map((opt) => (
-                <Checkbox
-                  key={opt.value}
-                  label={flagLabel(dict, opt.value)}
-                  checked={isChecked("flag", opt.value)}
-                  onChange={() => toggle("flag", opt.value)}
-                />
-              ))}
-            </FilterGroup>
-          )}
 
           {seasonOptions.length > 0 && (
             <FilterGroup title={c.grpSeason}>
@@ -226,22 +195,7 @@ export function CatalogFiltersPanel({
             ))}
           </FilterGroup>
 
-          <FilterGroup title={c.grpGender}>
-            {GENDER_OPTIONS.map((opt) => (
-              <Checkbox key={opt.value} label={genderLabel(dict, opt.value as Gender)} checked={isChecked("gender", opt.value)} onChange={() => toggle("gender", opt.value)} />
-            ))}
-          </FilterGroup>
 
-          {/* Box size replaced the "Delivery window" group: every order is produced for the
-              buyer, so that filter could only ever split the catalogue into "everything" and
-              "nothing". Box size is a real choice a buyer makes (8 vs 10 pairs per style). */}
-          {boxOptions.length > 1 && (
-            <FilterGroup title={c.grpBox}>
-              {boxOptions.map((pairs) => (
-                <Checkbox key={pairs} label={t(c.boxFilterOption, { pairs })} checked={isChecked("box", pairs)} onChange={() => toggle("box", pairs)} />
-              ))}
-            </FilterGroup>
-          )}
 
           {colorOptions.length > 0 && (
             <FilterGroup title={c.grpColorway}>
@@ -251,13 +205,6 @@ export function CatalogFiltersPanel({
             </FilterGroup>
           )}
 
-          {showPricing && (
-            <FilterGroup title={c.grpPrice}>
-              {PRICE_BANDS.map((band) => (
-                <Checkbox key={band.id} label={priceBandLabel(dict, band.id)} checked={isChecked("price", band.id)} onChange={() => toggle("price", band.id)} />
-              ))}
-            </FilterGroup>
-          )}
 
           {activeCount > 0 && (
             <TextAction tone="accent" onClick={clearAll} className="text-left">

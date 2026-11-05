@@ -3,7 +3,7 @@ import type { Locale } from "@/i18n/config";
 import { Suspense } from "react";
 import { getStorefrontStyles, searchStyleIds } from "@/lib/data/styles";
 import { matchStylesBySynonyms } from "@/lib/searchSynonyms";
-import { availableFlagOptions, colorOptionsFromStyles, filterStyles, parseFilters } from "@/lib/catalogFilters";
+import { colorOptionsFromStyles, filterStyles, parseFilters } from "@/lib/catalogFilters";
 import { isSortKey, sortStyles } from "@/lib/catalogSort";
 import { getInventoryForStyles, totalOnHandForStyle } from "@/lib/data/inventory";
 import { getCurrentAccount } from "@/lib/session";
@@ -75,7 +75,6 @@ export default async function QuickOrderPage({
               showViewToggle={false}
               seasonOptions={seasonOptions}
               colorOptions={colorOptionsFromStyles(styles)}
-              flagOptions={availableFlagOptions(styles, inStockIds)}
             />
           </Suspense>
         </div>

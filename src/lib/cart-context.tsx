@@ -66,12 +66,6 @@ function storageKey(accountId: string) {
   return `hector_cart_${accountId}`;
 }
 
-function termsStorageKey(accountId: string) {
-  return `hector_terms_${accountId}`;
-}
-
-const TERMS: CreditTerms[] = ["prepay", "net30", "net60"];
-
 function pairsInLine(line: CartLine): number {
   return line.qty * getBoxType(line.boxTypeId).totalPairs;
 }
@@ -97,30 +91,7 @@ export function CartProvider({
   const [hydrated, setHydrated] = useState(false);
   const [terms, setTermsState] = useState<CreditTerms>(defaultTerms);
 
-  // The saved choice is read after mount, not during render: localStorage doesn't exist on
-  // the server, and reading it in the initial state would make the first client render
-  // disagree with the server's (a hydration error on every price).
-  useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(termsStorageKey(accountId));
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from an external store (localStorage)
-      if (saved && TERMS.includes(saved as CreditTerms)) setTermsState(saved as CreditTerms);
-    } catch {
-      // storage blocked — keep the account default
-    }
-  }, [accountId]);
-
-  const setTerms = useCallback(
-    (next: CreditTerms) => {
-      setTermsState(next);
-      try {
-        window.localStorage.setItem(termsStorageKey(accountId), next);
-      } catch {
-        // storage blocked — the choice still holds for this page view
-      }
-    },
-    [accountId],
-  );
+  const setTerms = setTermsState;
 
   useEffect(() => {
     // Sync from localStorage (an external system unavailable during SSR), not a

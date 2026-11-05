@@ -3,45 +3,10 @@
 import { useActionState } from "react";
 import { submitApplication, type FormState } from "@/lib/actions";
 import { Button } from "@/components/ui/Button";
-import { TextField as Field, SelectField, FormMessage } from "@/components/ui/FormField";
+import { TextField as Field, FormMessage } from "@/components/ui/FormField";
 import { useI18n } from "@/i18n/I18nProvider";
-import type { Dictionary } from "@/i18n/dictionaries/en";
 
 const initialState: FormState = {};
-
-/**
- * "Outdoor / run specialty" and "Team sport / athletic" used to sit in this
- * list — categories from the seed data of a different kind of business. Hector
- * sells men's leather footwear to shoe retailers, so both described a customer
- * that will never apply, and every real applicant so far picked one of the
- * three door-count options. Replaced with the channels that actually buy this
- * catalogue.
- *
- * `value` is what gets STORED and is deliberately English in every locale — the
- * admin panel that reads these applications is English by decision, and a Greek
- * applicant's answers have to stay legible there. Only the label is translated.
- */
-function businessTypes(d: Dictionary["apply"]) {
-  return [
-    { value: "Independent specialty (1 door)", label: d.typeIndependent },
-    { value: "Multi-brand specialty (2–5 doors)", label: d.typeMultiBrand },
-    { value: "Regional chain (6+ doors)", label: d.typeChain },
-    { value: "Department store", label: d.typeDepartment },
-    { value: "Online retailer", label: d.typeOnline },
-    { value: "Distributor / agent", label: d.typeDistributor },
-    { value: "Other", label: d.typeOther },
-  ];
-}
-
-function volumeBands(d: Dictionary["apply"]) {
-  return [
-    { value: "Under €10,000 / year", label: d.volUnder10k },
-    { value: "€10,000–€25,000 / year", label: d.vol10to25k },
-    { value: "€25,000–€75,000 / year", label: d.vol25to75k },
-    { value: "€75,000–€150,000 / year", label: d.vol75to150k },
-    { value: "€150,000+ / year", label: d.vol150kPlus },
-  ];
-}
 
 export function ApplyForm({
   countries,
@@ -66,21 +31,8 @@ export function ApplyForm({
       <form action={formAction} className="mt-10 flex flex-col gap-10">
         <fieldset className="flex flex-col gap-4">
           <Legend>{a.legendBusiness}</Legend>
-          <Row>
-            <Field label={a.businessName} name="businessName" required />
-            <Field label={a.website} name="website" />
-          </Row>
-          <Row>
-            <SelectField label={a.businessType} name="businessType" options={businessTypes(a)} placeholder={a.selectOne} required />
-            <SelectField label={a.expectedVolume} name="expectedVolume" options={volumeBands(a)} placeholder={a.selectOne} required />
-          </Row>
+          <Field label={a.businessName} name="businessName" required />
           <Field label={a.resaleCert} name="resaleCertId" required placeholder={a.resaleCertPlaceholder} mono />
-        </fieldset>
-
-        <fieldset className="flex flex-col gap-4">
-          <Legend>{a.legendLocation}</Legend>
-          {/* Country first: it decides VAT (only Greek businesses pay Greek VAT), and knowing
-              it up front makes the address fields below read naturally for a foreign shop. */}
           <label className="flex flex-col gap-1.5">
             <span className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{a.country}</span>
             <select
@@ -100,12 +52,10 @@ export function ApplyForm({
             </select>
             <span className="text-xs text-ink-soft">{a.countryHint}</span>
           </label>
-          <Field label={a.address} name="addressLine1" required />
-          <Row cols={3}>
+          <div className="flex flex-col gap-1.5">
             <Field label={a.city} name="city" required placeholder={a.cityPlaceholder} />
-            <Field label={a.region} name="state" required placeholder={a.regionPlaceholder} />
-            <Field label={a.postalCode} name="zip" required placeholder={a.postalCodePlaceholder} />
-          </Row>
+            <span className="text-xs text-ink-soft">{a.addressLater}</span>
+          </div>
         </fieldset>
 
         <fieldset className="flex flex-col gap-4">
@@ -134,8 +84,6 @@ function Legend({ children }: { children: React.ReactNode }) {
   return <legend className="font-display text-sm font-bold uppercase tracking-wide text-ink">{children}</legend>;
 }
 
-function Row({ children, cols = 2 }: { children: React.ReactNode; cols?: 2 | 3 }) {
-  return (
-    <div className={`grid grid-cols-1 gap-4 ${cols === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>{children}</div>
-  );
+function Row({ children }: { children: React.ReactNode }) {
+  return <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>;
 }

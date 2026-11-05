@@ -2,22 +2,17 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FLAG_OPTIONS, PRICE_BANDS } from "@/lib/catalogFilters";
 import { SORT_OPTIONS } from "@/lib/catalogSort";
 import { TextAction } from "@/components/ui/TextAction";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/i18n/I18nProvider";
 import { t } from "@/i18n/format";
 import {
-  availabilityLabel,
   categoryLabel,
-  flagLabel,
-  genderLabel,
-  priceBandLabel,
   seasonLabel,
   sortLabel,
 } from "@/lib/data/styleLabels";
-import type { Category, Gender, Season } from "@/lib/types";
+import type { Category, Season } from "@/lib/types";
 
 const DEFAULT_SEASON_OPTIONS = [
   { value: "summer", label: "Summer" },
@@ -39,23 +34,11 @@ const SEASON_CATEGORIES: Record<string, string[]> = {
   winter: ["boots", "sneakers", "formal", "anatomic"],
 };
 
-const GENDER_OPTIONS = [
-  { value: "mens", label: "Men's" },
-  { value: "womens", label: "Women's" },
-  { value: "unisex", label: "Unisex" },
-];
-
-const AVAILABILITY_OPTIONS = [
-  { value: "available", label: "Available now" },
-  { value: "prebook", label: "Pre-book" },
-];
-
 export function CatalogFilters({
   resultCount,
   showViewToggle = true,
   seasonOptions = DEFAULT_SEASON_OPTIONS,
   colorOptions = [],
-  flagOptions = FLAG_OPTIONS,
 }: {
   resultCount: number;
   /** Grid/List view toggle only makes sense on the catalogue's card layout, not the quick-order linesheet. */
@@ -64,8 +47,6 @@ export function CatalogFilters({
   seasonOptions?: { value: string; label: string }[];
   /** Real colourway names from the catalogue (`colorOptionsFromStyles`). Empty hides the group entirely — never invent options here, that was the bug. */
   colorOptions?: string[];
-  /** Quick toggles that can actually match something (`availableFlagOptions`). Defaults to all of them. */
-  flagOptions?: readonly (typeof FLAG_OPTIONS)[number][];
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -221,18 +202,6 @@ export function CatalogFilters({
       </div>
 
       <div className={cn("mt-4 flex-col gap-6 lg:mt-6 lg:flex", open ? "flex" : "hidden")}>
-        {flagOptions.length > 0 && (
-          <FilterGroup title={c.grpShowOnly}>
-            {flagOptions.map((opt) => (
-              <Checkbox
-                key={opt.value}
-                label={flagLabel(dict, opt.value)}
-                checked={isChecked("flag", opt.value)}
-                onChange={() => toggle("flag", opt.value)}
-              />
-            ))}
-          </FilterGroup>
-        )}
 
         {seasonOptions.length > 0 && (
           <FilterGroup title={c.grpSeason}>
@@ -248,17 +217,7 @@ export function CatalogFilters({
           ))}
         </FilterGroup>
 
-        <FilterGroup title={c.grpGender}>
-          {GENDER_OPTIONS.map((opt) => (
-            <Checkbox key={opt.value} label={genderLabel(dict, opt.value as Gender)} checked={isChecked("gender", opt.value)} onChange={() => toggle("gender", opt.value)} />
-          ))}
-        </FilterGroup>
 
-        <FilterGroup title={c.grpDelivery}>
-          {AVAILABILITY_OPTIONS.map((opt) => (
-            <Checkbox key={opt.value} label={availabilityLabel(dict, opt.value)} checked={isChecked("availability", opt.value)} onChange={() => toggle("availability", opt.value)} />
-          ))}
-        </FilterGroup>
 
         {colorOptions.length > 0 && (
           <FilterGroup title={c.grpColorway}>
@@ -268,11 +227,6 @@ export function CatalogFilters({
           </FilterGroup>
         )}
 
-        <FilterGroup title={c.grpPrice}>
-          {PRICE_BANDS.map((band) => (
-            <Checkbox key={band.id} label={priceBandLabel(dict, band.id)} checked={isChecked("price", band.id)} onChange={() => toggle("price", band.id)} />
-          ))}
-        </FilterGroup>
 
         {activeCount > 0 && (
           <TextAction tone="accent" onClick={clearAll} className="text-left">

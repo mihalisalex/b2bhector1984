@@ -9,7 +9,7 @@ import { useCart } from "@/lib/cart-context";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { getUnitPrice, isOnSale, MAX_BACKORDER_QTY, validateMatrix } from "@/lib/pricing";
 import { useDelivery, useFormat } from "@/i18n/I18nProvider";
-import { TermsSwitch } from "@/components/product/TermsSwitch";
+import { TermsNote } from "@/components/product/TermsNote";
 import { parsePastedOrder } from "@/lib/pasteOrder";
 import { VatSuffix } from "@/components/ui/VatSuffix";
 import { categoryLabel, genderLabel, getStyleImageUrl } from "@/lib/data/styleLabels";
@@ -82,9 +82,7 @@ export function OrderableLinesheet({
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <TermsSwitch className="w-full max-w-md" />
-      </div>
+      <TermsNote className="mb-4" />
       <PasteOrder styles={styles} />
 
       {/* Mobile / tablet: one card per style, steppers wrap instead of requiring horizontal scroll. */}

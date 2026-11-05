@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { getStorefrontStyles, searchStyleIds } from "@/lib/data/styles";
 import { matchStylesBySynonyms } from "@/lib/searchSynonyms";
-import { availableFlagOptions, boxOptionsFromStyles, colorOptionsFromStyles, filterStyles, parseFilters } from "@/lib/catalogFilters";
+import { colorOptionsFromStyles, filterStyles, parseFilters } from "@/lib/catalogFilters";
 import { t } from "@/i18n/format";
 import { getHomepageHero } from "@/lib/data/siteContent";
 import { estimatedArrivalIso } from "@/lib/delivery";
@@ -123,15 +123,18 @@ export default async function CatalogPage({
             <CatalogFiltersPanel
               seasonOptions={seasonOptions}
               colorOptions={colorOptionsFromStyles(styles)}
-              flagOptions={availableFlagOptions(styles, inStockIds)}
-              boxOptions={boxOptionsFromStyles(styles)}
-              showPricing={showPricing}
             />
           </Suspense>
         </div>
       </div>
 
-      <div className="mb-4 mt-6">
+      {/* True of every style, so it is said once here rather than on each of the cards. */}
+      <p className="mt-4 text-sm text-ink-soft">
+        {t(dict.catalog.arrivesAround, { date: arrivalLabel })}
+        {!showPricing && ` · ${dict.catalog.tradePricingOnApproval}`}
+      </p>
+
+      <div className="mb-4 mt-4">
         <Suspense fallback={null}>
           <CatalogResultsToolbar resultCount={results.length} showPricing={showPricing} />
         </Suspense>
@@ -180,7 +183,6 @@ export default async function CatalogPage({
               favorited={account ? favoriteIds.has(style.id) : undefined}
               locale={locale}
               dict={dict}
-              arrivalLabel={arrivalLabel}
             />
           ))}
         </div>

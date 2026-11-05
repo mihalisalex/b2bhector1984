@@ -11,7 +11,7 @@ import { pickDefaultBoxType } from "@/lib/productSelectionDefaults";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { getUnitPrice, isOnSale, MAX_BACKORDER_QTY, MIN_ORDER_PAIRS } from "@/lib/pricing";
 import { SaleBadge } from "@/components/product/SaleBadge";
-import { TermsSwitch } from "@/components/product/TermsSwitch";
+import { TermsNote } from "@/components/product/TermsNote";
 import { ColorwayPicker } from "@/components/product/ColorwayPicker";
 import { FavoriteButton } from "@/components/product/FavoriteButton";
 import { ShareButton } from "@/components/product/ShareButton";
@@ -90,7 +90,7 @@ export function PrimaryPurchasePanel({
   const maxSelectable = allowBackorder ? MAX_BACKORDER_QTY : remaining;
   const willBeProduction = allowBackorder && existingQty + addQty > onHand;
 
-  // Every figure is at the buyer's chosen payment terms (TermsSwitch), not the Net-60 list
+  // Every figure is at the buyer's payment terms (see TermsNote), not the Net-60 list
   // price — the old panel showed list and only revealed the prepay price at checkout.
   const unitPrice = getUnitPrice(style, terms, priceMultiplier);
   const listUnitPrice = Math.round(style.basePrice * priceMultiplier * 100) / 100;
@@ -140,7 +140,7 @@ export function PrimaryPurchasePanel({
               <ColorwayPicker style={style} inventory={inventory} />
             </div>
           )}
-          <TermsSwitch />
+          <TermsNote />
 
           {/* The three numbers a shop owner decides on, side by side: what a pair costs,
               what the box they actually order costs, and what it sells for in their shop. */}

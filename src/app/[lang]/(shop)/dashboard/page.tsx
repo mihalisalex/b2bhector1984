@@ -37,14 +37,12 @@ export default async function DashboardPage({ params }: { params: Promise<{ lang
     <div className="mx-auto max-w-[1400px] px-6 py-8 lg:px-10">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-300 pb-6">
         <div>
-          <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink">
-            Welcome back, {account.contactName.split(" ")[0]}
-          </h1>
+          <h1 className="font-display text-2xl font-bold uppercase tracking-tight text-ink">{d.title}</h1>
           <p className="mt-1 text-sm text-ink-soft">{account.businessName} · {account.storeLocation}</p>
         </div>
         <div className="flex gap-2">
-          <LinkButton href="/quick-order" variant="secondary" size="sm">{d.quickOrder}</LinkButton>
-          <LinkButton href="/catalogue" size="sm">{d.browseCatalogue}</LinkButton>
+          <LinkButton href="/catalogue" variant="secondary" size="sm">{d.browseCatalogue}</LinkButton>
+          <LinkButton href="/quick-order" size="sm">{d.newOrder}</LinkButton>
         </div>
       </div>
 
@@ -56,10 +54,6 @@ export default async function DashboardPage({ params }: { params: Promise<{ lang
             <Stat label={d.minimumOrder} value={t(d.pairsValue, { count: account.minOrderPairs ?? MIN_ORDER_PAIRS })} />
             <Stat label={d.ytdOrdered} value={formatEUR(ytdTotal, locale)} isPrice />
           </div>
-          <p className="mt-4 border-t border-stone-200 pt-3 text-xs text-ink-soft">
-            Wholesale price is set by payment terms at checkout — pay in full for 10% off, net-30 for 5% off,
-            or net-60 at list price.
-          </p>
         </div>
 
         <div className="border border-stone-300 bg-ink p-5 text-stone-200">
@@ -128,13 +122,12 @@ export default async function DashboardPage({ params }: { params: Promise<{ lang
           )}
         </div>
 
+        {/* Only once the buyer has saved one — otherwise it's an empty box to explain. */}
+        {assortments.length > 0 && (
         <div className="lg:w-72 lg:shrink-0">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-lg font-bold uppercase tracking-tight text-ink">{d.savedAssortments}</h2>
           </div>
-          {assortments.length === 0 ? (
-            <p className="mt-3 text-sm text-ink-soft">{d.noAssortments}</p>
-          ) : (
             <div className="mt-3 flex flex-col gap-2">
               {assortments.map((a) => (
                 <Link key={a.id} href={withLocale(locale, "/dashboard/assortments")} className="block border border-stone-300 bg-white p-3 hover:border-ink">
@@ -143,11 +136,11 @@ export default async function DashboardPage({ params }: { params: Promise<{ lang
                 </Link>
               ))}
             </div>
-          )}
           <TextActionLink href={withLocale(locale, "/dashboard/assortments")} tone="accent" className="mt-3 inline-block">
             {d.viewAllAssortments}
           </TextActionLink>
         </div>
+        )}
       </div>
     </div>
   );

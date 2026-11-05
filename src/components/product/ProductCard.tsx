@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { backorderLabelFor, categoryLabel, genderLabel, getStyleImageUrl } from "@/lib/data/styleLabels";
+import { backorderLabelFor, categoryLabel, getStyleImageUrl } from "@/lib/data/styleLabels";
 import { getUnitPrice, isOnSale } from "@/lib/pricing";
-import { useDelivery, useFormat, useI18n } from "@/i18n/I18nProvider";
+import { useFormat, useI18n } from "@/i18n/I18nProvider";
 import { t } from "@/i18n/format";
 import { getAvailableBoxTypes } from "@/lib/data/boxTypes";
 import { VatSuffix } from "@/components/ui/VatSuffix";
@@ -62,7 +62,6 @@ export function ProductCard({
 }) {
   const { eur } = useFormat();
   const { dict } = useI18n();
-  const { arrivalLabel } = useDelivery();
   // The buyer's chosen payment terms (Net 60 outside a cart, where no price shows anyway).
   const buyerTerms = useBuyerTerms();
   const dictCatalog = dict.catalog;
@@ -83,9 +82,6 @@ export function ProductCard({
   const taggedImage = images.find((img) => img.colorwayId === activeColorwayId);
   const imageUrl = taggedImage?.publicUrl ?? getStyleImageUrl(style);
 
-  const deliveryText = !soldOut && typeof totalOnHand === "number" && totalOnHand > 0
-    ? dictCatalog.inStockShips
-    : t(dictCatalog.arrivesAround, { date: arrivalLabel });
   const unitPrice = getUnitPrice(style, buyerTerms, priceMultiplier);
   const boxTypes = getAvailableBoxTypes(style);
   // Every style is sold in one box format today; with several, the smallest box is quoted.
@@ -103,7 +99,6 @@ export function ProductCard({
           <StylePlate
             key={imageUrl}
             swatch={activeColorway.swatch}
-            styleNumber={style.styleNumber}
             imageUrl={imageUrl}
             alt={style.name}
             priority={priority}
@@ -136,8 +131,7 @@ export function ProductCard({
             </Link>
           </h3>
           <p className="mt-0.5 text-xs text-ink-soft">
-            <span className="font-mono-tab">{style.styleNumber}</span> · {categoryLabel(dict, style.category)} ·{" "}
-            {genderLabel(dict, style.gender)}
+            <span className="font-mono-tab">{style.styleNumber}</span> · {categoryLabel(dict, style.category)}
           </p>
         </div>
 
@@ -163,7 +157,7 @@ export function ProductCard({
           </div>
         )}
 
-        {showPricing ? (
+        {showPricing && (
           <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 border-t border-stone-200 pt-2.5 tabular-nums">
             <div>
               <dt className="text-[11px] text-ink-soft">{dictCatalog.perPairLabel}</dt>
@@ -196,17 +190,10 @@ export function ProductCard({
               </>
             )}
           </dl>
-        ) : (
-          <p className="border-t border-stone-200 pt-2.5 text-xs text-ink-soft">{dictCatalog.tradePricingOnApproval}</p>
         )}
 
-        {/* One delivery line replaces the old pair of "Made to order" badges: what a buyer
-            needs from it is when the boxes arrive. */}
-        <p className="mt-auto flex items-center gap-2 bg-stone-100 px-2 py-1.5 text-xs text-ink">
-          <span aria-hidden className={cn("h-1.5 w-1.5 shrink-0 rounded-full", soldOut ? "bg-ember" : "bg-positive")} />
-          {soldOut ? dictCatalog.soldOut : deliveryText}
-        </p>
-
+        {/* Delivery date and "prices after approval" are the same on every card, so they are
+            said once above the list instead (see the catalogue page). */}
         {inventory && (
           <QuickAdd style={style} inventory={inventory} priceMultiplier={priceMultiplier} colorwayId={activeColorwayId} />
         )}

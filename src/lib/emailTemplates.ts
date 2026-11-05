@@ -205,7 +205,7 @@ export function buildNewApplicationAdminEmailBody(
     `Phone: ${application.phone}`,
     `Country: ${application.country} · ${application.storeLocation}`,
     application.businessType ? `Type: ${application.businessType}` : "",
-    `Expected volume: ${application.expectedVolume}`,
+    application.expectedVolume ? `Expected volume: ${application.expectedVolume}` : "",
     application.resaleCertId ? `VAT / tax ID: ${application.resaleCertId}` : "",
     application.website ? `Website: ${application.website}` : "",
   ].filter(Boolean);

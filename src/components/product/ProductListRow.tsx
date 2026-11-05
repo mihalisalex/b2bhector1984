@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Dictionary } from "@/i18n/dictionaries/en";
-import { categoryLabel, genderLabel, getStyleImageUrl } from "@/lib/data/styleLabels";
+import { categoryLabel, getStyleImageUrl } from "@/lib/data/styleLabels";
 import { formatEUR, isOnSale } from "@/lib/pricing";
 import { VatSuffix } from "@/components/ui/VatSuffix";
 import type { Style } from "@/lib/types";
@@ -20,7 +20,6 @@ export function ProductListRow({
   favorited,
   locale = "en",
   dict,
-  arrivalLabel,
 }: {
   style: Style;
   totalOnHand?: number;
@@ -33,14 +32,11 @@ export function ProductListRow({
   /** Server component — the caller already has the dictionary, so it is passed rather than
    * fetched again here. */
   dict: Dictionary;
-  /** "14 Nov" — estimated arrival of an order placed today (src/lib/delivery.ts). */
-  arrivalLabel: string;
 }) {
   // See ProductCard for the same soldOut/madeToOrder split — "Sold out" only when the
   // style genuinely can't be ordered further; zero on-hand with backorders allowed is
   // "Made to order" instead.
   const soldOut = totalOnHand === 0 && !style.allowBackorder;
-  const madeToOrder = totalOnHand === 0 && style.allowBackorder;
   const lowStock = typeof totalOnHand === "number" && totalOnHand > 0 && totalOnHand <= 10;
   const onSale = isOnSale(style);
   const boxPairs = Math.min(...getAvailableBoxTypes(style).map((b) => b.totalPairs));
@@ -64,7 +60,6 @@ export function ProductListRow({
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <AvailabilityBadge style={style} />
           <span className="text-[11px] uppercase tracking-wide text-ink-soft">{categoryLabel(dict, style.category)}</span>
-          <span className="text-[11px] uppercase tracking-wide text-ink-soft">{genderLabel(dict, style.gender)}</span>
         </div>
         <h3 className="font-display mt-1 truncate text-base font-bold uppercase leading-tight tracking-tight text-ink group-hover:underline">
           {style.name}
@@ -72,20 +67,16 @@ export function ProductListRow({
         <p className="font-mono-tab text-xs text-ink-soft">
           {style.styleNumber} · {t(dict.catalog.colourCount, { count: style.colorways.length })}
         </p>
-        <p className={cn("mt-1 text-xs font-medium", soldOut || lowStock ? "text-ember" : "text-ink")}>
-          {soldOut
-            ? dict.catalog.soldOut
-            : madeToOrder
-              ? t(dict.catalog.arrivesAround, { date: arrivalLabel })
-              : lowStock
-                ? t(dict.catalog.onlyLeft, { count: totalOnHand ?? 0 })
-                : dict.catalog.inStockShips}
-        </p>
+        {(soldOut || lowStock) && (
+          <p className="mt-1 text-xs font-medium text-ember">
+            {soldOut ? dict.catalog.soldOut : t(dict.catalog.onlyLeft, { count: totalOnHand ?? 0 })}
+          </p>
+        )}
       </div>
 
       <div className="flex shrink-0 flex-col items-end gap-2 text-right">
         {favorited !== undefined && <FavoriteButton styleId={style.id} initialFavorited={favorited} variant="icon" />}
-        {showPricing ? (
+        {showPricing && (
           <div>
             <p className="text-[11px] text-ink-soft">{dict.catalog.perPairLabel}</p>
             <p className="flex items-baseline justify-end gap-1.5">
@@ -103,8 +94,6 @@ export function ProductListRow({
               {t(dict.catalog.boxOfLabel, { pairs: boxPairs })} · <BuyerPrice style={style} priceMultiplier={priceMultiplier} pairs={boxPairs} />
             </p>
           </div>
-        ) : (
-          <p className="text-[11px] uppercase tracking-wide text-ink-soft">{dict.catalog.tradePricingOnApproval}</p>
         )}
       </div>
     </Link>
