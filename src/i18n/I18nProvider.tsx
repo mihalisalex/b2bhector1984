@@ -2,7 +2,7 @@
 
 import { createContext, useContext } from "react";
 import { formatEUR } from "@/lib/pricing";
-import { formatDate, formatDateNumeric, formatDayMonth } from "@/lib/format";
+import { formatDate, formatDateNumeric } from "@/lib/format";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/config";
 
@@ -13,7 +13,6 @@ interface I18nContextValue {
   leadTimeDays: number;
   /** Estimated arrival of an order placed today (ISO date), computed on the server so the
    * server render and hydration agree. See src/lib/delivery.ts. */
-  arrivalIso: string;
 }
 
 const I18nContext = createContext<I18nContextValue | null>(null);
@@ -22,16 +21,15 @@ export function I18nProvider({
   locale,
   dict,
   leadTimeDays,
-  arrivalIso,
   children,
 }: I18nContextValue & { children: React.ReactNode }) {
-  return <I18nContext.Provider value={{ locale, dict, leadTimeDays, arrivalIso }}>{children}</I18nContext.Provider>;
+  return <I18nContext.Provider value={{ locale, dict, leadTimeDays }}>{children}</I18nContext.Provider>;
 }
 
 /** "Arrives around 14 Nov" data for any client component: the lead time and the date. */
-export function useDelivery(): { leadTimeDays: number; arrivalIso: string; arrivalLabel: string } {
-  const { locale, leadTimeDays, arrivalIso } = useI18n();
-  return { leadTimeDays, arrivalIso, arrivalLabel: formatDayMonth(arrivalIso, locale) };
+export function useDelivery(): { leadTimeDays: number } {
+  const { leadTimeDays } = useI18n();
+  return { leadTimeDays };
 }
 
 /** Client-side access to the current locale + its dictionary. Server Components should

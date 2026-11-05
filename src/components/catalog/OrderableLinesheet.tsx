@@ -40,7 +40,7 @@ export function OrderableLinesheet({
   const { dict, locale } = useI18n();
   const d = dict.dashboard;
   const { lines, setLineQty, chargesVat, terms } = useCart();
-  const { arrivalLabel } = useDelivery();
+  const { leadTimeDays } = useDelivery();
   const styleById = useMemo(() => new Map(styles.map((s) => [s.id, s])), [styles]);
 
   function qtyFor(styleId: string, colorwayId: string, boxTypeId: BoxTypeId): number {
@@ -237,7 +237,7 @@ export function OrderableLinesheet({
                         {qty > 0 ? eur(unitPrice * box.totalPairs * qty) : "—"}
                       </td>
                       <td className="px-3 py-2 font-mono-tab text-xs text-ink-soft">
-                        {fromStock ? d.inStock5Days : arrivalLabel}
+                        {fromStock ? d.inStock5Days : t(d.upToDays, { days: leadTimeDays })}
                       </td>
                     </tr>
                   );

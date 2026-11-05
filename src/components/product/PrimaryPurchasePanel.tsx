@@ -40,7 +40,7 @@ export function PrimaryPurchasePanel({
 }) {
   const { addLines, lines, itemCount, minOrderPairs: accountMinOrderPairs, chargesVat, terms } = useCart();
   const minOrderPairs = accountMinOrderPairs ?? MIN_ORDER_PAIRS;
-  const { arrivalLabel } = useDelivery();
+  const { leadTimeDays } = useDelivery();
   const { locale, dict } = useI18n();
   const { eur } = useFormat();
   const c = dict.catalog;
@@ -206,7 +206,7 @@ export function PrimaryPurchasePanel({
             ) : willBeProduction || onHand === 0 ? (
               <>
                 <p className="text-ink">
-                  <span className="font-semibold">{c.madeForYou}</span> · {t(c.arrivesAroundToday, { date: arrivalLabel })}
+                  <span className="font-semibold">{c.madeForYou}</span> · {t(c.arrivesAroundToday, { days: leadTimeDays })}
                 </p>
                 <p className="mt-0.5 text-xs text-ink-soft">{c.etaLargeOrders}</p>
               </>

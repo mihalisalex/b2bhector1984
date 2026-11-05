@@ -12,7 +12,6 @@ import { HowOrderingWorks } from "@/components/marketing/HowOrderingWorks";
 import { BrandStory } from "@/components/marketing/BrandStory";
 import { lowestPairPrice } from "@/lib/pricing";
 import { getOrdersForAccount } from "@/lib/runtimeOrders";
-import { estimatedArrivalIso } from "@/lib/delivery";
 import { LinkButton } from "@/components/ui/Button";
 import { pageMetadata } from "@/lib/seo";
 import { getDictionary } from "@/i18n/getDictionary";
@@ -51,7 +50,6 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const newArrivals = pickNewArrivals(styles);
   // Signed in: the welcome block replaces the marketing hero (see BuyerWelcome).
   const lastOrder = account ? (await getOrdersForAccount(account.id))[0] : undefined;
-  const arrivalIso = estimatedArrivalIso(hero.productionLeadTimeDays);
   const newArrivalImages = newArrivals.length > 0 ? await listImagesForStyles(newArrivals.map((s) => s.id)) : {};
 
 
@@ -103,7 +101,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   return (
     <div>
       {account ? (
-        <BuyerWelcome account={account} lastOrder={lastOrder} arrivalIso={arrivalIso} locale={lang} dict={dict} />
+        <BuyerWelcome account={account} lastOrder={lastOrder} leadTimeDays={hero.productionLeadTimeDays} locale={lang} dict={dict} />
       ) : (
         <>
       {/* Hero, 2026-11-05: the photo does the talking. Words sit low and to the left so they

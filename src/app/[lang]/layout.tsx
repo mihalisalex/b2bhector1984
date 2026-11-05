@@ -13,7 +13,6 @@ import { LOCALES, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/getDictionary";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { getHomepageHero } from "@/lib/data/siteContent";
-import { estimatedArrivalIso } from "@/lib/delivery";
 import "@/app/globals.css";
 
 /**
@@ -110,7 +109,6 @@ export default async function LocaleLayout({
             locale={lang}
             dict={dict}
             leadTimeDays={leadTimeDays}
-            arrivalIso={estimatedArrivalIso(leadTimeDays)}
           >
             {children}
             {/* Inside the i18n provider: the banner reads the dictionary, and it is the one

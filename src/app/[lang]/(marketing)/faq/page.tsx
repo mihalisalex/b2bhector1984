@@ -38,7 +38,7 @@ interface FaqGroup {
 
 /**
  * Written from how the business actually works (owner, 2026-09-25): every order is produced
- * for the buyer and takes about `days` days (the production lead time set in /admin), any
+ * for the buyer and takes at most `days` days (the production lead time set in /admin), any
  * season can be closed for orders when it is too late to deliver it, an order is a request that becomes a proforma with
  * the final price, shipping goes by the buyer's own courier at their cost, and only buyers
  * based in Greece pay Greek VAT. Each style comes in exactly one box format.
@@ -71,7 +71,7 @@ function groupsEn(days: number): FaqGroup[] {
       items: [
         {
           q: "When will I receive my order?",
-          a: `Every order is produced for you. Delivery is usually about ${days} days after we confirm your order. Very large orders can take longer — we confirm the delivery date on your invoice before anything is final.`,
+          a: `Every order is produced for you. It is ready in ${days} days at most after we confirm it, usually sooner, including transport, and we deliver whenever you want within the season. Very large orders can take longer — we confirm the delivery date on your invoice before anything is final.`,
         },
         {
           q: "Can I order a style outside its season?",
@@ -79,7 +79,7 @@ function groupsEn(days: number): FaqGroup[] {
         },
         {
           q: "What do “Pre-order” and “Made to order” mean?",
-          a: `Both mean your pairs are produced after you order, and both usually take about ${days} days. If a style is ever on our shelves, its page says “Available now” and it ships within about 5 business days.`,
+          a: `Both mean your pairs are produced after you order, and both take ${days} days at most, usually sooner. If a style is ever on our shelves, its page says “Available now” and it ships within about 5 business days.`,
         },
       ],
     },
@@ -211,7 +211,7 @@ function groupsEl(days: number): FaqGroup[] {
       items: [
         {
           q: "Πότε θα παραλάβω την παραγγελία μου;",
-          a: `Κάθε παραγγελία παράγεται για εσάς. Η παράδοση γίνεται συνήθως περίπου ${days} ημέρες μετά την επιβεβαίωση της παραγγελίας. Οι πολύ μεγάλες παραγγελίες μπορεί να χρειαστούν περισσότερο — την ημερομηνία παράδοσης την επιβεβαιώνουμε στο τιμολόγιο, πριν οριστικοποιηθεί οτιδήποτε.`,
+          a: `Κάθε παραγγελία παράγεται για εσάς. Είναι έτοιμη το πολύ σε ${days} ημέρες από την επιβεβαίωση, συνήθως νωρίτερα, μαζί με τη μεταφορά, και παραδίδουμε όποτε τη θέλετε μέσα στη σεζόν. Οι πολύ μεγάλες παραγγελίες μπορεί να χρειαστούν περισσότερο — την ημερομηνία παράδοσης την επιβεβαιώνουμε στο τιμολόγιο, πριν οριστικοποιηθεί οτιδήποτε.`,
         },
         {
           q: "Μπορώ να παραγγείλω ένα μοντέλο εκτός σεζόν;",
@@ -219,7 +219,7 @@ function groupsEl(days: number): FaqGroup[] {
         },
         {
           q: "Τι σημαίνουν «Προπαραγγελία» και «Κατά παραγγελία»;",
-          a: `Και τα δύο σημαίνουν ότι τα ζευγάρια σας παράγονται μετά την παραγγελία, και στις δύο περιπτώσεις χρειάζονται περίπου ${days} ημέρες. Αν κάποιο μοντέλο υπάρχει έτοιμο στην αποθήκη, η σελίδα του γράφει «Άμεσα διαθέσιμο» και αποστέλλεται σε περίπου 5 εργάσιμες.`,
+          a: `Και τα δύο σημαίνουν ότι τα ζευγάρια σας παράγονται μετά την παραγγελία, και στις δύο περιπτώσεις χρειάζονται το πολύ ${days} ημέρες, συνήθως λιγότερες. Αν κάποιο μοντέλο υπάρχει έτοιμο στην αποθήκη, η σελίδα του γράφει «Άμεσα διαθέσιμο» και αποστέλλεται σε περίπου 5 εργάσιμες.`,
         },
       ],
     },

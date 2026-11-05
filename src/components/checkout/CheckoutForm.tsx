@@ -24,7 +24,7 @@ const initialState: CheckoutState = {};
 export function CheckoutForm({ account }: { account: Account }) {
   const { eur } = useFormat();
   const { locale, dict } = useI18n();
-  const { leadTimeDays, arrivalIso } = useDelivery();
+  const { leadTimeDays } = useDelivery();
   const c = dict.checkout;
   const d = dict.dashboard;
   // A shop that applied or was invited has an empty placeholder until its first order.
@@ -121,7 +121,7 @@ export function CheckoutForm({ account }: { account: Account }) {
         {/* The whole process before they commit — a first-time buyer's main worry is what
             happens after pressing the button, and the answer is not "you get charged". */}
         <Section title={dict.dashboard.journeyTitle}>
-          <OrderJourney dict={dict.dashboard} locale={locale} leadTimeDays={leadTimeDays} arrivalIso={arrivalIso} />
+          <OrderJourney dict={dict.dashboard} locale={locale} leadTimeDays={leadTimeDays} />
         </Section>
 
         <Section title={c.shipTo}>

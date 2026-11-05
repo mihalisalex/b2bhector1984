@@ -28,7 +28,6 @@ export function OrderJourney({
   dict,
   locale,
   leadTimeDays,
-  arrivalIso,
   status,
   events = [],
   className,
@@ -37,7 +36,6 @@ export function OrderJourney({
   locale: string;
   leadTimeDays: number;
   /** Estimated arrival (ISO date) — for an existing order, counted from its confirmation. */
-  arrivalIso: string;
   /** Omit for the checkout preview. */
   status?: OrderStatus;
   events?: OrderStatusEvent[];
@@ -57,7 +55,7 @@ export function OrderJourney({
     { key: "request", label: dict.journeyRequest, note: dated("submitted", dict.journeyRequestNote) },
     { key: "confirm", label: dict.journeyConfirm, note: dated("confirmed", dict.journeyConfirmNote) },
     { key: "production", label: dict.journeyProduction, note: dated("in_production", t(dict.journeyProductionNote, { days: leadTimeDays })) },
-    { key: "shipped", label: dict.journeyShipped, note: dated("shipped", t(dict.journeyShippedNote, { date: formatDayMonth(arrivalIso, locale) })) },
+    { key: "shipped", label: dict.journeyShipped, note: dated("shipped", dict.journeyShippedNote) },
     { key: "delivered", label: dict.journeyDelivered, note: dated("delivered") },
   ];
   // At checkout nothing has happened yet, so no step is lit.

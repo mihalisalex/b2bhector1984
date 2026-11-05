@@ -13,7 +13,6 @@ import { ClearCartOnMount } from "@/components/dashboard/ClearCartOnMount";
 import { PrintButton } from "@/components/dashboard/PrintButton";
 import { OrderJourney } from "@/components/order/OrderJourney";
 import { getHomepageHero } from "@/lib/data/siteContent";
-import { estimatedArrivalIso } from "@/lib/delivery";
 import { greekVocative, greetingFirstName } from "@/i18n/greek";
 import { getDictionary } from "@/i18n/getDictionary";
 import { withLocale } from "@/i18n/paths";
@@ -56,7 +55,6 @@ export default async function OrderDetailPage({
   // is one, otherwise from when the request was sent.
   const hero = await getHomepageHero();
   const confirmedAt = statusHistory.find((e) => e.status === "confirmed")?.changedAt;
-  const arrivalIso = estimatedArrivalIso(hero.productionLeadTimeDays, new Date(confirmedAt ?? order.placedAt));
   const termsLabel = { prepay: dict.checkout.termsPrepay, net30: dict.checkout.termsNet30, net60: dict.checkout.termsNet60 }[order.terms];
 
   const thanksName = greetingFirstName(account.contactName);
@@ -119,7 +117,6 @@ export default async function OrderDetailPage({
           dict={dict.dashboard}
           locale={locale}
           leadTimeDays={hero.productionLeadTimeDays}
-          arrivalIso={arrivalIso}
           status={order.status}
           events={statusHistory}
         />

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ReorderButton } from "@/components/dashboard/ReorderButton";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { buttonClassNames } from "@/components/ui/Button";
-import { formatDate, formatDayMonth } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import { summarizeOrder, formatEUR } from "@/lib/pricing";
 import { withLocale } from "@/i18n/paths";
 import { t } from "@/i18n/format";
@@ -18,13 +18,13 @@ import type { Account, Order } from "@/lib/types";
 export function BuyerWelcome({
   account,
   lastOrder,
-  arrivalIso,
+  leadTimeDays,
   locale,
   dict,
 }: {
   account: Account;
   lastOrder?: Order;
-  arrivalIso: string;
+  leadTimeDays: number;
   locale: Locale;
   dict: Dictionary;
 }) {
@@ -38,7 +38,7 @@ export function BuyerWelcome({
             {t(h.welcomeBack, { name: account.contactName.split(" ")[0] || account.businessName })}
           </h1>
           <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-ink-soft">
-            {t(h.welcomeBody, { date: formatDayMonth(arrivalIso, locale) })}
+            {t(h.welcomeBody, { days: leadTimeDays })}
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href={withLocale(locale, "/quick-order")} className={buttonClassNames("primary", "md")}>
